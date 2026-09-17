@@ -50,13 +50,22 @@
         "noExplicitAny": "error"
       },
       "correctness": {
-        "noUnusedImports": "warn"
+        "noUnusedImports": "error"
       }
     }
   },
   "overrides": [
     {
-      "includes": ["apps/web/src/app/**"],
+      "includes": [
+        "apps/web/src/app/**/layout.tsx",
+        "apps/web/src/app/**/page.tsx",
+        "apps/web/src/app/**/template.tsx",
+        "apps/web/src/app/**/error.tsx",
+        "apps/web/src/app/**/not-found.tsx",
+        "apps/web/src/app/**/loading.tsx",
+        "apps/web/src/app/**/route.ts",
+        "apps/web/src/app/**/default.tsx"
+      ],
       "linter": {
         "rules": {
           "style": {
