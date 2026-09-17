@@ -1,12 +1,14 @@
 import type { NextConfig } from 'next';
-import { env } from './src/config/env';
+import { z } from 'zod';
+
+const apiOrigin = z.url().parse(process.env.API_ORIGIN).replace(/\/+$/, '');
 
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: `${env.API_ORIGIN}/api/:path*`,
+        destination: `${apiOrigin}/api/:path*`,
       },
     ];
   },
