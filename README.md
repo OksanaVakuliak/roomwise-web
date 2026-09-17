@@ -17,8 +17,22 @@ room preview.
 ```bash
 pnpm install
 pnpm --filter web exec cp .env.example .env
+```
+
+`.env.example` ships without values. Before the first run, set `API_ORIGIN`
+in `apps/web/.env` to the address of a locally running
+[`roomwise-api`](https://github.com/OksanaVakuliak/roomwise-api) —
+`http://localhost:3000` by default (the API's own default port; CI uses
+`http://localhost:4000` instead, set explicitly in the workflow). `pnpm dev`
+fails to start without it.
+
+```bash
 pnpm --filter web run dev
 ```
+
+`API_ORIGIN` is baked into the build: the `/api/*` rewrite is written into
+`routes-manifest.json` at build time. Changing it on Vercel requires a
+redeploy, not just an environment variable update.
 
 ## Scripts
 
