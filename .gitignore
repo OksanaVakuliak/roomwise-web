@@ -141,3 +141,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Serwist service worker (generated at build time)
+apps/web/public/sw.js
+
+# Next.js generated type declarations
+next-env.d.ts
