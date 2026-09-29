@@ -80,6 +80,13 @@ describe('applyTheme', () => {
     expect(document.documentElement.dataset.theme).toBe('dark');
   });
 
+  it('falls back to light in system mode when matchMedia is missing', () => {
+    Reflect.deleteProperty(window, 'matchMedia');
+    expect(applyTheme('system')).toBe('light');
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(themeColor()?.content).toBe(THEME_COLORS.light);
+  });
+
   it('ignores the system preference for an explicit mode', () => {
     stubMatchMedia(true);
     expect(applyTheme('light')).toBe('light');
@@ -87,6 +94,12 @@ describe('applyTheme', () => {
 });
 
 describe('watchSystemTheme', () => {
+  it('returns a no-op unsubscribe when matchMedia is missing', () => {
+    Reflect.deleteProperty(window, 'matchMedia');
+    const unsubscribe = watchSystemTheme(() => 'system', vi.fn());
+    expect(unsubscribe).not.toThrow();
+  });
+
   it('applies and reports the new theme in system mode', () => {
     const media = stubMatchMedia(false);
     const onChange = vi.fn();

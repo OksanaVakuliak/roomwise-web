@@ -37,7 +37,8 @@ function setThemeColor(color: string): void {
 }
 
 export function applyTheme(mode: ThemeMode): ResolvedTheme {
-  const systemPrefersDark = window.matchMedia(DARK_SCHEME_QUERY).matches;
+  const systemPrefersDark =
+    window.matchMedia?.(DARK_SCHEME_QUERY).matches ?? false;
   const theme = resolveTheme(mode, systemPrefersDark);
   document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
   setThemeColor(THEME_COLORS[theme]);
@@ -48,7 +49,10 @@ export function watchSystemTheme(
   getMode: () => ThemeMode,
   onChange: (theme: ResolvedTheme) => void,
 ): () => void {
-  const query = window.matchMedia(DARK_SCHEME_QUERY);
+  const query = window.matchMedia?.(DARK_SCHEME_QUERY);
+  if (!query) {
+    return () => {};
+  }
   const listener = () => {
     const mode = getMode();
     if (mode === 'system') {

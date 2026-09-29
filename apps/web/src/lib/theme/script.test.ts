@@ -69,5 +69,7 @@ describe('themeInitScript', () => {
   it('does not throw when matchMedia is missing', () => {
     Reflect.deleteProperty(window, 'matchMedia');
     expect(run).not.toThrow();
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(themeColor()?.content).toBe(THEME_COLORS.light);
   });
 });
