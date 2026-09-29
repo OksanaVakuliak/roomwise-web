@@ -1,0 +1,198 @@
+:root {
+  --text-display-xl-family: var(--font-tektur), sans-serif;
+  --text-display-xl-weight: 600;
+  --text-display-xl-size: 3.5rem;
+  --text-display-xl-line: 3.5rem;
+  --text-display-l-family: var(--font-tektur), sans-serif;
+  --text-display-l-weight: 600;
+  --text-display-l-size: 2.25rem;
+  --text-display-l-line: 2.25rem;
+  --text-display-m-family: var(--font-tektur), sans-serif;
+  --text-display-m-weight: 600;
+  --text-display-m-size: 2rem;
+  --text-display-m-line: 2.1rem;
+  --text-title-m-family: var(--font-tektur), sans-serif;
+  --text-title-m-weight: 600;
+  --text-title-m-size: 1.5rem;
+  --text-title-m-line: normal;
+  --text-title-s-family: var(--font-tektur), sans-serif;
+  --text-title-s-weight: 600;
+  --text-title-s-size: 1.1875rem;
+  --text-title-s-line: normal;
+  --text-number-l-family: var(--font-tektur), sans-serif;
+  --text-number-l-weight: 600;
+  --text-number-l-size: 2.625rem;
+  --text-number-l-line: 2.625rem;
+  --text-number-m-family: var(--font-tektur), sans-serif;
+  --text-number-m-weight: 600;
+  --text-number-m-size: 2.25rem;
+  --text-number-m-line: 2.25rem;
+  --text-number-s-family: var(--font-tektur), sans-serif;
+  --text-number-s-weight: 600;
+  --text-number-s-size: 1.875rem;
+  --text-number-s-line: 1.875rem;
+  --text-number-step-family: var(--font-tektur), sans-serif;
+  --text-number-step-weight: 600;
+  --text-number-step-size: 1.375rem;
+  --text-number-step-line: 1.375rem;
+  --text-brand-default-family: var(--font-tektur), sans-serif;
+  --text-brand-default-weight: 700;
+  --text-brand-default-size: 1.5rem;
+  --text-brand-default-line: 1.5rem;
+  --text-body-default-family: var(--font-commissioner), sans-serif;
+  --text-body-default-weight: 400;
+  --text-body-default-size: 0.9375rem;
+  --text-body-default-line: 1.265625rem;
+  --text-body-s-family: var(--font-commissioner), sans-serif;
+  --text-body-s-weight: 400;
+  --text-body-s-size: 0.8125rem;
+  --text-body-s-line: 1.0625rem;
+  --text-caption-default-family: var(--font-commissioner), sans-serif;
+  --text-caption-default-weight: 400;
+  --text-caption-default-size: 0.78125rem;
+  --text-caption-default-line: 1rem;
+  --text-caption-s-family: var(--font-commissioner), sans-serif;
+  --text-caption-s-weight: 400;
+  --text-caption-s-size: 0.75rem;
+  --text-caption-s-line: 0.9375rem;
+  --text-button-default-family: var(--font-commissioner), sans-serif;
+  --text-button-default-weight: 600;
+  --text-button-default-size: 0.9375rem;
+  --text-button-default-line: normal;
+  --text-hand-s-family: var(--font-caveat), cursive;
+  --text-hand-s-weight: 600;
+  --text-hand-s-size: 1.3125rem;
+  --text-hand-s-line: 1.375rem;
+  --text-hand-l-family: var(--font-caveat), cursive;
+  --text-hand-l-weight: 600;
+  --text-hand-l-size: 1.625rem;
+  --text-hand-l-line: 1.6875rem;
+}
+
+.num {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.text-display-xl {
+  font-family: var(--text-display-xl-family);
+  font-weight: var(--text-display-xl-weight);
+  font-size: var(--text-display-xl-size);
+  line-height: var(--text-display-xl-line);
+}
+
+.text-display-l {
+  font-family: var(--text-display-l-family);
+  font-weight: var(--text-display-l-weight);
+  font-size: var(--text-display-l-size);
+  line-height: var(--text-display-l-line);
+}
+
+.text-display-m {
+  font-family: var(--text-display-m-family);
+  font-weight: var(--text-display-m-weight);
+  font-size: var(--text-display-m-size);
+  line-height: var(--text-display-m-line);
+}
+
+.text-title-m {
+  font-family: var(--text-title-m-family);
+  font-weight: var(--text-title-m-weight);
+  font-size: var(--text-title-m-size);
+  line-height: var(--text-title-m-line);
+}
+
+.text-title-s {
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+  font-size: var(--text-title-s-size);
+  line-height: var(--text-title-s-line);
+}
+
+.text-number-l {
+  font-family: var(--text-number-l-family);
+  font-weight: var(--text-number-l-weight);
+  font-size: var(--text-number-l-size);
+  line-height: var(--text-number-l-line);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.text-number-m {
+  font-family: var(--text-number-m-family);
+  font-weight: var(--text-number-m-weight);
+  font-size: var(--text-number-m-size);
+  line-height: var(--text-number-m-line);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.text-number-s {
+  font-family: var(--text-number-s-family);
+  font-weight: var(--text-number-s-weight);
+  font-size: var(--text-number-s-size);
+  line-height: var(--text-number-s-line);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.text-number-step {
+  font-family: var(--text-number-step-family);
+  font-weight: var(--text-number-step-weight);
+  font-size: var(--text-number-step-size);
+  line-height: var(--text-number-step-line);
+}
+
+.text-brand-default {
+  font-family: var(--text-brand-default-family);
+  font-weight: var(--text-brand-default-weight);
+  font-size: var(--text-brand-default-size);
+  line-height: var(--text-brand-default-line);
+}
+
+.text-body-default {
+  font-family: var(--text-body-default-family);
+  font-weight: var(--text-body-default-weight);
+  font-size: var(--text-body-default-size);
+  line-height: var(--text-body-default-line);
+}
+
+.text-body-s {
+  font-family: var(--text-body-s-family);
+  font-weight: var(--text-body-s-weight);
+  font-size: var(--text-body-s-size);
+  line-height: var(--text-body-s-line);
+}
+
+.text-caption-default {
+  font-family: var(--text-caption-default-family);
+  font-weight: var(--text-caption-default-weight);
+  font-size: var(--text-caption-default-size);
+  line-height: var(--text-caption-default-line);
+}
+
+.text-caption-s {
+  font-family: var(--text-caption-s-family);
+  font-weight: var(--text-caption-s-weight);
+  font-size: var(--text-caption-s-size);
+  line-height: var(--text-caption-s-line);
+}
+
+.text-button-default {
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-button-default-size);
+  line-height: var(--text-button-default-line);
+}
+
+.text-hand-s {
+  font-family: var(--text-hand-s-family);
+  font-weight: var(--text-hand-s-weight);
+  font-size: var(--text-hand-s-size);
+  line-height: var(--text-hand-s-line);
+  color: var(--pencil);
+}
+
+.text-hand-l {
+  font-family: var(--text-hand-l-family);
+  font-weight: var(--text-hand-l-weight);
+  font-size: var(--text-hand-l-size);
+  line-height: var(--text-hand-l-line);
+  color: var(--pencil);
+}
