@@ -11,6 +11,7 @@
     "api:types": "node scripts/api-types.mjs"
   },
   "dependencies": {
+    "client-only": "^0.0.1",
     "next": "^16.3.5",
     "next-intl": "^4.14.9",
     "openapi-fetch": "^0.17.0",
