@@ -35,14 +35,17 @@ function pick<T extends string>(
   return allowed.find((item) => item === value) ?? fallback;
 }
 
-function sanitize(persisted: unknown): PersistedPreferences {
+function sanitize(
+  persisted: unknown,
+  fallback: PersistedPreferences = DEFAULTS,
+): PersistedPreferences {
   const source =
     typeof persisted === 'object' && persisted !== null
       ? (persisted as Record<string, unknown>)
       : {};
   return {
-    locale: pick(routing.locales, source.locale, DEFAULTS.locale),
-    currency: pick(currencies, source.currency, DEFAULTS.currency),
+    locale: pick(routing.locales, source.locale, fallback.locale),
+    currency: pick(currencies, source.currency, fallback.currency),
   };
 }
 
@@ -92,7 +95,10 @@ export const usePreferences = create<PreferencesState>()(
       storage: createJSONStorage(() => safeStorage),
       version: PREFERENCES_VERSION,
       migrate: () => sanitize(undefined),
-      merge: (persisted, current) => ({ ...current, ...sanitize(persisted) }),
+      merge: (persisted, current) =>
+        persisted == null
+          ? current
+          : { ...current, ...sanitize(persisted, current) },
       partialize: ({ locale, currency }) => ({ locale, currency }),
       skipHydration: true,
     },

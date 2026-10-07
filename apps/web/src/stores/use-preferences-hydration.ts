@@ -1,8 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { readThemeMode } from '@/lib/theme';
+import { readThemeMode, watchSystemTheme } from '@/lib/theme';
 import { usePreferences } from './preferences';
+
+let hydration: Promise<void> | undefined;
+
+function hydrateOnce(): Promise<void> {
+  hydration ??= Promise.resolve(usePreferences.persist.rehydrate()).then(() => {
+    usePreferences.setState({ theme: readThemeMode() });
+  });
+  return hydration;
+}
 
 export function usePreferencesHydration(): boolean {
   const [hydrated, setHydrated] = useState(() =>
@@ -11,8 +20,7 @@ export function usePreferencesHydration(): boolean {
 
   useEffect(() => {
     let active = true;
-    Promise.resolve(usePreferences.persist.rehydrate()).then(() => {
-      usePreferences.setState({ theme: readThemeMode() });
+    hydrateOnce().then(() => {
       if (active) {
         setHydrated(true);
       }
@@ -21,6 +29,15 @@ export function usePreferencesHydration(): boolean {
       active = false;
     };
   }, []);
+
+  useEffect(
+    () =>
+      watchSystemTheme(
+        () => usePreferences.getState().theme,
+        () => {},
+      ),
+    [],
+  );
 
   return hydrated;
 }
