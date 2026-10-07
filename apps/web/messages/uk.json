@@ -6,6 +6,41 @@
   "Home": {
     "title": "Roomwise"
   },
+  "Showcase": {
+    "title": "Вітрина компонентів",
+    "navLabel": "Розділи вітрини",
+    "empty": "Тут поки нічого немає",
+    "toolbar": {
+      "language": "Мова",
+      "currency": "Валюта",
+      "theme": "Тема",
+      "locales": {
+        "en": "Англійська",
+        "uk": "Українська"
+      },
+      "themes": {
+        "system": "Системна",
+        "light": "Світла",
+        "dark": "Темна"
+      }
+    },
+    "sections": {
+      "colors": "Кольори",
+      "typography": "Типографіка",
+      "spacing": "Відступи",
+      "icons": "Іконки",
+      "header": "Шапка",
+      "stepTape": "Стрічка кроків",
+      "actions": "Дії та перемикачі",
+      "roomPlan": "План кімнати",
+      "sectionCut": "Розріз",
+      "specification": "Специфікація",
+      "estimate": "Кошторис",
+      "formFields": "Поля форм",
+      "overlays": "Накладки",
+      "dataDisplay": "Відображення даних"
+    }
+  },
   "Errors": {
     "VALIDATION_FAILED": "Перевірте введені дані",
     "UNAUTHENTICATED": "Потрібно увійти",

@@ -6,6 +6,41 @@
   "Home": {
     "title": "Roomwise"
   },
+  "Showcase": {
+    "title": "Component showcase",
+    "navLabel": "Showcase sections",
+    "empty": "Nothing here yet",
+    "toolbar": {
+      "language": "Language",
+      "currency": "Currency",
+      "theme": "Theme",
+      "locales": {
+        "en": "English",
+        "uk": "Ukrainian"
+      },
+      "themes": {
+        "system": "System",
+        "light": "Light",
+        "dark": "Dark"
+      }
+    },
+    "sections": {
+      "colors": "Colors",
+      "typography": "Typography",
+      "spacing": "Spacing",
+      "icons": "Icons",
+      "header": "Header",
+      "stepTape": "Step tape",
+      "actions": "Actions and toggles",
+      "roomPlan": "Room plan",
+      "sectionCut": "Section cut",
+      "specification": "Specification",
+      "estimate": "Estimate",
+      "formFields": "Form fields",
+      "overlays": "Overlays",
+      "dataDisplay": "Data display"
+    }
+  },
   "Errors": {
     "VALIDATION_FAILED": "Check the entered data",
     "UNAUTHENTICATED": "Sign in required",
