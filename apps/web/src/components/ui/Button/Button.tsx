@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, MouseEvent } from 'react';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './Button.module.css';
 
@@ -7,6 +7,10 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
   loadingLabel?: string;
 };
+
+function preventAction(event: MouseEvent<HTMLButtonElement>) {
+  event.preventDefault();
+}
 
 export function Button({
   kind = 'outline',
@@ -32,7 +36,7 @@ export function Button({
       aria-busy={loading || undefined}
       aria-disabled={loading || undefined}
       data-loading={loading || undefined}
-      onClick={loading ? undefined : onClick}
+      onClick={loading ? preventAction : onClick}
     >
       {loading ? (
         <>

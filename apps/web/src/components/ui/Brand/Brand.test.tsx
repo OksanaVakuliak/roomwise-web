@@ -10,6 +10,13 @@ describe('Brand', () => {
     expect(screen.getByText('renovation blueprint')).toBeInTheDocument();
   });
 
+  it('keeps the name and caption apart as text', () => {
+    const { container } = render(
+      <Brand name="Roomwise" caption="renovation blueprint" />,
+    );
+    expect(container.textContent).toBe('Roomwise renovation blueprint');
+  });
+
   it('defaults to the mobile size', () => {
     const { container } = render(<Brand name="Roomwise" caption="Caption" />);
     expect(container.firstElementChild?.className).toMatch(/mobile/);

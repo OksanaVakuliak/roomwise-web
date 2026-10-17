@@ -67,7 +67,7 @@ function Pattern({
 }
 
 export function Hatch({ material }: HatchProps) {
-  const id = `hatch-${useId().replaceAll(':', '')}`;
+  const id = `hatch-${useId()}`;
 
   return (
     <svg

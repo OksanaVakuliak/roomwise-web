@@ -60,6 +60,19 @@ describe('Button', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
+  it('does not submit its form while loading', () => {
+    const onSubmit = vi.fn();
+    renderWithProviders(
+      <form onSubmit={onSubmit}>
+        <Button type="submit" loading loadingLabel="Saving">
+          Save
+        </Button>
+      </form>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Saving/ }));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('has no axe violations', async () => {
     const { container } = renderWithProviders(
       <>

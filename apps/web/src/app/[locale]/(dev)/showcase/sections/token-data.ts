@@ -56,8 +56,10 @@ export type TypeStyle = { name: string; className: string; size: string };
 
 export const TYPE_STYLES: TypeStyle[] = [
   ...typographyCss.matchAll(/--text-([a-z-]+)-size:\s*([^;]+);/g),
-].map(([, name, size]) => ({
-  name,
-  className: `text-${name}`,
-  size: size.trim(),
-}));
+]
+  .filter(([, name]) => typographyCss.includes(`.text-${name} {`))
+  .map(([, name, size]) => ({
+    name,
+    className: `text-${name}`,
+    size: size.trim(),
+  }));

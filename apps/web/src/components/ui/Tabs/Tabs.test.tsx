@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { useId, useState } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { axe } from '@/test/axe';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { Tab } from '../Tab/Tab';
@@ -54,6 +54,18 @@ describe('Tabs', () => {
   it('uses a roving tabindex', () => {
     renderWithProviders(<Harness />);
     expect(tab('Walls')).toHaveAttribute('tabindex', '0');
+    expect(tab('Floor')).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('keeps the first tab focusable when nothing is selected', () => {
+    renderWithProviders(
+      <Tabs label="Sections" value="" onValueChange={vi.fn()}>
+        <Tab value="walls">Walls</Tab>
+        <Tab value="floor">Floor</Tab>
+      </Tabs>,
+    );
+    expect(tab('Walls')).toHaveAttribute('tabindex', '0');
+    expect(tab('Walls')).toHaveAttribute('aria-selected', 'false');
     expect(tab('Floor')).toHaveAttribute('tabindex', '-1');
   });
 

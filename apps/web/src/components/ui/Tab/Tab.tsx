@@ -46,7 +46,7 @@ export function Tab({
       id={tabId(tabs.id, value)}
       aria-selected={selected}
       aria-controls={panelId(tabs.id, value)}
-      tabIndex={selected ? 0 : -1}
+      tabIndex={tabs.focusValue === value ? 0 : -1}
       data-value={value}
       className={classes}
       onClick={handleClick}

@@ -1,7 +1,9 @@
 'use client';
 
 import {
+  Children,
   createContext,
+  isValidElement,
   type KeyboardEvent,
   type ReactNode,
   useCallback,
@@ -16,6 +18,7 @@ export type TabsSize = 'mobile' | 'desktop';
 type TabsContextValue = {
   id: string;
   value: string;
+  focusValue: string | undefined;
   size: TabsSize;
   onValueChange: (value: string) => void;
 };
@@ -55,6 +58,13 @@ export function Tabs({
   className,
   children,
 }: TabsProps) {
+  const values = Children.toArray(children).flatMap((child) =>
+    isValidElement<{ value?: unknown }>(child) &&
+    typeof child.props.value === 'string'
+      ? [child.props.value]
+      : [],
+  );
+  const focusValue = values.includes(value) ? value : values[0];
   const generatedId = useId();
   const tabsId = id ?? generatedId;
   const classes = [styles.root, styles[size], className]
@@ -89,8 +99,8 @@ export function Tabs({
   );
 
   const context = useMemo(
-    () => ({ id: tabsId, value, size, onValueChange }),
-    [tabsId, value, size, onValueChange],
+    () => ({ id: tabsId, value, focusValue, size, onValueChange }),
+    [tabsId, value, focusValue, size, onValueChange],
   );
 
   return (

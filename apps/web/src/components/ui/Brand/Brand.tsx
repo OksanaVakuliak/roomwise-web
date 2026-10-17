@@ -19,8 +19,7 @@ export function Brand({
 
   return (
     <div className={classes}>
-      {name}
-      <span className={styles.caption}>{caption}</span>
+      {name} <span className={styles.caption}>{caption}</span>
     </div>
   );
 }
