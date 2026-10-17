@@ -31,6 +31,19 @@
   outline: none;
 }
 
+.bottom {
+  max-height: var(--overlay-sheet-height);
+  border-bottom: 0;
+  box-shadow: none;
+}
+
+.side {
+  align-self: stretch;
+  max-width: var(--overlay-panel-width);
+  max-height: none;
+  box-shadow: none;
+}
+
 .center {
   max-width: var(--overlay-modal-width);
   animation: rise var(--duration-base) var(--ease-enter);

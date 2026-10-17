@@ -1,4 +1,5 @@
 import { type ComponentProps, useId } from 'react';
+import { mergeControl } from '@/lib/form';
 import { FormField } from '../FormField/FormField';
 import styles from './NumberField.module.css';
 
@@ -45,12 +46,7 @@ export function NumberField({
         <span className={styles.wrap}>
           <input
             {...rest}
-            {...control}
-            aria-describedby={
-              [control['aria-describedby'], unit ? unitId : undefined]
-                .filter(Boolean)
-                .join(' ') || undefined
-            }
+            {...mergeControl(control, rest, unit ? unitId : undefined)}
             type="number"
             inputMode={inputMode}
             readOnly={loading || readOnly}

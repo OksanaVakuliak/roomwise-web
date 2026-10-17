@@ -28,11 +28,12 @@ export function Tooltip({ content, children }: TooltipProps) {
     }
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
+        event.preventDefault();
         setDismissed(true);
       }
     }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
   }, [open]);
 
   const handleEnter = useCallback(() => {

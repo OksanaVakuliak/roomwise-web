@@ -11,21 +11,23 @@ afterEach(() => {
 });
 
 describe('Toast', () => {
-  it('is a polite status region by default', () => {
+  it('is a polite status region by default', async () => {
     renderWithProviders(
       <Toast dismissLabel="Dismiss" onDismiss={noop}>
         Saved
       </Toast>,
     );
+    expect(await screen.findByText('Saved')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Saved');
   });
 
-  it('is an alert for the error variant', () => {
+  it('is an alert for the error variant', async () => {
     renderWithProviders(
       <Toast variant="error" dismissLabel="Dismiss" onDismiss={noop}>
         Failed
       </Toast>,
     );
+    expect(await screen.findByText('Failed')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('Failed');
   });
 

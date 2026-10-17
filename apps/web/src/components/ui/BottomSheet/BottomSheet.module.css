@@ -1,7 +1,4 @@
 .root {
-  max-height: var(--overlay-sheet-height);
-  border-bottom: 0;
-  box-shadow: none;
   animation: slide-up var(--duration-slow) var(--ease-enter);
 }
 

@@ -51,11 +51,7 @@ function Dialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={[
-          styles.panel,
-          placement === 'center' && styles.center,
-          className,
-        ]
+        className={[styles.panel, styles[placement], className]
           .filter(Boolean)
           .join(' ')}
       >

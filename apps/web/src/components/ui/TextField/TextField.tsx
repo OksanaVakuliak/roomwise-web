@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react';
+import { mergeControl } from '@/lib/form';
 import { FormField } from '../FormField/FormField';
 import styles from './TextField.module.css';
 
@@ -37,7 +38,7 @@ export function TextField({
       {(control) => (
         <input
           {...rest}
-          {...control}
+          {...mergeControl(control, rest)}
           type={type}
           readOnly={loading || readOnly}
           className={styles.control}

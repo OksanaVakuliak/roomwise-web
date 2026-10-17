@@ -1,8 +1,4 @@
 .root {
-  align-self: stretch;
-  max-width: var(--overlay-panel-width);
-  max-height: none;
-  box-shadow: none;
   animation: slide-in var(--duration-slow) var(--ease-enter);
 }
 

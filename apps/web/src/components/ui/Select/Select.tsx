@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react';
+import { mergeControl } from '@/lib/form';
 import { FormField } from '../FormField/FormField';
 import { Icon } from '../Icon/Icon';
 import styles from './Select.module.css';
@@ -49,7 +50,7 @@ export function Select({
         <span className={styles.wrap}>
           <select
             {...rest}
-            {...control}
+            {...mergeControl(control, rest)}
             value={value}
             defaultValue={initial}
             disabled={disabled || loading}

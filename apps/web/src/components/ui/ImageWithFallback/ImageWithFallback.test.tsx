@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { axe } from '@/test/axe';
 import { ImageWithFallback } from './ImageWithFallback';
 
@@ -55,5 +55,19 @@ describe('ImageWithFallback', () => {
       </>,
     );
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('shows the placeholder when the image already failed before hydration', () => {
+    const complete = vi
+      .spyOn(HTMLImageElement.prototype, 'complete', 'get')
+      .mockReturnValue(true);
+    const width = vi
+      .spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get')
+      .mockReturnValue(0);
+    render(<ImageWithFallback src="/broken.svg" name="Oak laminate" />);
+    expect(document.querySelector('img')).toBeNull();
+    expect(screen.getByText('Oak laminate')).toBeInTheDocument();
+    complete.mockRestore();
+    width.mockRestore();
   });
 });

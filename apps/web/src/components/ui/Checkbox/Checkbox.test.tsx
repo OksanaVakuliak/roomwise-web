@@ -38,4 +38,14 @@ describe('Checkbox', () => {
     );
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it('keeps a consumer aria-describedby', () => {
+    renderWithProviders(
+      <Checkbox label="Agree" aria-describedby="extra" hint="Hint" />,
+    );
+    expect(screen.getByLabelText('Agree')).toHaveAttribute(
+      'aria-describedby',
+      expect.stringMatching(/^extra \S+-hint$/),
+    );
+  });
 });

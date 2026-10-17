@@ -27,7 +27,8 @@
   transform: translateY(var(--stroke-1));
 }
 
-.button:disabled {
+.button:disabled,
+.button[aria-disabled="true"] {
   opacity: var(--opacity-disabled);
   cursor: not-allowed;
   transform: none;

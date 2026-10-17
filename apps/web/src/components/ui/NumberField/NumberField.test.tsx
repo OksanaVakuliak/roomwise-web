@@ -36,4 +36,15 @@ describe('NumberField', () => {
     );
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it('keeps a consumer aria-describedby next to the unit', () => {
+    renderWithProviders(
+      <NumberField label="Width" unit="m" aria-describedby="extra" />,
+    );
+    const describedBy = screen
+      .getByLabelText('Width')
+      .getAttribute('aria-describedby');
+    expect(describedBy?.split(' ')[0]).toBe('extra');
+    expect(describedBy?.split(' ')).toHaveLength(2);
+  });
 });

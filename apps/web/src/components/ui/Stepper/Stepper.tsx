@@ -7,6 +7,7 @@ import {
   useId,
   useState,
 } from 'react';
+import { mergeControl } from '@/lib/form';
 import { FormField } from '../FormField/FormField';
 import { Icon } from '../Icon/Icon';
 import styles from './Stepper.module.css';
@@ -145,20 +146,16 @@ export function Stepper({
             className={styles.button}
             aria-label={decrementLabel}
             aria-controls={control.id}
-            disabled={locked || value <= min}
-            onClick={decrement}
+            disabled={locked}
+            aria-disabled={value <= min ? true : undefined}
+            onClick={value <= min ? undefined : decrement}
           >
             <Icon name="minus" />
           </button>
           <span className={styles.wrap}>
             <input
               {...rest}
-              {...control}
-              aria-describedby={
-                [control['aria-describedby'], unit ? unitId : undefined]
-                  .filter(Boolean)
-                  .join(' ') || undefined
-              }
+              {...mergeControl(control, rest, unit ? unitId : undefined)}
               type="number"
               inputMode="decimal"
               min={Number.isFinite(min) ? min : undefined}
@@ -182,8 +179,9 @@ export function Stepper({
             className={styles.button}
             aria-label={incrementLabel}
             aria-controls={control.id}
-            disabled={locked || value >= max}
-            onClick={increment}
+            disabled={locked}
+            aria-disabled={value >= max ? true : undefined}
+            onClick={value >= max ? undefined : increment}
           >
             <Icon name="plus" />
           </button>

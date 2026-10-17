@@ -1,4 +1,7 @@
-import { type ComponentProps, useId } from 'react';
+'use client';
+
+import { type ComponentProps, use, useId } from 'react';
+import { RadioCardGroupContext } from '@/lib/form';
 import styles from './RadioCard.module.css';
 
 export type RadioCardProps = Omit<
@@ -15,6 +18,7 @@ export function RadioCard({
   className,
   ...rest
 }: RadioCardProps) {
+  const group = use(RadioCardGroupContext);
   const id = useId();
   const titleId = `${id}-title`;
   const descriptionId = `${id}-description`;
@@ -25,6 +29,8 @@ export function RadioCard({
       <input
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
+        required={group.required || undefined}
+        aria-invalid={group.invalid || undefined}
         {...rest}
         type="radio"
         className={styles.input}

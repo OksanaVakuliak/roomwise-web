@@ -53,4 +53,34 @@ describe('TextField', () => {
     );
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it('keeps a consumer aria-describedby with and without hint and error', () => {
+    const { rerender } = renderWithProviders(
+      <TextField label="Name" aria-describedby="extra" />,
+    );
+    expect(screen.getByLabelText('Name')).toHaveAttribute(
+      'aria-describedby',
+      'extra',
+    );
+    rerender(
+      <TextField
+        label="Name"
+        aria-describedby="extra"
+        hint="Hint"
+        error="Bad"
+      />,
+    );
+    expect(screen.getByLabelText('Name')).toHaveAttribute(
+      'aria-describedby',
+      expect.stringMatching(/^extra \S+-hint \S+-error$/),
+    );
+  });
+
+  it('respects a consumer aria-invalid when there is no error', () => {
+    renderWithProviders(<TextField label="Name" aria-invalid="true" />);
+    expect(screen.getByLabelText('Name')).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    );
+  });
 });

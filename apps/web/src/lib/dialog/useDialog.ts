@@ -13,6 +13,46 @@ function focusableIn(container: HTMLElement): HTMLElement[] {
   return [...container.querySelectorAll<HTMLElement>(FOCUSABLE)];
 }
 
+type Entry = { container: HTMLElement };
+
+const stack: Entry[] = [];
+const inertCounts = new Map<Element, number>();
+let savedOverflow = '';
+
+function lockPage(container: HTMLElement) {
+  if (stack.length === 0) {
+    savedOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
+  const own = container.closest('body > *');
+  const nodes: Element[] = [];
+  for (const node of document.body.children) {
+    const count = inertCounts.get(node);
+    if (node === own || (count === undefined && node.hasAttribute('inert'))) {
+      continue;
+    }
+    inertCounts.set(node, (count ?? 0) + 1);
+    node.setAttribute('inert', '');
+    nodes.push(node);
+  }
+  return nodes;
+}
+
+function unlockPage(nodes: Element[]) {
+  for (const node of nodes) {
+    const count = (inertCounts.get(node) ?? 1) - 1;
+    if (count > 0) {
+      inertCounts.set(node, count);
+    } else {
+      inertCounts.delete(node);
+      node.removeAttribute('inert');
+    }
+  }
+  if (stack.length === 0) {
+    document.body.style.overflow = savedOverflow;
+  }
+}
+
 export function useDialog(
   ref: RefObject<HTMLElement | null>,
   onClose: () => void,
@@ -30,18 +70,15 @@ export function useDialog(
       return;
     }
 
-    const inerted = [...document.body.children].filter(
-      (node) =>
-        node !== container.closest('body > *') && !node.hasAttribute('inert'),
-    );
-    for (const node of inerted) {
-      node.setAttribute('inert', '');
-    }
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const entry: Entry = { container };
+    const inerted = lockPage(container);
+    stack.push(entry);
     container.focus();
 
     function handleKeyDown(event: KeyboardEvent) {
+      if (event.defaultPrevented || stack[stack.length - 1] !== entry) {
+        return;
+      }
       if (event.key === 'Escape') {
         event.preventDefault();
         closeRef.current();
@@ -70,10 +107,8 @@ export function useDialog(
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      for (const node of inerted) {
-        node.removeAttribute('inert');
-      }
-      document.body.style.overflow = overflow;
+      stack.splice(stack.indexOf(entry), 1);
+      unlockPage(inerted);
       if (opener instanceof HTMLElement) {
         opener.focus();
       }

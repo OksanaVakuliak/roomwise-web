@@ -6,6 +6,7 @@ import {
   useCallback,
   useState,
 } from 'react';
+import { mergeControl } from '@/lib/form';
 import { FormField } from '../FormField/FormField';
 import { Icon } from '../Icon/Icon';
 import styles from './FileField.module.css';
@@ -68,7 +69,7 @@ export function FileField({
         <span className={styles.root}>
           <input
             {...rest}
-            {...control}
+            {...mergeControl(control, rest)}
             type="file"
             disabled={disabled || loading}
             className={styles.input}

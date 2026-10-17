@@ -42,4 +42,17 @@ describe('RadioCardGroup', () => {
     const { container } = renderWithProviders(<Group error="Choose a style" />);
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it('passes required and invalid state to every radio', () => {
+    renderWithProviders(
+      <RadioCardGroup label="Style" required error="Choose a style">
+        <RadioCard name="style" value="a" label="Loft" />
+        <RadioCard name="style" value="b" label="Classic" />
+      </RadioCardGroup>,
+    );
+    for (const radio of screen.getAllByRole('radio')) {
+      expect(radio).toBeRequired();
+      expect(radio).toHaveAttribute('aria-invalid', 'true');
+    }
+  });
 });

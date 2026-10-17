@@ -46,17 +46,17 @@ describe('Stepper', () => {
     expect(screen.getByLabelText('Rooms')).toHaveValue(1.5);
   });
 
-  it('disables the buttons at the bounds', () => {
+  it('marks the buttons aria-disabled at the bounds', () => {
     const onValueChange = vi.fn();
     renderWithProviders(<Controlled onValueChange={onValueChange} />);
     const minus = screen.getByRole('button', { name: 'Decrease' });
     const plus = screen.getByRole('button', { name: 'Increase' });
     fireEvent.click(plus);
-    expect(plus).toBeDisabled();
+    expect(plus).toHaveAttribute('aria-disabled', 'true');
     expect(onValueChange).toHaveBeenLastCalledWith(3);
     fireEvent.click(minus);
     fireEvent.click(minus);
-    expect(minus).toBeDisabled();
+    expect(minus).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByLabelText('Rooms')).toHaveValue(1);
   });
 
@@ -104,5 +104,19 @@ describe('Stepper', () => {
       </>,
     );
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('keeps focus on the button that reaches the minimum', () => {
+    renderWithProviders(
+      <Stepper label="Rooms" {...labels} defaultValue={2} min={1} />,
+    );
+    const decrease = screen.getByRole('button', { name: 'Decrease' });
+    decrease.focus();
+    fireEvent.click(decrease);
+    expect(decrease).toHaveFocus();
+    expect(decrease).toHaveAttribute('aria-disabled', 'true');
+    expect(decrease).not.toBeDisabled();
+    fireEvent.click(decrease);
+    expect(screen.getByLabelText('Rooms')).toHaveValue(1);
   });
 });

@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axe } from '@/test/axe';
 import { renderWithProviders } from '@/test/render-with-providers';
+import { Tooltip } from '../Tooltip/Tooltip';
 import { Modal, type ModalProps } from './Modal';
 
 function Harness({
@@ -117,5 +118,71 @@ describe('Modal', () => {
     renderWithProviders(<Harness />);
     openModal();
     expect(await axe(document.body)).toHaveNoViolations();
+  });
+
+  it('closes only the top dialog on Escape', () => {
+    const onCloseA = vi.fn();
+    const onCloseB = vi.fn();
+    renderWithProviders(
+      <>
+        <Modal open onClose={onCloseA} title="A" closeLabel="Close A">
+          <p>a</p>
+        </Modal>
+        <Modal open onClose={onCloseB} title="B" closeLabel="Close B">
+          <p>b</p>
+        </Modal>
+      </>,
+    );
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onCloseB).toHaveBeenCalledTimes(1);
+    expect(onCloseA).not.toHaveBeenCalled();
+  });
+
+  it('hides a tooltip on Escape without closing the dialog', () => {
+    const onClose = vi.fn();
+    renderWithProviders(
+      <Modal open onClose={onClose} title="A" closeLabel="Close">
+        <Tooltip content="Hint">
+          <button type="button">Target</button>
+        </Tooltip>
+      </Modal>,
+    );
+    const target = screen.getByRole('button', { name: 'Target' });
+    fireEvent.focus(target);
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    fireEvent.keyDown(target, { key: 'Escape' });
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.keyDown(target, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the page locked when dialogs close out of order', () => {
+    const noop = () => {};
+    const background = document.createElement('div');
+    const preInert = document.createElement('div');
+    preInert.setAttribute('inert', '');
+    document.body.append(background, preInert);
+    const tree = (a: boolean, b: boolean) => (
+      <>
+        <Modal open={a} onClose={noop} title="A" closeLabel="Close A">
+          <p>a</p>
+        </Modal>
+        <Modal open={b} onClose={noop} title="B" closeLabel="Close B">
+          <p>b</p>
+        </Modal>
+      </>
+    );
+    const { rerender } = renderWithProviders(tree(true, false));
+    rerender(tree(true, true));
+    rerender(tree(false, true));
+    expect(document.body.style.overflow).toBe('hidden');
+    expect(background).toHaveAttribute('inert');
+    rerender(tree(false, false));
+    expect(document.body.style.overflow).toBe('');
+    expect(background).not.toHaveAttribute('inert');
+    expect(preInert).toHaveAttribute('inert');
+    background.remove();
+    preInert.remove();
   });
 });
