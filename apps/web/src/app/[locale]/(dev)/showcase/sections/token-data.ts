@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { CSSProperties } from 'react';
 import {
   parseTheme,
@@ -7,8 +8,13 @@ import {
   type Theme,
 } from '@/lib/contrast/contrast';
 
+const STYLES = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../../../../styles',
+);
+
 function readStyles(file: string): string {
-  return readFileSync(join(process.cwd(), 'src/styles', file), 'utf8');
+  return readFileSync(resolve(STYLES, file), 'utf8');
 }
 
 const tokensCss = readStyles('tokens.css');
