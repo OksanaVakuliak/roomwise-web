@@ -1,0 +1,70 @@
+.root {
+  position: relative;
+}
+
+.mobile {
+  padding-left: var(--remark-indent-mobile);
+  --hand-size: var(--remark-hand-mobile);
+  --text-size: var(--text-body-default-size);
+  --fix-margin: var(--space-8);
+}
+
+.desktop {
+  padding-left: var(--remark-indent-desktop);
+  --hand-size: var(--text-hand-l-size);
+  --text-size: var(--remark-text-desktop);
+  --fix-margin: var(--space-10);
+}
+
+.mark {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.text {
+  margin: 0;
+  overflow-wrap: anywhere;
+  max-width: var(--remark-measure);
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-size);
+  line-height: 1.4;
+}
+
+.text b {
+  color: var(--heat);
+}
+
+.fix {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-4) var(--space-10);
+  align-items: end;
+  margin-top: var(--fix-margin);
+}
+
+.desktop .fix {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.fix svg {
+  width: var(--remark-arrow-width);
+  height: var(--remark-arrow-height);
+}
+
+.hand {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--text-hand-s-family);
+  font-weight: var(--text-hand-s-weight);
+  font-size: var(--hand-size);
+  line-height: 1.05;
+  color: var(--pencil);
+}
+
+.mobile .action {
+  grid-column: 2;
+  min-width: 0;
+}
