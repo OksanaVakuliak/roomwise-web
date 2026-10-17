@@ -1,0 +1,24 @@
+.root {
+  font-family: var(--text-brand-default-family);
+  font-weight: var(--text-brand-default-weight);
+  font-size: var(--text-brand-default-size);
+  line-height: 1;
+  color: var(--line);
+}
+
+.desktop {
+  font-size: var(--text-brand-desktop-size);
+}
+
+.caption {
+  display: block;
+  margin-top: var(--space-3);
+  font-family: var(--text-brand-caption-family);
+  font-weight: var(--text-brand-caption-weight);
+  font-size: var(--text-brand-caption-size);
+  color: var(--line-2);
+}
+
+.desktop .caption {
+  font-size: var(--text-brand-caption-desktop-size);
+}
