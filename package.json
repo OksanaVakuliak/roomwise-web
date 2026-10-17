@@ -9,6 +9,7 @@
     "lint": "biome check .",
     "format": "biome check --write .",
     "typecheck": "pnpm --filter web run typecheck",
+    "api:types": "pnpm --filter web run api:types",
     "test": "vitest run",
     "build": "pnpm --filter web run build",
     "commit": "cz",

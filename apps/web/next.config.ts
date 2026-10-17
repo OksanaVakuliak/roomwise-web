@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import createNextIntlPlugin from 'next-intl/plugin';
 import { z } from 'zod';
 
 const parsedApiOrigin = z.url().safeParse(process.env.API_ORIGIN);
@@ -11,6 +12,8 @@ if (!parsedApiOrigin.success) {
 
 const apiOrigin = parsedApiOrigin.data.replace(/\/+$/, '');
 
+const withNextIntl = createNextIntlPlugin();
+
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
@@ -22,4 +25,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

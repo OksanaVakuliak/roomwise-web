@@ -57,6 +57,10 @@
   --stroke-1-5: 1.5px;
   --stroke-2: 2px;
 
+  --icon-sm: 14px;
+  --icon-md: 17px;
+  --icon-lg: 24px;
+
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --duration-slow: 320ms;
