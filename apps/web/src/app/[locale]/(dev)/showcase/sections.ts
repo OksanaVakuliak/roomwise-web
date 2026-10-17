@@ -14,3 +14,5 @@ export const SHOWCASE_SECTIONS = [
   'overlays',
   'dataDisplay',
 ] as const;
+
+export type ShowcaseSection = (typeof SHOWCASE_SECTIONS)[number];

@@ -4,9 +4,7 @@ import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { publicEnv } from '@/config/public-env';
 import { routing } from '@/i18n/routing';
-import { ShowcaseToolbar } from './ShowcaseToolbar';
-import { SHOWCASE_SECTIONS } from './sections';
-import styles from './showcase.module.css';
+import { Showcase } from './Showcase';
 import { isShowcaseEnabled } from './showcase-access';
 
 type ShowcaseProps = { params: Promise<{ locale: string }> };
@@ -43,38 +41,5 @@ export default async function ShowcasePage({ params }: ShowcaseProps) {
 
   setRequestLocale(locale);
 
-  const t = await getTranslations('Showcase');
-
-  return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>{t('title')}</h1>
-        <ShowcaseToolbar />
-      </header>
-      <nav aria-label={t('navLabel')} className={styles.nav}>
-        <ul className={styles.navList}>
-          {SHOWCASE_SECTIONS.map((section) => (
-            <li key={section}>
-              <a href={`#${section}`} className={styles.navLink}>
-                {t(`sections.${section}`)}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      {SHOWCASE_SECTIONS.map((section) => (
-        <section
-          key={section}
-          id={section}
-          aria-labelledby={`${section}-title`}
-          className={styles.section}
-        >
-          <h2 id={`${section}-title`} className={styles.sectionTitle}>
-            {t(`sections.${section}`)}
-          </h2>
-          <p className={styles.empty}>{t('empty')}</p>
-        </section>
-      ))}
-    </main>
-  );
+  return <Showcase />;
 }
