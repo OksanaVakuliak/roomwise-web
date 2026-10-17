@@ -1,0 +1,13 @@
+.root {
+  display: flex;
+  overflow-x: auto;
+  padding: var(--space-6) 0;
+}
+
+.mobile {
+  gap: var(--space-6);
+}
+
+.desktop {
+  gap: var(--space-4);
+}

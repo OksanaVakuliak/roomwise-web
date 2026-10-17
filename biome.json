@@ -73,6 +73,44 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/web/src/components/ui/Tabs/Tabs.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": {
+              "level": "warn",
+              "options": {
+                "allowExportNames": ["useTabsContext", "tabId", "panelId"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/web/src/components/ui/Icon/Icon.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": {
+              "level": "warn",
+              "options": { "allowExportNames": ["iconNames"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": "off"
+          }
+        }
+      }
     }
   ]
 }

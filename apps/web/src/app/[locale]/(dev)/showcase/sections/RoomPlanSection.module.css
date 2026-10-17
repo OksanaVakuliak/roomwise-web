@@ -1,0 +1,24 @@
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-14);
+  margin-bottom: var(--space-16);
+}
+
+.groupDesktop {
+  gap: var(--space-28);
+}
+
+.frame {
+  max-width: 100%;
+  margin-bottom: var(--space-16);
+}
+
+.frameMobile {
+  width: 390px;
+}
+
+.frameDesktop {
+  width: 300px;
+}

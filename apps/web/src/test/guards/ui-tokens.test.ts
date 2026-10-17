@@ -42,8 +42,9 @@ function stripVarCalls(value: string): string {
 function isAllowedLength(amount: string, unit: string | undefined): boolean {
   const number = Number.parseFloat(amount);
   if (number === 0) return true;
-  if (unit === undefined) return number === 100;
-  return unit.toLowerCase() === 'px' && number === 1;
+  if (unit === undefined) return [100, 50, -50].includes(number);
+  const lower = unit.toLowerCase();
+  return lower === 'fr' || (lower === 'px' && number === 1);
 }
 
 function literalProblems(text: string): string[] {

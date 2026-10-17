@@ -1,0 +1,44 @@
+.root {
+  flex: none;
+  min-height: var(--size-target);
+  border: var(--stroke-1-5) solid var(--line-2);
+  background: transparent;
+  color: var(--line-2);
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-tab-size);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.mobile {
+  padding: 0 var(--space-12);
+}
+
+.desktop {
+  padding: 0 var(--space-9);
+}
+
+.root:hover {
+  border-color: var(--line);
+  color: var(--line);
+}
+
+.selected,
+.selected:hover {
+  border-color: var(--line);
+  background: var(--line);
+  color: var(--sheet);
+}
+
+.root:active {
+  transform: translateY(var(--stroke-1));
+}
+
+.root:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}

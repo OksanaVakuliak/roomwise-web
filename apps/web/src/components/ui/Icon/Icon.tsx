@@ -3,6 +3,8 @@ import { icons } from './icons';
 
 export type IconName = keyof typeof icons;
 
+export const iconNames = Object.keys(icons) as IconName[];
+
 export type IconProps = {
   name: IconName;
   label?: string;

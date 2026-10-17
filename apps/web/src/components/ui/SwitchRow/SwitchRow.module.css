@@ -1,0 +1,27 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-10) var(--space-12);
+  border: var(--stroke-1-5) solid var(--line);
+}
+
+.text {
+  margin: 0;
+}
+
+.title {
+  display: block;
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-button-default-size);
+}
+
+.description {
+  display: block;
+  color: var(--line-2);
+  font-family: var(--text-body-s-family);
+  font-weight: var(--text-body-s-weight);
+  font-size: var(--text-body-s-size);
+}

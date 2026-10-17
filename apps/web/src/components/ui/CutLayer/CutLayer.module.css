@@ -1,0 +1,131 @@
+.root {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--block) var(--leader) minmax(0, 1fr) max-content;
+  align-items: center;
+  min-height: var(--h);
+}
+
+.mobile {
+  --block: var(--cut-block-mobile);
+  --leader: var(--cut-leader-mobile);
+  --name-size: var(--cut-name-mobile);
+  --note-size: var(--cut-note-mobile);
+  --price-size: var(--cut-price-mobile);
+  --label-padding: var(--space-6) var(--space-8) var(--space-6) var(--space-4);
+  --mark-left: var(--rev-left-mobile);
+  --mark-top: var(--rev-top-mobile);
+}
+
+.desktop {
+  --block: var(--cut-block-desktop);
+  --leader: var(--cut-leader-desktop);
+  --name-size: var(--cut-name-desktop);
+  --note-size: var(--cut-note-desktop);
+  --price-size: var(--cut-price-desktop);
+  --label-padding: var(--space-8) var(--space-12) var(--space-8) var(--space-6);
+  --mark-left: var(--rev-left-desktop);
+  --mark-top: var(--rev-top-desktop);
+}
+
+.block {
+  position: relative;
+  align-self: stretch;
+  min-height: var(--h);
+  border: var(--stroke-1-2) solid var(--line);
+  border-top-width: 0;
+}
+
+.block > svg {
+  position: absolute;
+  inset: 0;
+}
+
+.first .block {
+  border-top-width: var(--stroke-1-2);
+}
+
+.leader {
+  height: 0;
+  border-top: var(--stroke-1-2) solid var(--line);
+}
+
+.label {
+  min-width: 0;
+  padding: var(--label-padding);
+  overflow-wrap: anywhere;
+  font-family: var(--text-body-default-family);
+  font-size: var(--name-size);
+  line-height: 1.2;
+}
+
+.label b {
+  display: block;
+  font-weight: 600;
+}
+
+.label span {
+  font-size: var(--note-size);
+  color: var(--line-2);
+}
+
+.price {
+  font-family: var(--text-number-s-family);
+  font-weight: 600;
+  font-size: var(--price-size);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.new .label span,
+.new .price {
+  color: var(--heat);
+}
+
+.new .label span {
+  font-weight: 600;
+}
+
+.problem .label b,
+.problem .price {
+  color: var(--heat);
+}
+
+.problem .label {
+  padding-top: var(--space-14);
+  padding-bottom: var(--space-14);
+}
+
+.problem .price {
+  padding-right: var(--space-14);
+}
+
+.included .price {
+  color: var(--line-2);
+  font-family: var(--text-body-default-family);
+  font-weight: 500;
+  font-size: var(--text-body-s-size);
+}
+
+.cloud {
+  position: absolute;
+  top: var(--cut-cloud-block);
+  right: var(--cut-cloud-end);
+  bottom: var(--cut-cloud-block);
+  left: var(--cut-cloud-start);
+  pointer-events: none;
+}
+
+.cloud svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.mark {
+  position: absolute;
+  left: var(--mark-left);
+  top: var(--mark-top);
+}

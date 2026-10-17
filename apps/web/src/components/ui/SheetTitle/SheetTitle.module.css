@@ -1,0 +1,51 @@
+.root {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.mobile {
+  padding: var(--space-12) var(--space-16) 0;
+}
+
+.desktop {
+  padding: var(--space-16) var(--space-28) 0;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--text-display-l-family);
+  font-size: var(--text-display-l-size);
+  font-weight: var(--text-display-l-weight);
+  line-height: 1;
+}
+
+.desktop .heading {
+  font-size: var(--text-display-xl-size);
+}
+
+.meta {
+  margin: 0;
+  color: var(--line-2);
+  font-size: var(--text-body-s-size);
+  line-height: 1.3;
+  text-align: right;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.desktop .meta {
+  font-size: var(--text-label-size);
+}
+
+.primary {
+  display: block;
+  color: var(--line);
+  font-family: var(--text-number-s-family);
+  font-size: var(--text-number-meta-size);
+  font-weight: var(--text-number-s-weight);
+}
+
+.desktop .primary {
+  font-size: var(--text-number-step-size);
+}

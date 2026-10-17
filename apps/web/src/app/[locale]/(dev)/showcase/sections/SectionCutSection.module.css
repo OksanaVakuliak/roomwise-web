@@ -1,0 +1,54 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--text-title-s-family);
+  font-size: var(--text-title-s-size);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.hatch {
+  display: block;
+  width: 80px;
+  height: 34px;
+}
+
+.caption {
+  margin: 0;
+  font-size: var(--text-caption-default-size);
+  color: var(--line-2);
+}
+
+.frame {
+  box-sizing: border-box;
+  padding-top: var(--space-24);
+}
+
+.desktop {
+  width: 760px;
+  padding-left: var(--space-24);
+}
+
+.remark.desktop {
+  width: 560px;
+}
