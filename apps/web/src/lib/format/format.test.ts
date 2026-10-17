@@ -24,6 +24,12 @@ describe('money', () => {
     expect(money(100000, 'UAH', 'uk', rate)).toBe(`41${NBSP}235${NBSP}₴`);
   });
 
+  it('does not keep a minus sign on amounts that round to zero', () => {
+    expect(money(-1, 'UAH', 'en', { uahPerUsd: 1 })).toBe(`0${NBSP}₴`);
+    expect(money(-0.4, 'USD', 'en')).toBe('$0');
+    expect(money(-0.4, 'UAH', 'uk', rate)).toBe(`0${NBSP}₴`);
+  });
+
   it('separates uk thousands with a no-break space only', () => {
     expect(money(123456700, 'USD', 'uk')).toBe(`$1${NBSP}234${NBSP}567`);
   });

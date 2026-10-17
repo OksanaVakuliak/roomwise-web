@@ -16,9 +16,9 @@ export function Progress({
   valueText,
   caption,
 }: ProgressProps) {
-  const determinate = value !== undefined;
-  const clamped = determinate ? Math.min(Math.max(value, 0), max) : 0;
-  const percent = max > 0 ? (clamped / max) * 100 : 0;
+  const determinate = value !== undefined && max > 0;
+  const clamped = determinate ? Math.min(Math.max(value ?? 0, 0), max) : 0;
+  const percent = (clamped / max) * 100;
   const fillWidth = determinate ? `${percent}%` : undefined;
 
   return (

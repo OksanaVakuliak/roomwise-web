@@ -73,6 +73,48 @@ describe('Toast', () => {
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
+  it('does not dismiss while hovered and resumes on leave', () => {
+    vi.useFakeTimers();
+    const onDismiss = vi.fn();
+    renderWithProviders(
+      <Toast dismissLabel="Dismiss" onDismiss={onDismiss} duration={3000}>
+        Saved
+      </Toast>,
+    );
+    const toast = screen.getByRole('status');
+    fireEvent.pointerEnter(toast);
+    act(() => {
+      vi.advanceTimersByTime(10_000);
+    });
+    expect(onDismiss).not.toHaveBeenCalled();
+    fireEvent.pointerLeave(toast);
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not dismiss while focused and resumes on blur', () => {
+    vi.useFakeTimers();
+    const onDismiss = vi.fn();
+    renderWithProviders(
+      <Toast dismissLabel="Dismiss" onDismiss={onDismiss} duration={3000}>
+        Saved
+      </Toast>,
+    );
+    const button = screen.getByRole('button', { name: 'Dismiss' });
+    fireEvent.focus(button);
+    act(() => {
+      vi.advanceTimersByTime(10_000);
+    });
+    expect(onDismiss).not.toHaveBeenCalled();
+    fireEvent.blur(button);
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it('stays without a duration', () => {
     vi.useFakeTimers();
     const onDismiss = vi.fn();

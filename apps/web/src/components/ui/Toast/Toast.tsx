@@ -1,6 +1,13 @@
 'use client';
 
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import {
+  type FocusEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Icon, type IconName } from '../Icon/Icon';
 import { IconButton } from '../IconButton/IconButton';
 import styles from './Toast.module.css';
@@ -29,6 +36,9 @@ export function Toast({
   duration,
 }: ToastProps) {
   const [announced, setAnnounced] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const paused = hovered || focused;
   const dismissRef = useRef(onDismiss);
 
   useEffect(() => {
@@ -40,17 +50,30 @@ export function Toast({
   }, []);
 
   useEffect(() => {
-    if (duration === undefined) {
+    if (duration === undefined || paused) {
       return;
     }
     const timer = setTimeout(() => dismissRef.current(), duration);
     return () => clearTimeout(timer);
-  }, [duration]);
+  }, [duration, paused]);
+
+  const handleEnter = useCallback(() => setHovered(true), []);
+  const handleLeave = useCallback(() => setHovered(false), []);
+  const handleFocus = useCallback(() => setFocused(true), []);
+  const handleBlur = useCallback((event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setFocused(false);
+    }
+  }, []);
 
   return (
     <div
       role={variant === 'error' ? 'alert' : 'status'}
       className={`${styles.root} ${styles[variant]}`}
+      onPointerEnter={handleEnter}
+      onPointerLeave={handleLeave}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
     >
       <Icon name={ICONS[variant]} size="lg" className={styles.icon} />
       <p className={styles.text}>{announced ? children : null}</p>

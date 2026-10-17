@@ -46,7 +46,7 @@ describe('Select', () => {
     expect(select).toHaveAccessibleDescription('Main covering Required');
   });
 
-  it('is busy and disabled while loading', () => {
+  it('is busy and aria-disabled but focusable while loading', () => {
     renderWithProviders(
       <Select label="Floor" loading>
         {options}
@@ -54,7 +54,20 @@ describe('Select', () => {
     );
     const select = screen.getByRole('combobox');
     expect(select).toHaveAttribute('aria-busy', 'true');
-    expect(select).toBeDisabled();
+    expect(select).toHaveAttribute('aria-disabled', 'true');
+    expect(select).not.toBeDisabled();
+    expect(fireEvent.mouseDown(select)).toBe(false);
+    expect(fireEvent.keyDown(select, { key: 'ArrowDown' })).toBe(false);
+    expect(fireEvent.keyDown(select, { key: 'Tab' })).toBe(true);
+  });
+
+  it('is really disabled only with the disabled prop', () => {
+    renderWithProviders(
+      <Select label="Floor" disabled>
+        {options}
+      </Select>,
+    );
+    expect(screen.getByRole('combobox')).toBeDisabled();
   });
 
   it('has no axe violations', async () => {

@@ -8,6 +8,7 @@ import { Modal, type ModalProps } from './Modal';
 
 function Harness({
   onClose,
+  children,
   ...rest
 }: Partial<ModalProps> & { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
@@ -31,6 +32,7 @@ function Harness({
       >
         <button type="button">First</button>
         <button type="button">Last</button>
+        {children}
       </Modal>
     </>
   );
@@ -67,6 +69,25 @@ describe('Modal', () => {
     expect(close).toHaveFocus();
     fireEvent.keyDown(close, { key: 'Tab', shiftKey: true });
     expect(last).toHaveFocus();
+  });
+
+  it('skips hidden and tabindex -1 elements when wrapping Tab', () => {
+    renderWithProviders(
+      <Harness>
+        <button type="button" hidden>
+          Hidden
+        </button>
+        <button type="button" tabIndex={-1}>
+          Skipped
+        </button>
+      </Harness>,
+    );
+    openModal();
+    const close = screen.getByRole('button', { name: 'Close' });
+    const last = screen.getByRole('button', { name: 'Last' });
+    last.focus();
+    fireEvent.keyDown(last, { key: 'Tab' });
+    expect(close).toHaveFocus();
   });
 
   it('makes the rest of the page inert and locks scroll', () => {

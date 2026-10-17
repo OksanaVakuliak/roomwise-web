@@ -9,8 +9,36 @@ const FOCUSABLE = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
+function reachable(element: HTMLElement): boolean {
+  if (
+    element.getAttribute('tabindex') === '-1' ||
+    element.matches(':disabled')
+  ) {
+    return false;
+  }
+  if (getComputedStyle(element).visibility === 'hidden') {
+    return false;
+  }
+  for (
+    let node: HTMLElement | null = element;
+    node;
+    node = node.parentElement
+  ) {
+    if (
+      node.hidden ||
+      node.hasAttribute('inert') ||
+      getComputedStyle(node).display === 'none'
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function focusableIn(container: HTMLElement): HTMLElement[] {
-  return [...container.querySelectorAll<HTMLElement>(FOCUSABLE)];
+  return [...container.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+    reachable,
+  );
 }
 
 type Entry = { container: HTMLElement };

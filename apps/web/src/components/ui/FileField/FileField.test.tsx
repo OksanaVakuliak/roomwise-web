@@ -31,7 +31,7 @@ describe('FileField', () => {
     expect(input).toHaveAccessibleDescription('PDF Too large');
   });
 
-  it('is busy and disabled while uploading', () => {
+  it('is busy and aria-disabled but focusable while uploading', () => {
     renderWithProviders(
       <FileField
         label="Floor plan"
@@ -42,7 +42,9 @@ describe('FileField', () => {
     );
     const input = screen.getByLabelText(/Floor plan/);
     expect(input).toHaveAttribute('aria-busy', 'true');
-    expect(input).toBeDisabled();
+    expect(input).toHaveAttribute('aria-disabled', 'true');
+    expect(input).not.toBeDisabled();
+    expect(fireEvent.click(input)).toBe(false);
     expect(screen.getByText('Uploading')).toBeInTheDocument();
   });
 

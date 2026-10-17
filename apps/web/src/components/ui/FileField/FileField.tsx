@@ -3,6 +3,7 @@
 import {
   type ChangeEvent,
   type ComponentProps,
+  type MouseEvent,
   useCallback,
   useState,
 } from 'react';
@@ -39,6 +40,7 @@ export function FileField({
   className,
   disabled,
   onChange,
+  onClick,
   ...rest
 }: FileFieldProps) {
   const [chosen, setChosen] = useState('');
@@ -52,6 +54,16 @@ export function FileField({
       onChange?.(event);
     },
     [onChange],
+  );
+
+  const handleClick = useCallback(
+    (event: MouseEvent<HTMLInputElement>) => {
+      if (loading) {
+        event.preventDefault();
+      }
+      onClick?.(event);
+    },
+    [loading, onClick],
   );
 
   return (
@@ -71,7 +83,9 @@ export function FileField({
             {...rest}
             {...mergeControl(control, rest)}
             type="file"
-            disabled={disabled || loading}
+            disabled={disabled}
+            aria-disabled={loading ? true : undefined}
+            onClick={handleClick}
             className={styles.input}
             onChange={handleChange}
           />

@@ -1,4 +1,11 @@
-import type { ComponentProps } from 'react';
+'use client';
+
+import {
+  type ComponentProps,
+  type KeyboardEvent,
+  type MouseEvent,
+  useCallback,
+} from 'react';
 import { mergeControl } from '@/lib/form';
 import { FormField } from '../FormField/FormField';
 import { Icon } from '../Icon/Icon';
@@ -28,12 +35,34 @@ export function Select({
   defaultValue,
   value,
   children,
+  onMouseDown,
+  onKeyDown,
   ...rest
 }: SelectProps) {
   const initial =
     value === undefined && defaultValue === undefined && placeholder
       ? ''
       : defaultValue;
+
+  const handleMouseDown = useCallback(
+    (event: MouseEvent<HTMLSelectElement>) => {
+      if (loading) {
+        event.preventDefault();
+      }
+      onMouseDown?.(event);
+    },
+    [loading, onMouseDown],
+  );
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLSelectElement>) => {
+      if (loading && event.key !== 'Tab') {
+        event.preventDefault();
+      }
+      onKeyDown?.(event);
+    },
+    [loading, onKeyDown],
+  );
 
   return (
     <FormField
@@ -53,7 +82,10 @@ export function Select({
             {...mergeControl(control, rest)}
             value={value}
             defaultValue={initial}
-            disabled={disabled || loading}
+            disabled={disabled}
+            aria-disabled={loading ? true : undefined}
+            onMouseDown={handleMouseDown}
+            onKeyDown={handleKeyDown}
             className={styles.control}
           >
             {placeholder ? (

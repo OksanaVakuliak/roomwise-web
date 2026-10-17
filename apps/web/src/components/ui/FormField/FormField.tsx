@@ -1,15 +1,10 @@
 import { type ReactNode, useId } from 'react';
+import type { FieldControlProps } from '@/lib/form';
 import { Icon } from '../Icon/Icon';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './FormField.module.css';
 
-export type FieldControlProps = {
-  id: string;
-  'aria-describedby'?: string;
-  'aria-invalid'?: true;
-  'aria-busy'?: true;
-  required?: true;
-};
+export type { FieldControlProps } from '@/lib/form';
 
 export type FormFieldProps = {
   label: string;

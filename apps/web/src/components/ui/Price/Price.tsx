@@ -1,17 +1,18 @@
 import type { Locale } from 'next-intl';
-import { type Currency, type ExchangeRate, money } from '@/lib/format';
+import { type ExchangeRate, money } from '@/lib/format';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './Price.module.css';
 
 export type PriceProps = {
   cents: number;
-  currency: Currency;
   locale: Locale;
-  rate?: ExchangeRate;
   oldCents?: number;
   oldLabel?: string;
   currentLabel?: string;
-};
+} & (
+  | { currency: 'USD'; rate?: ExchangeRate }
+  | { currency: 'UAH'; rate: ExchangeRate }
+);
 
 export function Price({
   cents,

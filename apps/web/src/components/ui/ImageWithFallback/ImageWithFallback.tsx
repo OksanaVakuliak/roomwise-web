@@ -47,7 +47,6 @@ export function ImageWithFallback({
           <span className={styles.name}>{name}</span>
         </div>
       ) : (
-        // biome-ignore lint/performance/noImgElement: Cloudinary host is not configured for next/image yet
         <img
           ref={imageRef}
           className={styles.image}

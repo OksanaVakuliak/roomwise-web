@@ -3,6 +3,7 @@
 import {
   type ChangeEvent,
   type ComponentProps,
+  type FocusEvent,
   useCallback,
   useId,
   useState,
@@ -68,6 +69,7 @@ export function Stepper({
   className,
   disabled,
   readOnly,
+  onBlur,
   ...rest
 }: StepperProps) {
   const unitId = useId();
@@ -117,16 +119,20 @@ export function Stepper({
     [commit, max, min],
   );
 
-  const handleBlur = useCallback(() => {
-    if (draft === null) {
-      return;
-    }
-    const parsed = Number(draft);
-    setDraft(null);
-    if (draft !== '' && Number.isFinite(parsed)) {
-      commit(clamp(parsed, min, max));
-    }
-  }, [commit, draft, max, min]);
+  const handleBlur = useCallback(
+    (event: FocusEvent<HTMLInputElement>) => {
+      onBlur?.(event);
+      if (draft === null) {
+        return;
+      }
+      const parsed = Number(draft);
+      setDraft(null);
+      if (draft !== '' && Number.isFinite(parsed)) {
+        commit(clamp(parsed, min, max));
+      }
+    },
+    [commit, draft, max, min, onBlur],
+  );
 
   return (
     <FormField

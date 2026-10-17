@@ -103,6 +103,18 @@
       }
     },
     {
+      "includes": [
+        "apps/web/src/components/ui/ImageWithFallback/ImageWithFallback.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noImgElement": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["**/*.test.tsx"],
       "linter": {
         "rules": {

@@ -1,5 +1,12 @@
 import type { AriaAttributes } from 'react';
-import type { FieldControlProps } from '@/components/ui';
+
+export type FieldControlProps = {
+  id: string;
+  'aria-describedby'?: string;
+  'aria-invalid'?: true;
+  'aria-busy'?: true;
+  required?: true;
+};
 
 export type MergedControlProps = Omit<FieldControlProps, 'aria-invalid'> & {
   'aria-invalid'?: AriaAttributes['aria-invalid'];

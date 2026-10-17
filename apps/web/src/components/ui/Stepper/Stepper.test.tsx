@@ -60,6 +60,15 @@ describe('Stepper', () => {
     expect(screen.getByLabelText('Rooms')).toHaveValue(1);
   });
 
+  it('calls the consumer onBlur', () => {
+    const onBlur = vi.fn();
+    renderWithProviders(
+      <Stepper label="Rooms" {...labels} defaultValue={2} onBlur={onBlur} />,
+    );
+    fireEvent.blur(screen.getByLabelText('Rooms'));
+    expect(onBlur).toHaveBeenCalledTimes(1);
+  });
+
   it('clamps a typed value on blur', () => {
     renderWithProviders(
       <Stepper label="Rooms" {...labels} min={1} max={5} defaultValue={2} />,

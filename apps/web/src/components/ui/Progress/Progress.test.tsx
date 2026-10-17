@@ -52,6 +52,13 @@ describe('Progress', () => {
     );
   });
 
+  it('is indeterminate when max is not positive', () => {
+    render(<Progress label="Upload" value={5} max={0} />);
+    const bar = screen.getByRole('progressbar');
+    expect(bar).not.toHaveAttribute('aria-valuenow');
+    expect(bar).not.toHaveAttribute('aria-valuemax');
+  });
+
   it('has no axe violations', async () => {
     const { container } = render(
       <>
