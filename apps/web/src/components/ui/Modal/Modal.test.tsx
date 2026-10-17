@@ -1,0 +1,121 @@
+import { fireEvent, screen } from '@testing-library/react';
+import { useCallback, useState } from 'react';
+import { describe, expect, it, vi } from 'vitest';
+import { axe } from '@/test/axe';
+import { renderWithProviders } from '@/test/render-with-providers';
+import { Modal, type ModalProps } from './Modal';
+
+function Harness({
+  onClose,
+  ...rest
+}: Partial<ModalProps> & { onClose?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const handleOpen = useCallback(() => setOpen(true), []);
+  const handleClose = useCallback(() => {
+    onClose?.();
+    setOpen(false);
+  }, [onClose]);
+
+  return (
+    <>
+      <button type="button" onClick={handleOpen}>
+        Open
+      </button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title="Estimate"
+        closeLabel="Close"
+        {...rest}
+      >
+        <button type="button">First</button>
+        <button type="button">Last</button>
+      </Modal>
+    </>
+  );
+}
+
+function openModal() {
+  const trigger = screen.getByRole('button', { name: 'Open' });
+  trigger.focus();
+  fireEvent.click(trigger);
+  return trigger;
+}
+
+describe('Modal', () => {
+  it('renders nothing while closed', () => {
+    renderWithProviders(<Harness />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('is a named modal dialog that takes focus', () => {
+    renderWithProviders(<Harness />);
+    openModal();
+    const dialog = screen.getByRole('dialog', { name: 'Estimate' });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveFocus();
+  });
+
+  it('wraps Tab and Shift+Tab inside the dialog', () => {
+    renderWithProviders(<Harness />);
+    openModal();
+    const close = screen.getByRole('button', { name: 'Close' });
+    const last = screen.getByRole('button', { name: 'Last' });
+    last.focus();
+    fireEvent.keyDown(last, { key: 'Tab' });
+    expect(close).toHaveFocus();
+    fireEvent.keyDown(close, { key: 'Tab', shiftKey: true });
+    expect(last).toHaveFocus();
+  });
+
+  it('makes the rest of the page inert and locks scroll', () => {
+    const { container } = renderWithProviders(<Harness />);
+    openModal();
+    expect(container).toHaveAttribute('inert');
+    expect(document.body.style.overflow).toBe('hidden');
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(container).not.toHaveAttribute('inert');
+    expect(document.body.style.overflow).toBe('');
+  });
+
+  it('closes on Escape and returns focus to the opener', () => {
+    const onClose = vi.fn();
+    renderWithProviders(<Harness onClose={onClose} />);
+    const trigger = openModal();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it('closes from the close button', () => {
+    renderWithProviders(<Harness />);
+    openModal();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('closes on backdrop click', () => {
+    renderWithProviders(<Harness />);
+    openModal();
+    fireEvent.click(
+      screen.getByRole('dialog').previousElementSibling as Element,
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('keeps the dialog open on backdrop click when disabled', () => {
+    renderWithProviders(<Harness dismissOnBackdrop={false} />);
+    openModal();
+    fireEvent.click(
+      screen.getByRole('dialog').previousElementSibling as Element,
+    );
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('has no axe violations when open', async () => {
+    renderWithProviders(<Harness />);
+    openModal();
+    expect(await axe(document.body)).toHaveNoViolations();
+  });
+});

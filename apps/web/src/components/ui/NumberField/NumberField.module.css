@@ -1,0 +1,68 @@
+.wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.control {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--size-target);
+  padding: 0 var(--space-12);
+  font-family: var(--text-number-step-family);
+  font-weight: var(--text-number-step-weight);
+  font-size: var(--text-number-step-size);
+  appearance: textfield;
+  border: var(--stroke-1-5) solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--line);
+}
+
+.control::placeholder {
+  color: var(--line-2);
+}
+
+.control:hover {
+  background: var(--fill-a);
+}
+
+.control[aria-invalid="true"] {
+  border-color: var(--heat);
+  box-shadow: inset var(--stroke-2) 0 0 var(--heat);
+}
+
+.control[aria-busy="true"] {
+  cursor: progress;
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--fill-a) 0 var(--space-4),
+    transparent var(--space-4) var(--space-8)
+  );
+}
+
+.control:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  background: var(--fill-a);
+}
+
+.control::-webkit-inner-spin-button,
+.control::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.unit {
+  position: absolute;
+  right: var(--space-12);
+  color: var(--line-2);
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-label-size);
+  pointer-events: none;
+}
+
+.wrap:has(.unit) .control {
+  padding-right: var(--size-target);
+}

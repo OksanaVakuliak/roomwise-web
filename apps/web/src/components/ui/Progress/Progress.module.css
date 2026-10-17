@@ -1,0 +1,56 @@
+.root {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.caption {
+  font-family: var(--text-body-s-family);
+  font-size: var(--text-body-s-size);
+  line-height: var(--text-body-s-line);
+  color: var(--pencil);
+}
+
+.track {
+  position: relative;
+  overflow: hidden;
+  height: var(--progress-height);
+  border: var(--stroke-1-2) solid var(--line);
+  background: var(--paper);
+}
+
+.fill {
+  display: block;
+  width: var(--progress, 0);
+  height: 100%;
+  background: var(--tape);
+  border-right: var(--stroke-1-2) solid var(--line);
+  transition: width var(--duration-base) var(--ease-standard);
+}
+
+.indeterminate .fill {
+  width: 50%;
+  animation: slide var(--progress-duration) var(--ease-standard) infinite
+    alternate;
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none !important;
+  }
+
+  .indeterminate .fill {
+    animation: none !important;
+    width: 100%;
+    opacity: var(--opacity-disabled);
+  }
+}

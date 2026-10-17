@@ -1,0 +1,97 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: var(--size-target);
+  cursor: pointer;
+}
+
+.input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--size-target);
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.box {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  margin: 0 calc((var(--size-target) - var(--icon-lg)) / 2);
+  border: var(--stroke-1-5) solid var(--line);
+  background: var(--paper);
+  color: var(--sheet);
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.check {
+  opacity: 0;
+}
+
+.input:checked ~ .box {
+  background: var(--line);
+}
+
+.input:checked ~ .box .check {
+  opacity: 1;
+}
+
+.input:focus-visible ~ .box {
+  outline: var(--focus-ring-width) solid var(--line);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.row:hover .box {
+  background: var(--fill-a);
+}
+
+.row:hover .input:checked ~ .box {
+  background: var(--line-2);
+}
+
+.invalid .box {
+  border-color: var(--heat);
+  box-shadow: inset var(--stroke-2) 0 0 var(--heat);
+}
+
+.text {
+  color: var(--line);
+  font-family: var(--text-body-default-family);
+  font-weight: var(--text-body-default-weight);
+  font-size: var(--text-body-default-size);
+  line-height: var(--text-body-default-line);
+}
+
+.input:disabled ~ .box,
+.input:disabled ~ .text {
+  opacity: var(--opacity-disabled);
+}
+
+.row:has(.input:disabled) {
+  cursor: not-allowed;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-left: var(--size-target);
+}
+
+.messages:empty {
+  display: none;
+}

@@ -1,0 +1,52 @@
+.root {
+  display: block;
+  max-width: 100%;
+  border: var(--stroke-1) solid var(--hair);
+  background-color: var(--fill-a);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--hair),
+    transparent
+  );
+  background-repeat: no-repeat;
+  background-size: 50% 100%;
+  background-position: 0 0;
+  animation: shimmer var(--skeleton-duration) var(--ease-standard) infinite;
+}
+
+.line {
+  width: var(--skeleton-width, 100%);
+  height: var(--skeleton-height, var(--skeleton-line-height));
+}
+
+.block {
+  width: var(--skeleton-width, 100%);
+  height: var(--skeleton-height, var(--skeleton-block-height));
+}
+
+.circle {
+  width: var(--skeleton-width, var(--skeleton-circle-size));
+  height: var(
+    --skeleton-height,
+    var(--skeleton-width, var(--skeleton-circle-size))
+  );
+  border-radius: 50%;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none !important;
+    background-image: none;
+  }
+}

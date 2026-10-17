@@ -1,0 +1,33 @@
+.root {
+  display: grid;
+  grid-template-columns: var(--result-position-width) 1fr auto;
+  gap: var(--space-8);
+  padding: var(--space-9) 0;
+  border-bottom: var(--stroke-1) solid var(--hair);
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-default-size);
+  line-height: 1.25;
+}
+
+.position {
+  font-family: var(--text-number-s-family);
+  font-weight: var(--text-number-s-weight);
+  font-size: var(--text-body-default-size);
+  color: var(--line-2);
+}
+
+.note {
+  display: block;
+  font-size: var(--text-body-s-size);
+  color: var(--line-2);
+}
+
+.value {
+  font-family: var(--text-number-s-family);
+  font-weight: var(--text-number-s-weight);
+}
+
+.new .value,
+.new .position {
+  color: var(--heat);
+}

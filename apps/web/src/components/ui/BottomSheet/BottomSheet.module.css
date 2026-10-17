@@ -1,0 +1,18 @@
+.root {
+  max-height: var(--overlay-sheet-height);
+  border-bottom: 0;
+  box-shadow: none;
+  animation: slide-up var(--duration-slow) var(--ease-enter);
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none !important;
+  }
+}

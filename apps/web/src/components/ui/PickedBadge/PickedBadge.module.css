@@ -1,0 +1,10 @@
+.root {
+  display: inline-block;
+  padding: 0 var(--space-5);
+  border: var(--stroke-1-2) solid var(--line);
+  font-family: var(--text-body-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-caption-s-size);
+  line-height: 1.4;
+  color: var(--line);
+}

@@ -1,0 +1,39 @@
+.root {
+  position: relative;
+  display: inline-flex;
+}
+
+.tip {
+  position: absolute;
+  bottom: calc(100% + var(--space-8));
+  left: 50%;
+  z-index: var(--z-dropdown);
+  width: max-content;
+  max-width: var(--overlay-tooltip-width);
+  padding: var(--space-6) var(--space-10);
+  border: var(--stroke-1) solid var(--line);
+  background: var(--line);
+  color: var(--sheet);
+  font-family: var(--text-caption-default-family);
+  font-size: var(--text-label-size);
+  line-height: 1.3;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: appear var(--duration-fast) var(--ease-enter);
+}
+
+.tip[hidden] {
+  display: none;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip {
+    animation: none !important;
+  }
+}

@@ -17,6 +17,7 @@
   --tape-ink: #1d2a31;
   --pencil: #46525a;
   --on-heat: #fff;
+  --backdrop: rgba(29, 42, 49, 0.55);
 }
 
 :root[data-theme="dark"] {
@@ -37,6 +38,7 @@
   --tape-ink: #10202c;
   --pencil: #cfe0e8;
   --on-heat: #10202c;
+  --backdrop: rgba(5, 16, 26, 0.65);
 }
 
 :root {
@@ -138,11 +140,44 @@
   --remark-arrow-width: 40px;
   --remark-arrow-height: 34px;
 
+  --spec-pos-width: 34px;
+  --spec-image: 64px;
+  --spec-bar-width: 5px;
+  --spec-bar-offset-mobile: -16px;
+  --spec-bar-offset-desktop: -24px;
+  --spec-price-size: 1rem;
+
   --plan-scale-mobile: 10px;
   --plan-scale-desktop: 15px;
 
+  --bar-stack-height: 22px;
+  --bar-track-height: 18px;
+  --bar-tick-pitch: 7.8px;
+  --bar-tick-height: 6px;
+  --bar-label-width: 86px;
+  --bar-value-width: 84px;
+  --result-position-width: 30px;
+
+  --skeleton-line-height: 14px;
+  --skeleton-block-height: 96px;
+  --skeleton-circle-size: 44px;
+  --skeleton-duration: 1400ms;
+  --progress-height: 12px;
+  --progress-duration: 1200ms;
+  --banner-bar: 6px;
+  --empty-icon-box: 56px;
+  --empty-measure: 44ch;
+  --table-min-width: 480px;
+
   --breakpoint-phone-max: 767px;
   --breakpoint-tablet-max: 1199px;
+
+  --overlay-modal-width: 480px;
+  --overlay-panel-width: 420px;
+  --overlay-sheet-height: 85dvh;
+  --overlay-tooltip-width: 240px;
+  --overlay-toast-width: 420px;
+  --overlay-shadow: 6px 6px 0;
 
   --z-base: 0;
   --z-sticky: 10;

@@ -1,0 +1,19 @@
+.root {
+  align-self: stretch;
+  max-width: var(--overlay-panel-width);
+  max-height: none;
+  box-shadow: none;
+  animation: slide-in var(--duration-slow) var(--ease-enter);
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none !important;
+  }
+}

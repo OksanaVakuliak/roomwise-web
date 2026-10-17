@@ -1,0 +1,41 @@
+.root {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-12);
+  padding-bottom: var(--space-5);
+  border-bottom: var(--stroke-1-5) solid var(--line);
+}
+
+.mobile {
+  --title-size: var(--text-title-s-size);
+  --note-size: var(--text-body-s-size);
+}
+
+.desktop {
+  --title-size: var(--text-title-m-size);
+  --note-size: var(--text-label-size);
+}
+
+.title {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+  font-size: var(--title-size);
+  line-height: 1.2;
+}
+
+.note {
+  font-family: var(--text-body-default-family);
+  font-size: var(--note-size);
+  color: var(--line-2);
+  text-align: right;
+}
+
+.amount {
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+  font-size: var(--title-size);
+  white-space: nowrap;
+}

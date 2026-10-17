@@ -1,0 +1,17 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12);
+  margin: 0 0 var(--space-12);
+}
+
+.title {
+  margin: var(--space-16) 0 var(--space-8);
+}
+
+.toasts {
+  display: grid;
+  gap: var(--space-8);
+  justify-items: start;
+}

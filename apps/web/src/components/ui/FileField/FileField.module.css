@@ -1,0 +1,82 @@
+.root {
+  position: relative;
+  display: block;
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.input[aria-busy="true"] {
+  cursor: progress;
+}
+
+.face {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  box-sizing: border-box;
+  min-height: var(--size-target);
+  padding: 0 var(--space-12);
+  border: var(--stroke-1-5) dashed var(--line);
+  background: var(--paper);
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.root:hover .face {
+  background: var(--fill-a);
+}
+
+.input:focus-visible ~ .face {
+  outline: var(--focus-ring-width) solid var(--line);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.face[data-invalid] {
+  border-color: var(--heat);
+  box-shadow: inset var(--stroke-2) 0 0 var(--heat);
+}
+
+.face[data-busy] {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--fill-a) 0 var(--space-4),
+    transparent var(--space-4) var(--space-8)
+  );
+}
+
+.input:disabled ~ .face {
+  opacity: var(--opacity-disabled);
+  background: var(--fill-a);
+}
+
+.button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--line);
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-button-default-size);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--line-2);
+  font-family: var(--text-body-s-family);
+  font-size: var(--text-body-s-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
