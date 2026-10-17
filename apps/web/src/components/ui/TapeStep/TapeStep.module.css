@@ -1,0 +1,94 @@
+.item {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-self: stretch;
+  align-items: flex-end;
+  min-width: 0;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mobile {
+  font-size: var(--tape-label-size-mobile);
+}
+
+.desktop {
+  font-size: var(--tape-label-size-desktop);
+}
+
+.mobile.now {
+  flex: var(--tape-step-grow-now);
+}
+
+.done {
+  opacity: var(--tape-opacity-done);
+}
+
+.later {
+  opacity: var(--tape-opacity-later);
+}
+
+.control {
+  display: grid;
+  flex: 1;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  justify-content: start;
+  align-content: end;
+  align-items: baseline;
+  column-gap: var(--tape-step-gap);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+}
+
+.mobile .control {
+  padding-left: var(--tape-step-inset-mobile);
+}
+
+.desktop .control {
+  padding-left: var(--tape-step-inset-desktop);
+}
+
+.interactive {
+  cursor: pointer;
+}
+
+.interactive:focus-visible {
+  outline: var(--focus-ring-width) solid var(--line);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.number {
+  font-family: var(--text-number-step-family);
+  font-weight: var(--text-number-step-weight);
+  font-size: var(--text-number-step-size);
+  line-height: var(--text-number-step-line);
+}
+
+.desktop .number {
+  font-size: var(--tape-number-size-desktop);
+  line-height: 1;
+}
+
+.item .pointer {
+  position: absolute;
+  left: var(--tape-pointer-left);
+  width: var(--tape-pointer-width);
+  height: var(--tape-pointer-height);
+  pointer-events: none;
+}
+
+.mobile.item .pointer {
+  bottom: var(--tape-pointer-bottom-mobile);
+}
+
+.desktop.item .pointer {
+  bottom: var(--tape-pointer-bottom-desktop);
+}
