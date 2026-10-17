@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import type { CSSProperties } from 'react';
 import { ThemePanels } from './ThemePanels';
 import { DURATIONS, EASINGS, SPACING, STROKES } from './token-data';
 import styles from './tokens.module.css';
@@ -20,7 +21,7 @@ export function SpacingSection() {
                 </span>
                 <span
                   className={styles.bar}
-                  style={{ width: `var(${name})` }}
+                  style={{ '--size': `var(${name})` } as CSSProperties}
                   aria-hidden="true"
                 />
               </li>
@@ -35,7 +36,7 @@ export function SpacingSection() {
                 </span>
                 <span
                   className={styles.strokeBar}
-                  style={{ height: `var(${name})` }}
+                  style={{ '--size': `var(${name})` } as CSSProperties}
                   aria-hidden="true"
                 />
               </li>
@@ -51,7 +52,11 @@ export function SpacingSection() {
                 <span className={styles.motionTrack} aria-hidden="true">
                   <span
                     className={styles.motionDot}
-                    style={{ animationDuration: `calc(var(${name}) * 4)` }}
+                    style={
+                      {
+                        '--duration': `calc(var(${name}) * 4)`,
+                      } as CSSProperties
+                    }
                   />
                 </span>
               </li>

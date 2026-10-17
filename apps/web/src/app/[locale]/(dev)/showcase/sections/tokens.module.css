@@ -17,6 +17,8 @@
   min-width: 0;
   padding: var(--space-16);
   border: var(--stroke-1) solid var(--line-2);
+  background: var(--sheet);
+  color: var(--line);
   overflow-wrap: anywhere;
 }
 
@@ -56,6 +58,7 @@
   display: block;
   height: 44px;
   border: var(--stroke-1) solid var(--line-2);
+  background: var(--swatch);
 }
 
 .name {
@@ -86,6 +89,8 @@
   display: inline-block;
   padding: var(--space-4) var(--space-8);
   border: var(--stroke-1) solid var(--hair);
+  background: var(--bg);
+  color: var(--fg);
   font-weight: 600;
 }
 
@@ -104,6 +109,7 @@
 
 .bar {
   display: block;
+  width: var(--size);
   height: var(--space-12);
   max-width: 100%;
   background: var(--line);
@@ -112,6 +118,7 @@
 .strokeBar {
   display: block;
   width: 100%;
+  height: var(--size);
   background: var(--line);
 }
 
@@ -129,6 +136,7 @@
   height: var(--space-18);
   background: var(--heat);
   animation-name: slide;
+  animation-duration: var(--duration);
   animation-iteration-count: infinite;
   animation-direction: alternate;
   animation-timing-function: var(--ease-standard);

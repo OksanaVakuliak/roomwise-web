@@ -40,11 +40,7 @@ export function themeStyle(theme: Theme): CSSProperties {
   for (const { name, value } of themeColors(theme)) {
     vars[`--${name}`] = value;
   }
-  return {
-    ...vars,
-    background: 'var(--sheet)',
-    color: 'var(--line)',
-  } as CSSProperties;
+  return vars as CSSProperties;
 }
 
 export const SPACING = collect('space-');

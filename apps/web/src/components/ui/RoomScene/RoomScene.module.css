@@ -60,6 +60,8 @@
 .dim,
 .cutmark {
   position: absolute;
+  left: var(--x);
+  top: var(--y);
   padding: 0 var(--space-3);
   transform: translate(-50%, -50%) rotate(var(--rotation, 0deg));
   background: var(--sheet);

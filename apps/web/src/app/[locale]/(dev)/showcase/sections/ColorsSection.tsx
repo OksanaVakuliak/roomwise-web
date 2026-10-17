@@ -1,4 +1,5 @@
 import { useMessages, useTranslations } from 'next-intl';
+import type { CSSProperties } from 'react';
 import { measure, PAIRS, verdict } from '@/lib/contrast/contrast';
 import { ThemePanels } from './ThemePanels';
 import { themeColors, themeRoles } from './token-data';
@@ -21,7 +22,7 @@ export function ColorsSection() {
                 <li key={name} className={styles.item}>
                   <span
                     className={styles.swatch}
-                    style={{ background: `var(--${name})` }}
+                    style={{ '--swatch': `var(--${name})` } as CSSProperties}
                     aria-hidden="true"
                   />
                   <span className={styles.name}>--{name}</span>
@@ -48,10 +49,12 @@ export function ColorsSection() {
                       <td>
                         <span
                           className={styles.sample}
-                          style={{
-                            color: `var(--${pair.fg})`,
-                            background: `var(--${pair.bg})`,
-                          }}
+                          style={
+                            {
+                              '--fg': `var(--${pair.fg})`,
+                              '--bg': `var(--${pair.bg})`,
+                            } as CSSProperties
+                          }
                         >
                           {pair.fg} / {pair.bg}
                         </span>

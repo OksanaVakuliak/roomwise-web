@@ -65,8 +65,8 @@ export function RoomScene({
         {labels.map(({ label, text, className }) => {
           const { left, top } = geometry.place(label);
           const style = {
-            left,
-            top,
+            '--x': left,
+            '--y': top,
             '--rotation': `${label.rotation}deg`,
           } as CSSProperties;
           return (
