@@ -40,9 +40,12 @@
 }
 
 :root {
+  --space-3: 3px;
   --space-4: 4px;
+  --space-5: 5px;
   --space-6: 6px;
   --space-8: 8px;
+  --space-9: 9px;
   --space-10: 10px;
   --space-12: 12px;
   --space-14: 14px;
@@ -55,11 +58,29 @@
   --stroke-1: 1px;
   --stroke-1-2: 1.2px;
   --stroke-1-5: 1.5px;
+  --stroke-1-6: 1.6px;
   --stroke-2: 2px;
 
   --icon-sm: 14px;
   --icon-md: 17px;
   --icon-lg: 24px;
+
+  --size-target: 44px;
+  --size-button: 46px;
+  --size-toggle-width: 56px;
+  --size-toggle-height: 32px;
+  --size-toggle-knob: 23px;
+  --pref-height: 40px;
+  --pref-min-width: 44px;
+
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+  --opacity-disabled: 0.45;
+
+  --text-label-size: 0.875rem;
+  --text-tab-size: 0.875rem;
+  --text-number-meta-size: 1.0625rem;
+  --text-cutmark-size: 1rem;
 
   --duration-fast: 120ms;
   --duration-base: 200ms;
@@ -67,6 +88,58 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-enter: cubic-bezier(0, 0, 0, 1);
   --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
+  --tape-height-mobile: 58px;
+  --tape-height-desktop: 64px;
+  --tape-step-gap: 5px;
+  --tape-step-pad-bottom: 7px;
+  --tape-step-inset-mobile: 10px;
+  --tape-step-inset-desktop: 16px;
+  --tape-label-size-mobile: 0.875rem;
+  --tape-label-size-desktop: 1.0625rem;
+  --tape-number-size-desktop: 1.625rem;
+  --tape-pointer-width: 16px;
+  --tape-pointer-height: 11px;
+  --tape-pointer-left: 4px;
+  --tape-pointer-bottom-mobile: 32px;
+  --tape-pointer-bottom-desktop: 38px;
+  --tape-step-grow-now: 2.6;
+  --tape-opacity-done: 0.72;
+  --tape-opacity-later: 0.55;
+
+  --cut-block-mobile: 62px;
+  --cut-block-desktop: 170px;
+  --cut-leader-mobile: 12px;
+  --cut-leader-desktop: 30px;
+  --cut-name-mobile: 0.875rem;
+  --cut-name-desktop: 1rem;
+  --cut-note-mobile: 0.78125rem;
+  --cut-note-desktop: 0.875rem;
+  --cut-price-mobile: 0.9375rem;
+  --cut-price-desktop: 1.1875rem;
+  --cut-cloud-start: -7px;
+  --cut-cloud-end: -5px;
+  --cut-cloud-block: -4px;
+
+  --rev-size-mobile: 24px;
+  --rev-size-desktop: 28px;
+  --rev-font-mobile: 0.8125rem;
+  --rev-font-desktop: 0.9375rem;
+  --rev-left-mobile: -15px;
+  --rev-top-mobile: -17px;
+  --rev-left-desktop: -18px;
+  --rev-top-desktop: -20px;
+
+  --remark-indent-mobile: 34px;
+  --remark-indent-desktop: 40px;
+  --remark-text-desktop: 1rem;
+  --remark-hand-mobile: 1.4375rem;
+  --remark-measure: 60ch;
+  --remark-arrow-width: 40px;
+  --remark-arrow-height: 34px;
+
+  --plan-scale-mobile: 10px;
+  --plan-scale-desktop: 15px;
 
   --breakpoint-phone-max: 767px;
   --breakpoint-tablet-max: 1199px;

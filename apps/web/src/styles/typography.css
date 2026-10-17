@@ -39,6 +39,13 @@
   --text-brand-default-weight: 700;
   --text-brand-default-size: 1.5rem;
   --text-brand-default-line: 1.5rem;
+  --text-brand-desktop-size: 1.875rem;
+  --text-brand-caption-family: var(--font-commissioner), sans-serif;
+  --text-brand-caption-weight: 500;
+  --text-brand-caption-size: 0.8125rem;
+  --text-brand-caption-desktop-size: 0.875rem;
+  --text-pref-weight: 600;
+  --text-pref-size: 0.875rem;
   --text-body-default-family: var(--font-commissioner), sans-serif;
   --text-body-default-weight: 400;
   --text-body-default-size: 0.9375rem;
