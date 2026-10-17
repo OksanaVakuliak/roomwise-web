@@ -1,0 +1,42 @@
+.root {
+  position: relative;
+  flex: none;
+  width: var(--size-toggle-width);
+  height: var(--size-toggle-height);
+  padding: 0;
+  border: var(--stroke-1-5) solid var(--line);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.on {
+  background: var(--heat);
+}
+
+.off {
+  background: var(--fill-a);
+}
+
+.knob {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  width: var(--size-toggle-knob);
+  height: var(--size-toggle-knob);
+  background: var(--sheet);
+}
+
+.on .knob {
+  right: var(--space-3);
+}
+
+.off .knob {
+  left: var(--space-3);
+  border: var(--stroke-1-5) solid var(--line);
+}
+
+.root:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}

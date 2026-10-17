@@ -1,0 +1,27 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-target);
+  height: var(--size-target);
+  padding: 0;
+  border: var(--stroke-1-5) solid var(--line);
+  background: transparent;
+  color: var(--line);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.root:hover {
+  background: var(--fill-a);
+}
+
+.root:active {
+  transform: translateY(var(--stroke-1));
+}
+
+.root:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  transform: none;
+}
