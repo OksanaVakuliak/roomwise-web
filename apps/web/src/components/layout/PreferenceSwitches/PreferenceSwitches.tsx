@@ -20,7 +20,7 @@ export function PreferenceSwitches() {
   const router = useRouter();
   const pathname = usePathname();
 
-  usePreferencesHydration();
+  const hydrated = usePreferencesHydration();
 
   const currency = usePreferences((state) => state.currency);
   const theme = usePreferences((state) => state.theme);
@@ -30,6 +30,7 @@ export function PreferenceSwitches() {
 
   const handleChange = useCallback(
     (value: string) => {
+      if (!hydrated) return;
       if (value === 'locale') {
         const next = nextOf(routing.locales, locale);
         setLocale(next);
@@ -42,6 +43,7 @@ export function PreferenceSwitches() {
     },
     [
       currency,
+      hydrated,
       locale,
       pathname,
       router,
@@ -64,22 +66,22 @@ export function PreferenceSwitches() {
       },
       {
         value: 'currency',
-        content: currency === 'USD' ? '$' : '₴',
+        content: hydrated ? (currency === 'USD' ? '$' : '₴') : null,
         label: t('currency', { currency: nextCurrency }),
       },
       {
         value: 'theme',
-        content: (
+        content: hydrated ? (
           <Icon
             name={
               theme === 'dark' ? 'moon' : theme === 'light' ? 'sun' : 'system'
             }
           />
-        ),
+        ) : null,
         label: t('theme', { theme: t(`themes.${theme}`) }),
       },
     ] as const;
-  }, [currency, locale, t, theme]);
+  }, [currency, hydrated, locale, t, theme]);
 
   return (
     <PrefSwitch

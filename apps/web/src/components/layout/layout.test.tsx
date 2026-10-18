@@ -15,6 +15,7 @@ import { forEachViewport, setViewport } from '@/test/viewports';
 import en from '../../../messages/en.json';
 import { AppFooter } from './AppFooter/AppFooter';
 import { AppHeader } from './AppHeader/AppHeader';
+import { MAIN_ID } from './SkipLink/main-id';
 import { SkipLink } from './SkipLink/SkipLink';
 
 vi.mock('next-intl/server', () => ({
@@ -28,8 +29,6 @@ vi.mock('@/i18n/navigation', () => ({
   useRouter: () => ({ replace: vi.fn() }),
   usePathname: () => '/',
 }));
-
-const MAIN_ID = 'main';
 
 const TABBABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -59,7 +58,7 @@ async function renderShell(
       <>
         <SkipLink />
         <AppHeader />
-        <main id={MAIN_ID}>
+        <main id={MAIN_ID} tabIndex={-1}>
           <Suspense>
             <Page params={Promise.resolve({ locale })} />
           </Suspense>
@@ -217,7 +216,7 @@ describe('skip link', () => {
       const skip = screen.getAllByRole('link')[0];
       const target = skip.getAttribute('href');
 
-      expect(target).toBe('#main');
+      expect(target).toBe(`#${MAIN_ID}`);
       expect(document.querySelector(target as string)).toBe(
         screen.getByRole('main'),
       );
@@ -225,8 +224,9 @@ describe('skip link', () => {
   );
 
   it('targets the id the locale layout puts on main', () => {
-    expect(layoutSource).toMatch(/const MAIN_ID = 'main';/);
-    expect(layoutSource).toMatch(/<main id=\{MAIN_ID\}>/);
+    expect(MAIN_ID).toBe('main');
+    expect(layoutSource).not.toMatch(/const MAIN_ID/);
+    expect(layoutSource).toMatch(/<main id=\{MAIN_ID\} tabIndex=\{-1\}>/);
     expect(layoutSource).toMatch(/<SkipLink \/>\s*<AppHeader \/>/);
   });
 });

@@ -5,6 +5,7 @@ import {
   forEachLocale,
   renderWithProviders,
 } from '@/test/render-with-providers';
+import { MAIN_ID } from './main-id';
 import { SkipLink } from './SkipLink';
 
 describe('SkipLink', () => {
@@ -12,7 +13,7 @@ describe('SkipLink', () => {
     renderWithProviders(<SkipLink />);
     expect(
       screen.getByRole('link', { name: 'Skip to content' }),
-    ).toHaveAttribute('href', '#main');
+    ).toHaveAttribute('href', `#${MAIN_ID}`);
   });
 
   it('is translated', () => {

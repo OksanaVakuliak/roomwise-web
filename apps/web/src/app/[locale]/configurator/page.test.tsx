@@ -1,12 +1,14 @@
-import { act, screen } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import type { AnchorHTMLAttributes } from 'react';
 import { Suspense } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { usePreferences } from '@/stores/preferences';
 import { axe } from '@/test/axe';
 import {
   forEachLocale,
   renderWithProviders,
 } from '@/test/render-with-providers';
+import en from '../../../../messages/en.json';
 import ConfiguratorPage from './page';
 
 vi.mock('next-intl/server', () => ({
@@ -44,4 +46,17 @@ describe('ConfiguratorPage', () => {
       expect(await axe(container)).toHaveNoViolations();
     },
   );
+
+  it('shows the estimate in the selected currency', async () => {
+    await renderPage('en');
+    const cost = screen.getByRole('region', { name: en.StepLayout.cost });
+    expect(within(cost).getAllByText(/\$/).length).toBeGreaterThan(0);
+
+    await act(async () => {
+      usePreferences.getState().setCurrency('UAH');
+    });
+
+    expect(within(cost).queryAllByText(/\$/)).toHaveLength(0);
+    expect(within(cost).getAllByText(/₴|грн|UAH/).length).toBeGreaterThan(0);
+  });
 });

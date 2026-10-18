@@ -220,12 +220,12 @@ describe('layout widths guard', () => {
     expect(released).toHaveLength(1);
   });
 
-  it('reserves room under the content for the fixed cost panel', () => {
+  it('reserves room under the whole page, footer included, for the fixed cost panel', () => {
     const reserve = stepLayout.find(
       (item) =>
-        item.selector === '.aside' &&
+        item.selector === ':global(body):has(.cost)' &&
         item.minWidth === 0 &&
-        item.property === 'padding' &&
+        item.property === 'padding-bottom' &&
         item.value.includes('var(--layout-cost-reserve)'),
     );
     expect(reserve).toBeDefined();
