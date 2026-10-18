@@ -68,8 +68,8 @@
   border-bottom: var(--stroke-1-5) solid var(--line);
   background-image: repeating-linear-gradient(
     -45deg,
-    var(--hair) 0 1px,
-    transparent 1px var(--space-6)
+    var(--hair) 0 var(--stroke-1),
+    transparent var(--stroke-1) var(--space-6)
   );
 }
 

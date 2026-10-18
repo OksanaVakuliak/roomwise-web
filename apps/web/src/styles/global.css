@@ -16,6 +16,12 @@ html {
   text-size-adjust: 100%;
 }
 
+@media (min-width: 1024px) {
+  html {
+    font-size: max(100%, 1.5625vw);
+  }
+}
+
 body {
   min-width: 0;
   background: var(--sheet);
@@ -63,7 +69,7 @@ table {
 }
 
 :focus-visible {
-  outline: 3px solid var(--line);
+  outline: var(--focus-ring-width) solid var(--line);
   outline-offset: var(--stroke-2);
 }
 
@@ -73,8 +79,8 @@ select,
 summary,
 input[type="checkbox"],
 input[type="radio"] {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--size-target);
+  min-height: var(--size-target);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -80,6 +80,7 @@
   font-weight: var(--text-number-s-weight);
   font-size: var(--text-body-default-size);
   color: var(--line);
+  white-space: nowrap;
 }
 
 .actions {
@@ -110,6 +111,7 @@
   }
 
   .parts {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, auto);
+    justify-content: space-between;
   }
 }

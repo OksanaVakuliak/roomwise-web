@@ -6,6 +6,13 @@ import { VIEWPORTS } from '../viewports';
 const SRC = resolve(import.meta.dirname, '../..');
 const SMALLEST = Math.min(...VIEWPORTS);
 const TABLET = 768;
+const ROOT_PX = 16;
+const SCALING_FROM = 1024;
+const PX_ALLOWLIST = new Set([
+  '--breakpoint-phone-max',
+  '--breakpoint-tablet-max',
+  '--ui-scale',
+]);
 const WIDTH_PROPERTIES = new Set([
   'width',
   'min-width',
@@ -121,9 +128,9 @@ function fixedPixels(value: string): number[] {
     /(?:minmax|repeat)\([^()]*\b(?:auto-fill|auto-fit)\b[^()]*\)/g,
     '',
   );
-  return [...withoutFluid.matchAll(/(?<![\w.-])(\d+(?:\.\d+)?)px\b/g)].map(
-    (match) => Number(match[1]),
-  );
+  return [
+    ...withoutFluid.matchAll(/(?<![\w.-])(\d+(?:\.\d+)?)(px|rem)\b/g),
+  ].map((match) => Number(match[1]) * (match[2] === 'rem' ? ROOT_PX : 1));
 }
 
 function scrollsHorizontally(file: string): boolean {
@@ -153,12 +160,10 @@ describe('layout widths guard', () => {
 
   it('defines the layout tokens it relies on', () => {
     for (const name of [
-      '--layout-aside-width',
       '--layout-aside-width-tablet',
-      '--layout-scene-width',
       '--layout-cost-reserve',
     ]) {
-      expect(TOKENS.get(name), name).toMatch(/^\d+px$/);
+      expect(TOKENS.get(name), name).toMatch(/^\d+(?:\.\d+)?rem$/);
     }
   });
 
@@ -229,6 +234,32 @@ describe('layout widths guard', () => {
         item.value.includes('var(--layout-cost-reserve)'),
     );
     expect(reserve).toBeDefined();
+  });
+
+  it('sizes every length token in rem so the page scales with the root font size', () => {
+    const lengths = [...TOKENS].filter(
+      ([name, value]) =>
+        /(?<![\w.-])\d+(?:\.\d+)?px\b/.test(value) && !PX_ALLOWLIST.has(name),
+    );
+    expect(lengths.map(([name, value]) => `${name}: ${value}`)).toEqual([]);
+  });
+
+  it('scales the root font size proportionally from the desktop floor and never below the user preference', () => {
+    const css = blankOutComments(
+      readFileSync(resolve(SRC, 'styles/global.css'), 'utf8'),
+    );
+    const match = new RegExp(
+      String.raw`@media \(min-width: ${SCALING_FROM}px\)\s*\{\s*html\s*\{\s*font-size:\s*max\(100%,\s*([\d.]+)vw\)`,
+    ).exec(css);
+    expect(match).not.toBeNull();
+    expect(Number(match?.[1]) * SCALING_FROM).toBeCloseTo(ROOT_PX * 100, 1);
+  });
+
+  it('keeps one composition from the tablet width up', () => {
+    const wide = declarations.filter(
+      (item) => item.minWidth > TABLET && !rel(item.file).includes('/(dev)/'),
+    );
+    expect(wide.map(describeDeclaration)).toEqual([]);
   });
 
   it('scales text with the root font size so 200% zoom works', () => {

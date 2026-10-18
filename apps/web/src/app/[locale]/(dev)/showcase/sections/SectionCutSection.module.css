@@ -29,8 +29,8 @@
 
 .hatch {
   display: block;
-  width: 80px;
-  height: 34px;
+  width: 5rem;
+  height: 2.125rem;
 }
 
 .caption {
@@ -45,10 +45,10 @@
 }
 
 .desktop {
-  width: 760px;
+  width: 47.5rem;
   padding-left: var(--space-24);
 }
 
 .remark.desktop {
-  width: 560px;
+  width: 35rem;
 }

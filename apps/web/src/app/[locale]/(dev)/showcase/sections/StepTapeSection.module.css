@@ -1,9 +1,9 @@
 .desktopRule {
-  width: 1440px;
+  width: 90rem;
 }
 
 .mobileRule {
-  width: 390px;
+  width: 24.375rem;
   max-width: 100%;
 }
 
@@ -20,15 +20,15 @@
 }
 
 .cellNarrow {
-  width: 70px;
+  width: 4.375rem;
 }
 
 .cellMobile {
-  width: 150px;
+  width: 9.375rem;
 }
 
 .cellDesktop {
-  width: 170px;
+  width: 10.625rem;
 }
 
 .actions {

@@ -18,11 +18,11 @@
 }
 
 .narrow {
-  max-width: 360px;
+  max-width: 22.5rem;
 }
 
 .wide {
-  width: 430px;
+  width: 26.875rem;
 }
 
 .row {

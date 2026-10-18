@@ -42,41 +42,44 @@
 }
 
 :root {
-  --space-3: 3px;
-  --space-4: 4px;
-  --space-5: 5px;
-  --space-6: 6px;
-  --space-8: 8px;
-  --space-9: 9px;
-  --space-10: 10px;
-  --space-12: 12px;
-  --space-14: 14px;
-  --space-16: 16px;
-  --space-18: 18px;
-  --space-22: 22px;
-  --space-24: 24px;
-  --space-28: 28px;
+  --ui-scale: tan(atan2(1rem, 16px));
 
-  --stroke-1: 1px;
-  --stroke-1-2: 1.2px;
-  --stroke-1-5: 1.5px;
-  --stroke-1-6: 1.6px;
-  --stroke-2: 2px;
+  --space-3: 0.1875rem;
+  --space-4: 0.25rem;
+  --space-5: 0.3125rem;
+  --space-6: 0.375rem;
+  --space-8: 0.5rem;
+  --space-9: 0.5625rem;
+  --space-10: 0.625rem;
+  --space-12: 0.75rem;
+  --space-14: 0.875rem;
+  --space-16: 1rem;
+  --space-18: 1.125rem;
+  --space-22: 1.375rem;
+  --space-24: 1.5rem;
+  --space-28: 1.75rem;
 
-  --icon-sm: 14px;
-  --icon-md: 17px;
-  --icon-lg: 24px;
+  --stroke-1: 0.0625rem;
+  --stroke-1-2: 0.075rem;
+  --stroke-1-5: 0.09375rem;
+  --stroke-1-7: 0.10625rem;
+  --stroke-1-6: 0.1rem;
+  --stroke-2: 0.125rem;
 
-  --size-target: 44px;
-  --size-button: 46px;
-  --size-toggle-width: 56px;
-  --size-toggle-height: 32px;
-  --size-toggle-knob: 23px;
-  --pref-height: 40px;
-  --pref-min-width: 44px;
+  --icon-sm: 0.875rem;
+  --icon-md: 1.0625rem;
+  --icon-lg: 1.5rem;
 
-  --focus-ring-width: 3px;
-  --focus-ring-offset: 2px;
+  --size-target: 2.75rem;
+  --size-button: 2.875rem;
+  --size-toggle-width: 3.5rem;
+  --size-toggle-height: 2rem;
+  --size-toggle-knob: 1.4375rem;
+  --pref-height: 2.5rem;
+  --pref-min-width: 2.75rem;
+
+  --focus-ring-width: 0.1875rem;
+  --focus-ring-offset: 0.125rem;
   --opacity-disabled: 0.45;
 
   --text-label-size: 0.875rem;
@@ -91,101 +94,99 @@
   --ease-enter: cubic-bezier(0, 0, 0, 1);
   --ease-exit: cubic-bezier(0.3, 0, 1, 1);
 
-  --tape-height-mobile: 58px;
-  --tape-height-desktop: 64px;
-  --tape-step-gap: 5px;
-  --tape-step-pad-bottom: 7px;
-  --tape-step-inset-mobile: 10px;
-  --tape-step-inset-desktop: 16px;
+  --tape-height-mobile: 3.625rem;
+  --tape-height-desktop: 4rem;
+  --tape-step-gap: 0.3125rem;
+  --tape-step-pad-bottom: 0.4375rem;
+  --tape-step-inset-mobile: 0.625rem;
+  --tape-step-inset-desktop: 1rem;
   --tape-label-size-mobile: 0.875rem;
   --tape-label-size-desktop: 1.0625rem;
   --tape-number-size-desktop: 1.625rem;
-  --tape-pointer-width: 16px;
-  --tape-pointer-height: 11px;
-  --tape-pointer-left: 4px;
-  --tape-pointer-bottom-mobile: 32px;
-  --tape-pointer-bottom-desktop: 38px;
+  --tape-pointer-width: 1rem;
+  --tape-pointer-height: 0.6875rem;
+  --tape-pointer-left: 0.25rem;
+  --tape-pointer-bottom-mobile: 2rem;
+  --tape-pointer-bottom-desktop: 2.375rem;
   --tape-step-grow-now: 2.6;
   --tape-opacity-done: 0.72;
   --tape-opacity-later: 0.55;
 
-  --cut-block-mobile: 62px;
-  --cut-block-desktop: 170px;
-  --cut-leader-mobile: 12px;
-  --cut-leader-desktop: 30px;
+  --cut-block-mobile: 3.875rem;
+  --cut-block-desktop: 10.625rem;
+  --cut-leader-mobile: 0.75rem;
+  --cut-leader-desktop: 1.875rem;
   --cut-name-mobile: 0.875rem;
   --cut-name-desktop: 1rem;
   --cut-note-mobile: 0.78125rem;
   --cut-note-desktop: 0.875rem;
   --cut-price-mobile: 0.9375rem;
   --cut-price-desktop: 1.1875rem;
-  --cut-cloud-start: -7px;
-  --cut-cloud-end: -5px;
-  --cut-cloud-block: -4px;
+  --cut-cloud-start: -0.4375rem;
+  --cut-cloud-end: -0.3125rem;
+  --cut-cloud-block: -0.25rem;
 
-  --rev-size-mobile: 24px;
-  --rev-size-desktop: 28px;
+  --rev-size-mobile: 1.5rem;
+  --rev-size-desktop: 1.75rem;
   --rev-font-mobile: 0.8125rem;
   --rev-font-desktop: 0.9375rem;
-  --rev-left-mobile: -15px;
-  --rev-top-mobile: -17px;
-  --rev-left-desktop: -18px;
-  --rev-top-desktop: -20px;
+  --rev-left-mobile: -0.9375rem;
+  --rev-top-mobile: -1.0625rem;
+  --rev-left-desktop: -1.125rem;
+  --rev-top-desktop: -1.25rem;
 
-  --remark-indent-mobile: 34px;
-  --remark-indent-desktop: 40px;
+  --remark-indent-mobile: 2.125rem;
+  --remark-indent-desktop: 2.5rem;
   --remark-text-desktop: 1rem;
   --remark-hand-mobile: 1.4375rem;
   --remark-measure: 60ch;
-  --remark-arrow-width: 40px;
-  --remark-arrow-height: 34px;
+  --remark-arrow-width: 2.5rem;
+  --remark-arrow-height: 2.125rem;
 
-  --spec-pos-width: 34px;
-  --spec-image: 64px;
-  --spec-bar-width: 5px;
-  --spec-bar-offset-mobile: -16px;
-  --spec-bar-offset-desktop: -24px;
+  --spec-pos-width: 2.125rem;
+  --spec-image: 4rem;
+  --spec-bar-width: 0.3125rem;
+  --spec-bar-offset-mobile: -1rem;
+  --spec-bar-offset-desktop: -1.5rem;
   --spec-price-size: 1rem;
 
-  --plan-scale-mobile: 10px;
-  --plan-scale-desktop: 15px;
+  --plan-scale-mobile: 0.625rem;
+  --plan-scale-desktop: 0.9375rem;
 
-  --bar-stack-height: 22px;
-  --bar-track-height: 18px;
-  --bar-tick-pitch: 7.8px;
-  --bar-tick-height: 6px;
-  --bar-label-width: 86px;
-  --bar-value-width: 84px;
-  --result-position-width: 30px;
+  --bar-stack-height: 1.375rem;
+  --bar-track-height: 1.125rem;
+  --bar-tick-pitch: 0.4875rem;
+  --bar-tick-height: 0.375rem;
+  --bar-label-width: 5.375rem;
+  --bar-value-width: 5.25rem;
+  --result-position-width: 1.875rem;
 
-  --skeleton-line-height: 14px;
-  --skeleton-block-height: 96px;
-  --skeleton-circle-size: 44px;
+  --skeleton-line-height: 0.875rem;
+  --skeleton-block-height: 6rem;
+  --skeleton-circle-size: 2.75rem;
   --skeleton-duration: 1400ms;
-  --progress-height: 12px;
+  --progress-height: 0.75rem;
   --progress-duration: 1200ms;
-  --banner-bar: 6px;
-  --empty-icon-box: 56px;
+  --banner-bar: 0.375rem;
+  --empty-icon-box: 3.5rem;
   --empty-measure: 44ch;
-  --table-min-width: 480px;
+  --table-min-width: 30rem;
 
   --breakpoint-phone-max: 767px;
   --breakpoint-tablet-max: 1199px;
 
-  --layout-aside-width: 470px;
-  --layout-aside-width-tablet: 340px;
-  --layout-scene-width: 300px;
-  --layout-cost-reserve: 240px;
-  --stub-scene-height: 240px;
-  --stub-showcase-height: 360px;
-  --stub-content-height: 160px;
+  --layout-aside-width-tablet: 21.25rem;
+  --layout-cost-reserve: 15rem;
+  --stub-scene-height: 15rem;
+  --stub-showcase-height: 22.5rem;
+  --stub-content-height: 10rem;
 
-  --overlay-modal-width: 480px;
-  --overlay-panel-width: 420px;
+  --overlay-modal-width: 30rem;
+  --overlay-panel-width: 26.25rem;
   --overlay-sheet-height: 85dvh;
-  --overlay-tooltip-width: 240px;
-  --overlay-toast-width: 420px;
-  --overlay-shadow: 6px 6px 0;
+  --overlay-tooltip-width: 15rem;
+  --overlay-toast-width: 26.25rem;
+  --overlay-shadow: 0.375rem 0.375rem 0;
 
   --z-base: 0;
   --z-sticky: 10;

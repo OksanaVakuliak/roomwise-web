@@ -54,7 +54,12 @@ export function TapeRule({
             />
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill={`url(#${patternId})`} />
+        <rect
+          className={styles.fill}
+          width="100%"
+          height="100%"
+          fill={`url(#${patternId})`}
+        />
       </svg>
       {children ? <ol className={styles.steps}>{children}</ol> : null}
     </Root>

@@ -1,7 +1,3 @@
-.desktop {
-  display: none;
-}
-
 .title {
   font-family: var(--text-display-m-family);
   font-weight: var(--text-display-m-weight);
@@ -12,15 +8,5 @@
 @media (min-width: 768px) {
   .title {
     font-size: var(--text-display-m-size);
-  }
-}
-
-@media (min-width: 1200px) {
-  .mobile {
-    display: none;
-  }
-
-  .desktop {
-    display: block;
   }
 }

@@ -1,6 +1,6 @@
 .root {
   position: absolute;
-  top: calc(0px - var(--size-button) - var(--space-16));
+  top: calc(-1 * (var(--size-button) + var(--space-16)));
   left: var(--space-8);
   z-index: 1;
   padding: var(--space-12) var(--space-16);

@@ -10,7 +10,6 @@ import { ConfiguratorEstimate } from './ConfiguratorEstimate';
 import styles from './page.module.css';
 
 const STEPS = [1, 2, 3, 4, 5] as const;
-const SIZES = ['mobile', 'desktop'] as const;
 const CURRENT_STEP = 1;
 
 type PageProps = { params: Promise<{ locale: string }> };
@@ -49,24 +48,18 @@ export default function ConfiguratorPage({ params }: PageProps) {
     <StepLayout
       steps={
         <nav aria-label={t('tapeLabel')}>
-          {SIZES.map((size) => (
-            <TapeRule key={size} size={size} className={styles[size]}>
-              {STEPS.map((step) => (
-                <TapeStep
-                  key={step}
-                  size={size}
-                  number={`A${step}`}
-                  label={
-                    size === 'desktop' || step === CURRENT_STEP
-                      ? t(`steps.${step}`)
-                      : undefined
-                  }
-                  state={stepState(step)}
-                  stateLabel={t(`state.${stepState(step)}`)}
-                />
-              ))}
-            </TapeRule>
-          ))}
+          <TapeRule size="mobile">
+            {STEPS.map((step) => (
+              <TapeStep
+                key={step}
+                size="mobile"
+                number={`A${step}`}
+                label={step === CURRENT_STEP ? t(`steps.${step}`) : undefined}
+                state={stepState(step)}
+                stateLabel={t(`state.${stepState(step)}`)}
+              />
+            ))}
+          </TapeRule>
         </nav>
       }
       content={

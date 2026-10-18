@@ -64,7 +64,6 @@ export function CutLayer({
               d={cloudPath}
               fill="none"
               stroke="var(--heat)"
-              strokeWidth="1.7"
             />
           </svg>
         </div>

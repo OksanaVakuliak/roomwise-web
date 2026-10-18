@@ -77,24 +77,3 @@
     border-top: 0;
   }
 }
-
-@media (min-width: 1200px) {
-  .body {
-    grid-template-columns: minmax(0, 1fr) var(--layout-aside-width);
-  }
-
-  .main {
-    display: grid;
-    grid-template-columns: var(--layout-scene-width) minmax(0, 1fr);
-    column-gap: var(--space-28);
-    align-content: start;
-  }
-
-  .content {
-    grid-column: 1 / -1;
-  }
-
-  .aside {
-    padding-inline: var(--space-24);
-  }
-}
