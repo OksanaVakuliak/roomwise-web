@@ -12,7 +12,9 @@ export function AppHeader() {
       <Link href="/" className={styles.brand} aria-label={t('brandLink')}>
         <Brand name={t('brandName')} caption={t('brandCaption')} />
       </Link>
-      <PreferenceSwitches />
+      <div className={styles.prefs}>
+        <PreferenceSwitches />
+      </div>
     </header>
   );
 }

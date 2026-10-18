@@ -13,6 +13,10 @@
   text-decoration: none;
 }
 
+.prefs {
+  flex-shrink: 0;
+}
+
 @media (min-width: 768px) {
   .root {
     padding-inline: var(--space-28);
