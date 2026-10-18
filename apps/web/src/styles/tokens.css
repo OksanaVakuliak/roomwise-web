@@ -172,6 +172,14 @@
   --breakpoint-phone-max: 767px;
   --breakpoint-tablet-max: 1199px;
 
+  --layout-aside-width: 470px;
+  --layout-aside-width-tablet: 340px;
+  --layout-scene-width: 300px;
+  --layout-cost-reserve: 240px;
+  --stub-scene-height: 240px;
+  --stub-showcase-height: 360px;
+  --stub-content-height: 160px;
+
   --overlay-modal-width: 480px;
   --overlay-panel-width: 420px;
   --overlay-sheet-height: 85dvh;

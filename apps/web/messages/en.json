@@ -594,5 +594,43 @@
     "message": "An unexpected error occurred. Try again or go back to the home page.",
     "retry": "Try again",
     "home": "Back to home"
+  },
+  "StepLayout": {
+    "steps": "Configurator steps",
+    "scene": "Room view",
+    "showcase": "Specification",
+    "cost": "Estimate"
+  },
+  "ZoneStub": {
+    "scene": "3D room view",
+    "showcase": "Specification showcase",
+    "content": "Step content"
+  },
+  "Configurator": {
+    "title": "Object",
+    "pageTitle": "Object. Roomwise",
+    "base": "Base",
+    "materials": "Materials",
+    "engineering": "Engineering",
+    "options": "Options",
+    "back": "Back",
+    "next": "Next",
+    "tapeLabel": "Configurator steps",
+    "state": {
+      "done": "done",
+      "now": "current",
+      "later": "upcoming"
+    },
+    "announcement": "Total is now {total}",
+    "barLabel": "Estimate split: base 51%, materials 37%, engineering 9%, options 3%",
+    "totalLabel": "Total on the drawing",
+    "toggleLabel": "Show breakdown",
+    "steps": {
+      "1": "Object",
+      "2": "Style",
+      "3": "Interior",
+      "4": "Engineering",
+      "5": "Estimate"
+    }
   }
 }
