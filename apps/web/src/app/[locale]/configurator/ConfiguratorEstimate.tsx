@@ -24,19 +24,26 @@ export function ConfiguratorEstimate() {
   const format = (cents: number) => money(cents, currency, locale, RATE);
   const sum = PARTS.reduce((total, part) => total + part.cents, 0);
   const total = format(sum);
+  const shares = PARTS.map((part) => (part.cents / sum) * 100);
+  const barLabel = t('barLabel', {
+    base: Math.round(shares[0]),
+    materials: Math.round(shares[1]),
+    engineering: Math.round(shares[2]),
+    options: Math.round(shares[3]),
+  });
 
   return (
     <EstimateStamp
       totalLabel={t('totalLabel')}
       total={total}
-      barLabel={t('barLabel')}
+      barLabel={barLabel}
       toggleLabel={t('toggleLabel')}
       announcement={t('announcement', { total })}
-      parts={PARTS.map((part) => ({
+      parts={PARTS.map((part, index) => ({
         key: part.key,
         label: t(part.key),
         value: format(part.cents),
-        share: (part.cents / sum) * 100,
+        share: shares[index],
       }))}
       actions={
         <>

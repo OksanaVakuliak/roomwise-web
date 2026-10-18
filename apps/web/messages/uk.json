@@ -572,7 +572,9 @@
     "prefs": "Налаштування",
     "language": "Змінити мову на {language}",
     "currency": "Змінити валюту на {currency}",
-    "theme": "Змінити тему, зараз: {theme}",
+    "theme": "Змінити тему на {theme}",
+    "themeNeutral": "Змінити тему",
+    "currencyNeutral": "Змінити валюту",
     "languageCodes": {
       "en": "EN",
       "uk": "UK"
@@ -581,10 +583,10 @@
       "en": "англійську",
       "uk": "українську"
     },
-    "themes": {
-      "system": "системна",
-      "light": "світла",
-      "dark": "темна"
+    "themeNames": {
+      "system": "системну",
+      "light": "світлу",
+      "dark": "темну"
     },
     "footer": "Розрахунок орієнтовний і не є пропозицією.",
     "footerBrand": "© Roomwise"
@@ -622,7 +624,7 @@
       "later": "попереду"
     },
     "announcement": "Разом тепер {total}",
-    "barLabel": "Розподіл кошторису: база 51%, матеріали 37%, інженерія 9%, опції 3%",
+    "barLabel": "Розподіл кошторису: база {base}%, матеріали {materials}%, інженерія {engineering}%, опції {options}%",
     "totalLabel": "Разом за кресленням",
     "toggleLabel": "Показати розбивку",
     "steps": {

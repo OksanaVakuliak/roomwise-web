@@ -5,8 +5,6 @@
 }
 
 .fill {
-  width: calc(100% / var(--ui-scale));
-  height: calc(100% / var(--ui-scale));
   transform: scale(var(--ui-scale));
   transform-origin: 0 0;
 }

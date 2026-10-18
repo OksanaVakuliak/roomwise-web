@@ -1,4 +1,4 @@
-.title {
+.root {
   font-family: var(--text-display-m-family);
   font-weight: var(--text-display-m-weight);
   font-size: var(--text-title-m-size);
@@ -6,7 +6,7 @@
 }
 
 @media (min-width: 768px) {
-  .title {
+  .root {
     font-size: var(--text-display-m-size);
   }
 }

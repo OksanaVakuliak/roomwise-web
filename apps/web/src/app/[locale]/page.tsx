@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { hasLocale, useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { use } from 'react';
-import { ButtonLink } from '@/components/ui';
+import { ButtonLink, PageTitle } from '@/components/ui';
 import { CONFIGURATOR_PATH } from '@/config/routes';
 import { routing } from '@/i18n/routing';
 import styles from './page.module.css';
@@ -32,7 +32,7 @@ export default function HomePage({
 
   return (
     <div className={styles.root}>
-      <h1 className={styles.title}>{t('title')}</h1>
+      <PageTitle>{t('title')}</PageTitle>
       <p className={styles.intro}>{t('intro')}</p>
       <ButtonLink href={CONFIGURATOR_PATH} kind="heat" className={styles.start}>
         {t('start')}

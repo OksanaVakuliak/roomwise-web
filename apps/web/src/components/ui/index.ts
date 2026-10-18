@@ -20,6 +20,7 @@ export * from './KeyValueGrid/KeyValueGrid';
 export * from './Link/Link';
 export * from './Modal/Modal';
 export * from './NumberField/NumberField';
+export * from './PageTitle/PageTitle';
 export * from './PickedBadge/PickedBadge';
 export * from './PrefSwitch/PrefSwitch';
 export * from './Price/Price';

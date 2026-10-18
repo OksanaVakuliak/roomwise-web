@@ -93,8 +93,8 @@ export function Hatch({ material }: HatchProps) {
           </defs>
           <rect
             className={styles.fill}
-            width="100%"
-            height="100%"
+            width="200%"
+            height="200%"
             fill={`url(#${id})`}
           />
         </>

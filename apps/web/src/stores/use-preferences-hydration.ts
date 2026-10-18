@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { applyTheme, readThemeMode, watchSystemTheme } from '@/lib/theme';
+import { applyTheme, readThemeMode } from '@/lib/theme';
 import { usePreferences } from './preferences';
 
 let hydration: Promise<void> | undefined;
@@ -31,15 +31,6 @@ export function usePreferencesHydration(): boolean {
       active = false;
     };
   }, []);
-
-  useEffect(
-    () =>
-      watchSystemTheme(
-        () => usePreferences.getState().theme,
-        () => {},
-      ),
-    [],
-  );
 
   return hydrated;
 }

@@ -159,10 +159,7 @@ describe('layout widths guard', () => {
   });
 
   it('defines the layout tokens it relies on', () => {
-    for (const name of [
-      '--layout-aside-width-tablet',
-      '--layout-cost-reserve',
-    ]) {
+    for (const name of ['--layout-aside-width-tablet']) {
       expect(TOKENS.get(name), name).toMatch(/^\d+(?:\.\d+)?rem$/);
     }
   });
@@ -207,33 +204,41 @@ describe('layout widths guard', () => {
     expect(offenders.map(describeDeclaration)).toEqual([]);
   });
 
-  it('fixes the cost panel to the viewport only below the tablet breakpoint', () => {
-    const fixed = stepLayout.filter(
-      (item) => item.property === 'position' && item.value === 'fixed',
-    );
-    expect(fixed).toHaveLength(1);
-    expect(fixed[0].selector).toBe('.cost');
-    expect(fixed[0].minWidth).toBe(0);
+  it('sticks the cost panel to the viewport bottom instead of fixing it', () => {
+    expect(
+      stepLayout.filter(
+        (item) => item.property === 'position' && item.value === 'fixed',
+      ),
+    ).toEqual([]);
 
-    const released = stepLayout.filter(
+    const sticky = stepLayout.filter(
       (item) =>
         item.selector === '.cost' &&
         item.property === 'position' &&
         item.value === 'sticky' &&
-        item.minWidth === TABLET,
+        item.minWidth === 0,
     );
-    expect(released).toHaveLength(1);
+    expect(sticky).toHaveLength(1);
+
+    const bottom = stepLayout.find(
+      (item) =>
+        item.selector === '.cost' &&
+        item.property === 'bottom' &&
+        item.value === '0' &&
+        item.minWidth === 0,
+    );
+    expect(bottom).toBeDefined();
   });
 
-  it('reserves room under the whole page, footer included, for the fixed cost panel', () => {
-    const reserve = stepLayout.find(
+  it('flattens the aside below the tablet breakpoint so the cost panel spans the whole step', () => {
+    const flattened = stepLayout.find(
       (item) =>
-        item.selector === ':global(body):has(.cost)' &&
-        item.minWidth === 0 &&
-        item.property === 'padding-bottom' &&
-        item.value.includes('var(--layout-cost-reserve)'),
+        item.selector === '.aside' &&
+        item.property === 'display' &&
+        item.value === 'contents' &&
+        item.minWidth === 0,
     );
-    expect(reserve).toBeDefined();
+    expect(flattened).toBeDefined();
   });
 
   it('sizes every length token in rem so the page scales with the root font size', () => {

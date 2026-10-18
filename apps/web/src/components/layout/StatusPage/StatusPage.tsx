@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { PageTitle } from '@/components/ui';
 import styles from './StatusPage.module.css';
 
 export type StatusPageProps = {
@@ -10,7 +11,7 @@ export type StatusPageProps = {
 export function StatusPage({ title, message, children }: StatusPageProps) {
   return (
     <section className={styles.root}>
-      <h1 className={styles.title}>{title}</h1>
+      <PageTitle>{title}</PageTitle>
       <p className={styles.message}>{message}</p>
       {children ? <div className={styles.actions}>{children}</div> : null}
     </section>

@@ -4,10 +4,14 @@ import { hasLocale, useTranslations } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { use } from 'react';
 import { StepLayout, ZoneStub } from '@/components/layout';
-import { TapeRule, TapeStep, type TapeStepState } from '@/components/ui';
+import {
+  PageTitle,
+  TapeRule,
+  TapeStep,
+  type TapeStepState,
+} from '@/components/ui';
 import { routing } from '@/i18n/routing';
 import { ConfiguratorEstimate } from './ConfiguratorEstimate';
-import styles from './page.module.css';
 
 const STEPS = [1, 2, 3, 4, 5] as const;
 const CURRENT_STEP = 1;
@@ -64,7 +68,7 @@ export default function ConfiguratorPage({ params }: PageProps) {
       }
       content={
         <>
-          <h1 className={styles.title}>{t('steps.1')}</h1>
+          <PageTitle>{t('steps.1')}</PageTitle>
           <ZoneStub kind="content" />
         </>
       }

@@ -7,13 +7,6 @@
   padding: var(--space-28) var(--space-16);
 }
 
-.title {
-  font-family: var(--text-display-m-family);
-  font-weight: var(--text-display-m-weight);
-  font-size: var(--text-title-m-size);
-  line-height: var(--text-display-m-line);
-}
-
 .intro {
   color: var(--line-2);
 }
@@ -57,10 +50,4 @@
 
 .text {
   color: var(--line-2);
-}
-
-@media (min-width: 768px) {
-  .title {
-    font-size: var(--text-display-m-size);
-  }
 }

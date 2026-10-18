@@ -9,6 +9,7 @@ import { currencies } from '@/lib/format';
 import { THEME_MODES } from '@/lib/theme';
 import { usePreferences } from '@/stores/preferences';
 import { usePreferencesHydration } from '@/stores/use-preferences-hydration';
+import { useSystemThemeWatcher } from '@/stores/use-system-theme-watcher';
 
 function nextOf<T>(items: readonly T[], current: T): T {
   return items[(items.indexOf(current) + 1) % items.length];
@@ -21,6 +22,7 @@ export function PreferenceSwitches() {
   const pathname = usePathname();
 
   const hydrated = usePreferencesHydration();
+  useSystemThemeWatcher();
 
   const currency = usePreferences((state) => state.currency);
   const theme = usePreferences((state) => state.theme);
@@ -30,11 +32,13 @@ export function PreferenceSwitches() {
 
   const handleChange = useCallback(
     (value: string) => {
-      if (!hydrated) return;
       if (value === 'locale') {
         const next = nextOf(routing.locales, locale);
         setLocale(next);
-        router.replace(pathname, { locale: next });
+        const { search, hash } = window.location;
+        router.replace(`${pathname}${search}${hash}`, { locale: next });
+      } else if (!hydrated) {
+        return;
       } else if (value === 'currency') {
         setCurrency(nextOf(currencies, currency));
       } else if (value === 'theme') {
@@ -57,6 +61,7 @@ export function PreferenceSwitches() {
   const options = useMemo(() => {
     const nextLocale = nextOf(routing.locales, locale);
     const nextCurrency = nextOf(currencies, currency);
+    const nextTheme = nextOf(THEME_MODES, theme);
 
     return [
       {
@@ -67,7 +72,9 @@ export function PreferenceSwitches() {
       {
         value: 'currency',
         content: hydrated ? (currency === 'USD' ? '$' : '₴') : null,
-        label: t('currency', { currency: nextCurrency }),
+        label: hydrated
+          ? t('currency', { currency: nextCurrency })
+          : t('currencyNeutral'),
       },
       {
         value: 'theme',
@@ -78,17 +85,14 @@ export function PreferenceSwitches() {
             }
           />
         ) : null,
-        label: t('theme', { theme: t(`themes.${theme}`) }),
+        label: hydrated
+          ? t('theme', { theme: t(`themeNames.${nextTheme}`) })
+          : t('themeNeutral'),
       },
     ] as const;
   }, [currency, hydrated, locale, t, theme]);
 
   return (
-    <PrefSwitch
-      label={t('prefs')}
-      options={options}
-      value=""
-      onChange={handleChange}
-    />
+    <PrefSwitch label={t('prefs')} options={options} onChange={handleChange} />
   );
 }

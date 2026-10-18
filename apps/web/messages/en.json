@@ -572,7 +572,9 @@
     "prefs": "Preferences",
     "language": "Switch language to {language}",
     "currency": "Switch currency to {currency}",
-    "theme": "Switch theme, current: {theme}",
+    "theme": "Switch theme to {theme}",
+    "themeNeutral": "Switch theme",
+    "currencyNeutral": "Switch currency",
     "languageCodes": {
       "en": "EN",
       "uk": "UK"
@@ -581,10 +583,10 @@
       "en": "English",
       "uk": "Ukrainian"
     },
-    "themes": {
-      "system": "System",
-      "light": "Light",
-      "dark": "Dark"
+    "themeNames": {
+      "system": "system",
+      "light": "light",
+      "dark": "dark"
     },
     "footer": "Estimates are approximate and are not an offer.",
     "footerBrand": "© Roomwise"
@@ -622,7 +624,7 @@
       "later": "upcoming"
     },
     "announcement": "Total is now {total}",
-    "barLabel": "Estimate split: base 51%, materials 37%, engineering 9%, options 3%",
+    "barLabel": "Estimate split: base {base}%, materials {materials}%, engineering {engineering}%, options {options}%",
     "totalLabel": "Total on the drawing",
     "toggleLabel": "Show breakdown",
     "steps": {

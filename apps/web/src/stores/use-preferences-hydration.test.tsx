@@ -61,17 +61,4 @@ describe('usePreferencesHydration', () => {
 
     expect(rehydrate).toHaveBeenCalledTimes(1);
   });
-
-  it('follows system theme changes while the mode is system', async () => {
-    const media = stubMatchMedia(false);
-    const { usePreferencesHydration } = await load();
-
-    const { result, unmount } = renderHook(() => usePreferencesHydration());
-    await waitFor(() => expect(result.current).toBe(true));
-    media.setDark(true);
-
-    expect(document.documentElement.dataset.theme).toBe('dark');
-    unmount();
-    expect(media.listenerCount()).toBe(0);
-  });
 });
