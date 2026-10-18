@@ -1,0 +1,43 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--size-button);
+  padding: 0 var(--space-16);
+  border: var(--stroke-1-5) solid var(--line);
+  color: var(--line);
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-button-default-size);
+  line-height: var(--text-button-default-line);
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    filter var(--duration-fast) var(--ease-standard);
+}
+
+.outline:hover {
+  background: var(--fill-a);
+}
+
+.fill {
+  background: var(--line);
+  color: var(--sheet);
+}
+
+.fill:hover {
+  background: var(--line-2);
+  border-color: var(--line-2);
+}
+
+.heat {
+  background: var(--heat);
+  border-color: var(--heat);
+  color: var(--on-heat);
+}
+
+.heat:hover {
+  filter: brightness(1.12);
+}

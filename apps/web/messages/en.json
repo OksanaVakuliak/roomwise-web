@@ -4,11 +4,42 @@
     "description": "Roomwise renovation cost configurator"
   },
   "Home": {
-    "title": "Roomwise"
+    "title": "Plan your renovation and see the price",
+    "intro": "Roomwise turns your apartment into a drawing with prices. Choose materials step by step and watch the estimate grow with every decision.",
+    "stepsTitle": "How it works",
+    "start": "Start calculation",
+    "steps": {
+      "object": {
+        "code": "A1",
+        "name": "Object",
+        "text": "Rooms, sizes and the base work."
+      },
+      "style": {
+        "code": "A2",
+        "name": "Style",
+        "text": "The look of the whole apartment."
+      },
+      "interior": {
+        "code": "A3",
+        "name": "Interior",
+        "text": "Finishes and fixtures for each room."
+      },
+      "engineering": {
+        "code": "A4",
+        "name": "Engineering",
+        "text": "Electrics, plumbing and heating."
+      },
+      "estimate": {
+        "code": "A5",
+        "name": "Estimate",
+        "text": "The full cost, broken down by item."
+      }
+    }
   },
   "NotFound": {
     "title": "Page not found",
-    "message": "The page you are looking for does not exist."
+    "message": "The page you are looking for does not exist.",
+    "home": "Back to home"
   },
   "Showcase": {
     "title": "Component showcase",
@@ -532,5 +563,36 @@
     "UNPROCESSABLE": "The request cannot be processed",
     "unknown": "Something went wrong",
     "network": "Cannot reach the server"
+  },
+  "Layout": {
+    "skipLink": "Skip to content",
+    "brandName": "Roomwise",
+    "brandCaption": "renovation blueprint with prices",
+    "brandLink": "Roomwise, home page",
+    "prefs": "Preferences",
+    "language": "Switch language to {language}",
+    "currency": "Switch currency to {currency}",
+    "theme": "Switch theme, current: {theme}",
+    "languageCodes": {
+      "en": "EN",
+      "uk": "UK"
+    },
+    "languageNames": {
+      "en": "English",
+      "uk": "Ukrainian"
+    },
+    "themes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "footer": "Estimates are approximate and are not an offer.",
+    "footerBrand": "© Roomwise"
+  },
+  "Error": {
+    "title": "Something went wrong",
+    "message": "An unexpected error occurred. Try again or go back to the home page.",
+    "retry": "Try again",
+    "home": "Back to home"
   }
 }

@@ -39,7 +39,7 @@ export function Showcase() {
   const t = useTranslations('Showcase');
 
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>{t('title')}</h1>
         <ShowcaseToolbar />
@@ -76,6 +76,6 @@ export function Showcase() {
           </section>
         );
       })}
-    </main>
+    </div>
   );
 }

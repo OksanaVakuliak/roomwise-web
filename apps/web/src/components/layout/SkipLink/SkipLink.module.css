@@ -1,0 +1,16 @@
+.root {
+  position: absolute;
+  top: calc(0px - var(--size-button) - var(--space-16));
+  left: var(--space-8);
+  z-index: 1;
+  padding: var(--space-12) var(--space-16);
+  background: var(--line);
+  color: var(--sheet);
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-button-default-size);
+}
+
+.root:focus {
+  top: var(--space-8);
+}

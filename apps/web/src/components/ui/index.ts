@@ -2,6 +2,7 @@ export * from './Banner/Banner';
 export * from './BottomSheet/BottomSheet';
 export * from './Brand/Brand';
 export * from './Button/Button';
+export * from './ButtonLink/ButtonLink';
 export * from './Checkbox/Checkbox';
 export * from './CostBar/CostBar';
 export * from './CutLayer/CutLayer';
