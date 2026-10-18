@@ -1,4 +1,5 @@
 import { type ReactNode, useId } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './DataTable.module.css';
 
 export type DataTableColumn<Row> = {
@@ -43,7 +44,11 @@ export function DataTable<Row>({
               <th
                 key={column.key}
                 scope="col"
-                className={`${styles.head} ${column.numeric ? `${styles.numeric} num` : ''}`}
+                className={cx(
+                  styles.head,
+                  column.numeric && styles.numeric,
+                  column.numeric && 'num',
+                )}
               >
                 {column.header}
               </th>

@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './StackBar.module.css';
 
 export type StackBarSegment = {
@@ -13,7 +14,7 @@ export type StackBarProps = {
 };
 
 export function StackBar({ segments, label, className }: StackBarProps) {
-  const classes = [styles.root, className].filter(Boolean).join(' ');
+  const classes = cx(styles.root, className);
 
   return (
     <div role="img" aria-label={label} className={classes}>

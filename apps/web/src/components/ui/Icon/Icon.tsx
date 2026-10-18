@@ -1,3 +1,4 @@
+import { cx } from '@/lib/cx';
 import styles from './Icon.module.css';
 import { icons } from './icons';
 
@@ -14,9 +15,7 @@ export type IconProps = {
 
 export function Icon({ name, label, size = 'md', className }: IconProps) {
   const Component = icons[name];
-  const classes = [styles.root, styles[size], className]
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, styles[size], className);
 
   if (label) {
     return <Component className={classes} role="img" aria-label={label} />;

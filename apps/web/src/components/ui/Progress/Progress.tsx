@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './Progress.module.css';
 
 export type ProgressProps = {
@@ -25,7 +26,7 @@ export function Progress({
     <div className={styles.root}>
       {caption ? <span className={styles.caption}>{caption}</span> : null}
       <div
-        className={`${styles.track} ${determinate ? '' : styles.indeterminate}`}
+        className={cx(styles.track, !determinate && styles.indeterminate)}
         role="progressbar"
         aria-label={label}
         aria-valuemin={determinate ? 0 : undefined}

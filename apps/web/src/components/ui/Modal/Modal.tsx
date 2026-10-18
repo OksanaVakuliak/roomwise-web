@@ -2,6 +2,7 @@
 
 import { type ReactNode, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { cx } from '@/lib/cx';
 import { useDialog, useIsClient } from '@/lib/dialog';
 import { IconButton } from '../IconButton/IconButton';
 import styles from './Modal.module.css';
@@ -35,11 +36,7 @@ function Dialog({
   useDialog(ref, onClose);
 
   return (
-    <div
-      className={[styles.root, styles[`${placement}Root`]]
-        .filter(Boolean)
-        .join(' ')}
-    >
+    <div className={cx(styles.root, styles[`${placement}Root`])}>
       <div
         className={styles.backdrop}
         onClick={dismissOnBackdrop ? onClose : undefined}
@@ -51,9 +48,7 @@ function Dialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={[styles.panel, styles[placement], className]
-          .filter(Boolean)
-          .join(' ')}
+        className={cx(styles.panel, styles[placement], className)}
       >
         <header className={styles.header}>
           <h2 id={titleId} className={styles.title}>

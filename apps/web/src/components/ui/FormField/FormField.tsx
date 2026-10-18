@@ -1,4 +1,5 @@
 import { type ReactNode, useId } from 'react';
+import { cx } from '@/lib/cx';
 import type { FieldControlProps } from '@/lib/form';
 import { Icon } from '../Icon/Icon';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
@@ -60,9 +61,7 @@ export function FormField({
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
-  const classes = [styles.root, error ? styles.invalid : '', className]
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, error && styles.invalid, className);
 
   const control: FieldControlProps = {
     id,

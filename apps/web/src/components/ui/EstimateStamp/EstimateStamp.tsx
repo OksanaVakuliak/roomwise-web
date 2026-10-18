@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { cx } from '@/lib/cx';
 import { Icon } from '../Icon/Icon';
 import { StackBar } from '../StackBar/StackBar';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
@@ -61,9 +62,11 @@ export function EstimateStamp({
   }, [total, announcement]);
 
   const toggle = useCallback(() => setExpanded((value) => !value), []);
-  const classes = [styles.root, expanded ? styles.expanded : styles.collapsed]
-    .concat(className ?? [])
-    .join(' ');
+  const classes = cx(
+    styles.root,
+    expanded ? styles.expanded : styles.collapsed,
+    className,
+  );
 
   return (
     <div className={classes}>

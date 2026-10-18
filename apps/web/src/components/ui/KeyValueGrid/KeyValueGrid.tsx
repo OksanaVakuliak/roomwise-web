@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './KeyValueGrid.module.css';
 
 export type KeyValueItem = {
@@ -13,7 +14,7 @@ export type KeyValueGridProps = {
 };
 
 export function KeyValueGrid({ items, className }: KeyValueGridProps) {
-  const classes = [styles.root, className].filter(Boolean).join(' ');
+  const classes = cx(styles.root, className);
 
   return (
     <dl className={classes}>

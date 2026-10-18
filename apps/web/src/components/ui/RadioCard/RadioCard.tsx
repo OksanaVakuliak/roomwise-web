@@ -1,6 +1,7 @@
 'use client';
 
 import { type ComponentProps, use, useId } from 'react';
+import { cx } from '@/lib/cx';
 import { RadioCardGroupContext } from '@/lib/form';
 import styles from './RadioCard.module.css';
 
@@ -22,7 +23,7 @@ export function RadioCard({
   const id = useId();
   const titleId = `${id}-title`;
   const descriptionId = `${id}-description`;
-  const classes = [styles.root, className].filter(Boolean).join(' ');
+  const classes = cx(styles.root, className);
 
   return (
     <label className={classes}>

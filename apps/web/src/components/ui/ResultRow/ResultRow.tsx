@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './ResultRow.module.css';
 
 export type ResultRowProps = {
@@ -18,9 +19,7 @@ export function ResultRow({
   value,
   className,
 }: ResultRowProps) {
-  const classes = [styles.root, styles[variant], className]
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, styles[variant], className);
 
   return (
     <div className={classes}>

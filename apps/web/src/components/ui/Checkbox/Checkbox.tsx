@@ -1,4 +1,5 @@
 import { type ComponentProps, useId } from 'react';
+import { cx } from '@/lib/cx';
 import { mergeDescribedBy } from '@/lib/form';
 import { FieldMessages } from '../FormField/FormField';
 import { Icon } from '../Icon/Icon';
@@ -28,9 +29,7 @@ export function Checkbox({
     hint ? `${id}-hint` : undefined,
     error ? `${id}-error` : undefined,
   );
-  const classes = [styles.root, error ? styles.invalid : '', className]
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, error && styles.invalid, className);
 
   return (
     <div className={classes}>

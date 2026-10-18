@@ -1,6 +1,7 @@
 'use client';
 
 import { type ReactNode, useEffect, useState } from 'react';
+import { cx } from '@/lib/cx';
 import { Icon, type IconName } from '../Icon/Icon';
 import { IconButton } from '../IconButton/IconButton';
 import styles from './Banner.module.css';
@@ -39,7 +40,7 @@ export function Banner({
 
   return (
     <div
-      className={`${styles.root} ${styles[variant]}`}
+      className={cx(styles.root, styles[variant])}
       role={variant === 'error' ? 'alert' : 'status'}
     >
       <span className={styles.icon}>

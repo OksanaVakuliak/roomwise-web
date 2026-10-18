@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, CSSProperties } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './RoomPlan.module.css';
 
 export type RoomPlanProps = Omit<
@@ -24,10 +25,12 @@ export function RoomPlan({
   ...rest
 }: RoomPlanProps) {
   const current = state === 'current';
-  const classes = [styles.root, styles[size], current && styles.current]
-    .concat(className ?? [])
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(
+    styles.root,
+    styles[size],
+    current && styles.current,
+    className,
+  );
   const sketchStyle = {
     '--room-length': lengthCm / 100,
     '--room-width': widthCm / 100,

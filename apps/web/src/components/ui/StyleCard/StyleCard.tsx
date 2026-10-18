@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { cx } from '@/lib/cx';
 import { PickedBadge } from '../PickedBadge/PickedBadge';
 import styles from './StyleCard.module.css';
 
@@ -19,9 +20,7 @@ export function StyleCard({
   pickedLabel,
   onSelect,
 }: StyleCardProps) {
-  const classes = [styles.root, selected ? styles.on : '']
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, selected && styles.on);
 
   return (
     <button

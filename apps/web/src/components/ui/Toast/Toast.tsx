@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { cx } from '@/lib/cx';
 import { Icon, type IconName } from '../Icon/Icon';
 import { IconButton } from '../IconButton/IconButton';
 import styles from './Toast.module.css';
@@ -69,7 +70,7 @@ export function Toast({
   return (
     <div
       role={variant === 'error' ? 'alert' : 'status'}
-      className={`${styles.root} ${styles[variant]}`}
+      className={cx(styles.root, styles[variant])}
       onPointerEnter={handleEnter}
       onPointerLeave={handleLeave}
       onFocus={handleFocus}

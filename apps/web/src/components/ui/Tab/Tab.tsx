@@ -1,6 +1,7 @@
 'use client';
 
 import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react';
+import { cx } from '@/lib/cx';
 import { panelId, tabId, useTabsContext } from '../Tabs/Tabs';
 import styles from './Tab.module.css';
 
@@ -29,14 +30,12 @@ export function Tab({
     },
     [onClick, onValueChange, value],
   );
-  const classes = [
+  const classes = cx(
     styles.root,
     styles[tabs.size],
-    selected ? styles.selected : undefined,
+    selected && styles.selected,
     className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  );
 
   return (
     <button

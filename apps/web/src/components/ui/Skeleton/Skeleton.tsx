@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './Skeleton.module.css';
 
 export type SkeletonProps = {
@@ -10,7 +11,7 @@ export type SkeletonProps = {
 export function Skeleton({ variant = 'line', width, height }: SkeletonProps) {
   return (
     <span
-      className={`${styles.root} ${styles[variant]}`}
+      className={cx(styles.root, styles[variant])}
       style={
         {
           '--skeleton-width': width,

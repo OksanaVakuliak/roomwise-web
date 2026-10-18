@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './SectionHeader.module.css';
 
 export type SectionHeaderProps = {
@@ -21,7 +22,7 @@ export function SectionHeader({
   const Heading = `h${level}` as const;
 
   return (
-    <div className={`${styles.root} ${styles[size]}`}>
+    <div className={cx(styles.root, styles[size])}>
       <Heading id={id} className={styles.title}>
         {title}
       </Heading>

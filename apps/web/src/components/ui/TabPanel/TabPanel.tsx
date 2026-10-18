@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from 'react';
+import { cx } from '@/lib/cx';
 import { panelId, tabId } from '../Tabs/Tabs';
 import styles from './TabPanel.module.css';
 
@@ -22,7 +23,7 @@ export function TabPanel({
   return (
     <div
       {...rest}
-      className={[styles.root, className].filter(Boolean).join(' ')}
+      className={cx(styles.root, className)}
       role="tabpanel"
       id={panelId(tabsId, value)}
       aria-labelledby={tabId(tabsId, value)}

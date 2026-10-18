@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { cx } from '@/lib/cx';
 import { PickedBadge } from '../PickedBadge/PickedBadge';
 import styles from './SpecItem.module.css';
 
@@ -35,9 +36,7 @@ export function SpecItem({
   unit,
   onSelect,
 }: SpecItemProps) {
-  const classes = [styles.root, styles[size], selected ? styles.on : '']
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, styles[size], selected && styles.on);
 
   return (
     <button
@@ -60,7 +59,7 @@ export function SpecItem({
           </span>
         ) : null}
         {fit && fitLabel ? (
-          <span className={`${styles.fit} ${styles[fit]}`}>{fitLabel}</span>
+          <span className={cx(styles.fit, styles[fit])}>{fitLabel}</span>
         ) : null}
         {selected ? (
           <span className={styles.picked}>

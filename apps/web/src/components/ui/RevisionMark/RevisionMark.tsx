@@ -1,3 +1,4 @@
+import { cx } from '@/lib/cx';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './RevisionMark.module.css';
 
@@ -13,7 +14,7 @@ export function RevisionMark({
   label,
 }: RevisionMarkProps) {
   return (
-    <span className={`${styles.root} ${styles[size]}`}>
+    <span className={cx(styles.root, styles[size])}>
       <span aria-hidden="true">{number}</span>
       {label ? <VisuallyHidden>{label}</VisuallyHidden> : null}
     </span>

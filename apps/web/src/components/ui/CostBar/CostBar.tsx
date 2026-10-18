@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './CostBar.module.css';
 
 export type CostBarProps = {
@@ -9,7 +10,7 @@ export type CostBarProps = {
 };
 
 export function CostBar({ label, share, value, className }: CostBarProps) {
-  const classes = [styles.root, className].filter(Boolean).join(' ');
+  const classes = cx(styles.root, className);
 
   return (
     <div className={classes}>

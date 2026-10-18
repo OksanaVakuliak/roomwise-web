@@ -1,6 +1,7 @@
 'use client';
 
 import { type MouseEvent, type ReactNode, useCallback } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './PrefSwitch.module.css';
 
 export type PrefSwitchOption = {
@@ -31,7 +32,7 @@ export function PrefSwitch({
     },
     [onChange],
   );
-  const classes = [styles.root, className].filter(Boolean).join(' ');
+  const classes = cx(styles.root, className);
 
   return (
     <div role="group" aria-label={label} className={classes}>
