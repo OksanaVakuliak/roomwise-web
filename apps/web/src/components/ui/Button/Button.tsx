@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, MouseEvent } from 'react';
+import { cx } from '@/lib/cx';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './Button.module.css';
 
@@ -23,9 +24,7 @@ export function Button({
   disabled,
   ...rest
 }: ButtonProps) {
-  const classes = [styles.root, styles[kind], className]
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, styles[kind], className);
 
   return (
     <button

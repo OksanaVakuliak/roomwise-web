@@ -1,0 +1,103 @@
+.row {
+  display: flex;
+  align-items: stretch;
+}
+
+.button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--size-target);
+  height: var(--size-target);
+  padding: 0;
+  border: var(--stroke-1-5) solid var(--line);
+  background: transparent;
+  color: var(--line);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.button:hover {
+  background: var(--fill-a);
+}
+
+.button:active {
+  transform: translateY(var(--stroke-1));
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  transform: none;
+  background: transparent;
+}
+
+.wrap {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  margin: 0 calc(var(--stroke-1-5) * -1);
+}
+
+.control {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--size-target);
+  padding: 0 var(--space-8);
+  border: var(--stroke-1-5) solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--line);
+  font-family: var(--text-number-step-family);
+  font-weight: var(--text-number-step-weight);
+  font-size: var(--text-number-step-size);
+  text-align: center;
+  appearance: textfield;
+}
+
+.control::-webkit-inner-spin-button,
+.control::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.control:focus-visible {
+  position: relative;
+  z-index: var(--z-base);
+}
+
+.control[aria-invalid="true"] {
+  border-color: var(--heat);
+  box-shadow: inset 0 calc(var(--stroke-2) * -1) 0 var(--heat);
+}
+
+.control[aria-busy="true"] {
+  cursor: progress;
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--fill-a) 0 var(--space-4),
+    transparent var(--space-4) var(--space-8)
+  );
+}
+
+.control:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  background: var(--fill-a);
+}
+
+.unit {
+  position: absolute;
+  right: var(--space-8);
+  bottom: var(--space-4);
+  color: var(--line-2);
+  font-family: var(--text-caption-s-family);
+  font-size: var(--text-caption-s-size);
+  line-height: var(--text-caption-s-line);
+  pointer-events: none;
+}

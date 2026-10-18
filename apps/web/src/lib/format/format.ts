@@ -15,21 +15,26 @@ export function money(
   rate?: ExchangeRate,
 ): string {
   if (currency === 'USD') {
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
-      maximumFractionDigits: 2,
-    }).format(cents / 100);
+    const rounded = Math.round(cents);
+    const fraction = rounded % 100 === 0 ? 0 : 2;
+    const sign = rounded < 0 ? '-' : '';
+    return `${sign}$${amount(Math.abs(rounded) / 100, locale, fraction)}`;
   }
   if (!rate) {
     throw new Error('UAH requires an exchange rate');
   }
+  const uah = Math.round(Math.abs(cents / 100) * rate.uahPerUsd);
+  const sign = cents < 0 && uah > 0 ? '-' : '';
+  return `${sign}${amount(uah, locale, 0)}${NBSP}₴`;
+}
+
+function amount(value: number, locale: Locale, fraction: number): string {
   return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format((cents / 100) * rate.uahPerUsd);
+    minimumFractionDigits: fraction,
+    maximumFractionDigits: fraction,
+  })
+    .format(value)
+    .replace(/[  ]/g, NBSP);
 }
 
 function measure(value: number, locale: Locale, unit: string): string {

@@ -1,0 +1,9 @@
+.root {
+  white-space: nowrap;
+}
+
+.old {
+  color: var(--line-2);
+  font-weight: var(--text-body-default-weight);
+  text-decoration-thickness: var(--stroke-1-5);
+}

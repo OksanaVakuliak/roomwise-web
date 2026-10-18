@@ -1,4 +1,5 @@
 import { type CSSProperties, useId } from 'react';
+import { cx } from '@/lib/cx';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import { computeGeometry, type Label } from './geometry';
 import styles from './RoomScene.module.css';
@@ -39,7 +40,7 @@ export function RoomScene({
   ];
 
   return (
-    <div className={`${styles.root} ${styles[size]}`}>
+    <div className={cx(styles.root, styles[size])}>
       <VisuallyHidden>
         <span id={descriptionId}>{description}</span>
       </VisuallyHidden>

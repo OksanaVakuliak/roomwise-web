@@ -1,3 +1,4 @@
+import { cx } from '@/lib/cx';
 import styles from './Brand.module.css';
 
 export type BrandProps = {
@@ -13,9 +14,7 @@ export function Brand({
   size = 'mobile',
   className,
 }: BrandProps) {
-  const classes = [styles.root, styles[size], className]
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, styles[size], className);
 
   return (
     <div className={classes}>

@@ -1,0 +1,60 @@
+.scroller {
+  max-width: 100%;
+  overflow-x: auto;
+  border: var(--stroke-1-2) solid var(--line);
+  background: var(--paper);
+}
+
+.table {
+  width: 100%;
+  min-width: var(--table-min-width);
+  border-collapse: collapse;
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-default-size);
+  line-height: var(--text-body-default-line);
+}
+
+.caption {
+  padding: var(--space-10) var(--space-12);
+  border-bottom: var(--stroke-1-2) solid var(--line);
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+  font-size: var(--text-title-s-size);
+  text-align: left;
+}
+
+.head,
+.cell {
+  padding: var(--space-10) var(--space-12);
+  text-align: left;
+  vertical-align: top;
+}
+
+.head {
+  border-bottom: var(--stroke-1-2) solid var(--line);
+  background: var(--fill-a);
+  font-size: var(--text-label-size);
+  font-weight: var(--text-pref-weight);
+  white-space: nowrap;
+}
+
+.cell {
+  border-bottom: var(--stroke-1) solid var(--hair);
+}
+
+th.cell {
+  font-weight: var(--text-pref-weight);
+}
+
+tbody tr:last-child .cell {
+  border-bottom: 0;
+}
+
+.numeric {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: var(--space-16);
+}

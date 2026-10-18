@@ -1,4 +1,5 @@
 import { type ReactNode, useId } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './TapeRule.module.css';
 
 export type TapeRuleSize = 'mobile' | 'desktop';
@@ -22,9 +23,7 @@ export function TapeRule({
   className,
 }: TapeRuleProps) {
   const patternId = useId();
-  const classes = [styles.root, styles[size], className]
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, styles[size], className);
   const Root = label ? 'nav' : 'div';
 
   return (

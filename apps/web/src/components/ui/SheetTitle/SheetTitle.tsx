@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './SheetTitle.module.css';
 
 export type SheetTitleProps = {
@@ -19,7 +20,7 @@ export function SheetTitle({
   const Heading = `h${headingLevel}` as const;
 
   return (
-    <div className={`${styles.root} ${styles[size]}`}>
+    <div className={cx(styles.root, styles[size])}>
       <Heading className={styles.heading}>{title}</Heading>
       <p className={styles.meta}>
         <b className={styles.primary}>{primary}</b>

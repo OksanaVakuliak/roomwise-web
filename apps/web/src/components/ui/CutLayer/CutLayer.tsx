@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { cx } from '@/lib/cx';
 import { Hatch, type HatchMaterial } from '../Hatch/Hatch';
 import { RevisionMark } from '../RevisionMark/RevisionMark';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
@@ -36,12 +37,7 @@ export function CutLayer({
   revision,
   remarkId,
 }: CutLayerProps) {
-  const classes = [
-    styles.root,
-    styles[kind],
-    styles[position],
-    styles[size],
-  ].join(' ');
+  const classes = cx(styles.root, styles[kind], styles[position], styles[size]);
 
   return (
     <li

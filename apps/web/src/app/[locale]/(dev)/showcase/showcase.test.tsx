@@ -29,8 +29,13 @@ const NAMESPACES = [
   'ShowcaseHeader',
   'ShowcaseStepTape',
   'ShowcaseActions',
+  'ShowcaseFormFields',
   'ShowcaseRoomPlan',
   'ShowcaseSectionCut',
+  'ShowcaseDataDisplay',
+  'ShowcaseSpecification',
+  'ShowcaseOverlays',
+  'ShowcaseEstimate',
 ] as const;
 
 const MOBILE_WIDTH = 390;

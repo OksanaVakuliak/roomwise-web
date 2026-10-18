@@ -1,0 +1,26 @@
+.root {
+  display: flex;
+  height: var(--bar-stack-height);
+  border: var(--stroke-1-5) solid var(--line);
+}
+
+.segment {
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--share);
+  height: 100%;
+  background-color: var(--tape);
+  background-image: linear-gradient(
+    to right,
+    var(--tape-ink) var(--stroke-1),
+    transparent var(--stroke-1)
+  );
+  background-repeat: repeat-x;
+  background-size: var(--bar-tick-pitch) var(--bar-tick-height);
+  border-right: var(--stroke-1-5) solid var(--tape-ink);
+}
+
+.segment:last-child {
+  border-right: 0;
+}

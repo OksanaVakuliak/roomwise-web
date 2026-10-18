@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from 'react';
+import { cx } from '@/lib/cx';
 import { Toggle } from '../Toggle/Toggle';
 import styles from './SwitchRow.module.css';
 
@@ -24,7 +25,7 @@ export function SwitchRow({
   const id = useId();
   const titleId = `${id}-title`;
   const descriptionId = `${id}-description`;
-  const classes = [styles.root, className].filter(Boolean).join(' ');
+  const classes = cx(styles.root, className);
 
   return (
     <div className={classes}>

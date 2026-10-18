@@ -1,0 +1,51 @@
+.wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.control {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--size-target);
+  padding: 0 var(--size-target) 0 var(--space-12);
+  border: var(--stroke-1-5) solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--line);
+  font-family: var(--text-body-default-family);
+  font-weight: var(--text-body-default-weight);
+  font-size: var(--text-body-default-size);
+  appearance: none;
+  cursor: pointer;
+}
+
+.control:hover {
+  background: var(--fill-a);
+}
+
+.control[aria-invalid="true"] {
+  border-color: var(--heat);
+  box-shadow: inset var(--stroke-2) 0 0 var(--heat);
+}
+
+.control[aria-busy="true"] {
+  cursor: progress;
+}
+
+.control:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  background: var(--fill-a);
+}
+
+.chevron {
+  position: absolute;
+  right: var(--space-12);
+  color: var(--line);
+  pointer-events: none;
+}
+
+.control:disabled ~ .chevron {
+  opacity: var(--opacity-disabled);
+}

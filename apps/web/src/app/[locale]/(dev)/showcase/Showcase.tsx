@@ -4,11 +4,16 @@ import { ShowcaseToolbar } from './ShowcaseToolbar';
 import { SHOWCASE_SECTIONS, type ShowcaseSection } from './sections';
 import { ActionsSection } from './sections/ActionsSection';
 import { ColorsSection } from './sections/ColorsSection';
+import { DataDisplaySection } from './sections/DataDisplaySection';
+import { EstimateSection } from './sections/EstimateSection';
+import { FormFieldsSection } from './sections/FormFieldsSection';
 import { HeaderSection } from './sections/HeaderSection';
 import { IconsSection } from './sections/IconsSection';
+import { OverlaysSection } from './sections/OverlaysSection';
 import { RoomPlanSection } from './sections/RoomPlanSection';
 import { SectionCutSection } from './sections/SectionCutSection';
 import { SpacingSection } from './sections/SpacingSection';
+import { SpecificationSection } from './sections/SpecificationSection';
 import { StepTapeSection } from './sections/StepTapeSection';
 import { TypographySection } from './sections/TypographySection';
 import styles from './showcase.module.css';
@@ -23,6 +28,11 @@ const SECTION_CONTENT: Partial<Record<ShowcaseSection, ComponentType>> = {
   actions: ActionsSection,
   roomPlan: RoomPlanSection,
   sectionCut: SectionCutSection,
+  specification: SpecificationSection,
+  estimate: EstimateSection,
+  formFields: FormFieldsSection,
+  overlays: OverlaysSection,
+  dataDisplay: DataDisplaySection,
 };
 
 export function Showcase() {

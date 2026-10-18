@@ -11,6 +11,7 @@ import {
   useId,
   useMemo,
 } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './Tabs.module.css';
 
 export type TabsSize = 'mobile' | 'desktop';
@@ -67,9 +68,7 @@ export function Tabs({
   const focusValue = values.includes(value) ? value : values[0];
   const generatedId = useId();
   const tabsId = id ?? generatedId;
-  const classes = [styles.root, styles[size], className]
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, styles[size], className);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {

@@ -1,0 +1,64 @@
+.root {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-12);
+  align-items: start;
+  padding: var(--space-12);
+  border: var(--stroke-1-2) solid var(--line);
+  border-left: var(--banner-bar) solid var(--accent);
+  background: var(--paper);
+  color: var(--line);
+}
+
+.info {
+  --accent: var(--line-2);
+}
+
+.warning {
+  --accent: var(--tape);
+}
+
+.error {
+  --accent: var(--heat);
+}
+
+.success {
+  --accent: var(--glue);
+}
+
+.icon {
+  display: inline-flex;
+  padding-top: var(--space-3);
+}
+
+.error .icon {
+  color: var(--heat);
+}
+
+.body {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.title,
+.text {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.title {
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+  font-size: var(--text-body-default-size);
+}
+
+.text {
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-default-size);
+  line-height: var(--text-body-default-line);
+}
+
+.action {
+  margin-top: var(--space-6);
+}

@@ -64,7 +64,7 @@ function findLiterals(source: string): Hit[] {
   const hits: Hit[] = [];
 
   for (const m of code.matchAll(
-    /(<\/?[A-Za-z][\w.:-]*(?:\s[^<>]*)?>|<>)([^<>{}]+)(?=<)/g,
+    /((?<![\w$])<[A-Za-z][\w.:-]*(?:\s[^<>]*)?>|<\/[A-Za-z][\w.:-]*\s*>|<>)([^<>{}]+)(?=<)/g,
   )) {
     const text = m[2];
     if (/\p{L}/u.test(text)) {

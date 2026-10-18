@@ -1,0 +1,98 @@
+.root {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.face {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  box-sizing: border-box;
+  min-height: var(--size-target);
+  padding: var(--space-10) var(--space-12);
+  border: var(--stroke-1-5) solid var(--line);
+  background: var(--paper);
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.root:hover .face {
+  background: var(--fill-a);
+}
+
+.mark {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  border: var(--stroke-1-5) solid var(--line);
+  border-radius: 100%;
+  background: var(--paper);
+}
+
+.mark::after {
+  content: "";
+  position: absolute;
+  inset: var(--space-4);
+  border-radius: 100%;
+  background: var(--heat);
+  opacity: 0;
+}
+
+.input:checked ~ .face {
+  border-color: var(--heat);
+  box-shadow: inset var(--stroke-2) 0 0 var(--heat);
+  background: var(--fill-a);
+}
+
+.input:checked ~ .face .mark {
+  border-color: var(--heat);
+}
+
+.input:checked ~ .face .mark::after {
+  opacity: 1;
+}
+
+.input:focus-visible ~ .face {
+  outline: var(--focus-ring-width) solid var(--line);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  color: var(--line);
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-button-default-size);
+}
+
+.description {
+  color: var(--line-2);
+  font-family: var(--text-body-s-family);
+  font-weight: var(--text-body-s-weight);
+  font-size: var(--text-body-s-size);
+}
+
+.input:disabled ~ .face {
+  opacity: var(--opacity-disabled);
+}
+
+.root:has(.input:disabled) {
+  cursor: not-allowed;
+}

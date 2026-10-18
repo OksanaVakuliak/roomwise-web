@@ -14,31 +14,35 @@ describe('money', () => {
     expect(money(1250, 'USD', 'en')).toBe('$12.50');
   });
 
-  it('formats USD cents in uk', () => {
-    const out = money(123456789, 'USD', 'uk');
-    expect(plain(out)).toBe('1 234 567,89 USD');
-    expect(out).not.toContain('.');
+  it('formats USD cents in uk with the dollar sign first', () => {
+    expect(plain(money(123456789, 'USD', 'uk'))).toBe('$1 234 567,89');
+    expect(money(22578, 'USD', 'uk')).toBe('$225,78');
   });
 
   it('formats UAH with the exchange rate in whole hryvnias', () => {
-    expect(plain(money(100000, 'UAH', 'en', rate))).toBe('UAH 41,235');
-    expect(plain(money(100000, 'UAH', 'uk', rate))).toBe('41 235 ₴');
+    expect(money(100000, 'UAH', 'en', rate)).toBe(`41,235${NBSP}₴`);
+    expect(money(100000, 'UAH', 'uk', rate)).toBe(`41${NBSP}235${NBSP}₴`);
   });
 
-  it('separates uk thousands with a no-break space', () => {
-    const out = money(123456700, 'USD', 'uk');
-    expect(out).toMatch(/^1[\u00a0\u202f]234[\u00a0\u202f]567/);
+  it('does not keep a minus sign on amounts that round to zero', () => {
+    expect(money(-1, 'UAH', 'en', { uahPerUsd: 1 })).toBe(`0${NBSP}₴`);
+    expect(money(-0.4, 'USD', 'en')).toBe('$0');
+    expect(money(-0.4, 'UAH', 'uk', rate)).toBe(`0${NBSP}₴`);
+  });
+
+  it('separates uk thousands with a no-break space only', () => {
+    expect(money(123456700, 'USD', 'uk')).toBe(`$1${NBSP}234${NBSP}567`);
   });
 
   it('handles zero', () => {
     expect(money(0, 'USD', 'en')).toBe('$0');
-    expect(plain(money(0, 'UAH', 'en', rate))).toBe('UAH 0');
+    expect(money(0, 'UAH', 'en', rate)).toBe(`0${NBSP}₴`);
   });
 
   it('handles negative amounts', () => {
     expect(money(-1250, 'USD', 'en')).toBe('-$12.50');
-    expect(plain(money(-1250, 'USD', 'uk'))).toBe('-12,50 USD');
-    expect(plain(money(-100000, 'UAH', 'en', rate))).toBe('-UAH 41,235');
+    expect(money(-1250, 'USD', 'uk')).toBe('-$12,50');
+    expect(money(-100000, 'UAH', 'en', rate)).toBe(`-41,235${NBSP}₴`);
   });
 
   it('throws for UAH without a rate', () => {

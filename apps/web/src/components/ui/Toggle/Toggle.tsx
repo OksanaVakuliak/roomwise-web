@@ -1,6 +1,7 @@
 'use client';
 
 import { type ButtonHTMLAttributes, useCallback } from 'react';
+import { cx } from '@/lib/cx';
 import styles from './Toggle.module.css';
 
 type ToggleOwnProps = {
@@ -31,9 +32,7 @@ export function Toggle({
     () => onCheckedChange(!checked),
     [onCheckedChange, checked],
   );
-  const classes = [styles.root, checked ? styles.on : styles.off, className]
-    .filter(Boolean)
-    .join(' ');
+  const classes = cx(styles.root, checked ? styles.on : styles.off, className);
 
   return (
     <button

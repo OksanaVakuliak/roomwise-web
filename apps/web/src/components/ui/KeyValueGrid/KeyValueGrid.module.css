@@ -1,0 +1,34 @@
+.root {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: var(--space-10) 0 0;
+  border: var(--stroke-1-5) solid var(--line);
+}
+
+.item {
+  padding: var(--space-8) var(--space-9);
+  border-top: var(--stroke-1) solid var(--hair);
+  border-left: var(--stroke-1) solid var(--hair);
+}
+
+.item:nth-child(-n + 2) {
+  border-top: 0;
+}
+
+.item:nth-child(odd) {
+  border-left: 0;
+}
+
+.label {
+  font-family: var(--text-caption-default-family);
+  font-size: var(--text-caption-default-size);
+  color: var(--line-2);
+}
+
+.value {
+  margin: 0;
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-default-size);
+  font-weight: var(--text-button-default-weight);
+  color: var(--line);
+}

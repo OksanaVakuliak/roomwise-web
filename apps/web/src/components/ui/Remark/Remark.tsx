@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { cx } from '@/lib/cx';
 import { RevisionMark } from '../RevisionMark/RevisionMark';
 import styles from './Remark.module.css';
 
@@ -22,7 +23,7 @@ export function Remark({
   action,
 }: RemarkProps) {
   return (
-    <div id={id} className={`${styles.root} ${styles[size]}`}>
+    <div id={id} className={cx(styles.root, styles[size])}>
       <span className={styles.mark}>
         <RevisionMark number={number} size={size} />
       </span>

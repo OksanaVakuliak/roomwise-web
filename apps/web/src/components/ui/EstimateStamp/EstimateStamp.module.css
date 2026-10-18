@@ -1,0 +1,115 @@
+.root {
+  border: var(--stroke-2) solid var(--line);
+  background: var(--sheet);
+}
+
+.total {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-10);
+  background: var(--line);
+  color: var(--sheet);
+  font-family: var(--text-body-s-family);
+  font-size: var(--text-body-s-size);
+  line-height: 1.2;
+}
+
+.totalValue {
+  font-family: var(--text-number-s-family);
+  font-weight: var(--text-number-s-weight);
+  font-size: var(--text-number-s-size);
+  line-height: 1;
+}
+
+.toggle {
+  display: inline-flex;
+  flex: 1 0 100%;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--size-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.chevron {
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.expanded .chevron {
+  transform: rotate(180deg);
+}
+
+.bar {
+  margin: var(--space-10) var(--space-10) 0;
+}
+
+.parts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  margin: 0;
+  padding: var(--space-10);
+  font-family: var(--text-caption-default-family);
+  font-size: var(--text-caption-default-size);
+  color: var(--line-2);
+}
+
+.collapsed .parts {
+  display: none;
+}
+
+.part {
+  display: flex;
+  flex-direction: column;
+}
+
+.part dt {
+  margin: 0;
+}
+
+.partValue {
+  margin: 0;
+  font-family: var(--text-number-s-family);
+  font-weight: var(--text-number-s-weight);
+  font-size: var(--text-body-default-size);
+  color: var(--line);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-8);
+  padding: 0 var(--space-10) var(--space-10);
+}
+
+.actions > :first-child {
+  flex: 1;
+}
+
+.actions > :last-child:not(:first-child) {
+  flex: 2;
+}
+
+@media (min-width: 768px) {
+  .toggle {
+    display: none;
+  }
+
+  .totalValue {
+    font-size: var(--text-number-m-size);
+  }
+
+  .collapsed .parts {
+    display: grid;
+  }
+
+  .parts {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

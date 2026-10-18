@@ -1,3 +1,4 @@
+import { cx } from '@/lib/cx';
 import { Icon } from '../Icon/Icon';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './TapeStep.module.css';
@@ -23,7 +24,7 @@ export function TapeStep({
   href,
   onClick,
 }: TapeStepProps) {
-  const itemClasses = [styles.item, styles[state], styles[size]].join(' ');
+  const itemClasses = cx(styles.item, styles[state], styles[size]);
   const ariaCurrent = state === 'now' ? 'step' : undefined;
   const content = (
     <>
