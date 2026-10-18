@@ -36,6 +36,11 @@ describe('ImageWithFallback', () => {
     expect(document.querySelector('img')).toHaveAttribute('src', '/b.svg');
   });
 
+  it('does not fail an image on mount without an error event', () => {
+    render(<ImageWithFallback src="/a.svg" name="Item" />);
+    expect(document.querySelector('img')).toBeInTheDocument();
+  });
+
   it('keeps the box ratio through a css variable', () => {
     const { container } = render(
       <ImageWithFallback name="Item" ratio="4 / 3" />,
@@ -57,17 +62,22 @@ describe('ImageWithFallback', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it('shows the placeholder when the image already failed before hydration', () => {
+  it('re-evaluates an image that reports itself broken before hydration', () => {
     const complete = vi
       .spyOn(HTMLImageElement.prototype, 'complete', 'get')
       .mockReturnValue(true);
     const width = vi
       .spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get')
       .mockReturnValue(0);
+    const setSrc = vi.spyOn(HTMLImageElement.prototype, 'src', 'set');
     render(<ImageWithFallback src="/broken.svg" name="Oak laminate" />);
+    expect(setSrc).toHaveBeenCalledTimes(2);
+    expect(document.querySelector('img')).toBeInTheDocument();
+    fireEvent.error(screen.getByRole('img'));
     expect(document.querySelector('img')).toBeNull();
     expect(screen.getByText('Oak laminate')).toBeInTheDocument();
     complete.mockRestore();
     width.mockRestore();
+    setSrc.mockRestore();
   });
 });

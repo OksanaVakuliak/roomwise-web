@@ -2,6 +2,7 @@
 
 import {
   cloneElement,
+  type PointerEvent,
   type ReactElement,
   useCallback,
   useEffect,
@@ -21,6 +22,7 @@ export function Tooltip({ content, children }: TooltipProps) {
   const [focused, setFocused] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const open = (hovered || focused) && !dismissed;
+  const trapEscape = open && focused;
 
   useEffect(() => {
     if (!open) {
@@ -28,15 +30,20 @@ export function Tooltip({ content, children }: TooltipProps) {
     }
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        event.preventDefault();
+        if (trapEscape) {
+          event.preventDefault();
+        }
         setDismissed(true);
       }
     }
     document.addEventListener('keydown', handleKeyDown, true);
     return () => document.removeEventListener('keydown', handleKeyDown, true);
-  }, [open]);
+  }, [open, trapEscape]);
 
-  const handleEnter = useCallback(() => {
+  const handleEnter = useCallback((event: PointerEvent) => {
+    if (event.pointerType === 'touch') {
+      return;
+    }
     setHovered(true);
     setDismissed(false);
   }, []);
@@ -54,8 +61,8 @@ export function Tooltip({ content, children }: TooltipProps) {
   return (
     <span
       className={styles.root}
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
+      onPointerEnter={handleEnter}
+      onPointerLeave={handleLeave}
       onFocus={handleFocus}
       onBlur={handleBlur}
     >

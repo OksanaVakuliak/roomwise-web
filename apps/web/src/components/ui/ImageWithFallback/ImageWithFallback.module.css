@@ -1,4 +1,5 @@
 .root {
+  display: block;
   position: relative;
   width: 100%;
   aspect-ratio: var(--image-ratio, 1);

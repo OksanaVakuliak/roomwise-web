@@ -4,6 +4,7 @@ import {
   type ChangeEvent,
   type ComponentProps,
   type FocusEvent,
+  type KeyboardEvent,
   useCallback,
   useId,
   useState,
@@ -70,6 +71,7 @@ export function Stepper({
   disabled,
   readOnly,
   onBlur,
+  onKeyDown,
   ...rest
 }: StepperProps) {
   const unitId = useId();
@@ -102,36 +104,37 @@ export function Stepper({
   const decrement = useCallback(() => stepBy(-1), [stepBy]);
   const increment = useCallback(() => stepBy(1), [stepBy]);
 
-  const handleChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const text = event.target.value;
-      setDraft(text);
-      const parsed = Number(text);
-      if (
-        text !== '' &&
-        Number.isFinite(parsed) &&
-        parsed >= min &&
-        parsed <= max
-      ) {
-        commit(parsed);
-      }
-    },
-    [commit, max, min],
-  );
+  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setDraft(event.target.value);
+  }, []);
+
+  const commitDraft = useCallback(() => {
+    if (draft === null) {
+      return;
+    }
+    const parsed = Number(draft);
+    setDraft(null);
+    if (draft !== '' && Number.isFinite(parsed)) {
+      commit(clamp(parsed, min, max));
+    }
+  }, [commit, draft, max, min]);
 
   const handleBlur = useCallback(
     (event: FocusEvent<HTMLInputElement>) => {
       onBlur?.(event);
-      if (draft === null) {
-        return;
-      }
-      const parsed = Number(draft);
-      setDraft(null);
-      if (draft !== '' && Number.isFinite(parsed)) {
-        commit(clamp(parsed, min, max));
+      commitDraft();
+    },
+    [commitDraft, onBlur],
+  );
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      onKeyDown?.(event);
+      if (event.key === 'Enter') {
+        commitDraft();
       }
     },
-    [commit, draft, max, min, onBlur],
+    [commitDraft, onKeyDown],
   );
 
   return (
@@ -173,6 +176,7 @@ export function Stepper({
               className={`${styles.control} num`}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
             />
             {unit ? (
               <span id={unitId} className={styles.unit}>

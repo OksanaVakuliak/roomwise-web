@@ -1,10 +1,12 @@
 'use client';
 
 import {
+  type ChangeEvent,
   type ComponentProps,
   type KeyboardEvent,
   type MouseEvent,
   useCallback,
+  useRef,
 } from 'react';
 import { mergeControl } from '@/lib/form';
 import { FormField } from '../FormField/FormField';
@@ -37,12 +39,30 @@ export function Select({
   children,
   onMouseDown,
   onKeyDown,
+  onChange,
   ...rest
 }: SelectProps) {
   const initial =
     value === undefined && defaultValue === undefined && placeholder
       ? ''
       : defaultValue;
+
+  const lastValue = useRef(String(value ?? defaultValue ?? ''));
+  if (value !== undefined) {
+    lastValue.current = String(value);
+  }
+
+  const handleChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      if (loading) {
+        event.target.value = lastValue.current;
+        return;
+      }
+      lastValue.current = event.target.value;
+      onChange?.(event);
+    },
+    [loading, onChange],
+  );
 
   const handleMouseDown = useCallback(
     (event: MouseEvent<HTMLSelectElement>) => {
@@ -86,6 +106,7 @@ export function Select({
             aria-disabled={loading ? true : undefined}
             onMouseDown={handleMouseDown}
             onKeyDown={handleKeyDown}
+            onChange={handleChange}
             className={styles.control}
           >
             {placeholder ? (

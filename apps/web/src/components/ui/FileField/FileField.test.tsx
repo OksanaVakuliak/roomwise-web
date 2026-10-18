@@ -1,5 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { axe } from '@/test/axe';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { FileField } from './FileField';
@@ -20,6 +20,19 @@ describe('FileField', () => {
       target: { files: [file] },
     });
     expect(screen.getByText('plan.pdf')).toBeInTheDocument();
+  });
+
+  it('ignores a dropped file while loading', () => {
+    const onChange = vi.fn();
+    renderWithProviders(
+      <FileField label="Floor plan" {...texts} loading onChange={onChange} />,
+    );
+    const file = new File(['x'], 'plan.pdf', { type: 'application/pdf' });
+    fireEvent.change(screen.getByLabelText('Floor plan'), {
+      target: { files: [file] },
+    });
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.queryByText('plan.pdf')).not.toBeInTheDocument();
   });
 
   it('describes the control and flags errors', () => {

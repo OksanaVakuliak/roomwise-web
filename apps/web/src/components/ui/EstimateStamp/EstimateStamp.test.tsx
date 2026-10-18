@@ -1,5 +1,5 @@
-import { fireEvent, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, fireEvent, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axe } from '@/test/axe';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { EstimateStamp, type EstimateStampProps } from './EstimateStamp';
@@ -27,6 +27,10 @@ function stamp(props: Partial<EstimateStampProps> = {}) {
 }
 
 describe('EstimateStamp', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('shows the total, every part and the actions', () => {
     renderWithProviders(stamp());
     expect(screen.getByText('$13,356')).toBeInTheDocument();
@@ -62,15 +66,41 @@ describe('EstimateStamp', () => {
     expect(screen.getByRole('status')).toHaveTextContent('');
     rerender(stamp());
     expect(screen.getByRole('status')).toHaveTextContent('');
+    vi.useFakeTimers();
     rerender(stamp({ total: '$13,500' }));
+    act(() => {
+      vi.runAllTimers();
+    });
     expect(screen.getByRole('status')).toHaveTextContent('Total changed');
+  });
+
+  it('announces a fixed message again on every change', () => {
+    vi.useFakeTimers();
+    const { rerender } = renderWithProviders(stamp());
+    const status = screen.getByRole('status');
+    rerender(stamp({ total: '$1' }));
+    expect(status).toHaveTextContent('');
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(status).toHaveTextContent('Total changed');
+    rerender(stamp({ total: '$2' }));
+    expect(status).toHaveTextContent('');
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(status).toHaveTextContent('Total changed');
   });
 
   it('falls back to the total when no announcement is given', () => {
     const { rerender } = renderWithProviders(
       stamp({ announcement: undefined }),
     );
+    vi.useFakeTimers();
     rerender(stamp({ announcement: undefined, total: '$1' }));
+    act(() => {
+      vi.runAllTimers();
+    });
     expect(screen.getByRole('status')).toHaveTextContent('$1');
   });
 

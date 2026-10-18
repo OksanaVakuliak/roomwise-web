@@ -79,6 +79,31 @@ describe('Stepper', () => {
     expect(input).toHaveValue(5);
   });
 
+  it('commits a typed value only on blur or Enter', () => {
+    const onValueChange = vi.fn();
+    renderWithProviders(
+      <Stepper
+        label="Rooms"
+        {...labels}
+        min={1}
+        max={100}
+        defaultValue={2}
+        onValueChange={onValueChange}
+      />,
+    );
+    const input = screen.getByLabelText('Rooms');
+    fireEvent.change(input, { target: { value: '1' } });
+    fireEvent.change(input, { target: { value: '15' } });
+    fireEvent.change(input, { target: { value: '150' } });
+    expect(onValueChange).not.toHaveBeenCalled();
+    fireEvent.blur(input);
+    expect(onValueChange).toHaveBeenCalledTimes(1);
+    expect(onValueChange).toHaveBeenCalledWith(100);
+    fireEvent.change(input, { target: { value: '40' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onValueChange).toHaveBeenLastCalledWith(40);
+  });
+
   it('describes the control and flags errors', () => {
     renderWithProviders(
       <Stepper

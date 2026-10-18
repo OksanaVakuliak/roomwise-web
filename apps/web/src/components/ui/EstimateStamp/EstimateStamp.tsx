@@ -53,7 +53,11 @@ export function EstimateStamp({
       return;
     }
     previousTotal.current = total;
-    setMessage(announcement ?? total);
+    setMessage('');
+    const frame = requestAnimationFrame(() =>
+      setMessage(announcement ?? total),
+    );
+    return () => cancelAnimationFrame(frame);
   }, [total, announcement]);
 
   const toggle = useCallback(() => setExpanded((value) => !value), []);

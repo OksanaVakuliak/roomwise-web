@@ -76,6 +76,11 @@ describe('TextField', () => {
     );
   });
 
+  it('keeps a consumer aria-busy', () => {
+    renderWithProviders(<TextField label="Name" aria-busy="true" />);
+    expect(screen.getByLabelText('Name')).toHaveAttribute('aria-busy', 'true');
+  });
+
   it('respects a consumer aria-invalid when there is no error', () => {
     renderWithProviders(<TextField label="Name" aria-invalid="true" />);
     expect(screen.getByLabelText('Name')).toHaveAttribute(

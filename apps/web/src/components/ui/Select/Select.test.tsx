@@ -61,6 +61,19 @@ describe('Select', () => {
     expect(fireEvent.keyDown(select, { key: 'Tab' })).toBe(true);
   });
 
+  it('ignores value changes while loading', () => {
+    const onChange = vi.fn();
+    renderWithProviders(
+      <Select label="Floor" loading defaultValue="tile" onChange={onChange}>
+        {options}
+      </Select>,
+    );
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'wood' } });
+    expect(onChange).not.toHaveBeenCalled();
+    expect(select).toHaveValue('tile');
+  });
+
   it('is really disabled only with the disabled prop', () => {
     renderWithProviders(
       <Select label="Floor" disabled>

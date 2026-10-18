@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { axe } from '@/test/axe';
 import { renderWithProviders } from '@/test/render-with-providers';
@@ -17,10 +17,10 @@ describe('Tooltip', () => {
   it('is hidden until hovered and linked by aria-describedby', () => {
     const { button } = setup();
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
-    fireEvent.mouseEnter(button);
+    fireEvent.pointerEnter(button);
     expect(screen.getByRole('tooltip')).toHaveTextContent('Includes labour');
     expect(button).toHaveAccessibleDescription('Includes labour');
-    fireEvent.mouseLeave(button);
+    fireEvent.pointerLeave(button);
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
@@ -40,6 +40,39 @@ describe('Tooltip', () => {
     fireEvent.blur(button);
     fireEvent.focus(button);
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
+  });
+
+  it('lets Escape through when open only by hover', () => {
+    const { button } = setup();
+    fireEvent.pointerEnter(button);
+    const event = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      cancelable: true,
+    });
+    act(() => {
+      document.dispatchEvent(event);
+    });
+    expect(event.defaultPrevented).toBe(false);
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
+  it('claims Escape when open by focus', () => {
+    const { button } = setup();
+    fireEvent.focus(button);
+    const event = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      cancelable: true,
+    });
+    act(() => {
+      document.dispatchEvent(event);
+    });
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('ignores touch pointers', () => {
+    const { button } = setup();
+    fireEvent.pointerEnter(button, { pointerType: 'touch' });
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
   it('has no axe violations when shown', async () => {

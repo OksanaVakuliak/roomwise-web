@@ -3,6 +3,7 @@
 import {
   type ChangeEvent,
   type ComponentProps,
+  type DragEvent,
   type MouseEvent,
   useCallback,
   useState,
@@ -48,12 +49,25 @@ export function FileField({
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
+      if (loading) {
+        event.target.value = '';
+        return;
+      }
       setChosen(
         Array.from(event.target.files ?? [], (file) => file.name).join(', '),
       );
       onChange?.(event);
     },
-    [onChange],
+    [loading, onChange],
+  );
+
+  const blockWhileLoading = useCallback(
+    (event: DragEvent<HTMLInputElement>) => {
+      if (loading) {
+        event.preventDefault();
+      }
+    },
+    [loading],
   );
 
   const handleClick = useCallback(
@@ -88,6 +102,8 @@ export function FileField({
             onClick={handleClick}
             className={styles.input}
             onChange={handleChange}
+            onDragOver={blockWhileLoading}
+            onDrop={blockWhileLoading}
           />
           <span
             className={styles.face}

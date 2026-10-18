@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+'use client';
+
+import { type ReactNode, useEffect, useState } from 'react';
 import { Icon, type IconName } from '../Icon/Icon';
 import { IconButton } from '../IconButton/IconButton';
 import styles from './Banner.module.css';
@@ -29,6 +31,12 @@ export function Banner({
   onDismiss,
   dismissLabel,
 }: BannerProps) {
+  const [announced, setAnnounced] = useState(false);
+
+  useEffect(() => {
+    setAnnounced(true);
+  }, []);
+
   return (
     <div
       className={`${styles.root} ${styles[variant]}`}
@@ -38,8 +46,10 @@ export function Banner({
         <Icon name={icons[variant]} size="lg" />
       </span>
       <div className={styles.body}>
-        {title ? <p className={styles.title}>{title}</p> : null}
-        <p className={styles.text}>{children}</p>
+        {title ? (
+          <p className={styles.title}>{announced ? title : null}</p>
+        ) : null}
+        <p className={styles.text}>{announced ? children : null}</p>
         {action ? <div className={styles.action}>{action}</div> : null}
       </div>
       {onDismiss && dismissLabel ? (

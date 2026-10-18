@@ -27,25 +27,25 @@ export function ImageWithFallback({
 
   useEffect(() => {
     const image = imageRef.current;
-    if (src && image?.complete && image.naturalWidth === 0) {
-      setFailedSrc(src);
+    if (image?.complete && image.naturalWidth === 0) {
+      image.src = image.src;
     }
-  }, [src]);
+  }, []);
 
   const failed = !src || failedSrc === src;
 
   return (
-    <div
+    <span
       className={styles.root}
       style={{ '--image-ratio': ratio } as CSSProperties}
     >
       {failed ? (
-        <div className={styles.fallback} role="img" aria-label={name}>
+        <span className={styles.fallback} role="img" aria-label={name}>
           <span className={styles.hatch}>
             <Hatch material="concrete" />
           </span>
           <span className={styles.name}>{name}</span>
-        </div>
+        </span>
       ) : (
         <img
           ref={imageRef}
@@ -56,6 +56,6 @@ export function ImageWithFallback({
           onError={handleError}
         />
       )}
-    </div>
+    </span>
   );
 }

@@ -8,8 +8,12 @@ export type FieldControlProps = {
   required?: true;
 };
 
-export type MergedControlProps = Omit<FieldControlProps, 'aria-invalid'> & {
+export type MergedControlProps = Omit<
+  FieldControlProps,
+  'aria-invalid' | 'aria-busy'
+> & {
   'aria-invalid'?: AriaAttributes['aria-invalid'];
+  'aria-busy'?: AriaAttributes['aria-busy'];
 };
 
 export function mergeDescribedBy(
@@ -27,7 +31,9 @@ export function mergeControl(
   ...extraIds: (string | undefined)[]
 ): MergedControlProps {
   return {
-    ...control,
+    id: control.id,
+    ...(control.required ? { required: control.required } : {}),
+    'aria-busy': control['aria-busy'] ?? consumer['aria-busy'],
     'aria-describedby': mergeDescribedBy(
       consumer['aria-describedby'],
       control['aria-describedby'],
