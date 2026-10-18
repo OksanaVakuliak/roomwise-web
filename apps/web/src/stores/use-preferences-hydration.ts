@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { readThemeMode, watchSystemTheme } from '@/lib/theme';
+import { applyTheme, readThemeMode, watchSystemTheme } from '@/lib/theme';
 import { usePreferences } from './preferences';
 
 let hydration: Promise<void> | undefined;
 
 function hydrateOnce(): Promise<void> {
   hydration ??= Promise.resolve(usePreferences.persist.rehydrate()).then(() => {
-    usePreferences.setState({ theme: readThemeMode() });
+    const theme = readThemeMode();
+    usePreferences.setState({ theme });
+    applyTheme(theme);
   });
   return hydration;
 }
