@@ -40,12 +40,6 @@ describe('ExchangeRateNote', () => {
     expect(text(container)).toBe('Rate: ₴41.50 per $1 on 1 Oct 2026');
   });
 
-  it('renders nothing for USD', () => {
-    setLoadedRate();
-    const { container } = renderWithProviders(<ExchangeRateNote />);
-    expect(container).toBeEmptyDOMElement();
-  });
-
   it('renders nothing while the rate is not ready', () => {
     const { container } = renderWithProviders(<ExchangeRateNote />, {
       currency: 'UAH',

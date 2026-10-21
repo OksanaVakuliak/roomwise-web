@@ -44,7 +44,7 @@ describe('HomePage', () => {
     expect(metadata).toEqual({
       alternates: {
         canonical,
-        languages: { en: '/en', uk: '/uk', 'x-default': '/en' },
+        languages: { en: '/en', uk: '/uk', 'x-default': '/' },
       },
     });
   });

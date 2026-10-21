@@ -36,7 +36,7 @@ export function ConfiguratorEstimate() {
     <EstimateStamp
       totalLabel={t('totalLabel')}
       total={total}
-      note={<ExchangeRateNote />}
+      note={currency === 'UAH' ? <ExchangeRateNote /> : undefined}
       barLabel={barLabel}
       toggleLabel={t('toggleLabel')}
       announcement={t('announcement', { total })}

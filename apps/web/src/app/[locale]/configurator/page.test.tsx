@@ -58,7 +58,7 @@ describe('ConfiguratorPage', () => {
       languages: {
         en: '/en/configurator',
         uk: '/uk/configurator',
-        'x-default': '/en/configurator',
+        'x-default': '/configurator',
       },
     });
   });

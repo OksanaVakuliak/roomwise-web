@@ -139,13 +139,14 @@ describe('switching the language', () => {
 });
 
 describe('switching the currency', () => {
-  function renderEstimate() {
+  function renderEstimate(currency?: 'USD' | 'UAH') {
     return renderWithProviders(
       <>
         <PreferenceSwitches />
         <ConfiguratorEstimate />
         <ExchangeRateNotice />
       </>,
+      { currency },
     );
   }
 
@@ -195,6 +196,76 @@ describe('switching the currency', () => {
     expect(usePreferences.getState().currency).toBe('USD');
     expect(screen.getAllByText(/\$/).length).toBeGreaterThan(0);
     expect(screen.queryByText(/NBU rate/)).not.toBeInTheDocument();
+  });
+
+  it('shows no rate note in dollars', async () => {
+    setLoadedRate();
+    renderEstimate();
+    await waitForHydration();
+
+    expect(screen.queryByText(/rate/i)).not.toBeInTheDocument();
+  });
+
+  it('keeps a saved UAH after a failed load and shows dollars with the notice', async () => {
+    get.mockResolvedValue({ data: { exchangeRate: null } });
+    renderEstimate('UAH');
+    await waitFor(() =>
+      expect(
+        screen.getByText(/The hryvnia rate is unavailable right now/),
+      ).toBeInTheDocument(),
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Switch currency to UAH' }),
+    ).toHaveTextContent('$');
+    expect(screen.getAllByText(/\$/).length).toBeGreaterThan(0);
+    expect(usePreferences.getState().currency).toBe('UAH');
+    expect(
+      JSON.parse(window.localStorage.getItem(PREFERENCES_STORAGE_KEY) ?? '{}')
+        .state.currency,
+    ).toBe('UAH');
+  });
+
+  it('retries on click after a failed load', async () => {
+    get.mockResolvedValueOnce({ data: { exchangeRate: null } });
+    renderEstimate();
+    await waitForHydration();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch currency to UAH' }),
+    );
+    await screen.findByText(/The hryvnia rate is unavailable right now/);
+    expect(usePreferences.getState().currency).toBe('USD');
+
+    get.mockResolvedValueOnce({
+      data: {
+        exchangeRate: { rate: '41.5', date: '2026-10-01', source: 'NBU' },
+      },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch currency to UAH' }),
+    );
+
+    await screen.findByText(/NBU rate/);
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getByRole('button', { name: 'Switch currency to USD' }),
+    ).toHaveTextContent('₴');
+    expect(
+      screen.queryByText(/The hryvnia rate is unavailable right now/),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows dollars on the switch while the rate is loading', async () => {
+    get.mockReturnValue(new Promise(() => {}));
+    renderEstimate('UAH');
+
+    const toggle = await screen.findByRole('button', {
+      name: 'Switch currency to UAH',
+    });
+
+    expect(toggle).toHaveTextContent('$');
+    expect(screen.queryAllByText(/₴/)).toHaveLength(0);
+    expect(usePreferences.getState().currency).toBe('UAH');
   });
 
   it('returns to dollars when the rate request fails', async () => {

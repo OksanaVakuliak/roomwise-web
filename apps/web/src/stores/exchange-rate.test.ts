@@ -81,6 +81,51 @@ describe('loadExchangeRate', () => {
     expect(get).toHaveBeenCalledTimes(2);
   });
 
+  it.each([
+    ['a missing date', { rate: '41.5', source: 'NBU' }],
+    ['an unparsable date', { rate: '41.5', date: 'soon', source: 'NBU' }],
+  ])('is unavailable for %s', async (_name, exchangeRate) => {
+    respond(exchangeRate);
+
+    await loadExchangeRate();
+
+    expect(useExchangeRate.getState()).toMatchObject({
+      status: 'unavailable',
+      rate: null,
+    });
+  });
+
+  it('clears the notice once the rate loads', async () => {
+    useExchangeRate.setState({ notice: true });
+    respond({ rate: '41.5', date: '2026-10-01', source: 'NBU' });
+
+    await loadExchangeRate();
+
+    expect(useExchangeRate.getState().notice).toBe(false);
+  });
+
+  it('ignores a load that finishes after a reset', async () => {
+    let finish: (value: unknown) => void = () => {};
+    get.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)));
+    const stale = loadExchangeRate();
+
+    resetExchangeRate();
+    finish({
+      data: {
+        exchangeRate: { rate: '41.5', date: '2026-10-01', source: 'NBU' },
+      },
+    });
+    await stale;
+
+    expect(useExchangeRate.getState()).toMatchObject({
+      status: 'idle',
+      rate: null,
+    });
+    respond({ rate: '40', date: '2026-10-02', source: 'NBU' });
+    await loadExchangeRate();
+    expect(useExchangeRate.getState().rate?.uahPerUsd).toBe(40);
+  });
+
   it('clears the notice on dismiss', () => {
     useExchangeRate.setState({ notice: true });
     useExchangeRate.getState().dismissNotice();

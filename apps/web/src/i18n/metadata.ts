@@ -9,7 +9,7 @@ export function localeAlternates(
     routing.locales.map((entry) => [entry, `/${entry}${path}`]),
   );
 
-  languages['x-default'] = `/${routing.defaultLocale}${path}`;
+  languages['x-default'] = path || '/';
 
   return { canonical: `/${locale}${path}`, languages };
 }

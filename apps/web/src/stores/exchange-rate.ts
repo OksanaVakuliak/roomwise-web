@@ -23,12 +23,14 @@ export const useExchangeRate = create<ExchangeRateState>()((set) => ({
   dismissNotice: () => set({ notice: false }),
 }));
 
+let pending: Promise<void> | undefined;
+let generation = 0;
+
 export function resetExchangeRate(): void {
+  generation += 1;
   pending = undefined;
   useExchangeRate.setState(INITIAL);
 }
-
-let pending: Promise<void> | undefined;
 
 async function fetchRate(): Promise<LoadedRate | null> {
   try {
@@ -39,6 +41,12 @@ async function fetchRate(): Promise<LoadedRate | null> {
     }
     const uahPerUsd = Number(source.rate);
     if (!Number.isFinite(uahPerUsd) || uahPerUsd <= 0) {
+      return null;
+    }
+    if (
+      typeof source.date !== 'string' ||
+      Number.isNaN(Date.parse(source.date))
+    ) {
       return null;
     }
     return { uahPerUsd, date: source.date, source: source.source };
@@ -52,11 +60,17 @@ export function loadExchangeRate(): Promise<void> {
     return Promise.resolve();
   }
   pending ??= (async () => {
+    const started = generation;
     useExchangeRate.setState({ status: 'loading' });
     const rate = await fetchRate();
+    if (started !== generation) {
+      return;
+    }
     pending = undefined;
     useExchangeRate.setState(
-      rate ? { status: 'ready', rate } : { status: 'unavailable', rate: null },
+      rate
+        ? { status: 'ready', rate, notice: false }
+        : { status: 'unavailable', rate: null },
     );
   })();
   return pending;

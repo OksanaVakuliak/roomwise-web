@@ -55,10 +55,6 @@
   color: var(--line-2);
 }
 
-.note:empty {
-  display: none;
-}
-
 .bar {
   margin: var(--space-10) var(--space-10) 0;
 }

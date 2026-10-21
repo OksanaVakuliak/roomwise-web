@@ -1,26 +1,33 @@
 'use client';
 
 import { useEffect } from 'react';
+import type { Currency } from '@/lib/format';
 import { loadExchangeRate, useExchangeRate } from './exchange-rate';
 import { usePreferences } from './preferences';
 
-export function useExchangeRateSync(hydrated: boolean): void {
-  const currency = usePreferences((state) => state.currency);
+async function ensureRate(): Promise<boolean> {
+  await loadExchangeRate();
+  const available = useExchangeRate.getState().status === 'ready';
+  if (!available) {
+    useExchangeRate.setState({ notice: true });
+  }
+  return available;
+}
 
+export async function chooseCurrency(currency: Currency): Promise<void> {
+  const { setCurrency } = usePreferences.getState();
+  setCurrency(currency);
+  if (currency === 'UAH' && !(await ensureRate())) {
+    if (usePreferences.getState().currency === 'UAH') {
+      setCurrency('USD');
+    }
+  }
+}
+
+export function useExchangeRateSync(hydrated: boolean): void {
   useEffect(() => {
-    if (!hydrated || currency !== 'UAH') {
-      return;
+    if (hydrated && usePreferences.getState().currency === 'UAH') {
+      void ensureRate();
     }
-    if (useExchangeRate.getState().status === 'ready') {
-      return;
-    }
-    loadExchangeRate().then(() => {
-      const unavailable = useExchangeRate.getState().status === 'unavailable';
-      const { currency: current, setCurrency } = usePreferences.getState();
-      if (unavailable && current === 'UAH') {
-        setCurrency('USD');
-        useExchangeRate.setState({ notice: true });
-      }
-    });
-  }, [hydrated, currency]);
+  }, [hydrated]);
 }
