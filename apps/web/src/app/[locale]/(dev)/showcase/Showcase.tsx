@@ -15,6 +15,7 @@ import { SectionCutSection } from './sections/SectionCutSection';
 import { SpacingSection } from './sections/SpacingSection';
 import { SpecificationSection } from './sections/SpecificationSection';
 import { StepTapeSection } from './sections/StepTapeSection';
+import { SystemStatesSection } from './sections/SystemStatesSection';
 import { TypographySection } from './sections/TypographySection';
 import styles from './showcase.module.css';
 
@@ -33,6 +34,7 @@ const SECTION_CONTENT: Partial<Record<ShowcaseSection, ComponentType>> = {
   formFields: FormFieldsSection,
   overlays: OverlaysSection,
   dataDisplay: DataDisplaySection,
+  systemStates: SystemStatesSection,
 };
 
 export function Showcase() {

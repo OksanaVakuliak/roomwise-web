@@ -1,0 +1,29 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--text-title-s-family);
+  font-size: var(--text-title-s-size);
+}
+
+.caption {
+  margin: 0 0 var(--space-8);
+  font-size: var(--text-caption-default-size);
+  color: var(--line-2);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-24);
+}
+
+.cell {
+  min-width: 0;
+  max-width: 22.5rem;
+}

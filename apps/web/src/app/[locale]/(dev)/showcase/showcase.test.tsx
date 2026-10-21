@@ -36,6 +36,7 @@ const NAMESPACES = [
   'ShowcaseSpecification',
   'ShowcaseOverlays',
   'ShowcaseEstimate',
+  'ShowcaseSystemStates',
 ] as const;
 
 const MOBILE_WIDTH = 390;
