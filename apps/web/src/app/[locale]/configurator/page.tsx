@@ -4,6 +4,7 @@ import { hasLocale, useTranslations } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { use } from 'react';
 import { StepLayout, ZoneStub } from '@/components/layout';
+import { WarmupGate } from '@/components/system';
 import {
   PageTitle,
   TapeRule,
@@ -54,32 +55,34 @@ export default function ConfiguratorPage({ params }: PageProps) {
   const t = useTranslations('Configurator');
 
   return (
-    <StepLayout
-      steps={
-        <nav aria-label={t('tapeLabel')}>
-          <TapeRule size="mobile">
-            {STEPS.map((step) => (
-              <TapeStep
-                key={step}
-                size="mobile"
-                number={`A${step}`}
-                label={step === CURRENT_STEP ? t(`steps.${step}`) : undefined}
-                state={stepState(step)}
-                stateLabel={t(`state.${stepState(step)}`)}
-              />
-            ))}
-          </TapeRule>
-        </nav>
-      }
-      content={
-        <>
-          <PageTitle>{t('steps.1')}</PageTitle>
-          <ZoneStub kind="content" />
-        </>
-      }
-      scene={<ZoneStub kind="scene" />}
-      showcase={<ZoneStub kind="showcase" />}
-      cost={<ConfiguratorEstimate />}
-    />
+    <WarmupGate>
+      <StepLayout
+        steps={
+          <nav aria-label={t('tapeLabel')}>
+            <TapeRule size="mobile">
+              {STEPS.map((step) => (
+                <TapeStep
+                  key={step}
+                  size="mobile"
+                  number={`A${step}`}
+                  label={step === CURRENT_STEP ? t(`steps.${step}`) : undefined}
+                  state={stepState(step)}
+                  stateLabel={t(`state.${stepState(step)}`)}
+                />
+              ))}
+            </TapeRule>
+          </nav>
+        }
+        content={
+          <>
+            <PageTitle>{t('steps.1')}</PageTitle>
+            <ZoneStub kind="content" />
+          </>
+        }
+        scene={<ZoneStub kind="scene" />}
+        showcase={<ZoneStub kind="showcase" />}
+        cost={<ConfiguratorEstimate />}
+      />
+    </WarmupGate>
   );
 }

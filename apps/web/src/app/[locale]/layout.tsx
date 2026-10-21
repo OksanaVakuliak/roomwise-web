@@ -10,6 +10,7 @@ import {
   MAIN_ID,
   SkipLink,
 } from '@/components/layout';
+import { WarmupStarter } from '@/components/system';
 import { routing } from '@/i18n/routing';
 import { themeInitScript } from '@/lib/theme';
 import { caveat, commissioner, tektur } from '../fonts';
@@ -57,6 +58,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
       </head>
       <body>
         <NextIntlClientProvider>
+          <WarmupStarter />
           <SkipLink />
           <AppHeader />
           <main id={MAIN_ID} tabIndex={-1}>
