@@ -104,6 +104,13 @@ describe('EstimateStamp', () => {
     expect(screen.getByRole('status')).toHaveTextContent('$1');
   });
 
+  it('shows the note under the total only when it is given', () => {
+    const { rerender } = renderWithProviders(stamp());
+    expect(screen.queryByText('NBU rate')).not.toBeInTheDocument();
+    rerender(stamp({ note: 'NBU rate' }));
+    expect(screen.getByText('NBU rate')).toBeInTheDocument();
+  });
+
   it('has no axe violations', async () => {
     const { container } = renderWithProviders(stamp());
     expect(await axe(container)).toHaveNoViolations();

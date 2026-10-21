@@ -28,6 +28,7 @@ export type EstimateStampProps = {
   barLabel: string;
   toggleLabel: string;
   announcement?: string;
+  note?: ReactNode;
   actions?: ReactNode;
   defaultExpanded?: boolean;
   className?: string;
@@ -40,6 +41,7 @@ export function EstimateStamp({
   barLabel,
   toggleLabel,
   announcement,
+  note,
   actions,
   defaultExpanded = false,
   className,
@@ -84,6 +86,7 @@ export function EstimateStamp({
           <Icon name="chevronDown" size="sm" className={styles.chevron} />
         </button>
       </div>
+      {note ? <p className={styles.note}>{note}</p> : null}
       <StackBar
         className={styles.bar}
         label={barLabel}

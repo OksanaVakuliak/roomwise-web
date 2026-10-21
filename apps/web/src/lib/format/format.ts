@@ -58,3 +58,23 @@ export function percent(fraction: number, locale: Locale): string {
     maximumFractionDigits: 1,
   }).format(fraction);
 }
+
+const rateLocales: Record<Locale, string> = { en: 'en-GB', uk: 'uk-UA' };
+
+export function rateValue(uahPerUsd: number, locale: Locale): string {
+  return new Intl.NumberFormat(rateLocales[locale], {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(uahPerUsd);
+}
+
+export function rateDate(date: string, locale: Locale): string {
+  const options: Intl.DateTimeFormatOptions =
+    locale === 'uk'
+      ? { day: '2-digit', month: '2-digit', year: 'numeric' }
+      : { day: 'numeric', month: 'short', year: 'numeric' };
+  return new Intl.DateTimeFormat(rateLocales[locale], {
+    ...options,
+    timeZone: 'UTC',
+  }).format(new Date(date));
+}

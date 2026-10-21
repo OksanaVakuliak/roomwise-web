@@ -1,9 +1,11 @@
 import { act, screen, within } from '@testing-library/react';
 import type { AnchorHTMLAttributes } from 'react';
 import { Suspense } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetExchangeRate } from '@/stores/exchange-rate';
 import { usePreferences } from '@/stores/preferences';
 import { axe } from '@/test/axe';
+import { setLoadedRate } from '@/test/fixtures/exchange-rate';
 import {
   forEachLocale,
   renderWithProviders,
@@ -11,6 +13,7 @@ import {
 import en from '../../../../messages/en.json';
 import ConfiguratorPage from './page';
 
+vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
 vi.mock('next-intl/server', () => ({
   setRequestLocale: vi.fn(),
   getTranslations: vi.fn(),
@@ -37,6 +40,10 @@ async function renderPage(locale: 'en' | 'uk') {
 }
 
 describe('ConfiguratorPage', () => {
+  beforeEach(() => {
+    resetExchangeRate();
+  });
+
   it.each(forEachLocale)(
     'has one h1 and no axe violations in %s',
     async (locale) => {
@@ -53,10 +60,23 @@ describe('ConfiguratorPage', () => {
     expect(within(cost).getAllByText(/\$/).length).toBeGreaterThan(0);
 
     await act(async () => {
+      setLoadedRate();
       usePreferences.getState().setCurrency('UAH');
     });
 
-    expect(within(cost).queryAllByText(/\$/)).toHaveLength(0);
     expect(within(cost).getAllByText(/₴|грн|UAH/).length).toBeGreaterThan(0);
+    expect(within(cost).getByText(/NBU rate/)).toBeInTheDocument();
+  });
+
+  it('keeps dollars while the hryvnia rate is not loaded', async () => {
+    await renderPage('en');
+    const cost = screen.getByRole('region', { name: en.StepLayout.cost });
+
+    await act(async () => {
+      usePreferences.getState().setCurrency('UAH');
+    });
+
+    expect(within(cost).getAllByText(/\$/).length).toBeGreaterThan(0);
+    expect(within(cost).queryByText(/NBU rate/)).not.toBeInTheDocument();
   });
 });

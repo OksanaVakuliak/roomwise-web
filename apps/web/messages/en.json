@@ -591,6 +591,12 @@
     "footer": "Estimates are approximate and are not an offer.",
     "footerBrand": "© Roomwise"
   },
+  "ExchangeRate": {
+    "noteNbu": "NBU rate: ₴{rate} per $1 on {date}",
+    "noteManual": "Rate: ₴{rate} per $1 on {date}",
+    "unavailable": "The hryvnia rate is unavailable right now, so amounts are shown in US dollars.",
+    "dismiss": "Dismiss"
+  },
   "Error": {
     "title": "Something went wrong",
     "message": "An unexpected error occurred. Try again or go back to the home page.",

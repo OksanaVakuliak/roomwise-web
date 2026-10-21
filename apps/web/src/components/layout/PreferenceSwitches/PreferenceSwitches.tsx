@@ -8,6 +8,7 @@ import { routing } from '@/i18n/routing';
 import { currencies } from '@/lib/format';
 import { THEME_MODES } from '@/lib/theme';
 import { usePreferences } from '@/stores/preferences';
+import { useExchangeRateSync } from '@/stores/use-exchange-rate-sync';
 import { usePreferencesHydration } from '@/stores/use-preferences-hydration';
 import { useSystemThemeWatcher } from '@/stores/use-system-theme-watcher';
 
@@ -23,6 +24,7 @@ export function PreferenceSwitches() {
 
   const hydrated = usePreferencesHydration();
   useSystemThemeWatcher();
+  useExchangeRateSync(hydrated);
 
   const currency = usePreferences((state) => state.currency);
   const theme = usePreferences((state) => state.theme);

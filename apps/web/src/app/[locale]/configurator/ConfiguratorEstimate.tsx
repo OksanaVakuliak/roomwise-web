@@ -1,12 +1,12 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { ExchangeRateNote } from '@/components/layout';
 import { Button, ButtonLink, EstimateStamp } from '@/components/ui';
-import { type ExchangeRate, money } from '@/lib/format';
-import { usePreferences } from '@/stores/preferences';
+import { money } from '@/lib/format';
+import { useDisplayCurrency } from '@/stores/use-display-currency';
 import { usePreferencesHydration } from '@/stores/use-preferences-hydration';
 
-const RATE: ExchangeRate = { uahPerUsd: 41.5 };
 const PARTS = [
   { key: 'base', cents: 684400 },
   { key: 'materials', cents: 491240 },
@@ -20,8 +20,8 @@ export function ConfiguratorEstimate() {
 
   usePreferencesHydration();
 
-  const currency = usePreferences((state) => state.currency);
-  const format = (cents: number) => money(cents, currency, locale, RATE);
+  const { currency, rate } = useDisplayCurrency();
+  const format = (cents: number) => money(cents, currency, locale, rate);
   const sum = PARTS.reduce((total, part) => total + part.cents, 0);
   const total = format(sum);
   const shares = PARTS.map((part) => (part.cents / sum) * 100);
@@ -36,6 +36,7 @@ export function ConfiguratorEstimate() {
     <EstimateStamp
       totalLabel={t('totalLabel')}
       total={total}
+      note={<ExchangeRateNote />}
       barLabel={barLabel}
       toggleLabel={t('toggleLabel')}
       announcement={t('announcement', { total })}

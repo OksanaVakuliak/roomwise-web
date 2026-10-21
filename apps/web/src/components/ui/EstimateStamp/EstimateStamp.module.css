@@ -46,6 +46,19 @@
   transform: rotate(180deg);
 }
 
+.note {
+  margin: 0;
+  padding: var(--space-8) var(--space-10) 0;
+  font-family: var(--text-caption-default-family);
+  font-size: var(--text-caption-default-size);
+  line-height: var(--text-caption-default-line);
+  color: var(--line-2);
+}
+
+.note:empty {
+  display: none;
+}
+
 .bar {
   margin: var(--space-10) var(--space-10) 0;
 }

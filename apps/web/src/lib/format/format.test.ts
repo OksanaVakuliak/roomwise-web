@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { area, currencies, dimension, money, percent } from './index';
+import {
+  area,
+  currencies,
+  dimension,
+  money,
+  percent,
+  rateDate,
+  rateValue,
+} from './index';
 
 const NBSP = '\u00a0';
 
@@ -98,5 +106,17 @@ describe('percent', () => {
 describe('currencies', () => {
   it('lists the supported currencies', () => {
     expect(currencies).toEqual(['USD', 'UAH']);
+  });
+});
+
+describe('rate formatting', () => {
+  it('formats the rate with two decimals per locale', () => {
+    expect(plain(rateValue(41.5, 'en'))).toBe('41.50');
+    expect(plain(rateValue(41.5, 'uk'))).toBe('41,50');
+  });
+
+  it('formats the rate date per locale without a timezone shift', () => {
+    expect(rateDate('2026-10-01', 'en')).toBe('1 Oct 2026');
+    expect(rateDate('2026-10-01', 'uk')).toBe('01.10.2026');
   });
 });
