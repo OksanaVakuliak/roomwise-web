@@ -94,6 +94,7 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-enter: cubic-bezier(0, 0, 0, 1);
   --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+  --ease-symmetric: cubic-bezier(0.45, 0, 0.55, 1);
 
   --tape-height-mobile: 3.625rem;
   --tape-height-desktop: 4rem;
