@@ -24,8 +24,8 @@
   font-family: var(--text-number-s-family);
 }
 
-.outline:hover,
-.outline:focus-visible {
+.outline:not(:disabled, [aria-disabled="true"]):hover,
+.outline:not(:disabled, [aria-disabled="true"]):focus-visible {
   background: var(--line);
   color: var(--sheet);
 }
@@ -35,8 +35,8 @@
   color: var(--sheet);
 }
 
-.fill:hover,
-.fill:focus-visible {
+.fill:not(:disabled, [aria-disabled="true"]):hover,
+.fill:not(:disabled, [aria-disabled="true"]):focus-visible {
   background: var(--heat);
   border-color: var(--heat);
   color: var(--on-heat);
