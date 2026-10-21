@@ -31,7 +31,6 @@ export function OfflineState({ onRetry, headingLevel }: OfflineStateProps) {
           <Button
             kind="fill"
             loading={pending}
-            disabled={pending}
             loadingLabel={t('retrying')}
             onClick={retry}
           >

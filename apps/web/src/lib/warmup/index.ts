@@ -5,7 +5,6 @@ export {
   resetWarmup,
   retryWarmup,
   type ServerState,
-  selectWaitingScreenVisible,
   selectWarmupStatus,
   startWarmup,
   useWarmup,

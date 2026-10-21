@@ -61,6 +61,30 @@ describe('WarmupGate', () => {
     expect(screen.getByText('Server is waking up')).toBeInTheDocument();
   });
 
+  it('shows the waiting screen at once after an earlier overlay', () => {
+    renderGate();
+    act(() => {
+      useWarmup.setState({ server: 'failed' });
+    });
+    expect(screen.getByText('The server did not answer')).toBeInTheDocument();
+    act(() => {
+      useWarmup.setState({ server: 'warming', startedAt: Date.now() });
+    });
+    expect(screen.getByText('Server is waking up')).toBeInTheDocument();
+    expect(contentWrapper()).toHaveAttribute('inert');
+  });
+
+  it('keeps the waiting screen when warming restarts after it was shown', () => {
+    renderGate();
+    act(() => {
+      useWarmup.setState({ server: 'warming', startedAt: Date.now() - 5000 });
+    });
+    act(() => {
+      useWarmup.setState({ server: 'warming', startedAt: Date.now() });
+    });
+    expect(screen.getByText('Server is waking up')).toBeInTheDocument();
+  });
+
   it('shows the failure state with retry', () => {
     renderGate();
     act(() => {

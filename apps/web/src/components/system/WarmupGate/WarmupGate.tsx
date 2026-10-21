@@ -43,9 +43,10 @@ export function WarmupGate({ children }: WarmupGateProps) {
   const status = useWarmup(selectWarmupStatus);
   const startedAt = useWarmup((state) => state.startedAt);
   const delayPassed = useDelayPassed(status === 'warming', startedAt);
+  const [overlayShown, setOverlayShown] = useState(false);
 
   let overlay: ReactNode = null;
-  if (status === 'warming' && delayPassed) {
+  if (status === 'warming' && (delayPassed || overlayShown)) {
     overlay = (
       <div role="status" className={styles.waiting}>
         <EmptyState
@@ -72,12 +73,23 @@ export function WarmupGate({ children }: WarmupGateProps) {
     overlay = <OfflineState onRetry={retryWarmup} />;
   }
 
+  const hasOverlay = overlay !== null;
+  useEffect(() => {
+    if (hasOverlay) {
+      setOverlayShown(true);
+    }
+  }, [hasOverlay]);
+
   return (
     <div className={styles.root}>
-      <div className={styles.content} inert={overlay !== null}>
+      <div className={styles.content} inert={hasOverlay}>
         {children}
       </div>
-      {overlay ? <div className={styles.overlay}>{overlay}</div> : null}
+      {overlay ? (
+        <div className={styles.overlay}>
+          <div className={styles.message}>{overlay}</div>
+        </div>
+      ) : null}
     </div>
   );
 }

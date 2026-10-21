@@ -28,7 +28,7 @@ function currentNetwork(): NetworkState {
 }
 
 function initialState(): WarmupState {
-  return { server: 'unknown', network: currentNetwork(), startedAt: null };
+  return { server: 'unknown', network: 'online', startedAt: null };
 }
 
 export const useWarmup = create<WarmupState>()(initialState);
@@ -41,17 +41,6 @@ export function selectWarmupStatus(state: WarmupState): WarmupStatus {
     return 'offline';
   }
   return state.server;
-}
-
-export function selectWaitingScreenVisible(
-  state: WarmupState,
-  now: number,
-): boolean {
-  return (
-    selectWarmupStatus(state) === 'warming' &&
-    state.startedAt !== null &&
-    now - state.startedAt >= WARMUP_SCREEN_DELAY_MS
-  );
 }
 
 let generation = 0;
@@ -121,16 +110,23 @@ export function startWarmup(): void {
   beginWindow();
 }
 
-export function retryWarmup(): void {
+export async function retryWarmup(): Promise<void> {
   const { server, network } = useWarmup.getState();
-  if (server !== 'failed') {
+  if (server === 'ready') {
     return;
   }
   if (network === 'offline') {
-    useWarmup.setState({ server: 'warming', startedAt: null });
+    const run = generation;
+    const ok = await probe();
+    if (run === generation && ok) {
+      clearTimers();
+      useWarmup.setState({ network: 'online', server: 'ready' });
+    }
     return;
   }
-  beginWindow();
+  if (server === 'failed') {
+    beginWindow();
+  }
 }
 
 function goOffline(): void {

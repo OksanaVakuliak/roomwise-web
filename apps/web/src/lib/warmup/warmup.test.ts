@@ -4,7 +4,6 @@ import {
   installNetworkListeners,
   resetWarmup,
   retryWarmup,
-  selectWaitingScreenVisible,
   selectWarmupStatus,
   startWarmup,
   useWarmup,
@@ -21,10 +20,6 @@ const down = { response: { ok: false } };
 
 function status() {
   return selectWarmupStatus(useWarmup.getState());
-}
-
-function waitingScreenVisible() {
-  return selectWaitingScreenVisible(useWarmup.getState(), Date.now());
 }
 
 describe('warmup', () => {
@@ -62,21 +57,20 @@ describe('warmup', () => {
     expect(get).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the waiting screen only after the delay', async () => {
+  it('stays warming through the screen delay', async () => {
     get.mockReturnValue(new Promise(() => {}));
     startWarmup();
     const startedAt = useWarmup.getState().startedAt ?? 0;
 
     await vi.advanceTimersByTimeAsync(WARMUP_SCREEN_DELAY_MS - 1);
     expect(status()).toBe('warming');
-    expect(waitingScreenVisible()).toBe(false);
+    expect(Date.now() - startedAt).toBeLessThan(WARMUP_SCREEN_DELAY_MS);
 
     await vi.advanceTimersByTimeAsync(1);
     expect(status()).toBe('warming');
     expect(Date.now() - startedAt).toBeGreaterThanOrEqual(
       WARMUP_SCREEN_DELAY_MS,
     );
-    expect(waitingScreenVisible()).toBe(true);
   });
 
   it('becomes ready on a successful response', async () => {
@@ -86,7 +80,6 @@ describe('warmup', () => {
     await vi.advanceTimersByTimeAsync(0);
 
     expect(status()).toBe('ready');
-    expect(waitingScreenVisible()).toBe(false);
   });
 
   it('retries with a growing delay capped at ten seconds', async () => {
@@ -161,7 +154,7 @@ describe('warmup', () => {
     expect(status()).toBe('failed');
     get.mockClear();
 
-    retryWarmup();
+    void retryWarmup();
 
     expect(status()).toBe('warming');
     expect(get).toHaveBeenCalledTimes(1);
@@ -171,13 +164,50 @@ describe('warmup', () => {
     expect(status()).toBe('failed');
   });
 
-  it('retry does nothing unless the warm-up failed', () => {
+  it('retry does nothing while warming online', () => {
     get.mockReturnValue(new Promise(() => {}));
     startWarmup();
 
-    retryWarmup();
+    void retryWarmup();
 
     expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it('retry while offline becomes ready when the server answers', async () => {
+    window.dispatchEvent(new Event('offline'));
+    startWarmup();
+    get.mockResolvedValue(up);
+
+    await retryWarmup();
+
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(useWarmup.getState().network).toBe('online');
+    expect(status()).toBe('ready');
+  });
+
+  it('retry while offline stays offline when the server fails', async () => {
+    window.dispatchEvent(new Event('offline'));
+    startWarmup();
+    get.mockResolvedValue(down);
+
+    await retryWarmup();
+
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(status()).toBe('offline');
+  });
+
+  it('retry while offline ignores a probe from an earlier generation', async () => {
+    window.dispatchEvent(new Event('offline'));
+    startWarmup();
+    let finish: (value: unknown) => void = () => {};
+    get.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+
+    const pending = retryWarmup();
+    resetWarmup();
+    finish(up);
+    await pending;
+
+    expect(status()).toBe('unknown');
   });
 
   it('pauses requests while offline and resumes when back online', async () => {
@@ -277,19 +307,35 @@ describe('warmup', () => {
     expect(status()).toBe('ready');
     window.dispatchEvent(new Event('online'));
     startWarmup();
-    retryWarmup();
+    void retryWarmup();
     await vi.advanceTimersByTimeAsync(WARMUP_TIMEOUT_MS);
 
     expect(status()).toBe('ready');
     expect(get).not.toHaveBeenCalled();
   });
 
+  it('always starts online and syncs from the browser after mount', () => {
+    const onLine = vi
+      .spyOn(window.navigator, 'onLine', 'get')
+      .mockReturnValue(false);
+    removeListeners();
+
+    resetWarmup();
+    expect(useWarmup.getState().network).toBe('online');
+
+    removeListeners = installNetworkListeners();
+    expect(useWarmup.getState().network).toBe('offline');
+    onLine.mockRestore();
+  });
+
   it('treats an unknown connection state as online', () => {
     const onLine = vi
       .spyOn(window.navigator, 'onLine', 'get')
       .mockReturnValue(undefined as unknown as boolean);
+    removeListeners();
 
     resetWarmup();
+    removeListeners = installNetworkListeners();
 
     expect(useWarmup.getState().network).toBe('online');
     onLine.mockRestore();

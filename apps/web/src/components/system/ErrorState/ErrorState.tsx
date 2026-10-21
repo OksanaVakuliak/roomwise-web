@@ -32,7 +32,6 @@ export function ErrorState({
           <Button
             kind="fill"
             loading={pending}
-            disabled={pending}
             loadingLabel={t('retrying')}
             onClick={retry}
           >

@@ -604,11 +604,6 @@
     "retry": "Try again",
     "home": "Back to home"
   },
-  "GlobalError": {
-    "title": "Something went wrong",
-    "message": "Please reload the page.",
-    "reload": "Reload"
-  },
   "SystemStates": {
     "errorTitle": "Could not load the data",
     "errorMessage": "Something went wrong on our side. Your draft is safe, try again in a moment.",

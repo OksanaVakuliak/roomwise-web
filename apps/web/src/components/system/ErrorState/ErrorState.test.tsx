@@ -51,20 +51,27 @@ describe('ErrorState', () => {
 
   it('is busy while the retry promise is pending', async () => {
     let finish: () => void = () => undefined;
-    const onRetry = () =>
-      new Promise<void>((resolve) => {
+    let calls = 0;
+    const onRetry = () => {
+      calls += 1;
+      return new Promise<void>((resolve) => {
         finish = resolve;
       });
+    };
     renderWithProviders(<ErrorState onRetry={onRetry} />);
     const button = screen.getByRole('button');
+    button.focus();
     fireEvent.click(button);
-    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
     expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).toHaveFocus();
+    fireEvent.click(button);
+    expect(calls).toBe(1);
 
     await act(async () => {
       finish();
     });
-    expect(button).toBeEnabled();
+    expect(button).not.toHaveAttribute('aria-disabled');
     expect(button).not.toHaveAttribute('aria-busy');
   });
 
@@ -80,7 +87,7 @@ describe('ErrorState', () => {
     await act(async () => {
       fail();
     });
-    expect(button).toBeEnabled();
+    expect(button).not.toHaveAttribute('aria-disabled');
   });
 
   it('has no axe violations', async () => {

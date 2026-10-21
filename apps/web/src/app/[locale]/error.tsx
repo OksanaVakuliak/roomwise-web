@@ -16,6 +16,7 @@ export default function LocaleError({
   const t = useTranslations('Error');
 
   useEffect(() => {
+    console.error(error);
     Sentry.captureException(error);
   }, [error]);
 
