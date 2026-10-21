@@ -591,6 +591,214 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/pricing-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicPricingController_getPricingData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/estimates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PublicPricingController_createEstimate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["RulesController_list"];
+        put?: never;
+        post: operations["RulesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/rules/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RulesController_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/rules/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["RulesController_reorder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["RulesController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["RulesController_update"];
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/formulas/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FormulasController_validate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/base-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BaseRatesController_list"];
+        put?: never;
+        post: operations["BaseRatesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/base-rates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["BaseRatesController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["BaseRatesController_update"];
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/coefficients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CoefficientsController_list"];
+        put?: never;
+        post: operations["CoefficientsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/coefficients/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["CoefficientsController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["CoefficientsController_update"];
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/exchange-rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ExchangeRateController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pricing/exchange-rate/manual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ExchangeRateController_setManual"];
+        post?: never;
+        delete: operations["ExchangeRateController_clearManual"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -848,6 +1056,14 @@ export interface components {
                 } | null;
             }[];
         };
+        PatchRoomTypeDto: {
+            name: {
+                en: string;
+                uk: string;
+            };
+            /** Format: uuid */
+            revision: string;
+        };
         RoomTypeAdminDto_Output: {
             /** Format: uuid */
             id: string;
@@ -879,6 +1095,11 @@ export interface components {
                 login: string;
             } | null;
         };
+        ReplaceRoomTypeCategoriesDto: {
+            categoryIds: string[];
+            /** Format: uuid */
+            revision: string;
+        };
         CategoryAdminListResponseDto_Output: {
             items: {
                 /** Format: uuid */
@@ -905,6 +1126,15 @@ export interface components {
                 } | null;
             }[];
         };
+        CreateCategoryDto: {
+            name: {
+                en: string;
+                uk: string;
+            };
+            wastePercent: number;
+            /** @enum {string} */
+            surface: "NONE" | "FLOOR" | "WALLS" | "CEILING";
+        };
         CategoryAdminDto_Output: {
             /** Format: uuid */
             id: string;
@@ -929,6 +1159,23 @@ export interface components {
                 login: string;
             } | null;
         };
+        PatchCategoryDto: {
+            name?: {
+                en: string;
+                uk: string;
+            };
+            wastePercent?: number;
+            /** @enum {string} */
+            surface?: "NONE" | "FLOOR" | "WALLS" | "CEILING";
+            /** Format: uuid */
+            revision: string;
+        };
+        UpdateCategoryStatusDto: {
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+            /** Format: uuid */
+            revision: string;
+        };
         MaterialTypeAdminListResponseDto_Output: {
             items: {
                 /** Format: uuid */
@@ -951,6 +1198,13 @@ export interface components {
                 } | null;
             }[];
         };
+        CreateMaterialTypeDto: {
+            code: string;
+            name: {
+                en: string;
+                uk: string;
+            };
+        };
         MaterialTypeAdminDto_Output: {
             /** Format: uuid */
             id: string;
@@ -970,6 +1224,16 @@ export interface components {
                 id: string;
                 login: string;
             } | null;
+        };
+        UpdateMaterialTypeDto: {
+            name?: {
+                en: string;
+                uk: string;
+            };
+            /** @enum {string} */
+            status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+            /** Format: uuid */
+            revision: string;
         };
         ProductAdminListResponseDto_Output: {
             items: {
@@ -1079,6 +1343,114 @@ export interface components {
                 id: string;
                 login: string;
             } | null;
+        };
+        CreateProductDto: {
+            /** Format: uuid */
+            categoryId: string;
+            /** Format: uuid */
+            materialTypeId: string;
+            name: {
+                en: string;
+                uk: string;
+            };
+            description: {
+                en: string;
+                uk: string;
+            };
+            brand: string;
+            manufacturer: string;
+            color: {
+                en: string;
+                uk: string;
+            };
+            size: {
+                en: string;
+                uk: string;
+            };
+            priceCents: number;
+            /** @default false */
+            confirmZeroPrice: boolean;
+            /** @enum {string} */
+            unit: "SQM" | "LINEAR_M" | "PIECE";
+            wastePercentOverride?: number | null;
+            heatedFloorCompatible: boolean;
+            images: {
+                /** Format: uuid */
+                imageId: string;
+                isPrimary: boolean;
+            }[];
+            attributes: {
+                name: {
+                    en: string;
+                    uk: string;
+                };
+                value: {
+                    en: string;
+                    uk: string;
+                };
+            }[];
+            textureImageId?: string | null;
+            tileWidthMm?: number | null;
+            tileLengthMm?: number | null;
+            fallbackColor?: string | null;
+        };
+        PatchProductDto: {
+            /** Format: uuid */
+            categoryId?: string;
+            /** Format: uuid */
+            materialTypeId?: string;
+            name?: {
+                en: string;
+                uk: string;
+            };
+            description?: {
+                en: string;
+                uk: string;
+            };
+            brand?: string;
+            manufacturer?: string;
+            color?: {
+                en: string;
+                uk: string;
+            };
+            size?: {
+                en: string;
+                uk: string;
+            };
+            priceCents?: number;
+            /** @default false */
+            confirmZeroPrice: boolean;
+            /** @enum {string} */
+            unit?: "SQM" | "LINEAR_M" | "PIECE";
+            wastePercentOverride?: number | null;
+            heatedFloorCompatible?: boolean;
+            images?: {
+                /** Format: uuid */
+                imageId: string;
+                isPrimary: boolean;
+            }[];
+            attributes?: {
+                name: {
+                    en: string;
+                    uk: string;
+                };
+                value: {
+                    en: string;
+                    uk: string;
+                };
+            }[];
+            textureImageId?: string | null;
+            tileWidthMm?: number | null;
+            tileLengthMm?: number | null;
+            fallbackColor?: string | null;
+            /** Format: uuid */
+            revision: string;
+        };
+        UpdateProductStatusDto: {
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+            /** Format: uuid */
+            revision: string;
         };
         ProductStatusResponseDto_Output: {
             /** Format: uuid */
@@ -1333,6 +1705,20 @@ export interface components {
                 } | null;
             }[];
         };
+        CreateEngineeringPackageItemDto: {
+            name: {
+                en: string;
+                uk: string;
+            };
+            description: {
+                en: string;
+                uk: string;
+            };
+            includedInBase: boolean;
+            priceCents?: number;
+            /** @enum {string} */
+            unit?: "PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT";
+        };
         EngineeringPackageItemAdminDto_Output: {
             /** Format: uuid */
             id: string;
@@ -1359,6 +1745,30 @@ export interface components {
                 id: string;
                 login: string;
             } | null;
+        };
+        PatchEngineeringPackageItemDto: {
+            name?: {
+                en: string;
+                uk: string;
+            };
+            description?: {
+                en: string;
+                uk: string;
+            };
+            includedInBase?: boolean;
+            priceCents?: number | null;
+            unit?: ("PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT") | null;
+            /** Format: uuid */
+            revision: string;
+        };
+        UpdateEngineeringPackageItemStatusDto: {
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+            /** Format: uuid */
+            revision: string;
+        };
+        EngineeringPackageItemOrderDto: {
+            ids: string[];
         };
         OptionAdminListResponseDto_Output: {
             items: {
@@ -1447,6 +1857,584 @@ export interface components {
                 id: string;
                 login: string;
             } | null;
+        };
+        CreateOptionDto: {
+            /** @enum {string} */
+            kind: "ENGINEERING" | "ADDITIONAL";
+            name: {
+                en: string;
+                uk: string;
+            };
+            description: {
+                en: string;
+                uk: string;
+            };
+            /** Format: uuid */
+            imageId?: string;
+            priceCents: number;
+            /** @default false */
+            confirmZeroPrice: boolean;
+            /** @enum {string} */
+            unit: "PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT";
+            minQuantity?: number;
+            maxQuantity?: number;
+            roomTypeIds: string[];
+        };
+        PatchOptionDto: {
+            /** @enum {string} */
+            kind?: "ENGINEERING" | "ADDITIONAL";
+            name?: {
+                en: string;
+                uk: string;
+            };
+            description?: {
+                en: string;
+                uk: string;
+            };
+            imageId?: string | null;
+            priceCents?: number;
+            confirmZeroPrice?: boolean;
+            /** @enum {string} */
+            unit?: "PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT";
+            minQuantity?: number | null;
+            maxQuantity?: number | null;
+            roomTypeIds?: string[];
+            /** Format: uuid */
+            revision: string;
+        };
+        OptionOrderDto: {
+            /** @enum {string} */
+            kind: "ENGINEERING" | "ADDITIONAL";
+            ids: string[];
+        };
+        UpdateOptionStatusDto: {
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+            /** Format: uuid */
+            revision: string;
+        };
+        PricingDataResponseDto_Output: {
+            version: string;
+            exchangeRate: {
+                rate: string;
+                date: string;
+                /** @enum {string} */
+                source: "NBU" | "MANUAL";
+            } | null;
+            limits: {
+                totalAreaSqm: {
+                    min: number;
+                    max: number;
+                };
+                rooms: {
+                    min: number;
+                    max: number;
+                };
+                roomSideM: {
+                    min: number;
+                    max: number;
+                };
+                roomHeightM: {
+                    min: number;
+                    max: number;
+                };
+            };
+            baseRates: {
+                /** @enum {string} */
+                finishLevel: "ROUGH" | "PRE_FINISH";
+                areaFromSqm: number;
+                areaToSqm: number;
+                rateCentsPerSqm: number;
+            }[];
+            coefficients: {
+                [key: string]: number;
+            };
+            rules: {
+                id: string;
+                /** @enum {string} */
+                level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+                categoryId: string | null;
+                materialTypeId: string | null;
+                name: {
+                    en: string;
+                    uk: string;
+                };
+                quantityFormula: string | null;
+                costFormula: string;
+                sortOrder: number;
+            }[];
+            roomTypes: {
+                id: string;
+                code: string;
+            }[];
+            categories: {
+                id: string;
+                wastePercent: number;
+                /** @enum {string} */
+                surface: "NONE" | "FLOOR" | "WALLS" | "CEILING";
+            }[];
+            materialTypes: {
+                id: string;
+                code: string;
+            }[];
+            products: {
+                id: string;
+                categoryId: string;
+                materialTypeId: string;
+                priceCents: number;
+                /** @enum {string} */
+                unit: "SQM" | "LINEAR_M" | "PIECE";
+                wastePercentOverride: number | null;
+                heatedFloorCompatible: boolean;
+                available: boolean;
+            }[];
+            packageItems: {
+                id: string;
+                includedInBase: boolean;
+                priceCents: number | null;
+                unit: ("PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT") | null;
+            }[];
+            options: {
+                id: string;
+                /** @enum {string} */
+                kind: "ENGINEERING" | "ADDITIONAL";
+                priceCents: number;
+                /** @enum {string} */
+                unit: "PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT";
+                roomTypeCodes: string[];
+                minQuantity: number | null;
+                maxQuantity: number | null;
+                available: boolean;
+            }[];
+        };
+        EstimateRequestDto: {
+            configuration: {
+                /** @enum {string} */
+                finishLevel: "ROUGH" | "PRE_FINISH";
+                totalAreaSqm: number;
+                balconyAreaSqm: number;
+                balconyTiles: boolean;
+                gas: boolean;
+                /** @enum {string} */
+                kitchenType: "SEPARATE" | "KITCHEN_LIVING";
+                rooms: {
+                    clientId: string;
+                    /** @enum {string} */
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    lengthM: number;
+                    widthM: number;
+                    heightM: number;
+                    heatedFloor: boolean;
+                    selections: {
+                        categoryId: string;
+                        productId: string | null;
+                    }[];
+                }[];
+                options: {
+                    optionId: string;
+                    quantity?: number;
+                    roomClientIds?: string[];
+                }[];
+                /** @enum {string} */
+                currency: "USD" | "UAH";
+            };
+            clientPricingVersion?: string;
+        };
+        EstimateResponseDto_Output: {
+            estimate: {
+                pricingVersion: string;
+                /** @enum {string} */
+                currency: "USD" | "UAH";
+                exchangeRate: {
+                    rate: string;
+                    date: string;
+                    /** @enum {string} */
+                    source: "NBU" | "MANUAL";
+                } | null;
+                lines: {
+                    id: string;
+                    /** @enum {string} */
+                    section: "BASE" | "OBJECT" | "MATERIALS" | "ENGINEERING" | "ADDITIONAL";
+                    /** @enum {string} */
+                    status: "OK" | "INCLUDED" | "NOT_CALCULATED" | "UNAVAILABLE" | "ERROR";
+                    roomClientId: string | null;
+                    categoryId: string | null;
+                    productId: string | null;
+                    optionId: string | null;
+                    packageItemId: string | null;
+                    ruleId: string | null;
+                    quantity: number | null;
+                    unit: string | null;
+                    unitPriceCents: number | null;
+                    amountCents: number;
+                    amountUahKopecks: number | null;
+                    warnings: {
+                        code: string;
+                        params?: {
+                            [key: string]: unknown;
+                        };
+                    }[];
+                    error: {
+                        code: string;
+                        params?: {
+                            [key: string]: unknown;
+                        };
+                    } | null;
+                }[];
+                totals: {
+                    usdCents: number;
+                    uahKopecks: number | null;
+                    sections: {
+                        [key: string]: {
+                            usdCents: number;
+                            uahKopecks: number | null;
+                        };
+                    };
+                };
+                warnings: {
+                    code: string;
+                    params?: {
+                        [key: string]: unknown;
+                    };
+                    lineId?: string;
+                }[];
+                incomplete: boolean;
+            };
+            stale: boolean;
+            pricingVersion: string;
+        };
+        RuleListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+                categoryId: string | null;
+                materialTypeId: string | null;
+                name: {
+                    en: string;
+                    uk: string;
+                };
+                quantityFormula: string | null;
+                costFormula: string;
+                coefficientKeys: string[];
+                sortOrder: number;
+                orphaned: boolean;
+                /** Format: uuid */
+                revision: string;
+                /** Format: date-time */
+                updatedAt: string;
+                updatedBy: {
+                    /** Format: uuid */
+                    id: string;
+                    login: string;
+                } | null;
+            }[];
+            categoriesWithoutRule: {
+                /** Format: uuid */
+                id: string;
+                name: {
+                    en: string;
+                    uk: string;
+                };
+            }[];
+        };
+        RuleInputDto: {
+            /** @enum {string} */
+            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+            categoryId?: string | null;
+            materialTypeId?: string | null;
+            name: {
+                en: string;
+                uk: string;
+            };
+            quantityFormula?: string | null;
+            costFormula: string;
+        };
+        RuleAdminDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+            categoryId: string | null;
+            materialTypeId: string | null;
+            name: {
+                en: string;
+                uk: string;
+            };
+            quantityFormula: string[];
+            costFormula: string;
+            coefficientKeys: string[];
+            sortOrder: number;
+            orphaned: boolean;
+            /** Format: uuid */
+            revision: string;
+            /** Format: date-time */
+            updatedAt: string;
+            updatedBy: {
+                /** Format: uuid */
+                id: string;
+                login: string;
+            } | null;
+        };
+        PreviewRuleDto: {
+            /** @enum {string} */
+            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+            quantityFormula?: string | null;
+            costFormula: string;
+            sample: {
+                room?: {
+                    /** @enum {string} */
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    lengthM: number;
+                    widthM: number;
+                    heightM: number;
+                    heatedFloor: boolean;
+                };
+                product?: {
+                    priceCents: number;
+                    /** @enum {string} */
+                    unit: "SQM" | "LINEAR_M" | "PIECE";
+                    wastePercent: number;
+                };
+                object: {
+                    totalAreaSqm: number;
+                    balconyAreaSqm: number;
+                    balconyTiles: boolean;
+                    gas: boolean;
+                    /** @enum {string} */
+                    kitchenType: "SEPARATE" | "KITCHEN_LIVING";
+                    /** @enum {string} */
+                    finishLevel: "ROUGH" | "PRE_FINISH";
+                    roomsCount: number;
+                    bathroomsCount: number;
+                };
+            };
+        };
+        RulePreviewDto_Output: {
+            quantity: number[];
+            amountCents: number | null;
+            variables: {
+                [key: string]: number | boolean | string;
+            };
+            coefficients: {
+                [key: string]: number;
+            };
+            error: {
+                code: string;
+                params?: {
+                    [key: string]: unknown;
+                };
+            } | null;
+        };
+        RuleOrderDto: {
+            ids: string[];
+        };
+        UpdateRuleDto: {
+            name?: {
+                en: string;
+                uk: string;
+            };
+            quantityFormula?: string | null;
+            costFormula?: string;
+            /** Format: uuid */
+            revision: string;
+        };
+        ValidateFormulasDto: {
+            /** @enum {string} */
+            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+            quantityFormula?: string | null;
+            costFormula: string;
+        };
+        ValidateFormulasResponseDto_Output: {
+            valid: boolean;
+            coefficientKeys: string[];
+            errors: {
+                /** @enum {string} */
+                formula: "quantity" | "cost";
+                code: string;
+                position: number;
+                length: number;
+                params?: {
+                    [key: string]: string | number;
+                };
+            }[];
+        };
+        BaseRateListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                finishLevel: "ROUGH" | "PRE_FINISH";
+                areaFromSqm: number;
+                areaToSqm: number;
+                rateCentsPerSqm: number;
+                /** Format: uuid */
+                revision: string;
+                /** Format: date-time */
+                updatedAt: string;
+                updatedBy: {
+                    /** Format: uuid */
+                    id: string;
+                    login: string;
+                } | null;
+            }[];
+            gaps: {
+                /** @enum {string} */
+                finishLevel: "ROUGH" | "PRE_FINISH";
+                fromSqm: number;
+                toSqm: number;
+            }[];
+        };
+        BaseRateInputDto: {
+            /** @enum {string} */
+            finishLevel: "ROUGH" | "PRE_FINISH";
+            areaFromSqm: number;
+            areaToSqm: number;
+            rateCentsPerSqm: number;
+        };
+        BaseRateAdminDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            finishLevel: "ROUGH" | "PRE_FINISH";
+            areaFromSqm: number;
+            areaToSqm: number;
+            rateCentsPerSqm: number;
+            /** Format: uuid */
+            revision: string;
+            /** Format: date-time */
+            updatedAt: string;
+            updatedBy: {
+                /** Format: uuid */
+                id: string;
+                login: string;
+            } | null;
+        };
+        UpdateBaseRateDto: {
+            /** @enum {string} */
+            finishLevel?: "ROUGH" | "PRE_FINISH";
+            areaFromSqm?: number;
+            areaToSqm?: number;
+            rateCentsPerSqm?: number;
+            /** Format: uuid */
+            revision: string;
+        };
+        CoefficientListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                key: string;
+                name: {
+                    en: string;
+                    uk: string;
+                };
+                value: number;
+                unit: {
+                    en: string;
+                    uk: string;
+                };
+                usedBy: {
+                    /** Format: uuid */
+                    ruleId: string;
+                    ruleName: {
+                        en: string;
+                        uk: string;
+                    };
+                }[];
+                /** Format: uuid */
+                revision: string;
+                /** Format: date-time */
+                updatedAt: string;
+                updatedBy: {
+                    /** Format: uuid */
+                    id: string;
+                    login: string;
+                } | null;
+            }[];
+        };
+        CoefficientInputDto: {
+            key: string;
+            name: {
+                en: string;
+                uk: string;
+            };
+            value: number;
+            unit: {
+                en: string;
+                uk: string;
+            };
+        };
+        CoefficientAdminDto_Output: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: {
+                en: string;
+                uk: string;
+            };
+            value: number;
+            unit: {
+                en: string;
+                uk: string;
+            };
+            usedBy: {
+                /** Format: uuid */
+                ruleId: string;
+                ruleName: {
+                    en: string;
+                    uk: string;
+                };
+            }[];
+            /** Format: uuid */
+            revision: string;
+            /** Format: date-time */
+            updatedAt: string;
+            updatedBy: {
+                /** Format: uuid */
+                id: string;
+                login: string;
+            } | null;
+        };
+        UpdateCoefficientDto: {
+            key?: string;
+            name?: {
+                en: string;
+                uk: string;
+            };
+            value?: number;
+            unit?: {
+                en: string;
+                uk: string;
+            };
+            /** Format: uuid */
+            revision: string;
+        };
+        ExchangeRateStatusDto_Output: {
+            active: {
+                rate: string;
+                /** Format: date */
+                date: string;
+                /** @enum {string} */
+                source: "NBU" | "MANUAL";
+            } | null;
+            official: {
+                rate: string;
+                /** Format: date */
+                date: string;
+            } | null;
+            manual: {
+                rate: string;
+                /** Format: date */
+                date: string;
+            } | null;
+            lastSuccessfulFetchDate: string | null;
+            lastAttemptAt: string | null;
+            lastError: string[];
+            staleSince: string | null;
+        };
+        ManualRateInputDto: {
+            rate: string;
         };
     };
     responses: never;
@@ -1940,7 +2928,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchRoomTypeDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -1988,7 +2980,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceRoomTypeCategoriesDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -2073,7 +3069,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCategoryDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -2159,7 +3159,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchCategoryDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -2216,7 +3220,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCategoryStatusDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -2299,7 +3307,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMaterialTypeDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -2338,7 +3350,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMaterialTypeDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -2389,10 +3405,10 @@ export interface operations {
     ProductsController_list: {
         parameters: {
             query?: {
-                pageSize?: number;
                 page?: number;
-                status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                pageSize?: number;
                 categoryId?: string;
+                status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
             };
             header?: never;
             path?: never;
@@ -2426,7 +3442,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProductDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -2560,7 +3580,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchProductDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -2617,7 +3641,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductStatusDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -3069,7 +4097,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEngineeringPackageItemDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -3146,7 +4178,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchEngineeringPackageItemDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -3212,7 +4248,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEngineeringPackageItemStatusDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -3267,7 +4307,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EngineeringPackageItemOrderDto"];
+            };
+        };
         responses: {
             /** @description Reordered. */
             204: {
@@ -3342,7 +4386,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOptionDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -3467,7 +4515,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchOptionDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -3531,7 +4583,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OptionOrderDto"];
+            };
+        };
         responses: {
             /** @description Reordered. */
             204: {
@@ -3578,7 +4634,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateOptionStatusDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -3617,6 +4677,758 @@ export interface operations {
             };
             /** @description TRANSLATION_MISSING */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PublicPricingController_getPricingData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingDataResponseDto_Output"];
+                };
+            };
+        };
+    };
+    PublicPricingController_createEstimate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EstimateRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstimateResponseDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description INPUT_OUT_OF_BOUNDS | UNKNOWN_REFERENCE */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    RulesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleListResponseDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    RulesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleAdminDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RULE_EXISTS */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description FORMULA_INVALID, UNKNOWN_REFERENCE */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    RulesController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewRuleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RulePreviewDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description FORMULA_INVALID */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    RulesController_reorder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleOrderDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    RulesController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    RulesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRuleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleAdminDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description STALE_REVISION */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description FORMULA_INVALID */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    FormulasController_validate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValidateFormulasDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidateFormulasResponseDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    BaseRatesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseRateListResponseDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    BaseRatesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BaseRateInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseRateAdminDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RANGE_OVERLAP */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    BaseRatesController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    BaseRatesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateBaseRateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseRateAdminDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RANGE_OVERLAP, STALE_REVISION */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CoefficientsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoefficientListResponseDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CoefficientsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoefficientInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoefficientAdminDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description KEY_TAKEN */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CoefficientsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description COEFFICIENT_IN_USE */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CoefficientsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCoefficientDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoefficientAdminDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description KEY_TAKEN, COEFFICIENT_IN_USE, STALE_REVISION */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExchangeRateController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExchangeRateStatusDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExchangeRateController_setManual: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualRateInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExchangeRateStatusDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExchangeRateController_clearManual: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExchangeRateStatusDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
