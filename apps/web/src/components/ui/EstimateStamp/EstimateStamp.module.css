@@ -1,4 +1,5 @@
 .root {
+  container-type: inline-size;
   border: var(--stroke-2) solid var(--line);
   background: var(--sheet);
 }
@@ -44,6 +45,15 @@
 
 .expanded .chevron {
   transform: rotate(180deg);
+}
+
+.note {
+  margin: 0;
+  padding: var(--space-8) var(--space-10) 0;
+  font-family: var(--text-caption-default-family);
+  font-size: var(--text-caption-default-size);
+  line-height: var(--text-caption-default-line);
+  color: var(--line-2);
 }
 
 .bar {
@@ -109,7 +119,9 @@
   .collapsed .parts {
     display: grid;
   }
+}
 
+@container (min-width: 36rem) {
   .parts {
     grid-template-columns: repeat(4, auto);
     justify-content: space-between;

@@ -10,6 +10,8 @@ import {
   TapeStep,
   type TapeStepState,
 } from '@/components/ui';
+import { CONFIGURATOR_PATH } from '@/config/routes';
+import { localeAlternates } from '@/i18n/metadata';
 import { routing } from '@/i18n/routing';
 import { ConfiguratorEstimate } from './ConfiguratorEstimate';
 
@@ -29,7 +31,10 @@ export async function generateMetadata({
 
   const t = await getTranslations({ locale, namespace: 'Configurator' });
 
-  return { title: t('pageTitle') };
+  return {
+    title: t('pageTitle'),
+    alternates: localeAlternates(locale, CONFIGURATOR_PATH),
+  };
 }
 
 function stepState(step: number): TapeStepState {

@@ -8,6 +8,11 @@ import { routing } from '@/i18n/routing';
 import { currencies } from '@/lib/format';
 import { THEME_MODES } from '@/lib/theme';
 import { usePreferences } from '@/stores/preferences';
+import { useDisplayCurrency } from '@/stores/use-display-currency';
+import {
+  chooseCurrency,
+  useExchangeRateSync,
+} from '@/stores/use-exchange-rate-sync';
 import { usePreferencesHydration } from '@/stores/use-preferences-hydration';
 import { useSystemThemeWatcher } from '@/stores/use-system-theme-watcher';
 
@@ -23,11 +28,11 @@ export function PreferenceSwitches() {
 
   const hydrated = usePreferencesHydration();
   useSystemThemeWatcher();
+  useExchangeRateSync(hydrated);
 
-  const currency = usePreferences((state) => state.currency);
+  const { currency } = useDisplayCurrency();
   const theme = usePreferences((state) => state.theme);
   const setLocale = usePreferences((state) => state.setLocale);
-  const setCurrency = usePreferences((state) => state.setCurrency);
   const setTheme = usePreferences((state) => state.setTheme);
 
   const handleChange = useCallback(
@@ -40,22 +45,12 @@ export function PreferenceSwitches() {
       } else if (!hydrated) {
         return;
       } else if (value === 'currency') {
-        setCurrency(nextOf(currencies, currency));
+        void chooseCurrency(nextOf(currencies, currency));
       } else if (value === 'theme') {
         setTheme(nextOf(THEME_MODES, theme));
       }
     },
-    [
-      currency,
-      hydrated,
-      locale,
-      pathname,
-      router,
-      setCurrency,
-      setLocale,
-      setTheme,
-      theme,
-    ],
+    [currency, hydrated, locale, pathname, router, setLocale, setTheme, theme],
   );
 
   const options = useMemo(() => {

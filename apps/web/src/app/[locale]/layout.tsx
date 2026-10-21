@@ -3,7 +3,13 @@ import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { ReactNode } from 'react';
-import { AppFooter, AppHeader, MAIN_ID, SkipLink } from '@/components/layout';
+import {
+  AppFooter,
+  AppHeader,
+  ExchangeRateNotice,
+  MAIN_ID,
+  SkipLink,
+} from '@/components/layout';
 import { routing } from '@/i18n/routing';
 import { themeInitScript } from '@/lib/theme';
 import { caveat, commissioner, tektur } from '../fonts';
@@ -57,6 +63,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
             {children}
           </main>
           <AppFooter />
+          <ExchangeRateNotice />
         </NextIntlClientProvider>
       </body>
     </html>

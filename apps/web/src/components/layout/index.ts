@@ -1,5 +1,7 @@
 export * from './AppFooter/AppFooter';
 export * from './AppHeader/AppHeader';
+export * from './ExchangeRateNote/ExchangeRateNote';
+export * from './ExchangeRateNotice/ExchangeRateNotice';
 export * from './PreferenceSwitches/PreferenceSwitches';
 export * from './SkipLink/main-id';
 export * from './SkipLink/SkipLink';
