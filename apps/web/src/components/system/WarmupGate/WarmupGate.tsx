@@ -52,7 +52,11 @@ export function WarmupGate({ children }: WarmupGateProps) {
           icon="info"
           title={t('warmupTitle')}
           text={t('warmupMessage')}
-          action={<Progress label={t('warmupProgress')} />}
+          action={
+            <div className={styles.progress}>
+              <Progress label={t('warmupProgress')} />
+            </div>
+          }
         />
       </div>
     );

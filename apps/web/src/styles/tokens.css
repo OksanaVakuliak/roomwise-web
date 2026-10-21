@@ -171,6 +171,7 @@
   --progress-duration: 1200ms;
   --banner-bar: 0.375rem;
   --empty-icon-box: 3.5rem;
+  --warmup-progress-width: 16rem;
   --empty-measure: 44ch;
   --table-min-width: 30rem;
 

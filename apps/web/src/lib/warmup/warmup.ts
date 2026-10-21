@@ -22,7 +22,7 @@ type WarmupState = {
 };
 
 function currentNetwork(): NetworkState {
-  return typeof navigator !== 'undefined' && !navigator.onLine
+  return typeof window !== 'undefined' && window.navigator.onLine === false
     ? 'offline'
     : 'online';
 }

@@ -284,6 +284,17 @@ describe('warmup', () => {
     expect(get).not.toHaveBeenCalled();
   });
 
+  it('treats an unknown connection state as online', () => {
+    const onLine = vi
+      .spyOn(window.navigator, 'onLine', 'get')
+      .mockReturnValue(undefined as unknown as boolean);
+
+    resetWarmup();
+
+    expect(useWarmup.getState().network).toBe('online');
+    onLine.mockRestore();
+  });
+
   it('stops listening after cleanup', () => {
     removeListeners();
 
