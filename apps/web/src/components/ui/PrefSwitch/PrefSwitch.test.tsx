@@ -56,6 +56,13 @@ describe('PrefSwitch', () => {
     );
   });
 
+  it('omits aria-pressed when no value is given', () => {
+    render(<PrefSwitch label="Prefs" options={three} onChange={vi.fn()} />);
+    for (const button of screen.getAllByRole('button')) {
+      expect(button).not.toHaveAttribute('aria-pressed');
+    }
+  });
+
   it('calls onChange on click', () => {
     const onChange = vi.fn();
     render(

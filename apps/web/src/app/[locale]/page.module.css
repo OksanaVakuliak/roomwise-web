@@ -1,0 +1,53 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: var(--remark-measure);
+  margin: 0 auto;
+  padding: var(--space-28) var(--space-16);
+}
+
+.intro {
+  color: var(--line-2);
+}
+
+.start {
+  align-self: flex-start;
+}
+
+.stepsTitle {
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+  font-size: var(--text-title-s-size);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  margin-top: var(--space-12);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: var(--spec-pos-width) 1fr;
+  gap: var(--space-4) var(--space-12);
+  padding-bottom: var(--space-12);
+  border-bottom: var(--stroke-1) solid var(--hair);
+}
+
+.code {
+  grid-row: span 2;
+  font-family: var(--text-number-step-family);
+  font-weight: var(--text-number-step-weight);
+  font-size: var(--text-number-step-size);
+}
+
+.name {
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+}
+
+.text {
+  color: var(--line-2);
+}

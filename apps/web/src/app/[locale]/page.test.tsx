@@ -1,25 +1,31 @@
-import { act, render, screen } from '@testing-library/react';
-import { NextIntlClientProvider } from 'next-intl';
+import { act, screen } from '@testing-library/react';
+import type { AnchorHTMLAttributes } from 'react';
 import { Suspense } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { axe } from 'vitest-axe';
-import messages from '../../../messages/en.json';
+import { CONFIGURATOR_PATH } from '@/config/routes';
+import { axe } from '@/test/axe';
+import {
+  forEachLocale,
+  renderWithProviders,
+} from '@/test/render-with-providers';
 import HomePage from './page';
 
 vi.mock('next-intl/server', () => ({ setRequestLocale: vi.fn() }));
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({ href, ...rest }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a href={`/en${href}`} {...rest} />
+  ),
+}));
 
-const params = Promise.resolve({ locale: 'en' });
-
-async function renderPage() {
-  let result!: ReturnType<typeof render>;
+async function renderPage(locale: 'en' | 'uk' = 'en') {
+  let result!: ReturnType<typeof renderWithProviders>;
 
   await act(async () => {
-    result = render(
-      <NextIntlClientProvider locale="en" messages={messages}>
-        <Suspense>
-          <HomePage params={params} />
-        </Suspense>
-      </NextIntlClientProvider>,
+    result = renderWithProviders(
+      <Suspense>
+        <HomePage params={Promise.resolve({ locale })} />
+      </Suspense>,
+      { locale },
     );
   });
 
@@ -27,14 +33,36 @@ async function renderPage() {
 }
 
 describe('HomePage', () => {
-  it('renders the Roomwise heading', async () => {
+  it('has exactly one h1', async () => {
     await renderPage();
 
-    expect(screen.getByText('Roomwise')).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 
-  it('has no accessibility violations', async () => {
-    const { container } = await renderPage();
+  it('lists the five steps', async () => {
+    await renderPage();
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(5);
+  });
+
+  it('leads the start button to the configurator', async () => {
+    await renderPage();
+
+    expect(
+      screen.getByRole('link', { name: 'Start calculation' }),
+    ).toHaveAttribute('href', `/en${CONFIGURATOR_PATH}`);
+  });
+
+  it('is translated to Ukrainian', async () => {
+    await renderPage('uk');
+
+    expect(
+      screen.getByRole('link', { name: 'Почати розрахунок' }),
+    ).toBeInTheDocument();
+  });
+
+  it.each(forEachLocale)('has no axe violations in %s', async (locale) => {
+    const { container } = await renderPage(locale);
 
     expect(await axe(container)).toHaveNoViolations();
   });

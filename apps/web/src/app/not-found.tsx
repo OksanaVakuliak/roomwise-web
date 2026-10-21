@@ -1,4 +1,7 @@
+import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
+import { StatusPage } from '@/components/layout';
+import { ButtonLink } from '@/components/ui';
 import { themeInitScript } from '@/lib/theme';
 import '../styles/global.css';
 import { caveat, commissioner, tektur } from './fonts';
@@ -17,8 +20,13 @@ export default async function NotFound() {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
-        <h1>{t('title')}</h1>
-        <p>{t('message')}</p>
+        <NextIntlClientProvider locale="en" messages={{}}>
+          <main>
+            <StatusPage title={t('title')} message={t('message')}>
+              <ButtonLink href="/">{t('home')}</ButtonLink>
+            </StatusPage>
+          </main>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

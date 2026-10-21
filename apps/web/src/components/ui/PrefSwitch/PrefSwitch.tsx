@@ -13,7 +13,7 @@ export type PrefSwitchOption = {
 export type PrefSwitchProps = {
   label: string;
   options: readonly [PrefSwitchOption, PrefSwitchOption, PrefSwitchOption?];
-  value: string;
+  value?: string;
   onChange: (value: string) => void;
   className?: string;
 };
@@ -43,7 +43,9 @@ export function PrefSwitch({
             type="button"
             className={styles.item}
             aria-label={option.label}
-            aria-pressed={option.value === value}
+            aria-pressed={
+              value === undefined ? undefined : option.value === value
+            }
             data-value={option.value}
             onClick={handleClick}
           >

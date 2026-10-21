@@ -80,7 +80,7 @@ export function Hatch({ material }: HatchProps) {
       {material === 'cable' ? (
         <>
           <rect width="100%" height="100%" fill="var(--paper)" />
-          <g fill="var(--heat)">
+          <g className={styles.dots} fill="var(--heat)">
             {cableXs.map((x) => (
               <circle key={x} cx={x} cy="50%" r="6" />
             ))}
@@ -91,7 +91,12 @@ export function Hatch({ material }: HatchProps) {
           <defs>
             <Pattern material={material} id={id} />
           </defs>
-          <rect width="100%" height="100%" fill={`url(#${id})`} />
+          <rect
+            className={styles.fill}
+            width="200%"
+            height="200%"
+            fill={`url(#${id})`}
+          />
         </>
       )}
     </svg>

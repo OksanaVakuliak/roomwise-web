@@ -30,3 +30,8 @@
   padding: 0 0 var(--tape-step-pad-bottom);
   list-style: none;
 }
+
+.fill {
+  transform: scale(var(--ui-scale));
+  transform-origin: 0 0;
+}

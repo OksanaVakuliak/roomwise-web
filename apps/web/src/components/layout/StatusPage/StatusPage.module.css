@@ -1,0 +1,19 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+  max-width: var(--remark-measure);
+  margin: 0 auto;
+  padding: var(--space-28) var(--space-16);
+}
+
+.message {
+  color: var(--line-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}

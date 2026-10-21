@@ -1,0 +1,32 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16);
+  border: var(--stroke-1-5) dashed var(--line-2);
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0 var(--space-8),
+    var(--hair) var(--space-8) calc(var(--space-8) + var(--stroke-1))
+  );
+  color: var(--line-2);
+}
+
+.label {
+  padding: var(--space-4) var(--space-10);
+  background: var(--sheet);
+  font-family: var(--text-caption-default-family);
+  font-size: var(--text-caption-default-size);
+}
+
+.scene {
+  min-height: var(--stub-scene-height);
+}
+
+.showcase {
+  min-height: var(--stub-showcase-height);
+}
+
+.content {
+  min-height: var(--stub-content-height);
+}

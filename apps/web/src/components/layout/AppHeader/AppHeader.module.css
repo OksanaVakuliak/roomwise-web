@@ -1,0 +1,24 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-12) var(--space-16);
+  border-bottom: var(--stroke-1) solid var(--hair);
+}
+
+.brand {
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.prefs {
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .root {
+    padding-inline: var(--space-28);
+  }
+}
