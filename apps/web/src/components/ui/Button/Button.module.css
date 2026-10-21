@@ -14,8 +14,9 @@
   line-height: var(--text-button-default-line);
   cursor: pointer;
   transition:
-    background var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard),
     filter var(--duration-fast) var(--ease-standard);
 }
 
@@ -23,8 +24,10 @@
   font-family: var(--text-number-s-family);
 }
 
-.outline:hover {
-  background: var(--fill-a);
+.outline:hover,
+.outline:focus-visible {
+  background: var(--line);
+  color: var(--sheet);
 }
 
 .fill {
@@ -32,9 +35,11 @@
   color: var(--sheet);
 }
 
-.fill:hover {
-  background: var(--line-2);
-  border-color: var(--line-2);
+.fill:hover,
+.fill:focus-visible {
+  background: var(--heat);
+  border-color: var(--heat);
+  color: var(--on-heat);
 }
 
 .heat {
