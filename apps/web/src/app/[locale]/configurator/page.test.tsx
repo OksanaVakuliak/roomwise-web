@@ -1,4 +1,5 @@
 import { act, screen, within } from '@testing-library/react';
+import { getTranslations } from 'next-intl/server';
 import type { AnchorHTMLAttributes } from 'react';
 import { Suspense } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -11,7 +12,7 @@ import {
   renderWithProviders,
 } from '@/test/render-with-providers';
 import en from '../../../../messages/en.json';
-import ConfiguratorPage from './page';
+import ConfiguratorPage, { generateMetadata } from './page';
 
 vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
 vi.mock('next-intl/server', () => ({
@@ -40,6 +41,28 @@ async function renderPage(locale: 'en' | 'uk') {
 }
 
 describe('ConfiguratorPage', () => {
+  it.each([
+    ['en', '/en/configurator'],
+    ['uk', '/uk/configurator'],
+  ] as const)('declares alternates for %s', async (locale, canonical) => {
+    vi.mocked(getTranslations).mockResolvedValue(
+      (() => 'Title') as unknown as Awaited<ReturnType<typeof getTranslations>>,
+    );
+
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ locale }),
+    });
+
+    expect(metadata.alternates).toEqual({
+      canonical,
+      languages: {
+        en: '/en/configurator',
+        uk: '/uk/configurator',
+        'x-default': '/en/configurator',
+      },
+    });
+  });
+
   beforeEach(() => {
     resetExchangeRate();
   });

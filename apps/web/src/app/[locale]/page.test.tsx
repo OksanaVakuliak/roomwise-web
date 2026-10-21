@@ -8,7 +8,7 @@ import {
   forEachLocale,
   renderWithProviders,
 } from '@/test/render-with-providers';
-import HomePage from './page';
+import HomePage, { generateMetadata } from './page';
 
 vi.mock('next-intl/server', () => ({ setRequestLocale: vi.fn() }));
 vi.mock('@/i18n/navigation', () => ({
@@ -33,6 +33,22 @@ async function renderPage(locale: 'en' | 'uk' = 'en') {
 }
 
 describe('HomePage', () => {
+  it.each([
+    ['en', '/en'],
+    ['uk', '/uk'],
+  ] as const)('declares alternates for %s', async (locale, canonical) => {
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ locale }),
+    });
+
+    expect(metadata).toEqual({
+      alternates: {
+        canonical,
+        languages: { en: '/en', uk: '/uk', 'x-default': '/en' },
+      },
+    });
+  });
+
   it('has exactly one h1', async () => {
     await renderPage();
 
