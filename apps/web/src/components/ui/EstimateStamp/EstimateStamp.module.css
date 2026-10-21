@@ -1,4 +1,5 @@
 .root {
+  container-type: inline-size;
   border: var(--stroke-2) solid var(--line);
   background: var(--sheet);
 }
@@ -118,7 +119,9 @@
   .collapsed .parts {
     display: grid;
   }
+}
 
+@container (min-width: 36rem) {
   .parts {
     grid-template-columns: repeat(4, auto);
     justify-content: space-between;
