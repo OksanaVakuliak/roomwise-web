@@ -1,5 +1,6 @@
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 import { StatusPage } from '@/components/layout';
@@ -15,7 +16,7 @@ export default function LocaleError({
   const t = useTranslations('Error');
 
   useEffect(() => {
-    console.error(error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (

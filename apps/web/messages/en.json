@@ -604,13 +604,23 @@
     "retry": "Try again",
     "home": "Back to home"
   },
+  "GlobalError": {
+    "title": "Something went wrong",
+    "message": "Please reload the page.",
+    "reload": "Reload"
+  },
   "SystemStates": {
     "errorTitle": "Could not load the data",
     "errorMessage": "Something went wrong on our side. Your draft is safe, try again in a moment.",
     "offlineTitle": "No internet connection",
     "offlineMessage": "Check your connection. We will try again as soon as you are back online.",
     "retry": "Try again",
-    "retrying": "Trying again"
+    "retrying": "Trying again",
+    "warmupTitle": "Server is waking up",
+    "warmupMessage": "It usually takes up to a minute. Please wait, your data will stay as it is.",
+    "warmupProgress": "Waiting for the server",
+    "warmupFailedTitle": "The server did not answer",
+    "warmupFailedMessage": "The server is not responding right now. Your draft is safe, try again."
   },
   "StepLayout": {
     "steps": "Configurator steps",
