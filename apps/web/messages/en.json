@@ -73,7 +73,8 @@
       "estimate": "Estimate",
       "formFields": "Form fields",
       "overlays": "Overlays",
-      "dataDisplay": "Data display"
+      "dataDisplay": "Data display",
+      "systemStates": "System states"
     },
     "desktopFrame": "Desktop variant: {name}, scrollable"
   },
@@ -603,6 +604,19 @@
     "retry": "Try again",
     "home": "Back to home"
   },
+  "SystemStates": {
+    "errorTitle": "Could not load the data",
+    "errorMessage": "Something went wrong on our side. Your draft is safe, try again in a moment.",
+    "offlineTitle": "No internet connection",
+    "offlineMessage": "Check your connection. We will try again as soon as you are back online.",
+    "retry": "Try again",
+    "retrying": "Trying again",
+    "warmupTitle": "Server is waking up",
+    "warmupMessage": "It usually takes up to a minute. Please wait, your data will stay as it is.",
+    "warmupProgress": "Waiting for the server",
+    "warmupFailedTitle": "The server did not answer",
+    "warmupFailedMessage": "The server is not responding right now. Your draft is safe, try again."
+  },
   "StepLayout": {
     "steps": "Configurator steps",
     "scene": "Room view",
@@ -640,5 +654,40 @@
       "4": "Engineering",
       "5": "Estimate"
     }
+  },
+  "ZoneStates": {
+    "loading": {
+      "showcase": "Loading the catalog",
+      "rooms": "Loading rooms",
+      "specification": "Loading the specification",
+      "estimate": "Loading the estimate"
+    },
+    "empty": {
+      "showcase": {
+        "title": "The catalog is empty",
+        "text": "There are no options to choose from yet. Try another category or come back a little later."
+      },
+      "rooms": {
+        "title": "No rooms yet",
+        "text": "Add your first room to start the calculation. You can add more rooms later."
+      },
+      "specification": {
+        "title": "The specification is empty",
+        "text": "Items appear here as you choose materials and options in the previous steps."
+      },
+      "estimate": {
+        "title": "Nothing to estimate yet",
+        "text": "The estimate is calculated from your rooms and choices. Add a room to see the cost."
+      }
+    }
+  },
+  "ShowcaseSystemStates": {
+    "showcase": "Catalog",
+    "rooms": "Rooms",
+    "specification": "Specification",
+    "estimate": "Estimate",
+    "loadingTitle": "Loading skeletons",
+    "emptyTitle": "Empty states",
+    "action": "Add a room"
   }
 }

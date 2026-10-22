@@ -13,6 +13,7 @@ export const SHOWCASE_SECTIONS = [
   'formFields',
   'overlays',
   'dataDisplay',
+  'systemStates',
 ] as const;
 
 export type ShowcaseSection = (typeof SHOWCASE_SECTIONS)[number];
