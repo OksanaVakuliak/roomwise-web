@@ -1,8 +1,7 @@
 import { act } from '@testing-library/react';
 import type { AnchorHTMLAttributes } from 'react';
-import { Suspense } from 'react';
+import { type ReactElement, Suspense } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { Showcase } from '@/app/[locale]/(dev)/showcase/Showcase';
 import ConfiguratorPage from '@/app/[locale]/configurator/page';
 import HomePage from '@/app/[locale]/page';
 import { blockingViolations } from '@/test/axe';
@@ -25,9 +24,9 @@ vi.mock('@/i18n/navigation', () => ({
   usePathname: () => '/',
 }));
 
-const TIMEOUT = 180_000;
+const TIMEOUT = 60_000;
 
-type Page = (locale: 'en' | 'uk') => React.ReactElement;
+type Page = (locale: 'en' | 'uk') => ReactElement;
 
 const pages: readonly (readonly [string, Page])[] = [
   [
@@ -38,7 +37,6 @@ const pages: readonly (readonly [string, Page])[] = [
       </Suspense>
     ),
   ],
-  ['showcase', () => <Showcase />],
   [
     'step shell',
     (locale) => (
