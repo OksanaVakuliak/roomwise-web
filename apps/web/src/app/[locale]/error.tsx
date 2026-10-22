@@ -1,10 +1,10 @@
 'use client';
 
-import * as Sentry from '@sentry/nextjs';
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 import { StatusPage } from '@/components/layout';
 import { Button, ButtonLink } from '@/components/ui';
+import { captureException } from '@/lib/monitoring/client';
 
 export default function LocaleError({
   error,
@@ -17,7 +17,7 @@ export default function LocaleError({
 
   useEffect(() => {
     console.error(error);
-    Sentry.captureException(error);
+    captureException(error);
   }, [error]);
 
   return (
