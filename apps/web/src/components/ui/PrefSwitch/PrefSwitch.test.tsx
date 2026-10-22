@@ -26,6 +26,21 @@ describe('PrefSwitch', () => {
     expect(group.querySelectorAll('button')).toHaveLength(3);
   });
 
+  it('renders short and full content when full content is given', () => {
+    render(
+      <PrefSwitch
+        label="Prefs"
+        options={[
+          { value: 'uk', content: 'UK', fullContent: 'Українська' },
+          three[1],
+        ]}
+        onChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('UK')).toBeInTheDocument();
+    expect(screen.getByText('Українська')).toBeInTheDocument();
+  });
+
   it('renders two items', () => {
     render(
       <PrefSwitch label="Prefs" options={two} value="uk" onChange={vi.fn()} />,

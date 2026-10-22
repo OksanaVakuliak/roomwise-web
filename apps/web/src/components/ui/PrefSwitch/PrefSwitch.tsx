@@ -7,6 +7,7 @@ import styles from './PrefSwitch.module.css';
 export type PrefSwitchOption = {
   value: string;
   content: ReactNode;
+  fullContent?: ReactNode;
   label?: string;
 };
 
@@ -49,7 +50,14 @@ export function PrefSwitch({
             data-value={option.value}
             onClick={handleClick}
           >
-            {option.content}
+            {option.fullContent ? (
+              <>
+                <span className={styles.short}>{option.content}</span>
+                <span className={styles.full}>{option.fullContent}</span>
+              </>
+            ) : (
+              option.content
+            )}
           </button>
         ) : null,
       )}

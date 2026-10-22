@@ -62,11 +62,13 @@ export function PreferenceSwitches() {
       {
         value: 'locale',
         content: t(`languageCodes.${locale === 'uk' ? 'uk' : 'en'}`),
+        fullContent: t(`languageFullNames.${locale === 'uk' ? 'uk' : 'en'}`),
         label: t('language', { language: t(`languageNames.${nextLocale}`) }),
       },
       {
         value: 'currency',
         content: hydrated ? (currency === 'USD' ? '$' : '₴') : null,
+        fullContent: hydrated ? currency : null,
         label: hydrated
           ? t('currency', { currency: nextCurrency })
           : t('currencyNeutral'),

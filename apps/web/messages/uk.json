@@ -580,6 +580,10 @@
       "en": "EN",
       "uk": "UK"
     },
+    "languageFullNames": {
+      "en": "English",
+      "uk": "Українська"
+    },
     "languageNames": {
       "en": "англійську",
       "uk": "українську"
