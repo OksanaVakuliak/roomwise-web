@@ -113,6 +113,29 @@ describe('TapeStep', () => {
     );
   });
 
+  it('keeps labels of non-current responsive steps in the DOM', () => {
+    renderInList(
+      <>
+        <TapeStep
+          size="responsive"
+          number="A1"
+          state="now"
+          stateLabel="current"
+          label="Room"
+        />
+        <TapeStep
+          size="responsive"
+          number="A2"
+          state="later"
+          stateLabel="upcoming"
+          label="Walls"
+        />
+      </>,
+    );
+    expect(screen.getByText('Room')).toBeInTheDocument();
+    expect(screen.getByText('Walls')).toBeInTheDocument();
+  });
+
   it('has no accessibility violations in any state', async () => {
     const { container } = renderInList(
       <>

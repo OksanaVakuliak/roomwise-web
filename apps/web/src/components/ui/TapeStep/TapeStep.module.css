@@ -92,3 +92,48 @@
 .desktop.item .pointer {
   bottom: var(--tape-pointer-bottom-desktop);
 }
+
+.responsive {
+  font-size: var(--tape-label-size-mobile);
+}
+
+.responsive .control {
+  padding-left: var(--tape-step-inset-mobile);
+}
+
+.responsive.item .pointer {
+  bottom: var(--tape-pointer-bottom-mobile);
+}
+
+@media (max-width: 767.98px) {
+  .responsive.now {
+    flex: var(--tape-step-grow-now);
+  }
+
+  .responsive .label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive {
+    font-size: var(--tape-label-size-desktop);
+  }
+
+  .responsive .control {
+    padding-left: var(--tape-step-inset-desktop);
+  }
+
+  .responsive .number {
+    font-size: var(--tape-number-size-desktop);
+    line-height: 1;
+  }
+
+  .responsive.item .pointer {
+    bottom: var(--tape-pointer-bottom-desktop);
+  }
+}

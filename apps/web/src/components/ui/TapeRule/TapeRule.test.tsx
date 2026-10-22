@@ -13,10 +13,13 @@ describe('TapeRule', () => {
     expect(container.querySelector('ol')).toBeNull();
   });
 
-  it.each(['mobile', 'desktop'] as const)('applies the %s size', (size) => {
-    const { container } = render(<TapeRule size={size} />);
-    expect(container.firstElementChild?.className).toContain(size);
-  });
+  it.each(['mobile', 'desktop', 'responsive'] as const)(
+    'applies the %s size',
+    (size) => {
+      const { container } = render(<TapeRule size={size} />);
+      expect(container.firstElementChild?.className).toContain(size);
+    },
+  );
 
   it('becomes a labelled navigation landmark with a label', () => {
     render(

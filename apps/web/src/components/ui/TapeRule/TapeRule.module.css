@@ -35,3 +35,13 @@
   transform: scale(var(--ui-scale));
   transform-origin: 0 0;
 }
+
+.responsive {
+  height: var(--tape-height-mobile);
+}
+
+@media (min-width: 768px) {
+  .responsive {
+    height: var(--tape-height-desktop);
+  }
+}

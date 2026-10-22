@@ -2,7 +2,7 @@ import { type ReactNode, useId } from 'react';
 import { cx } from '@/lib/cx';
 import styles from './TapeRule.module.css';
 
-export type TapeRuleSize = 'mobile' | 'desktop';
+export type TapeRuleSize = 'mobile' | 'desktop' | 'responsive';
 
 export type TapeRuleProps = {
   size?: TapeRuleSize;
@@ -14,6 +14,7 @@ export type TapeRuleProps = {
 const TICK_HEIGHT: Record<TapeRuleSize, number> = {
   mobile: 58,
   desktop: 64,
+  responsive: 64,
 };
 
 export function TapeRule({
