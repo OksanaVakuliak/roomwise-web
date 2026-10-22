@@ -107,7 +107,7 @@ shows a warm-up screen while it wakes up, which can take a short while.
 types to `apps/web/src/generated/api.d.ts` using `openapi-typescript`. By
 default the spec is taken from `../roomwise-api/apps/api/openapi.json`, so the
 API repository is expected to be checked out next to this one. Set
-`OPENAPI_SPEC` to use another path.
+`OPENAPI_SPEC` to use another path; a relative path is resolved from `apps/web`.
 
 ## Deployment
 
