@@ -18,6 +18,12 @@
   line-height: 1.2;
 }
 
+.totalLabel {
+  flex: 1 1 min-content;
+  overflow-wrap: normal;
+  hyphens: manual;
+}
+
 .totalValue {
   flex: none;
   white-space: nowrap;
@@ -112,10 +118,6 @@
 @media (min-width: 768px) {
   .toggle {
     display: none;
-  }
-
-  .total {
-    flex-wrap: nowrap;
   }
 
   .totalValue {
