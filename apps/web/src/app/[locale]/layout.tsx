@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { SerwistProvider } from '@serwist/turbopack/react';
+import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
@@ -10,9 +11,9 @@ import {
   MAIN_ID,
   SkipLink,
 } from '@/components/layout';
-import { WarmupStarter } from '@/components/system';
+import { UpdateNotice, WarmupStarter } from '@/components/system';
 import { routing } from '@/i18n/routing';
-import { themeInitScript } from '@/lib/theme';
+import { THEME_COLORS, themeInitScript } from '@/lib/theme';
 import { caveat, commissioner, tektur } from '../fonts';
 import '../../styles/global.css';
 
@@ -25,6 +26,8 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+export const viewport: Viewport = { themeColor: THEME_COLORS.light };
+
 export async function generateMetadata({
   params,
 }: Pick<LayoutProps, 'params'>): Promise<Metadata> {
@@ -36,7 +39,12 @@ export async function generateMetadata({
 
   const t = await getTranslations({ locale, namespace: 'Metadata' });
 
-  return { title: t('title'), description: t('description') };
+  return {
+    title: t('title'),
+    description: t('description'),
+    manifest: `/${locale}/manifest.webmanifest`,
+    appleWebApp: { capable: true, title: 'Roomwise' },
+  };
 }
 
 export default async function LocaleLayout({ children, params }: LayoutProps) {
@@ -57,16 +65,23 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
-        <NextIntlClientProvider>
-          <WarmupStarter />
-          <SkipLink />
-          <AppHeader />
-          <main id={MAIN_ID} tabIndex={-1}>
-            {children}
-          </main>
-          <AppFooter />
-          <ExchangeRateNotice />
-        </NextIntlClientProvider>
+        <SerwistProvider
+          swUrl="/serwist/sw.js"
+          disable={process.env.NODE_ENV === 'development'}
+          reloadOnOnline={false}
+        >
+          <NextIntlClientProvider>
+            <WarmupStarter />
+            <SkipLink />
+            <AppHeader />
+            <main id={MAIN_ID} tabIndex={-1}>
+              {children}
+            </main>
+            <AppFooter />
+            <ExchangeRateNotice />
+            <UpdateNotice />
+          </NextIntlClientProvider>
+        </SerwistProvider>
       </body>
     </html>
   );

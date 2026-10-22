@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { NextRequest } from 'next/server';
 import { describe, expect, it } from 'vitest';
-import proxy from './proxy';
+import proxy, { config } from './proxy';
 
 function visit(path: string, headers: Record<string, string> = {}) {
   return proxy(new NextRequest(`http://localhost${path}`, { headers }));
@@ -85,4 +85,25 @@ describe('shared links', () => {
 
     expect(response.headers.get('location')).toBeNull();
   });
+});
+
+describe('matcher', () => {
+  const matcher = new RegExp(`^${config.matcher}$`);
+
+  it.each([
+    '/~offline',
+    '/serwist/sw.js',
+    '/uk/manifest.webmanifest',
+    '/api/rooms',
+    '/_next/static/app.js',
+  ])('skips %s', (path) => {
+    expect(matcher.test(path)).toBe(false);
+  });
+
+  it.each(['/', '/uk', '/en/configurator', '/offline-guide'])(
+    'handles %s',
+    (path) => {
+      expect(matcher.test(path)).toBe(true);
+    },
+  );
 });
