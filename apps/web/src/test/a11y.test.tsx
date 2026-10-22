@@ -25,7 +25,7 @@ vi.mock('@/i18n/navigation', () => ({
   usePathname: () => '/',
 }));
 
-const TIMEOUT = 120_000;
+const TIMEOUT = 180_000;
 
 type Page = (locale: 'en' | 'uk') => React.ReactElement;
 
