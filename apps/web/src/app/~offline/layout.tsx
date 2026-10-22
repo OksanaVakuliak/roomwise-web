@@ -1,15 +1,14 @@
-import type { Metadata, Viewport } from 'next';
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { THEME_COLORS, themeInitScript } from '@/lib/theme';
+import { SHORT_NAME } from '@/lib/pwa';
+import { themeInitScript } from '@/lib/theme';
 import { caveat, commissioner, tektur } from '../fonts';
 import '../../styles/global.css';
 
 export const metadata: Metadata = {
-  title: 'Roomwise',
+  title: SHORT_NAME,
   robots: { index: false, follow: false },
 };
-
-export const viewport: Viewport = { themeColor: THEME_COLORS.light };
 
 export default function OfflineLayout({ children }: { children: ReactNode }) {
   return (

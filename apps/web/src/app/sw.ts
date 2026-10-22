@@ -2,7 +2,7 @@
 /// <reference lib="webworker" />
 import { defaultCache } from '@serwist/turbopack/worker';
 import { type PrecacheEntry, Serwist, type SerwistGlobalConfig } from 'serwist';
-import { fallbacks, withApiNeverCached, workerOptions } from '@/lib/pwa';
+import { fallbacks, withUncachedRoutes, workerOptions } from '@/lib/pwa';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -15,7 +15,7 @@ declare const self: ServiceWorkerGlobalScope;
 const serwist = new Serwist({
   ...workerOptions,
   precacheEntries: self.__SW_MANIFEST,
-  runtimeCaching: withApiNeverCached(defaultCache),
+  runtimeCaching: withUncachedRoutes(defaultCache),
   fallbacks,
 });
 

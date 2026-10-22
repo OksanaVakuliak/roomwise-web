@@ -2,16 +2,26 @@ import { NetworkOnly, type RuntimeCaching } from 'serwist';
 
 export const OFFLINE_URL = '/~offline';
 
-export const apiRule: RuntimeCaching = {
+const ADMIN_PATH = /^(\/[a-z]{2})?\/admin(\/|$)/;
+
+function isUncachedPath(pathname: string): boolean {
+  return pathname.startsWith('/api/') || ADMIN_PATH.test(pathname);
+}
+
+export const uncachedRule: RuntimeCaching = {
   matcher: ({ sameOrigin, url: { pathname } }) =>
-    sameOrigin && pathname.startsWith('/api/'),
+    sameOrigin && isUncachedPath(pathname),
   handler: new NetworkOnly(),
 };
 
-export function withApiNeverCached(
+export function withUncachedRoutes(
   defaults: RuntimeCaching[],
 ): RuntimeCaching[] {
-  return [apiRule, ...defaults];
+  return [uncachedRule, ...defaults];
+}
+
+export function precacheEntries(revision: string) {
+  return [{ url: OFFLINE_URL, revision }];
 }
 
 export const fallbacks = {

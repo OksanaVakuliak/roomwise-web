@@ -1,8 +1,10 @@
 export { buildManifest, SHORT_NAME } from './manifest';
 export {
-  apiRule,
   fallbacks,
   OFFLINE_URL,
-  withApiNeverCached,
+  precacheEntries,
+  uncachedRule,
+  withUncachedRoutes,
   workerOptions,
 } from './service-worker';
+export { isNewVersion, workerUrl } from './version';

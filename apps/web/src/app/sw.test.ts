@@ -2,10 +2,11 @@ import { defaultCache } from '@serwist/turbopack/worker';
 import { NetworkOnly } from 'serwist';
 import { describe, expect, it } from 'vitest';
 import {
-  apiRule,
   fallbacks,
   OFFLINE_URL,
-  withApiNeverCached,
+  precacheEntries,
+  uncachedRule,
+  withUncachedRoutes,
   workerOptions,
 } from '@/lib/pwa';
 
@@ -25,7 +26,7 @@ function context(url: string, origin = 'https://roomwise.app') {
 }
 
 function handlerFor(url: string) {
-  const entry = withApiNeverCached(defaultCache).find((rule) => {
+  const entry = withUncachedRoutes(defaultCache).find((rule) => {
     const matcher = rule.matcher as Matcher | RegExp;
     const target = context(url);
     return typeof matcher === 'function'
@@ -53,25 +54,43 @@ describe('service worker config', () => {
     ).toBe(false);
   });
 
-  it.each(['/api/rooms', '/api/catalog/items?page=2', '/api/auth/session'])(
-    'never caches %s',
-    (path) => {
-      expect(handlerFor(path)).toBeInstanceOf(NetworkOnly);
-    },
-  );
+  it.each([
+    '/api/rooms',
+    '/api/catalog/items?page=2',
+    '/api/auth/session',
+    '/admin',
+    '/admin/prices',
+    '/uk/admin',
+    '/en/admin/leads',
+  ])('never caches %s', (path) => {
+    expect(handlerFor(path)).toBeInstanceOf(NetworkOnly);
+  });
 
   it('puts the API rule before the defaults', () => {
-    const rules = withApiNeverCached(defaultCache);
+    const rules = withUncachedRoutes(defaultCache);
     expect(rules[0].handler).toBeInstanceOf(NetworkOnly);
     expect(rules.slice(1)).toEqual(defaultCache);
   });
 
   it('leaves other requests to the defaults', () => {
-    expect(handlerFor('/uk/configurator')).not.toBe(apiRule.handler);
+    expect(handlerFor('/uk/configurator')).not.toBe(uncachedRule.handler);
+  });
+
+  it.each(['/administrators', '/uk/administrators', '/uk/configurator/admin'])(
+    'leaves %s to the defaults',
+    (path) => {
+      expect(handlerFor(path)).not.toBe(uncachedRule.handler);
+    },
+  );
+
+  it('precaches the same URL it falls back to', () => {
+    const [entry] = precacheEntries('rev');
+    expect(entry).toEqual({ url: OFFLINE_URL, revision: 'rev' });
+    expect(fallbacks.entries[0].url).toBe(entry.url);
   });
 
   it('does not match another origin', () => {
-    const rule = withApiNeverCached([])[0];
+    const rule = withUncachedRoutes([])[0];
     expect(
       (rule.matcher as Matcher)(context('https://other.example/api/rooms')),
     ).toBe(false);

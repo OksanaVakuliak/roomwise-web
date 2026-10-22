@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { Banner, Button } from '@/components/ui';
-import styles from './UpdateNotice.module.css';
+import { isNewVersion } from '@/lib/pwa';
 
 function reload() {
   window.location.reload();
@@ -15,12 +15,21 @@ export function UpdateNotice() {
 
   useEffect(() => {
     const container = navigator.serviceWorker;
-    if (!container?.controller) {
+    if (!container) {
       return;
     }
-    const show = () => setAvailable(true);
-    container.addEventListener('controllerchange', show);
-    return () => container.removeEventListener('controllerchange', show);
+    const check = () => {
+      if (
+        isNewVersion(
+          container.controller?.scriptURL,
+          process.env.NEXT_PUBLIC_APP_VERSION,
+        )
+      ) {
+        setAvailable(true);
+      }
+    };
+    container.addEventListener('controllerchange', check);
+    return () => container.removeEventListener('controllerchange', check);
   }, []);
 
   const dismiss = useCallback(() => setAvailable(false), []);
@@ -30,18 +39,16 @@ export function UpdateNotice() {
   }
 
   return (
-    <div className={styles.root}>
-      <Banner
-        action={
-          <Button kind="fill" onClick={reload}>
-            {t('reload')}
-          </Button>
-        }
-        onDismiss={dismiss}
-        dismissLabel={t('dismiss')}
-      >
-        {t('newVersion')}
-      </Banner>
-    </div>
+    <Banner
+      action={
+        <Button kind="fill" onClick={reload}>
+          {t('reload')}
+        </Button>
+      }
+      onDismiss={dismiss}
+      dismissLabel={t('dismiss')}
+    >
+      {t('newVersion')}
+    </Banner>
   );
 }

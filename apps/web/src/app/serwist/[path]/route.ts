@@ -1,11 +1,11 @@
 import { createSerwistRoute } from '@serwist/turbopack';
-import { buildRevision } from '@/lib/pwa/revision';
+import { precacheEntries } from '@/lib/pwa';
 
 export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
   createSerwistRoute({
-    additionalPrecacheEntries: [
-      { url: '/~offline', revision: buildRevision() },
-    ],
+    additionalPrecacheEntries: precacheEntries(
+      process.env.NEXT_PUBLIC_APP_VERSION ?? '',
+    ),
     swSrc: 'src/app/sw.ts',
     useNativeEsbuild: true,
   });
