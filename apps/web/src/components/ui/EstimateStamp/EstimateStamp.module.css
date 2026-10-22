@@ -19,6 +19,8 @@
 }
 
 .totalValue {
+  flex: none;
+  white-space: nowrap;
   font-family: var(--text-number-s-family);
   font-weight: var(--text-number-s-weight);
   font-size: var(--text-number-s-size);
@@ -110,6 +112,10 @@
 @media (min-width: 768px) {
   .toggle {
     display: none;
+  }
+
+  .total {
+    flex-wrap: nowrap;
   }
 
   .totalValue {
