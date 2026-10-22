@@ -689,5 +689,14 @@
     "loadingTitle": "Loading skeletons",
     "emptyTitle": "Empty states",
     "action": "Add a room"
+  },
+  "Manifest": {
+    "name": "Roomwise renovation cost configurator",
+    "description": "Plan a room, pick finishes and see the renovation price right away."
+  },
+  "UpdateNotice": {
+    "newVersion": "A new version is available.",
+    "reload": "Reload",
+    "dismiss": "Dismiss"
   }
 }

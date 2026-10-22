@@ -1,0 +1,16 @@
+{
+  "en": {
+    "title": "No internet connection",
+    "message": "Roomwise needs a connection to calculate the price. Reconnect and try again.",
+    "retry": "Try again",
+    "brandName": "Roomwise",
+    "brandCaption": "renovation blueprint with prices"
+  },
+  "uk": {
+    "title": "Немає з'єднання з інтернетом",
+    "message": "Щоб порахувати вартість, Roomwise потрібне з'єднання. Підключіться до мережі й спробуйте ще раз.",
+    "retry": "Спробувати ще раз",
+    "brandName": "Roomwise",
+    "brandCaption": "кресленик ремонту з цінами"
+  }
+}

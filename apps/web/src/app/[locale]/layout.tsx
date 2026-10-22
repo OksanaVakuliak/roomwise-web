@@ -1,3 +1,4 @@
+import { SerwistProvider } from '@serwist/turbopack/react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
@@ -8,10 +9,12 @@ import {
   AppHeader,
   ExchangeRateNotice,
   MAIN_ID,
+  NoticeStack,
   SkipLink,
 } from '@/components/layout';
-import { WarmupStarter } from '@/components/system';
+import { UpdateNotice, WarmupStarter } from '@/components/system';
 import { routing } from '@/i18n/routing';
+import { SHORT_NAME, workerUrl } from '@/lib/pwa';
 import { themeInitScript } from '@/lib/theme';
 import { caveat, commissioner, tektur } from '../fonts';
 import '../../styles/global.css';
@@ -36,7 +39,12 @@ export async function generateMetadata({
 
   const t = await getTranslations({ locale, namespace: 'Metadata' });
 
-  return { title: t('title'), description: t('description') };
+  return {
+    title: t('title'),
+    description: t('description'),
+    manifest: `/${locale}/manifest.webmanifest`,
+    appleWebApp: { capable: true, title: SHORT_NAME },
+  };
 }
 
 export default async function LocaleLayout({ children, params }: LayoutProps) {
@@ -57,16 +65,28 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
-        <NextIntlClientProvider>
-          <WarmupStarter />
-          <SkipLink />
-          <AppHeader />
-          <main id={MAIN_ID} tabIndex={-1}>
-            {children}
-          </main>
-          <AppFooter />
-          <ExchangeRateNotice />
-        </NextIntlClientProvider>
+        <SerwistProvider
+          swUrl={workerUrl(
+            '/serwist/sw.js',
+            process.env.NEXT_PUBLIC_APP_VERSION,
+          )}
+          disable={process.env.NODE_ENV === 'development'}
+          reloadOnOnline={false}
+        >
+          <NextIntlClientProvider>
+            <WarmupStarter />
+            <SkipLink />
+            <AppHeader />
+            <main id={MAIN_ID} tabIndex={-1}>
+              {children}
+            </main>
+            <AppFooter />
+            <NoticeStack>
+              <ExchangeRateNotice />
+              <UpdateNotice />
+            </NoticeStack>
+          </NextIntlClientProvider>
+        </SerwistProvider>
       </body>
     </html>
   );
