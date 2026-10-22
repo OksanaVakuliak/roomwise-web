@@ -78,7 +78,7 @@ Defined in `apps/web/.env.example`.
 | Variable                       | Required | Description                                                                                                                  |
 | ------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `API_ORIGIN`                   | yes      | Backend origin, validated as a URL. `/api/*` is proxied to it through Next.js rewrites, so cookies stay same-origin.         |
-| `NEXT_PUBLIC_SHOWCASE_ENABLED` | no       | `true` or `false` (default `false`). Enables the development component showcase route.                                      |
+| `NEXT_PUBLIC_SHOWCASE_ENABLED` | no       | `true` or `false` (default `false`). Enables the component showcase route in `pnpm dev`; production builds never serve it.  |
 | `SENTRY_DSN`                   | no       | Sentry DSN for server-side reporting.                                                                                        |
 | `NEXT_PUBLIC_SENTRY_DSN`       | no       | Sentry DSN for the browser.                                                                                                  |
 | `SENTRY_AUTH_TOKEN`            | no       | Used to upload source maps at build time. Without it, source map upload is disabled.                                         |
@@ -90,9 +90,9 @@ updating the variable.
 ## Running against the backend
 
 Either run [roomwise-api](https://github.com/OksanaVakuliak/roomwise-api)
-locally and set `API_ORIGIN` to its address (its default port is
-`http://localhost:3000`, so start one of the two servers on another port), or
-point `API_ORIGIN` at the deployed API:
+locally and set `API_ORIGIN` to its address (`http://localhost:3000` by
+default; this app's dev server runs on `http://localhost:3001`), or point
+`API_ORIGIN` at the deployed API:
 
 ```text
 API_ORIGIN=https://roomwise-api.onrender.com
@@ -121,11 +121,7 @@ The app is deployed to Vercel with these project settings:
 `main` deploys to production; every other branch, including `develop`, gets a
 preview deployment.
 
-Environment variables:
-
-- `API_ORIGIN` in all environments
-- `NEXT_PUBLIC_SHOWCASE_ENABLED=true` for preview and development,
-  `false` for production
+Set `API_ORIGIN` for all environments.
 
 To check a deployment, request `GET /api/v1/health`. It goes through the
 rewrite and should return the API's health response.
