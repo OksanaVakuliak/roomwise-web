@@ -8,9 +8,12 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_SHOWCASE_ENABLED: z.enum(['true', 'false']).default('false'),
 });
 
+const blankToUndefined = (value: string | undefined) =>
+  value === '' ? undefined : value;
+
 const parsed = publicEnvSchema.safeParse({
-  NEXT_PUBLIC_SENTRY_DSN,
-  NEXT_PUBLIC_SHOWCASE_ENABLED,
+  NEXT_PUBLIC_SENTRY_DSN: blankToUndefined(NEXT_PUBLIC_SENTRY_DSN),
+  NEXT_PUBLIC_SHOWCASE_ENABLED: blankToUndefined(NEXT_PUBLIC_SHOWCASE_ENABLED),
 });
 
 if (!parsed.success) {
