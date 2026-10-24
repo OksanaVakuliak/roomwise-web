@@ -8,16 +8,25 @@ type Lang = 'en' | 'uk';
 
 type Result<T> = { data?: T; error?: unknown; response: { status: number } };
 
+export const catalogRoots = {
+  styles: 'styles',
+  roomTypes: 'room-types',
+  engineering: 'engineering',
+  products: 'products',
+  product: 'product',
+  defaultMaterials: 'default-materials',
+} as const;
+
 export const catalogKeys = {
-  styles: (lang: string) => ['styles', lang] as const,
-  roomTypes: (lang: string) => ['room-types', lang] as const,
-  engineering: (lang: string) => ['engineering', lang] as const,
+  styles: (lang: string) => [catalogRoots.styles, lang] as const,
+  roomTypes: (lang: string) => [catalogRoots.roomTypes, lang] as const,
+  engineering: (lang: string) => [catalogRoots.engineering, lang] as const,
   products: (categoryId: string, lang: string) =>
-    ['products', categoryId, lang] as const,
+    [catalogRoots.products, categoryId, lang] as const,
   product: (productId: string, lang: string) =>
-    ['product', productId, lang] as const,
+    [catalogRoots.product, productId, lang] as const,
   defaultMaterials: (styleId: string) =>
-    ['default-materials', styleId] as const,
+    [catalogRoots.defaultMaterials, styleId] as const,
 };
 
 async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {

@@ -2,11 +2,16 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { catalogRoots } from '@/lib/api/catalog';
 import { checkPricingData, usePricingData } from './pricing-data';
 
 export const PRICING_DATA_RECHECK_MS = 30_000;
 
-const PRICED_QUERY_KEYS = ['products', 'product', 'engineering'] as const;
+const PRICED_QUERY_KEYS = [
+  catalogRoots.products,
+  catalogRoots.product,
+  catalogRoots.engineering,
+] as const;
 
 export function usePricingDataSync(): void {
   const queryClient = useQueryClient();
