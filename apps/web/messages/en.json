@@ -562,8 +562,44 @@
     "FORBIDDEN": "Access denied",
     "CONFLICT": "Data conflict",
     "UNPROCESSABLE": "The request cannot be processed",
+    "STYLE_NOT_FOUND": "Style not found",
+    "CALCULATION_NOT_FOUND": "Calculation not found",
+    "INPUT_OUT_OF_BOUNDS": "Some values are out of the allowed range",
+    "UNKNOWN_REFERENCE": "Some items are no longer available",
+    "IDEMPOTENCY_KEY_REQUIRED": "Request key is missing",
+    "IDEMPOTENCY_KEY_REUSED": "This request key was already used with different data",
+    "IDEMPOTENCY_KEY_CONFLICT": "The same request is already being processed",
+    "PHONE_INVALID": "Enter a valid phone number",
     "unknown": "Something went wrong",
     "network": "Cannot reach the server"
+  },
+  "Estimate": {
+    "status": {
+      "OK": "Calculated",
+      "INCLUDED": "Included in the base cost",
+      "NOT_CALCULATED": "Not calculated",
+      "UNAVAILABLE": "Unavailable",
+      "ERROR": "Could not be calculated"
+    },
+    "lineError": {
+      "PRODUCT_UNAVAILABLE": "The product is unavailable",
+      "RULE_NOT_FOUND": "No pricing rule for this item",
+      "BASE_RATE_NOT_FOUND": "No base rate for this item",
+      "generic": "Could not be calculated"
+    },
+    "warning": {
+      "HEATED_FLOOR_INCOMPATIBLE": "Heated floor is not compatible with the chosen floor",
+      "OPTION_ROOM_TYPE_NOT_ALLOWED": "This option is not available for the room type",
+      "ROOMS_AREA_EXCEEDS_TOTAL": "Rooms exceed the total area by {diff} m²",
+      "EXCHANGE_RATE_UNAVAILABLE": "Exchange rate is unavailable, amounts are shown in USD",
+      "generic": "Check the estimate: some values may be inaccurate"
+    },
+    "range": "from {min} to {max} {unit}",
+    "unit": {
+      "m": "m",
+      "sqm": "m²",
+      "pcs": "pcs"
+    }
   },
   "Layout": {
     "skipLink": "Skip to content",

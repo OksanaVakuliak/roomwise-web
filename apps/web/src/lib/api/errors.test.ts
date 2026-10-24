@@ -3,9 +3,13 @@ import en from '../../../messages/en.json';
 import uk from '../../../messages/uk.json';
 import {
   BACKEND_ERROR_CODES,
+  ESTIMATE_LINE_ERROR_CODES,
+  ESTIMATE_WARNING_CODES,
   errorMessageKey,
+  lineErrorKey,
   networkError,
   parseApiError,
+  warningKey,
 } from './errors';
 
 describe('parseApiError', () => {
@@ -65,6 +69,21 @@ describe('errorMessageKey', () => {
     expect(errorMessageKey('network')).toBe('network');
   });
 
+  it.each([
+    'STYLE_NOT_FOUND',
+    'CALCULATION_NOT_FOUND',
+    'INPUT_OUT_OF_BOUNDS',
+    'UNKNOWN_REFERENCE',
+    'IDEMPOTENCY_KEY_REQUIRED',
+    'IDEMPOTENCY_KEY_REUSED',
+    'IDEMPOTENCY_KEY_CONFLICT',
+    'PHONE_INVALID',
+  ])('recognises the %s code', (code) => {
+    expect(BACKEND_ERROR_CODES).toContain(code);
+    expect(parseApiError({ error: { code } })).toEqual({ code });
+    expect(errorMessageKey(code)).toBe(code);
+  });
+
   it('maps unrecognised codes to unknown', () => {
     expect(errorMessageKey('SOMETHING_NEW')).toBe('unknown');
   });
@@ -89,5 +108,33 @@ describe('errorMessageKey', () => {
     expect(Object.keys(uk.Errors).sort()).toEqual(
       Object.keys(en.Errors).sort(),
     );
+  });
+});
+
+describe('estimate message keys', () => {
+  it('maps known line error codes to themselves and others to generic', () => {
+    expect(lineErrorKey('RULE_NOT_FOUND')).toBe('RULE_NOT_FOUND');
+    expect(lineErrorKey('FORMULA_DIVISION_BY_ZERO')).toBe('generic');
+  });
+
+  it('maps known warning codes to themselves and others to generic', () => {
+    expect(warningKey('ROOMS_AREA_EXCEEDS_TOTAL')).toBe(
+      'ROOMS_AREA_EXCEEDS_TOTAL',
+    );
+    expect(warningKey('SOMETHING_NEW')).toBe('generic');
+  });
+
+  it.each([
+    ['en', en],
+    ['uk', uk],
+  ])('has every key in the %s Estimate catalog', (_locale, catalog) => {
+    for (const code of ESTIMATE_LINE_ERROR_CODES) {
+      expect(catalog.Estimate.lineError[code]).toBeTruthy();
+    }
+    for (const code of ESTIMATE_WARNING_CODES) {
+      expect(catalog.Estimate.warning[code]).toBeTruthy();
+    }
+    expect(catalog.Estimate.lineError.generic).toBeTruthy();
+    expect(catalog.Estimate.warning.generic).toBeTruthy();
   });
 });

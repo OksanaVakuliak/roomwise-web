@@ -562,8 +562,44 @@
     "FORBIDDEN": "Доступ заборонено",
     "CONFLICT": "Конфлікт даних",
     "UNPROCESSABLE": "Запит неможливо обробити",
+    "STYLE_NOT_FOUND": "Стиль не знайдено",
+    "CALCULATION_NOT_FOUND": "Розрахунок не знайдено",
+    "INPUT_OUT_OF_BOUNDS": "Деякі значення виходять за допустимі межі",
+    "UNKNOWN_REFERENCE": "Деякі позиції вже недоступні",
+    "IDEMPOTENCY_KEY_REQUIRED": "Бракує ключа запиту",
+    "IDEMPOTENCY_KEY_REUSED": "Цей ключ запиту вже використано з іншими даними",
+    "IDEMPOTENCY_KEY_CONFLICT": "Такий самий запит уже обробляється",
+    "PHONE_INVALID": "Введіть коректний номер телефону",
     "unknown": "Щось пішло не так",
     "network": "Немає зв'язку із сервером"
+  },
+  "Estimate": {
+    "status": {
+      "OK": "Розраховано",
+      "INCLUDED": "Включено в базову вартість",
+      "NOT_CALCULATED": "Не розраховано",
+      "UNAVAILABLE": "Недоступно",
+      "ERROR": "Не вдалося розрахувати"
+    },
+    "lineError": {
+      "PRODUCT_UNAVAILABLE": "Товар недоступний",
+      "RULE_NOT_FOUND": "Немає правила розрахунку для цієї позиції",
+      "BASE_RATE_NOT_FOUND": "Немає базової ставки для цієї позиції",
+      "generic": "Не вдалося розрахувати"
+    },
+    "warning": {
+      "HEATED_FLOOR_INCOMPATIBLE": "Тепла підлога несумісна з обраною підлогою",
+      "OPTION_ROOM_TYPE_NOT_ALLOWED": "Ця опція недоступна для типу кімнати",
+      "ROOMS_AREA_EXCEEDS_TOTAL": "Кімнати перевищують загальну площу на {diff} м²",
+      "EXCHANGE_RATE_UNAVAILABLE": "Курс валют недоступний, суми показано в доларах",
+      "generic": "Перевірте розрахунок: деякі значення можуть бути неточними"
+    },
+    "range": "від {min} до {max} {unit}",
+    "unit": {
+      "m": "м",
+      "sqm": "м²",
+      "pcs": "шт."
+    }
   },
   "Layout": {
     "skipLink": "Перейти до вмісту",

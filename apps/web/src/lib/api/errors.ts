@@ -39,6 +39,14 @@ export const BACKEND_ERROR_CODES = [
   'FORBIDDEN',
   'CONFLICT',
   'UNPROCESSABLE',
+  'STYLE_NOT_FOUND',
+  'CALCULATION_NOT_FOUND',
+  'INPUT_OUT_OF_BOUNDS',
+  'UNKNOWN_REFERENCE',
+  'IDEMPOTENCY_KEY_REQUIRED',
+  'IDEMPOTENCY_KEY_REUSED',
+  'IDEMPOTENCY_KEY_CONFLICT',
+  'PHONE_INVALID',
 ] as const;
 
 export type BackendErrorCode = (typeof BACKEND_ERROR_CODES)[number];
@@ -95,3 +103,32 @@ export const errorMessageKey = (code: string): ApiErrorCode =>
   knownCodes.has(code) || code === 'network'
     ? (code as ApiErrorCode)
     : 'unknown';
+
+export const ESTIMATE_LINE_ERROR_CODES = [
+  'PRODUCT_UNAVAILABLE',
+  'RULE_NOT_FOUND',
+  'BASE_RATE_NOT_FOUND',
+] as const;
+
+export const ESTIMATE_WARNING_CODES = [
+  'HEATED_FLOOR_INCOMPATIBLE',
+  'OPTION_ROOM_TYPE_NOT_ALLOWED',
+  'ROOMS_AREA_EXCEEDS_TOTAL',
+  'EXCHANGE_RATE_UNAVAILABLE',
+] as const;
+
+export type EstimateLineErrorKey =
+  | (typeof ESTIMATE_LINE_ERROR_CODES)[number]
+  | 'generic';
+export type EstimateWarningKey =
+  | (typeof ESTIMATE_WARNING_CODES)[number]
+  | 'generic';
+
+const lineErrorCodes: ReadonlySet<string> = new Set(ESTIMATE_LINE_ERROR_CODES);
+const warningCodes: ReadonlySet<string> = new Set(ESTIMATE_WARNING_CODES);
+
+export const lineErrorKey = (code: string): EstimateLineErrorKey =>
+  lineErrorCodes.has(code) ? (code as EstimateLineErrorKey) : 'generic';
+
+export const warningKey = (code: string): EstimateWarningKey =>
+  warningCodes.has(code) ? (code as EstimateWarningKey) : 'generic';
