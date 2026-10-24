@@ -1,11 +1,14 @@
 import { PricingDataSchema } from '@roomwise/calc-engine';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { captureException } from '@/lib/monitoring/client';
 import { makePricingData } from '@/test/fixtures';
 import {
   checkPricingData,
   resetPricingData,
   usePricingData,
 } from './pricing-data';
+
+vi.mock('@/lib/monitoring/client', () => ({ captureException: vi.fn() }));
 
 const V1 = '1111111111111111';
 const V2 = '2222222222222222';
@@ -29,6 +32,7 @@ function sentHeaders(call: number) {
 
 beforeEach(() => {
   fetchMock.mockReset();
+  vi.mocked(captureException).mockClear();
   vi.stubGlobal('fetch', fetchMock);
   resetPricingData();
 });
@@ -144,13 +148,14 @@ describe('checkPricingData', () => {
   });
 
   it.each([
-    ['a network error', () => Promise.reject(new TypeError('offline'))],
+    ['a network error', () => Promise.reject(new TypeError('offline')), false],
     [
       'a server error',
       () => Promise.resolve(new Response('x', { status: 500 })),
+      true,
     ],
-    ['an invalid body', () => Promise.resolve(ok({ version: 1 }))],
-  ])('keeps previous data after %s', async (_name, failure) => {
+    ['an invalid body', () => Promise.resolve(ok({ version: 1 })), true],
+  ])('keeps previous data after %s', async (_name, failure, reported) => {
     const data = makePricingData();
     fetchMock.mockResolvedValueOnce(ok(data, 'W/"1"'));
     await checkPricingData();
@@ -163,6 +168,7 @@ describe('checkPricingData', () => {
       data,
       etag: 'W/"1"',
     });
+    expect(captureException).toHaveBeenCalledTimes(reported ? 1 : 0);
   });
 
   it('is in error without data when the first request fails, and can retry', async () => {

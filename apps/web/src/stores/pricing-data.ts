@@ -1,6 +1,7 @@
 import type { PricingData } from '@roomwise/calc-engine';
 import { create } from 'zustand';
 import { fetchPricingData } from '@/lib/api/pricing-data';
+import { captureException } from '@/lib/monitoring/client';
 
 export type PriceUpdate = { from: string; to: string };
 
@@ -77,8 +78,11 @@ async function run(started: number): Promise<void> {
           ? { from: current.version, to: data.version }
           : current.priceUpdate,
     });
-  } catch {
+  } catch (error) {
     if (started === generation) {
+      if (!(error instanceof TypeError)) {
+        captureException(error);
+      }
       usePricingData.setState({ status: 'error' });
     }
   }
