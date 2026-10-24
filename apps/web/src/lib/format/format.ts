@@ -16,10 +16,7 @@ export function money(
   rate?: ExchangeRate,
 ): string {
   if (currency === 'USD') {
-    const rounded = Math.round(cents);
-    const fraction = rounded % 100 === 0 ? 0 : 2;
-    const sign = rounded < 0 ? '-' : '';
-    return `${sign}$${amount(Math.abs(rounded) / 100, locale, fraction)}`;
+    return moneyMinor(cents, 'USD', locale);
   }
   if (!rate) {
     throw new Error('UAH requires an exchange rate');
