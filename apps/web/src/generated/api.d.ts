@@ -799,6 +799,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/calculations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PublicCalculationsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/calculations/{publicId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PublicCalculationsController_recalculate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/calculations/{publicId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicCalculationsController_getLatest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/calculations/{publicId}/versions/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicCalculationsController_getVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PublicLeadsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/leads/form-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicLeadsController_formSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2435,6 +2531,415 @@ export interface components {
         };
         ManualRateInputDto: {
             rate: string;
+        };
+        SaveCalculationRequestDto: {
+            configuration: {
+                /** @enum {string} */
+                finishLevel: "ROUGH" | "PRE_FINISH";
+                totalAreaSqm: number;
+                balconyAreaSqm: number;
+                balconyTiles: boolean;
+                gas: boolean;
+                /** @enum {string} */
+                kitchenType: "SEPARATE" | "KITCHEN_LIVING";
+                rooms: {
+                    clientId: string;
+                    /** @enum {string} */
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    lengthM: number;
+                    widthM: number;
+                    heightM: number;
+                    heatedFloor: boolean;
+                    selections: {
+                        categoryId: string;
+                        productId: string | null;
+                    }[];
+                }[];
+                options: {
+                    optionId: string;
+                    quantity?: number;
+                    roomClientIds?: string[];
+                }[];
+                /** @enum {string} */
+                currency: "USD" | "UAH";
+            };
+            /** Format: uuid */
+            styleId: string;
+            clientPricingVersion: string;
+            clientTotalUsdCents: number;
+        };
+        SaveCalculationResponseDto_Output: {
+            version: {
+                publicId: string;
+                number: number;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                expiresAt: string;
+                expired: boolean;
+                incomplete: boolean;
+                pricingVersion: string;
+                style: {
+                    id: string;
+                    name: string;
+                } | null;
+                configuration: {
+                    /** @enum {string} */
+                    finishLevel: "ROUGH" | "PRE_FINISH";
+                    totalAreaSqm: number;
+                    balconyAreaSqm: number;
+                    balconyTiles: boolean;
+                    gas: boolean;
+                    /** @enum {string} */
+                    kitchenType: "SEPARATE" | "KITCHEN_LIVING";
+                    rooms: {
+                        clientId: string;
+                        /** @enum {string} */
+                        roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                        lengthM: number;
+                        widthM: number;
+                        heightM: number;
+                        heatedFloor: boolean;
+                        selections: {
+                            categoryId: string;
+                            productId: string | null;
+                        }[];
+                    }[];
+                    options: {
+                        optionId: string;
+                        quantity?: number;
+                        roomClientIds?: string[];
+                    }[];
+                    /** @enum {string} */
+                    currency: "USD" | "UAH";
+                };
+                rooms: {
+                    clientId: string;
+                    /** @enum {string} */
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    lengthM: number;
+                    widthM: number;
+                    heightM: number;
+                    heatedFloor: boolean;
+                    name: string;
+                }[];
+                lines: {
+                    id: string;
+                    /** @enum {string} */
+                    section: "BASE" | "OBJECT" | "MATERIALS" | "ENGINEERING" | "ADDITIONAL";
+                    /** @enum {string} */
+                    status: "OK" | "INCLUDED" | "NOT_CALCULATED" | "UNAVAILABLE" | "ERROR";
+                    roomClientId: string | null;
+                    categoryId: string | null;
+                    productId: string | null;
+                    optionId: string | null;
+                    packageItemId: string | null;
+                    ruleId: string | null;
+                    quantity: number | null;
+                    unit: string | null;
+                    unitPriceCents: number | null;
+                    amountCents: number;
+                    amountUahKopecks: number | null;
+                    warnings: {
+                        code: string;
+                        params?: {
+                            [key: string]: unknown;
+                        };
+                    }[];
+                    error: {
+                        code: string;
+                        params?: {
+                            [key: string]: unknown;
+                        };
+                    } | null;
+                    roomName: string | null;
+                    categoryName: string | null;
+                    optionName: string | null;
+                    packageItemName: string | null;
+                    ruleName: string | null;
+                    product: {
+                        name: string;
+                        brand: string;
+                        manufacturer: string;
+                        color: string;
+                        size: string;
+                        image: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uri */
+                            thumb: string;
+                            /** Format: uri */
+                            card: string;
+                            /** Format: uri */
+                            zoom: string;
+                        } | null;
+                    } | null;
+                }[];
+                totals: {
+                    usdCents: number;
+                    uahKopecks: number | null;
+                    sections: {
+                        [key: string]: {
+                            usdCents: number;
+                            uahKopecks: number | null;
+                        };
+                    };
+                };
+                warnings: {
+                    code: string;
+                    params?: {
+                        [key: string]: unknown;
+                    };
+                    lineId?: string;
+                }[];
+                exchangeRate: {
+                    rate: string;
+                    date: string;
+                    /** @enum {string} */
+                    source: "NBU" | "MANUAL";
+                } | null;
+                priceStatus: {
+                    changed: boolean;
+                    snapshotTotalUsdCents: number;
+                    currentTotalUsdCents: number;
+                    diffCents: number;
+                    unavailableItems: {
+                        lineId: string;
+                        productId: string | null;
+                        optionId: string | null;
+                    }[];
+                    currentPricingVersion: string;
+                } | null;
+                versions: {
+                    number: number;
+                    /** Format: date-time */
+                    createdAt: string;
+                    totalUsdCents: number;
+                    expired: boolean;
+                }[];
+            };
+            priceDifference: {
+                clientTotalUsdCents: number;
+                savedTotalUsdCents: number;
+                diffCents: number;
+            } | null;
+        };
+        RecalculateCalculationRequestDto: {
+            basedOnVersion: number;
+        };
+        VersionViewDto_Output: {
+            publicId: string;
+            number: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            expired: boolean;
+            incomplete: boolean;
+            pricingVersion: string;
+            style: {
+                id: string;
+                name: string;
+            } | null;
+            configuration: {
+                /** @enum {string} */
+                finishLevel: "ROUGH" | "PRE_FINISH";
+                totalAreaSqm: number;
+                balconyAreaSqm: number;
+                balconyTiles: boolean;
+                gas: boolean;
+                /** @enum {string} */
+                kitchenType: "SEPARATE" | "KITCHEN_LIVING";
+                rooms: {
+                    clientId: string;
+                    /** @enum {string} */
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    lengthM: number;
+                    widthM: number;
+                    heightM: number;
+                    heatedFloor: boolean;
+                    selections: {
+                        categoryId: string;
+                        productId: string | null;
+                    }[];
+                }[];
+                options: {
+                    optionId: string;
+                    quantity?: number;
+                    roomClientIds?: string[];
+                }[];
+                /** @enum {string} */
+                currency: "USD" | "UAH";
+            };
+            rooms: {
+                clientId: string;
+                /** @enum {string} */
+                roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                lengthM: number;
+                widthM: number;
+                heightM: number;
+                heatedFloor: boolean;
+                name: string;
+            }[];
+            lines: {
+                id: string;
+                /** @enum {string} */
+                section: "BASE" | "OBJECT" | "MATERIALS" | "ENGINEERING" | "ADDITIONAL";
+                /** @enum {string} */
+                status: "OK" | "INCLUDED" | "NOT_CALCULATED" | "UNAVAILABLE" | "ERROR";
+                roomClientId: string | null;
+                categoryId: string | null;
+                productId: string | null;
+                optionId: string | null;
+                packageItemId: string | null;
+                ruleId: string | null;
+                quantity: number | null;
+                unit: string | null;
+                unitPriceCents: number | null;
+                amountCents: number;
+                amountUahKopecks: number | null;
+                warnings: {
+                    code: string;
+                    params?: {
+                        [key: string]: unknown;
+                    };
+                }[];
+                error: {
+                    code: string;
+                    params?: {
+                        [key: string]: unknown;
+                    };
+                } | null;
+                roomName: string | null;
+                categoryName: string | null;
+                optionName: string | null;
+                packageItemName: string | null;
+                ruleName: string | null;
+                product: {
+                    name: string;
+                    brand: string;
+                    manufacturer: string;
+                    color: string;
+                    size: string;
+                    image: {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uri */
+                        thumb: string;
+                        /** Format: uri */
+                        card: string;
+                        /** Format: uri */
+                        zoom: string;
+                    } | null;
+                } | null;
+            }[];
+            totals: {
+                usdCents: number;
+                uahKopecks: number | null;
+                sections: {
+                    [key: string]: {
+                        usdCents: number;
+                        uahKopecks: number | null;
+                    };
+                };
+            };
+            warnings: {
+                code: string;
+                params?: {
+                    [key: string]: unknown;
+                };
+                lineId?: string;
+            }[];
+            exchangeRate: {
+                rate: string;
+                date: string;
+                /** @enum {string} */
+                source: "NBU" | "MANUAL";
+            } | null;
+            priceStatus: {
+                changed: boolean;
+                snapshotTotalUsdCents: number;
+                currentTotalUsdCents: number;
+                diffCents: number;
+                unavailableItems: {
+                    lineId: string;
+                    productId: string | null;
+                    optionId: string | null;
+                }[];
+                currentPricingVersion: string;
+            } | null;
+            versions: {
+                number: number;
+                /** Format: date-time */
+                createdAt: string;
+                totalUsdCents: number;
+                expired: boolean;
+            }[];
+        };
+        CreateLeadRequestDto: {
+            calculation?: {
+                publicId: string;
+                versionNumber: number;
+            };
+            draft?: {
+                configuration: {
+                    /** @enum {string} */
+                    finishLevel: "ROUGH" | "PRE_FINISH";
+                    totalAreaSqm: number;
+                    balconyAreaSqm: number;
+                    balconyTiles: boolean;
+                    gas: boolean;
+                    /** @enum {string} */
+                    kitchenType: "SEPARATE" | "KITCHEN_LIVING";
+                    rooms: {
+                        clientId: string;
+                        /** @enum {string} */
+                        roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                        lengthM: number;
+                        widthM: number;
+                        heightM: number;
+                        heatedFloor: boolean;
+                        selections: {
+                            categoryId: string;
+                            productId: string | null;
+                        }[];
+                    }[];
+                    options: {
+                        optionId: string;
+                        quantity?: number;
+                        roomClientIds?: string[];
+                    }[];
+                    /** @enum {string} */
+                    currency: "USD" | "UAH";
+                };
+                /** Format: uuid */
+                styleId: string;
+                clientPricingVersion: string;
+            };
+            name: string;
+            phone: string;
+            email?: string | "";
+            comment?: string;
+            consent: {
+                /** @constant */
+                accepted: true;
+                text: string;
+            };
+            /** @enum {string} */
+            locale: "en" | "uk";
+            website?: string;
+        };
+        CreateLeadResponseDto_Output: {
+            leadNumber: number;
+            calculation: {
+                publicId: string;
+                versionNumber: number;
+            };
+            expiredAtSubmission: boolean;
+        };
+        LeadFormSettingsDto_Output: {
+            retentionDays: number;
+            notice: string;
         };
     };
     responses: never;
@@ -4689,7 +5194,10 @@ export interface operations {
     PublicPricingController_getPricingData: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description ETag value from a previous response, quotes included. */
+                "If-None-Match"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -4697,11 +5205,26 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description Pricing version in quotes. */
+                    ETag?: string;
+                    /** @description Shared caching policy for pricing data. */
+                    "Cache-Control"?: string;
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["PricingDataResponseDto_Output"];
                 };
+            };
+            /** @description If-None-Match matches the current ETag. */
+            304: {
+                headers: {
+                    /** @description Pricing version in quotes. */
+                    ETag?: string;
+                    /** @description Shared caching policy for pricing data. */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -4887,6 +5410,7 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Reordered. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -4915,6 +5439,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description UNAUTHENTICATED */
             401: {
                 headers: {
@@ -5117,6 +5648,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description UNAUTHENTICATED */
             401: {
                 headers: {
@@ -5269,6 +5807,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description UNAUTHENTICATED */
             401: {
                 headers: {
@@ -5399,6 +5944,15 @@ export interface operations {
                     "application/json": components["schemas"]["ExchangeRateStatusDto_Output"];
                 };
             };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description UNAUTHENTICATED */
             401: {
                 headers: {
@@ -5434,6 +5988,299 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PublicCalculationsController_create: {
+        parameters: {
+            query?: {
+                lang?: "en" | "uk";
+            };
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveCalculationRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaveCalculationResponseDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description INPUT_OUT_OF_BOUNDS | UNKNOWN_REFERENCE | STYLE_NOT_FOUND | IDEMPOTENCY_KEY_REUSED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description IDEMPOTENCY_KEY_REQUIRED */
+            428: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PublicCalculationsController_recalculate: {
+        parameters: {
+            query?: {
+                lang?: "en" | "uk";
+            };
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                publicId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecalculateCalculationRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionViewDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description CALCULATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description INPUT_OUT_OF_BOUNDS | UNKNOWN_REFERENCE | STYLE_NOT_FOUND | IDEMPOTENCY_KEY_REUSED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description IDEMPOTENCY_KEY_REQUIRED */
+            428: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PublicCalculationsController_getLatest: {
+        parameters: {
+            query?: {
+                lang?: "en" | "uk";
+            };
+            header?: never;
+            path: {
+                publicId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionViewDto_Output"];
+                };
+            };
+            /** @description CALCULATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PublicCalculationsController_getVersion: {
+        parameters: {
+            query?: {
+                lang?: "en" | "uk";
+            };
+            header?: never;
+            path: {
+                publicId: string;
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionViewDto_Output"];
+                };
+            };
+            /** @description CALCULATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PublicLeadsController_create: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLeadRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateLeadResponseDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description CALCULATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PHONE_INVALID | INPUT_OUT_OF_BOUNDS | UNKNOWN_REFERENCE | STYLE_NOT_FOUND | IDEMPOTENCY_KEY_REUSED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description IDEMPOTENCY_KEY_REQUIRED */
+            428: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PublicLeadsController_formSettings: {
+        parameters: {
+            query?: {
+                lang?: "en" | "uk";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadFormSettingsDto_Output"];
                 };
             };
         };
