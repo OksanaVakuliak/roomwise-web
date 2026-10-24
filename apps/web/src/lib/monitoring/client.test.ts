@@ -110,4 +110,18 @@ describe('with a DSN', () => {
       sentry.captureException.mock.invocationCallOrder[0],
     );
   });
+
+  it('retries loading Sentry after a failed start without an unhandled rejection', async () => {
+    sentry.init.mockImplementationOnce(() => {
+      throw new Error('chunk failed');
+    });
+    const client = await loadClient();
+    client.captureException(new Error('first'));
+    await flush();
+    expect(sentry.captureException).not.toHaveBeenCalled();
+    client.captureException(new Error('second'));
+    await flush();
+    expect(sentry.init).toHaveBeenCalledTimes(2);
+    expect(sentry.captureException).toHaveBeenCalledOnce();
+  });
 });

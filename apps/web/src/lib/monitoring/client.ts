@@ -5,21 +5,26 @@ type SentryModule = typeof import('@sentry/nextjs');
 const IDLE_TIMEOUT_MS = 5000;
 const FALLBACK_DELAY_MS = 1;
 
-let ready: Promise<SentryModule> | null = null;
+let ready: Promise<SentryModule | null> | null = null;
 let loaded: SentryModule | null = null;
 
-function start(): Promise<SentryModule> | null {
+function start(): Promise<SentryModule | null> | null {
   if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return null;
-  ready ??= import('@sentry/nextjs').then((sentry) => {
-    sentry.init(
-      createSentryOptions(
-        process.env.NEXT_PUBLIC_SENTRY_DSN,
-        readBrowserContext,
-      ),
-    );
-    loaded = sentry;
-    return sentry;
-  });
+  ready ??= import('@sentry/nextjs')
+    .then((sentry) => {
+      sentry.init(
+        createSentryOptions(
+          process.env.NEXT_PUBLIC_SENTRY_DSN,
+          readBrowserContext,
+        ),
+      );
+      loaded = sentry;
+      return sentry;
+    })
+    .catch(() => {
+      ready = null;
+      return null;
+    });
   return ready;
 }
 
@@ -42,7 +47,7 @@ export function initMonitoring() {
 }
 
 export function captureException(error: unknown) {
-  void start()?.then((sentry) => sentry.captureException(error));
+  void start()?.then((sentry) => sentry?.captureException(error));
 }
 
 export function captureRouterTransition(href: string, navigationType: string) {
