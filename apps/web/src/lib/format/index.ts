@@ -4,7 +4,9 @@ export {
   dimension,
   type ExchangeRate,
   money,
+  moneyMinor,
   percent,
   rateDate,
   rateValue,
+  unitPrice,
 } from './format';
