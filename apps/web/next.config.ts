@@ -18,7 +18,10 @@ const apiOrigin = parsedApiOrigin.data.replace(/\/+$/, '');
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
-  env: { NEXT_PUBLIC_APP_VERSION: buildRevision() },
+  env: {
+    NEXT_PUBLIC_APP_VERSION: buildRevision(),
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN?.trim() ?? '',
+  },
   async rewrites() {
     return [
       {

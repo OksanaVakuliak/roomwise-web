@@ -59,13 +59,13 @@ export default function ConfiguratorPage({ params }: PageProps) {
       <StepLayout
         steps={
           <nav aria-label={t('tapeLabel')}>
-            <TapeRule size="mobile">
+            <TapeRule size="responsive">
               {STEPS.map((step) => (
                 <TapeStep
                   key={step}
-                  size="mobile"
+                  size="responsive"
                   number={`A${step}`}
-                  label={step === CURRENT_STEP ? t(`steps.${step}`) : undefined}
+                  label={t(`steps.${step}`)}
                   state={stepState(step)}
                   stateLabel={t(`state.${stepState(step)}`)}
                 />

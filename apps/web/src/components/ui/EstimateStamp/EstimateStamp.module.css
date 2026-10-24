@@ -18,7 +18,15 @@
   line-height: 1.2;
 }
 
+.totalLabel {
+  flex: 1 1 min-content;
+  overflow-wrap: normal;
+  hyphens: manual;
+}
+
 .totalValue {
+  flex: none;
+  white-space: nowrap;
   font-family: var(--text-number-s-family);
   font-weight: var(--text-number-s-weight);
   font-size: var(--text-number-s-size);

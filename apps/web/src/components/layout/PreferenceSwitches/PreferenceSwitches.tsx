@@ -57,16 +57,19 @@ export function PreferenceSwitches() {
     const nextLocale = nextOf(routing.locales, locale);
     const nextCurrency = nextOf(currencies, currency);
     const nextTheme = nextOf(THEME_MODES, theme);
+    const localeKey = locale === 'uk' ? 'uk' : 'en';
 
     return [
       {
         value: 'locale',
-        content: t(`languageCodes.${locale === 'uk' ? 'uk' : 'en'}`),
+        content: t(`languageCodes.${localeKey}`),
+        fullContent: t(`languageFullNames.${localeKey}`),
         label: t('language', { language: t(`languageNames.${nextLocale}`) }),
       },
       {
         value: 'currency',
         content: hydrated ? (currency === 'USD' ? '$' : '₴') : null,
+        fullContent: hydrated ? currency : null,
         label: hydrated
           ? t('currency', { currency: nextCurrency })
           : t('currencyNeutral'),

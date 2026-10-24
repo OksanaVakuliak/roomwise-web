@@ -18,5 +18,6 @@ export const caveat = Caveat({
   subsets: ['latin', 'cyrillic'],
   weight: ['600'],
   display: 'swap',
+  preload: false,
   variable: '--font-caveat',
 });

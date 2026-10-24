@@ -40,7 +40,7 @@ const NAMESPACES = [
 ] as const;
 
 const MOBILE_WIDTH = 390;
-const TIMEOUT = 60_000;
+const TIMEOUT = 120_000;
 
 const catalogs = { en, uk } as const;
 

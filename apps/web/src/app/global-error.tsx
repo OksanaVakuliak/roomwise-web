@@ -1,11 +1,11 @@
 'use client';
 
-import * as Sentry from '@sentry/nextjs';
 import { usePathname } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui';
 import { routing } from '@/i18n/routing';
+import { captureException } from '@/lib/monitoring/client';
 import { themeInitScript } from '@/lib/theme';
 import catalogs from '../../messages/global-error.json';
 import '../styles/global.css';
@@ -27,7 +27,7 @@ export default function GlobalError({
   const t = catalogs[locale];
 
   useEffect(() => {
-    Sentry.captureException(error);
+    captureException(error);
   }, [error]);
 
   return (

@@ -10,7 +10,7 @@ export type TapeStepProps = {
   state: TapeStepState;
   stateLabel: string;
   label?: string;
-  size?: 'mobile' | 'desktop';
+  size?: 'mobile' | 'desktop' | 'responsive';
   href?: string;
   onClick?: () => void;
 };
@@ -29,7 +29,9 @@ export function TapeStep({
   const content = (
     <>
       <b className={styles.number}>{number}</b>{' '}
-      {label ? <span>{label}</span> : null}{' '}
+      {label ? (
+        <span className={cx(state !== 'now' && styles.label)}>{label}</span>
+      ) : null}{' '}
       <VisuallyHidden>{stateLabel}</VisuallyHidden>
     </>
   );
