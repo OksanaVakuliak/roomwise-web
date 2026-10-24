@@ -21,6 +21,7 @@ export type ToConfigurationOptions = {
 export type IncompleteReason =
   | 'FINISH_LEVEL'
   | 'TOTAL_AREA'
+  | 'BALCONY_AREA'
   | 'ROOMS_COUNT'
   | 'ROOM_TYPE'
   | 'ROOM_TYPE_NOT_ALLOWED'
@@ -156,6 +157,10 @@ export function toConfiguration(
       throw new IncompleteDraftError('TOTAL_AREA');
     }
     return null;
+  }
+
+  if (strict && object.balcony.present && object.balcony.areaSqm === null) {
+    throw new IncompleteDraftError('BALCONY_AREA');
   }
 
   if (

@@ -352,6 +352,11 @@ describe('toConfiguration strict', () => {
       }),
       'ROOM_TYPE_NOT_ALLOWED',
     ],
+    [
+      'balcony without area',
+      withObject({ balcony: { present: true, areaSqm: null, tiles: true } }),
+      'BALCONY_AREA',
+    ],
     ['no style', makeInteriorDraft({ styleId: null }), 'STYLE'],
     ['empty draft', makeEmptyDraft(), 'FINISH_LEVEL'],
   ])('throws for %s', (_, draft, reason) => {
