@@ -1,0 +1,60 @@
+.root {
+  min-width: 0;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-12);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.rows {
+  display: grid;
+  gap: var(--space-12);
+}
+
+.lines {
+  display: grid;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.roomRow,
+.specRow {
+  display: grid;
+  align-items: center;
+  gap: var(--space-12);
+  padding-bottom: var(--space-12);
+  border-bottom: var(--stroke-1) solid var(--hair);
+}
+
+.roomRow {
+  grid-template-columns: auto 1fr;
+}
+
+.specRow {
+  grid-template-columns: auto 1fr auto;
+}
+
+.estimateRow,
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.estimateRow {
+  padding-bottom: var(--space-9);
+  border-bottom: var(--stroke-1) solid var(--hair);
+}
+
+.total {
+  padding-top: var(--space-8);
+}

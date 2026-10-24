@@ -1,0 +1,81 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: 100%;
+  min-height: 100vh;
+  padding: var(--space-16);
+  background: var(--sheet);
+  color: var(--line);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.title {
+  margin: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.select {
+  padding: var(--space-6) var(--space-10);
+  border: var(--stroke-1) solid var(--line-2);
+  background: var(--paper);
+  color: var(--line);
+  font: inherit;
+}
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  padding: var(--space-8) 0;
+  border-bottom: var(--stroke-1) solid var(--hair);
+  background: var(--sheet);
+}
+
+.navList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navLink {
+  color: var(--line);
+  text-decoration: underline;
+}
+
+.section {
+  padding: var(--space-16);
+  border: var(--stroke-1) dashed var(--hair);
+  background: var(--paper);
+  scroll-margin-top: var(--space-28);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--space-8);
+}
+
+.empty {
+  margin: 0;
+  color: var(--pencil);
+}

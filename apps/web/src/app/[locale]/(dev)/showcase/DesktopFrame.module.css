@@ -1,0 +1,10 @@
+.root {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.inner {
+  width: max-content;
+  min-width: 100%;
+  padding-bottom: var(--space-12);
+}

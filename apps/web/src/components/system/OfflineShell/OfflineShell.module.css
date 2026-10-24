@@ -1,0 +1,16 @@
+.header {
+  padding: var(--space-12) var(--space-16);
+  border-bottom: var(--stroke-1) solid var(--hair);
+}
+
+.main {
+  max-width: var(--remark-measure);
+  margin: 0 auto;
+  padding: var(--space-28) var(--space-16);
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding-inline: var(--space-28);
+  }
+}

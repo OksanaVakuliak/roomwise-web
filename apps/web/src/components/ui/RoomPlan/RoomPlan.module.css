@@ -1,0 +1,54 @@
+.root {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+  min-height: var(--size-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--line-2);
+  font-family: var(--text-body-s-family);
+  font-size: var(--text-body-s-size);
+  text-align: left;
+  cursor: pointer;
+}
+
+.root:focus-visible {
+  outline: var(--focus-ring-width) solid var(--line);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.mobile {
+  --plan-scale: var(--plan-scale-mobile);
+}
+
+.desktop {
+  --plan-scale: var(--plan-scale-desktop);
+}
+
+.sketch {
+  display: block;
+  box-sizing: border-box;
+  width: calc(var(--room-length) * var(--plan-scale));
+  height: calc(var(--room-width) * var(--plan-scale));
+  border: var(--stroke-1-5) solid var(--line);
+  background: var(--fill-a);
+}
+
+.current .sketch {
+  background: var(--line);
+}
+
+.name {
+  color: var(--line);
+  font-size: var(--text-label-size);
+  font-weight: 600;
+}
+
+.current .name {
+  text-decoration: underline;
+  text-decoration-thickness: var(--stroke-2);
+  text-underline-offset: var(--space-3);
+}

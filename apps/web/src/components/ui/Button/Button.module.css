@@ -1,0 +1,86 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  min-height: var(--size-button);
+  padding: 0 var(--space-16);
+  border: var(--stroke-1-5) solid var(--line);
+  background: transparent;
+  color: var(--line);
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-button-default-size);
+  line-height: var(--text-button-default-line);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-slow) var(--ease-symmetric),
+    border-color var(--duration-slow) var(--ease-symmetric),
+    color var(--duration-slow) var(--ease-symmetric),
+    filter var(--duration-fast) var(--ease-standard);
+}
+
+.root :global(.num) {
+  font-family: var(--text-number-s-family);
+}
+
+.outline:not(:disabled, [aria-disabled="true"]):hover,
+.outline:not(:disabled, [aria-disabled="true"]):focus-visible {
+  background: var(--line);
+  color: var(--sheet);
+}
+
+.fill {
+  background: var(--line);
+  color: var(--sheet);
+}
+
+.fill:not(:disabled, [aria-disabled="true"]):hover,
+.fill:not(:disabled, [aria-disabled="true"]):focus-visible {
+  background: var(--heat);
+  border-color: var(--heat);
+  color: var(--on-heat);
+}
+
+.heat {
+  background: var(--heat);
+  border-color: var(--heat);
+  color: var(--on-heat);
+}
+
+.heat:hover {
+  filter: brightness(1.12);
+}
+
+.root:active {
+  transform: translateY(var(--stroke-1));
+  filter: brightness(0.9);
+}
+
+.root:disabled,
+.root[aria-disabled="true"] {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+.root[data-loading] {
+  cursor: progress;
+}
+
+.spinner {
+  flex-shrink: 0;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  border: var(--stroke-2) solid currentColor;
+  border-top-color: transparent;
+  border-radius: 100%;
+  animation: spin var(--duration-slow) linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

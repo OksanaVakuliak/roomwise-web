@@ -1,0 +1,123 @@
+'use client';
+
+import {
+  type ChangeEvent,
+  type ComponentProps,
+  type DragEvent,
+  type MouseEvent,
+  useCallback,
+  useState,
+} from 'react';
+import { mergeControl } from '@/lib/form';
+import { FormField } from '../FormField/FormField';
+import { Icon } from '../Icon/Icon';
+import styles from './FileField.module.css';
+
+export type FileFieldProps = Omit<
+  ComponentProps<'input'>,
+  'children' | 'type' | 'value' | 'defaultValue'
+> & {
+  label: string;
+  buttonLabel: string;
+  emptyLabel: string;
+  fileName?: string;
+  hint?: string;
+  error?: string;
+  loading?: boolean;
+  loadingLabel?: string;
+};
+
+export function FileField({
+  label,
+  buttonLabel,
+  emptyLabel,
+  fileName,
+  hint,
+  error,
+  loading,
+  loadingLabel,
+  required,
+  id,
+  className,
+  disabled,
+  onChange,
+  onClick,
+  ...rest
+}: FileFieldProps) {
+  const [chosen, setChosen] = useState('');
+  const name = fileName ?? chosen;
+
+  const handleChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      if (loading) {
+        event.target.value = '';
+        return;
+      }
+      setChosen(
+        Array.from(event.target.files ?? [], (file) => file.name).join(', '),
+      );
+      onChange?.(event);
+    },
+    [loading, onChange],
+  );
+
+  const blockWhileLoading = useCallback(
+    (event: DragEvent<HTMLInputElement>) => {
+      if (loading) {
+        event.preventDefault();
+      }
+    },
+    [loading],
+  );
+
+  const handleClick = useCallback(
+    (event: MouseEvent<HTMLInputElement>) => {
+      if (loading) {
+        event.preventDefault();
+      }
+      onClick?.(event);
+    },
+    [loading, onClick],
+  );
+
+  return (
+    <FormField
+      id={id}
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      loading={loading}
+      loadingLabel={loadingLabel}
+      className={className}
+    >
+      {(control) => (
+        <span className={styles.root}>
+          <input
+            {...rest}
+            {...mergeControl(control, rest)}
+            type="file"
+            disabled={disabled}
+            aria-disabled={loading ? true : undefined}
+            onClick={handleClick}
+            className={styles.input}
+            onChange={handleChange}
+            onDragOver={blockWhileLoading}
+            onDrop={blockWhileLoading}
+          />
+          <span
+            className={styles.face}
+            data-invalid={error ? true : undefined}
+            data-busy={loading ? true : undefined}
+          >
+            <span className={styles.button}>
+              <Icon name="upload" />
+              {buttonLabel}
+            </span>
+            <span className={styles.name}>{name || emptyLabel}</span>
+          </span>
+        </span>
+      )}
+    </FormField>
+  );
+}

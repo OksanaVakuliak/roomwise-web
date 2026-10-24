@@ -1,0 +1,133 @@
+.root {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--spec-pos-width) var(--spec-image) minmax(0, 1fr) auto;
+  gap: var(--space-10);
+  align-items: start;
+  width: 100%;
+  min-height: var(--size-target);
+  padding: var(--space-12) 0;
+  border: 0;
+  border-bottom: var(--stroke-1) solid var(--hair);
+  background: transparent;
+  color: var(--line);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile {
+  --bar-offset: var(--spec-bar-offset-mobile);
+}
+
+.desktop {
+  --bar-offset: var(--spec-bar-offset-desktop);
+}
+
+.bar {
+  position: absolute;
+  left: var(--bar-offset);
+  top: var(--space-10);
+  bottom: var(--space-10);
+  width: var(--spec-bar-width);
+  background: var(--line);
+}
+
+.position {
+  padding-top: var(--space-3);
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+  font-size: var(--text-body-default-size);
+  color: var(--line-2);
+}
+
+.on .position {
+  color: var(--line);
+}
+
+.image {
+  display: block;
+  width: var(--spec-image);
+  height: var(--spec-image);
+  overflow: hidden;
+  border: var(--stroke-1-2) solid var(--line);
+}
+
+.image > * {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.body {
+  display: block;
+  min-width: 0;
+}
+
+.name {
+  display: block;
+  overflow-wrap: anywhere;
+  font-family: var(--text-body-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-body-default-size);
+  line-height: 1.2;
+}
+
+.details {
+  display: block;
+  margin-top: var(--space-3);
+  overflow-wrap: anywhere;
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-s-size);
+  line-height: 1.3;
+  color: var(--line-2);
+}
+
+.details > span {
+  display: block;
+}
+
+.desktop .details > span {
+  display: inline;
+}
+
+.desktop .brand::after {
+  content: ". ";
+}
+
+.fit {
+  display: block;
+  margin-top: var(--space-4);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-caption-default-size);
+}
+
+.ok {
+  color: var(--line);
+}
+
+.no {
+  color: var(--heat);
+}
+
+.picked {
+  display: block;
+  margin-top: var(--space-5);
+}
+
+.price {
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+  font-size: var(--spec-price-size);
+  line-height: 1.2;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.unit {
+  display: block;
+  font-family: var(--text-body-default-family);
+  font-weight: var(--text-body-default-weight);
+  font-size: var(--text-caption-s-size);
+  color: var(--line-2);
+}

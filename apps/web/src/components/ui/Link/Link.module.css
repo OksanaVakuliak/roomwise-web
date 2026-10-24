@@ -1,0 +1,17 @@
+.root {
+  color: var(--line);
+  font-weight: var(--text-button-default-weight);
+  text-decoration: underline;
+  text-decoration-thickness: var(--stroke-1-5);
+  text-underline-offset: var(--space-4);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.root:hover {
+  color: var(--heat);
+}
+
+.root:active {
+  color: var(--line-2);
+}

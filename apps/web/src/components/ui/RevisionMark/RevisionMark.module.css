@@ -1,0 +1,26 @@
+.root {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: var(--stroke-1-6) solid var(--heat);
+  border-radius: 50%;
+  background: var(--sheet);
+  color: var(--heat);
+  font-family: var(--text-number-s-family);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mobile {
+  width: var(--rev-size-mobile);
+  height: var(--rev-size-mobile);
+  font-size: var(--rev-font-mobile);
+}
+
+.desktop {
+  width: var(--rev-size-desktop);
+  height: var(--rev-size-desktop);
+  font-size: var(--rev-font-desktop);
+}

@@ -1,0 +1,12 @@
+{
+  "en": {
+    "title": "Something went wrong",
+    "message": "Please reload the page.",
+    "reload": "Reload"
+  },
+  "uk": {
+    "title": "Щось пішло не так",
+    "message": "Будь ласка, перезавантажте сторінку.",
+    "reload": "Перезавантажити"
+  }
+}

@@ -1,0 +1,15 @@
+.root {
+  position: fixed;
+  inset-inline: var(--space-10);
+  bottom: var(--space-10);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-10);
+  pointer-events: none;
+}
+
+.root > * {
+  pointer-events: auto;
+}

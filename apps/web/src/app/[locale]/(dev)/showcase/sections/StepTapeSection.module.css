@@ -1,0 +1,38 @@
+.desktopRule {
+  width: 90rem;
+}
+
+.mobileRule {
+  width: 24.375rem;
+  max-width: 100%;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.cellNarrow {
+  width: 4.375rem;
+}
+
+.cellMobile {
+  width: 9.375rem;
+}
+
+.cellDesktop {
+  width: 10.625rem;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+}

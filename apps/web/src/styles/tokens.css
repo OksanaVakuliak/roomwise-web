@@ -1,0 +1,199 @@
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --sheet: #e4e9e6;
+  --paper: #eef2ef;
+  --line: #1d2a31;
+  --line-2: #4f5d64;
+  --hair: rgba(29, 42, 49, 0.26);
+  --concrete: #8e979b;
+  --heat: #b32d23;
+  --glue: #8a7746;
+  --wood: #b98a4e;
+  --paint: #d9d4c7;
+  --paint-2: #cbc5b6;
+  --fill-a: rgba(29, 42, 49, 0.06);
+  --tape: #f2c200;
+  --tape-ink: #1d2a31;
+  --pencil: #46525a;
+  --on-heat: #fff;
+  --backdrop: rgba(29, 42, 49, 0.55);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --sheet: #123049;
+  --paper: #173c5a;
+  --line: #d8e6ee;
+  --line-2: #a3c0d0;
+  --hair: rgba(216, 230, 238, 0.28);
+  --concrete: #6f93aa;
+  --heat: #ff7a6b;
+  --glue: #d2be84;
+  --wood: #d9a868;
+  --paint: #bcc3c4;
+  --paint-2: #a9b1b3;
+  --fill-a: rgba(216, 230, 238, 0.07);
+  --tape: #f2c200;
+  --tape-ink: #10202c;
+  --pencil: #cfe0e8;
+  --on-heat: #10202c;
+  --backdrop: rgba(5, 16, 26, 0.65);
+}
+
+:root {
+  --ui-scale: tan(atan2(1rem, 16px));
+
+  --space-3: 0.1875rem;
+  --space-4: 0.25rem;
+  --space-5: 0.3125rem;
+  --space-6: 0.375rem;
+  --space-8: 0.5rem;
+  --space-9: 0.5625rem;
+  --space-10: 0.625rem;
+  --space-12: 0.75rem;
+  --space-14: 0.875rem;
+  --space-16: 1rem;
+  --space-18: 1.125rem;
+  --space-22: 1.375rem;
+  --space-24: 1.5rem;
+  --space-28: 1.75rem;
+
+  --stroke-1: 0.0625rem;
+  --stroke-1-2: 0.075rem;
+  --stroke-1-5: 0.09375rem;
+  --stroke-1-7: 0.10625rem;
+  --stroke-1-6: 0.1rem;
+  --stroke-2: 0.125rem;
+
+  --icon-sm: 0.875rem;
+  --icon-md: 1.0625rem;
+  --icon-lg: 1.5rem;
+
+  --size-target: 2.75rem;
+  --size-button: 2.875rem;
+  --size-toggle-width: 3.5rem;
+  --size-toggle-height: 2rem;
+  --size-toggle-knob: 1.4375rem;
+  --size-scrollbar: 0.75rem;
+  --pref-height: 2.5rem;
+  --pref-min-width: 2.75rem;
+
+  --focus-ring-width: 0.1875rem;
+  --focus-ring-offset: 0.125rem;
+  --opacity-disabled: 0.45;
+
+  --text-label-size: 0.875rem;
+  --text-tab-size: 0.875rem;
+  --text-number-meta-size: 1.0625rem;
+  --text-cutmark-size: 1rem;
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+  --ease-symmetric: cubic-bezier(0.45, 0, 0.55, 1);
+
+  --tape-height-mobile: 3.625rem;
+  --tape-height-desktop: 4rem;
+  --tape-step-gap: 0.3125rem;
+  --tape-step-pad-bottom: 0.4375rem;
+  --tape-step-inset-mobile: 0.625rem;
+  --tape-step-inset-desktop: 1rem;
+  --tape-label-size-mobile: 0.875rem;
+  --tape-label-size-desktop: 1.0625rem;
+  --tape-number-size-desktop: 1.625rem;
+  --tape-pointer-width: 1rem;
+  --tape-pointer-height: 0.6875rem;
+  --tape-pointer-left: 0.25rem;
+  --tape-pointer-bottom-mobile: 2rem;
+  --tape-pointer-bottom-desktop: 2.375rem;
+  --tape-step-grow-now: 2.6;
+  --tape-opacity-done: 0.72;
+  --tape-opacity-later: 0.55;
+
+  --cut-block-mobile: 3.875rem;
+  --cut-block-desktop: 10.625rem;
+  --cut-leader-mobile: 0.75rem;
+  --cut-leader-desktop: 1.875rem;
+  --cut-name-mobile: 0.875rem;
+  --cut-name-desktop: 1rem;
+  --cut-note-mobile: 0.78125rem;
+  --cut-note-desktop: 0.875rem;
+  --cut-price-mobile: 0.9375rem;
+  --cut-price-desktop: 1.1875rem;
+  --cut-cloud-start: -0.4375rem;
+  --cut-cloud-end: -0.3125rem;
+  --cut-cloud-block: -0.25rem;
+
+  --rev-size-mobile: 1.5rem;
+  --rev-size-desktop: 1.75rem;
+  --rev-font-mobile: 0.8125rem;
+  --rev-font-desktop: 0.9375rem;
+  --rev-left-mobile: -0.9375rem;
+  --rev-top-mobile: -1.0625rem;
+  --rev-left-desktop: -1.125rem;
+  --rev-top-desktop: -1.25rem;
+
+  --remark-indent-mobile: 2.125rem;
+  --remark-indent-desktop: 2.5rem;
+  --remark-text-desktop: 1rem;
+  --remark-hand-mobile: 1.4375rem;
+  --remark-measure: 60ch;
+  --remark-arrow-width: 2.5rem;
+  --remark-arrow-height: 2.125rem;
+
+  --spec-pos-width: 2.125rem;
+  --spec-image: 4rem;
+  --spec-bar-width: 0.3125rem;
+  --spec-bar-offset-mobile: -1rem;
+  --spec-bar-offset-desktop: -1.5rem;
+  --spec-price-size: 1rem;
+
+  --plan-scale-mobile: 0.625rem;
+  --plan-scale-desktop: 0.9375rem;
+
+  --bar-stack-height: 1.375rem;
+  --bar-track-height: 1.125rem;
+  --bar-tick-pitch: 0.4875rem;
+  --bar-tick-height: 0.375rem;
+  --bar-label-width: 5.375rem;
+  --bar-value-width: 5.25rem;
+  --result-position-width: 1.875rem;
+
+  --skeleton-line-height: 0.875rem;
+  --skeleton-block-height: 6rem;
+  --skeleton-circle-size: 2.75rem;
+  --skeleton-duration: 1400ms;
+  --progress-height: 0.75rem;
+  --progress-duration: 1200ms;
+  --banner-bar: 0.375rem;
+  --empty-icon-box: 3.5rem;
+  --warmup-progress-width: 16rem;
+  --empty-measure: 44ch;
+  --table-min-width: 30rem;
+
+  --breakpoint-phone-max: 767px;
+  --breakpoint-tablet-max: 1199px;
+
+  --layout-aside-width-tablet: 21.25rem;
+  --stub-scene-height: 15rem;
+  --stub-showcase-height: 22.5rem;
+  --stub-content-height: 10rem;
+
+  --overlay-modal-width: 30rem;
+  --overlay-panel-width: 26.25rem;
+  --overlay-sheet-height: 85dvh;
+  --overlay-tooltip-width: 15rem;
+  --overlay-toast-width: 26.25rem;
+  --overlay-shadow: 0.375rem 0.375rem 0;
+
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-panel: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+}

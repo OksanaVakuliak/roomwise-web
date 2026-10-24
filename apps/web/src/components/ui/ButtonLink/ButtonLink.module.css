@@ -1,0 +1,17 @@
+.root {
+  composes: root from "../Button/Button.module.css";
+  text-decoration: none;
+  text-align: center;
+}
+
+.outline {
+  composes: outline from "../Button/Button.module.css";
+}
+
+.fill {
+  composes: fill from "../Button/Button.module.css";
+}
+
+.heat {
+  composes: heat from "../Button/Button.module.css";
+}

@@ -1,0 +1,138 @@
+@import "./tokens.css";
+@import "./typography.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: max(100%, 1.5625vw);
+  }
+}
+
+body {
+  min-width: 0;
+  background: var(--sheet);
+  color: var(--line);
+  font-family: var(--font-commissioner), sans-serif;
+  font-size: var(--text-body-default-size);
+  line-height: var(--text-body-default-line);
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--line);
+  outline-offset: var(--stroke-2);
+}
+
+button,
+[role="button"],
+select,
+summary,
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: var(--size-target);
+  min-height: var(--size-target);
+}
+
+::-webkit-scrollbar {
+  width: var(--size-scrollbar);
+  height: var(--size-scrollbar);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--sheet);
+}
+
+::-webkit-scrollbar-track:vertical {
+  border-left: var(--stroke-1) solid var(--line-2);
+}
+
+::-webkit-scrollbar-track:horizontal {
+  border-top: var(--stroke-1) solid var(--line-2);
+}
+
+::-webkit-scrollbar-thumb {
+  border: var(--stroke-2) solid var(--sheet);
+  border-radius: 0;
+  background-color: var(--heat);
+}
+
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--line);
+}
+
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-corner {
+  background: var(--sheet);
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-color: var(--heat) var(--sheet);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

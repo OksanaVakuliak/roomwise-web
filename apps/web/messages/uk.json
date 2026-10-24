@@ -1,0 +1,706 @@
+{
+  "Metadata": {
+    "title": "Roomwise",
+    "description": "Конфігуратор вартості ремонту Roomwise"
+  },
+  "Home": {
+    "title": "Сплануйте ремонт і побачте ціну",
+    "intro": "Roomwise перетворює вашу квартиру на кресленик із цінами. Обирайте матеріали крок за кроком і дивіться, як росте кошторис.",
+    "stepsTitle": "Як це працює",
+    "start": "Почати розрахунок",
+    "steps": {
+      "object": {
+        "code": "А1",
+        "name": "Об'єкт",
+        "text": "Кімнати, розміри й базові роботи."
+      },
+      "style": {
+        "code": "А2",
+        "name": "Стиль",
+        "text": "Вигляд усієї квартири."
+      },
+      "interior": {
+        "code": "А3",
+        "name": "Інтер'єр",
+        "text": "Оздоблення й обладнання для кожної кімнати."
+      },
+      "engineering": {
+        "code": "А4",
+        "name": "Інженерія",
+        "text": "Електрика, сантехніка й опалення."
+      },
+      "estimate": {
+        "code": "А5",
+        "name": "Кошторис",
+        "text": "Повна вартість із розбивкою за позиціями."
+      }
+    }
+  },
+  "NotFound": {
+    "title": "Сторінку не знайдено",
+    "message": "Сторінки, яку ви шукаєте, не існує.",
+    "home": "На головну"
+  },
+  "Showcase": {
+    "title": "Вітрина компонентів",
+    "navLabel": "Розділи вітрини",
+    "empty": "Тут поки нічого немає",
+    "toolbar": {
+      "language": "Мова",
+      "currency": "Валюта",
+      "theme": "Тема",
+      "locales": {
+        "en": "Англійська",
+        "uk": "Українська"
+      },
+      "themes": {
+        "system": "Системна",
+        "light": "Світла",
+        "dark": "Темна"
+      }
+    },
+    "sections": {
+      "colors": "Кольори",
+      "typography": "Типографіка",
+      "spacing": "Відступи",
+      "icons": "Іконки",
+      "header": "Шапка",
+      "stepTape": "Стрічка кроків",
+      "actions": "Дії та перемикачі",
+      "roomPlan": "План кімнати",
+      "sectionCut": "Розріз",
+      "specification": "Специфікація",
+      "estimate": "Кошторис",
+      "formFields": "Поля форм",
+      "overlays": "Накладки",
+      "dataDisplay": "Відображення даних",
+      "systemStates": "Стани системи"
+    },
+    "desktopFrame": "Десктопний варіант: {name}, прокручується"
+  },
+  "ShowcaseTokens": {
+    "themes": {
+      "light": "Світла тема",
+      "dark": "Темна тема"
+    },
+    "colors": {
+      "palette": "Палітра",
+      "contrast": "Контраст (WCAG)",
+      "pair": "Текст / тло",
+      "use": "Призначення",
+      "ratio": "Коефіцієнт",
+      "verdict": "Висновок",
+      "kinds": {
+        "text": "Текст",
+        "large": "Великий текст",
+        "non-text": "Не текст"
+      },
+      "verdicts": {
+        "aa": "AA",
+        "aaLarge": "AA великий",
+        "fail": "Не проходить"
+      },
+      "roles": {
+        "sheet": "Тло сторінки",
+        "paper": "Піднесена поверхня",
+        "line": "Основний текст і лінії",
+        "line-2": "Другорядний текст і лінії",
+        "hair": "Тонкі розділювачі",
+        "concrete": "Нейтральна конструкція",
+        "heat": "Акцент і виділення",
+        "glue": "Матеріал: клей",
+        "wood": "Матеріал: дерево",
+        "paint": "Матеріал: фарба",
+        "paint-2": "Матеріал: фарба, альтернативний",
+        "fill-a": "Ледь помітна заливка",
+        "tape": "Стрічка кроків",
+        "tape-ink": "Текст на стрічці",
+        "pencil": "Ескізні позначки",
+        "on-heat": "Текст на акценті"
+      }
+    },
+    "typography": {
+      "sample": "Кошторис ремонту"
+    },
+    "spacing": {
+      "title": "Відступи"
+    },
+    "strokes": {
+      "title": "Товщини ліній"
+    },
+    "motion": {
+      "title": "Тривалості руху",
+      "easing": "Криві прискорення"
+    },
+    "icons": {
+      "sizes": "Кожна іконка малого, середнього й великого розміру"
+    }
+  },
+  "ShowcaseHeader": {
+    "brandHeading": "Brand",
+    "brandMobile": "size=mobile",
+    "brandDesktop": "size=desktop",
+    "brandName": "Roomwise",
+    "brandCaption": "кресленик ремонту з цінами",
+    "prefHeading": "PrefSwitch",
+    "prefThree": "items=3",
+    "prefTwo": "items=2",
+    "prefSelected": "Вибраний елемент",
+    "prefInteractive": "Інтерактивний приклад",
+    "prefGroup": "Налаштування",
+    "prefTheme": "Тема",
+    "prefLanguage": "Мова",
+    "prefCurrency": "Валюта",
+    "prefLangValue": "EN",
+    "prefLangAlt": "UK"
+  },
+  "ShowcaseStepTape": {
+    "ruleHeading": "Рулетка",
+    "ruleMobile": "Мобільна, 58px",
+    "ruleDesktop": "Десктопна, 64px (на вузьких екранах прокручується горизонтально)",
+    "ruleScrollLabel": "Перегляд десктопної рулетки",
+    "stepHeading": "Крок рулетки",
+    "stepHint": "Рядки: пройдено, поточний, попереду. Стовпці: з підписом і без.",
+    "sizeMobile": "Мобільний",
+    "sizeDesktop": "Десктопний",
+    "withLabel": "З підписом",
+    "withoutLabel": "Без підпису",
+    "stateDone": "пройдено",
+    "stateNow": "поточний",
+    "stateLater": "попереду",
+    "fullHeading": "Повна рулетка",
+    "fullHint": "Пройдені й поточний кроки — кнопки; наступні не інтерактивні.",
+    "tapeLabel": "Кроки конфігуратора",
+    "next": "Наступний крок",
+    "back": "Скинути",
+    "number1": "А1",
+    "number2": "А2",
+    "number3": "А3",
+    "number4": "А4",
+    "number5": "А5",
+    "step1": "Об'єкт",
+    "step2": "Стиль",
+    "step3": "Інтер'єр",
+    "step4": "Інженерія",
+    "step5": "Кошторис"
+  },
+  "ShowcaseActions": {
+    "buttonsTitle": "Button",
+    "outline": "Аркуш А2",
+    "fill": "Далі: А4 інженерія",
+    "heat": "Видалити позицію",
+    "price": "+$89,04",
+    "disabled": "Вимкнена",
+    "loading": "Завантаження",
+    "loadingLabel": "Збереження",
+    "stateNote": "Стани наведення, натискання і фокуса живі: скористайтесь мишею або клавіатурою.",
+    "iconButtonTitle": "IconButton",
+    "iconClose": "Закрити",
+    "iconAdd": "Додати",
+    "iconEdit": "Редагувати",
+    "iconDisabled": "Видалити (недоступно)",
+    "linkTitle": "Link",
+    "link": "Відкрити кошторис",
+    "toggleTitle": "Toggle",
+    "toggleOn": "Тепла підлога увімкнена",
+    "toggleOff": "Тепла підлога вимкнена",
+    "switchRowTitle": "SwitchRow",
+    "rowTitle": "Тепла підлога в спальні",
+    "rowDescription": "Увімкнена: у розрізі додаються кабель і клей",
+    "tabsTitle": "Tabs",
+    "tabsMobile": "Мобільний розмір",
+    "tabsDesktop": "Десктопний розмір",
+    "tabsLabel": "Розділи специфікації",
+    "walls": "Стіни",
+    "floor": "Підлога",
+    "ceiling": "Стеля",
+    "wallsPanel": "Оздоблення стін",
+    "floorPanel": "Покриття підлоги",
+    "ceilingPanel": "Оздоблення стелі"
+  },
+  "ShowcaseRoomPlan": {
+    "plansHeading": "RoomPlan",
+    "plansMobile": "Мобільний: звичайний і поточний",
+    "plansDesktop": "Десктоп: звичайний і поточний",
+    "titleHeading": "SheetTitle",
+    "titleMobile": "Мобільний",
+    "titleDesktop": "Десктоп",
+    "sceneHeading": "RoomScene",
+    "sceneMobile": "Мобільний",
+    "sceneDesktop": "Десктоп",
+    "livingRoom": "Вітальня",
+    "bedroom": "Спальня",
+    "planDetailsMobile": "{length, number} × {width, number}",
+    "planDetailsDesktop": "{length, number} × {width, number} м",
+    "planNameDesktop": "{name}, {area}",
+    "wallsMobile": "стіни {walls}",
+    "wallsDesktop": "стіни {walls}, периметр {perimeter}",
+    "cutLabel": "А",
+    "sceneDescription": "{name} {length} на {width}, висота {height}, лінія розрізу А–А через підлогу"
+  },
+  "ShowcaseOverlays": {
+    "modalTitle": "Модальне вікно",
+    "modalButton": "Відкрити вікно",
+    "modalHeading": "Підтвердьте кошторис",
+    "modalBody": "Фокус лишається всередині вікна, доки воно не закриється. Закрити можна клавішею Escape або кліком по тлу.",
+    "sheetButton": "Відкрити нижню панель",
+    "sheetHeading": "Оберіть оздоблення",
+    "sheetBody": "Панель, що висувається знизу на вузьких екранах.",
+    "panelButton": "Відкрити бічну панель",
+    "panelHeading": "Деталі кімнати",
+    "panelBody": "Панель, що висувається збоку на широких екранах.",
+    "closeLabel": "Закрити вікно",
+    "confirm": "Застосувати вибір",
+    "tooltipTitle": "Підказка",
+    "tooltipButton": "Наведіть або сфокусуйте",
+    "tooltipContent": "У ціну входять матеріали та робота",
+    "toastTitle": "Сповіщення",
+    "toastInfo": "Показати інформаційне",
+    "toastSuccess": "Показати успішне",
+    "toastError": "Показати помилку",
+    "toastInfoText": "Чернетку збережено на цьому пристрої",
+    "toastSuccessText": "Розрахунок збережено",
+    "toastErrorText": "Не вдалося зберегти кошторис",
+    "dismissLabel": "Закрити сповіщення"
+  },
+  "ShowcaseSpecification": {
+    "mobile": "Телефон",
+    "desktop": "Десктоп",
+    "sectionHeader": "Заголовок розділу",
+    "sectionHeaderFrame": "Заголовок розділу, {size}",
+    "headerTitleOn": "Розріз А–А, підлога",
+    "headerTitleOff": "Матеріали",
+    "headerTitleAmount": "Спальня",
+    "headerNote": "товщини збільшено",
+    "pickedBadge": "Бейдж «обрано»",
+    "picked": "обрано",
+    "price": "Ціна",
+    "priceUsd": "USD",
+    "priceUah": "UAH за зразковим курсом",
+    "priceOldUsd": "USD зі старою ціною",
+    "priceOldUah": "UAH зі старою ціною",
+    "oldPrice": "Стара ціна",
+    "currentPrice": "Поточна ціна",
+    "specItem": "Позиція специфікації",
+    "specItemNote": "Натисніть позицію, щоб обрати або зняти вибір. На телефоні ціни в USD, на десктопі в UAH.",
+    "specItemFrame": "Позиція специфікації, {size}",
+    "fitOk": "можна над кабелем",
+    "fitNo": "не над кабелем",
+    "perSquare": "за м²",
+    "items": {
+      "oak": {
+        "name": "Ламінат «Дуб Карпатський»",
+        "brand": "Ліс і Ко, Kronowerk",
+        "dimensions": "1380 × 193 × 8, медовий дуб"
+      },
+      "ash": {
+        "name": "Паркетна дошка «Ясен білий»",
+        "brand": "Timberline, Holzhaus",
+        "dimensions": "1100 × 138 × 14, білений ясен"
+      },
+      "pine": {
+        "name": "Кварцвініл «Сосна Полісся»",
+        "brand": "Vinilux, Tarkoform",
+        "dimensions": "1220 × 180 × 5, туманно-сірий"
+      },
+      "graphite": {
+        "name": "Плитка «Бетон графіт»",
+        "brand": "Kerama Nova, Азовкераміка",
+        "dimensions": "600 × 600 × 9, графіт"
+      }
+    },
+    "styleCard": "Картка стилю",
+    "styles": {
+      "scandinavian": {
+        "name": "Скандинавський",
+        "description": "світле дерево, білі стіни"
+      },
+      "loft": {
+        "name": "Лофт",
+        "description": "бетон, цегла, чорний метал"
+      },
+      "classic": {
+        "name": "Класичний",
+        "description": "тепле дерево, ліпнина"
+      }
+    }
+  },
+  "ShowcaseFormFields": {
+    "note": "Кожне поле показано у станах: типовий, заповнений, помилка, вимкнений і завантаження. Усі приймають нативні пропси й працюють керованими та некерованими.",
+    "mobile": "Мобільний розмір",
+    "desktop": "Десктопний розмір",
+    "states": {
+      "default": "Типовий",
+      "filled": "Заповнений",
+      "error": "Помилка",
+      "disabled": "Вимкнений",
+      "loading": "Завантаження"
+    },
+    "loadingLabel": "Завантаження",
+    "textTitle": "TextField",
+    "name": "Назва кімнати",
+    "nameHint": "Показується на плані поверху",
+    "namePlaceholder": "Наприклад, вітальня",
+    "nameValue": "Головна спальня",
+    "nameError": "Введіть назву кімнати",
+    "numberTitle": "NumberField",
+    "area": "Площа підлоги",
+    "areaUnit": "м²",
+    "areaHint": "Вимірюється по стінах",
+    "areaError": "Площа має бути більшою за нуль",
+    "stepperTitle": "Stepper",
+    "rooms": "Кількість кімнат",
+    "decrease": "Зменшити кількість кімнат",
+    "increase": "Збільшити кількість кімнат",
+    "roomsHint": "Від однієї до п'яти",
+    "roomsError": "Потрібна принаймні одна кімната",
+    "selectTitle": "Select",
+    "floor": "Покриття підлоги",
+    "floorPlaceholder": "Оберіть покриття",
+    "floorHint": "Можна змінити пізніше",
+    "floorError": "Оберіть покриття підлоги",
+    "tile": "Керамограніт",
+    "wood": "Інженерна дошка",
+    "laminate": "Ламінат",
+    "checkboxTitle": "Checkbox",
+    "heated": "Тепла підлога",
+    "heatedHint": "У розрізі додаються кабель і клей",
+    "heatedError": "Підтвердьте вибір обігріву",
+    "radioTitle": "RadioCard",
+    "style": "Стиль інтер'єру",
+    "styleHint": "Оберіть один",
+    "styleError": "Оберіть стиль, щоб продовжити",
+    "loft": "Лофт",
+    "loftNote": "Сирий бетон і сталь",
+    "classic": "Класика",
+    "classicNote": "Тепле дерево й штукатурка",
+    "fileTitle": "FileField",
+    "plan": "План поверху",
+    "planHint": "PDF або зображення до 10 МБ",
+    "planButton": "Обрати файл",
+    "planEmpty": "Файл не обрано",
+    "planName": "plan-spalni.pdf",
+    "planError": "Файл завеликий",
+    "planUploading": "Завантаження файлу"
+  },
+  "ShowcaseSectionCut": {
+    "hatches": "Матеріали штрихування",
+    "material": {
+      "wood": "дерево",
+      "glue": "клей",
+      "cable": "кабель",
+      "screed": "стяжка",
+      "concrete": "бетон"
+    },
+    "layers": "Шар розрізу за видом і позицією",
+    "mobile": "Мобільний",
+    "desktop": "Десктоп",
+    "kindProblem": "Проблемний шар",
+    "kindNew": "Новий шар",
+    "kindIncluded": "Вже входить",
+    "first": "перший",
+    "rest": "решта",
+    "cut": "Розріз підлоги",
+    "cutLabel": "Шари підлоги",
+    "thickness": "66 мм до плити",
+    "revision": "Позначка примітки",
+    "revisionLabel": "Примітка {number}",
+    "remark": "Примітка виконроба",
+    "laminate": "Ламінат «Дуб Карпатський», 8 мм",
+    "laminateNote": "15,9 м² разом із запасом 5%",
+    "glue": "Клей для теплої підлоги, 2 мм",
+    "glueNote": "новий шар замість підкладки",
+    "cable": "Кабель 150 Вт/м²",
+    "cableNote": "новий шар на 12 м², під шафою не кладу",
+    "screed": "Стяжка, 50 мм",
+    "screedNote": "входить у базові роботи",
+    "screedPrice": "у базі",
+    "slab": "Плита перекриття",
+    "slabNote": "вже є, не рахую",
+    "remarkTitle": "Примітка 1.",
+    "remarkText": "Ламінат над кабелем розсохнеться за перший опалювальний сезон. Потрібне покриття з позначкою «можна над кабелем».",
+    "remarkHand": "я б поклав кварцвініл 1.2 — кабелю не боїться",
+    "remarkAction": "Замінити на 1.2"
+  },
+  "ShowcaseEstimate": {
+    "mobile": "Мобільний",
+    "desktop": "Десктоп",
+    "currencyUsd": "USD",
+    "currencyUah": "UAH, курс 41,5",
+    "stackBarTitle": "Смугастий індикатор",
+    "stackBarLabel": "Розподіл кошторису: база 51%, матеріали 37%, інженерія 9%, опції 3%",
+    "costBarTitle": "Рядок розподілу",
+    "stampTitle": "Штамп-кошторис",
+    "stampDesktop": "Штамп-кошторис, десктоп",
+    "stampExpanded": "Штамп-кошторис, розгорнутий на телефоні",
+    "stampUah": "Штамп-кошторис, гривня",
+    "stampUahDesktop": "Штамп-кошторис, гривня, десктоп",
+    "totalLabel": "Разом за кресленням",
+    "toggleLabel": "Показати розбивку",
+    "announcement": "Сума тепер {total}",
+    "base": "База, 58 м²",
+    "materials": "Матеріали",
+    "engineering": "Інженерія",
+    "options": "Опції",
+    "back": "Аркуш А2",
+    "next": "Далі: А4 інженерія",
+    "changeTotal": "Змінити суму",
+    "changeNote": "Зміна суми озвучується для скрінрідерів; перший показ мовчить.",
+    "resultRowTitle": "Рядок результату",
+    "rowDefaultTitle": "Кварцвініл «Сосна Полісся»",
+    "rowDefaultNote": "підлога, 15,9 м²",
+    "rowNewTitle": "Клей для теплої підлоги",
+    "rowNewNote": "підлога, новий шар",
+    "keyValueTitle": "Сітка «ключ — значення»",
+    "type": "Тип",
+    "typeValue": "Квартира",
+    "area": "Площа",
+    "areaValue": "58 м²",
+    "condition": "Стан",
+    "conditionValue": "Передчистове",
+    "ceiling": "Стеля",
+    "ceilingValue": "2,7 м"
+  },
+  "ShowcaseDataDisplay": {
+    "mobile": "Мобільний",
+    "desktop": "Десктоп",
+    "skeletonTitle": "Скелетон",
+    "skeletonNote": "Заглушка у формі майбутнього вмісту; контейнер позначено зайнятим, а мерехтіння вимикається за зменшеного руху.",
+    "progressTitle": "Прогрес",
+    "progress": {
+      "determinate": "Завантаження креслення",
+      "valueText": "Завантажено 40 відсотків",
+      "complete": "Кошторис пораховано",
+      "indeterminate": "Прокидаємо сервер"
+    },
+    "emptyTitle": "Порожній стан",
+    "empty": {
+      "title": "Кімнат ще немає",
+      "text": "Додайте першу кімнату, щоб побачити вартість і 3D-перегляд.",
+      "action": "Додати кімнату",
+      "plainTitle": "Нічого не знайдено"
+    },
+    "bannerTitle": "Банер",
+    "banner": {
+      "infoTitle": "Чернетку збережено",
+      "infoText": "Ваш вибір зберігається на цьому пристрої.",
+      "warningTitle": "Ціни змінилися",
+      "warningText": "Каталог оновили після цього розрахунку.",
+      "errorTitle": "Сервер недоступний",
+      "errorText": "Не вдалося завантажити каталог. Спробуйте за хвилину.",
+      "successTitle": "Розрахунок збережено",
+      "successText": "Посилання на розрахунок готове, ним можна ділитися.",
+      "action": "Перерахувати",
+      "dismissibleText": "Порада: торкніться шару в розрізі, щоб змінити матеріал.",
+      "dismiss": "Закрити пораду",
+      "restore": "Показати пораду знову"
+    },
+    "imageTitle": "Зображення із запасним варіантом",
+    "imageNote": "Коробка зберігає розмір, коли зображення зламане або його немає.",
+    "image": {
+      "loaded": "Ламінат «Дуб»",
+      "loadedCaption": "Зображення завантажене",
+      "broken": "Плитка «Графіт»",
+      "brokenCaption": "Зображення не завантажилось",
+      "missing": "Паркет «Ясен»",
+      "missingCaption": "Джерела зображення немає"
+    },
+    "tableTitle": "Таблиця даних",
+    "tableEmpty": "Таблиця даних без рядків",
+    "table": {
+      "caption": "Матеріали для підлоги",
+      "captionEmpty": "Матеріали для стін",
+      "captionDesktop": "Матеріали для стелі",
+      "position": "№",
+      "name": "Матеріал",
+      "unit": "Одиниця",
+      "perSquare": "за м²",
+      "price": "Ціна, USD",
+      "names": {
+        "laminate": "Ламінат «Дуб»",
+        "vinyl": "Кварцвініл",
+        "tile": "Плитка «Графіт»"
+      },
+      "emptyTitle": "Матеріалів немає",
+      "emptyText": "Для цієї поверхні поки нічого немає."
+    }
+  },
+  "Errors": {
+    "VALIDATION_FAILED": "Перевірте введені дані",
+    "UNAUTHENTICATED": "Потрібно увійти",
+    "INVALID_CREDENTIALS": "Невірний логін або пароль",
+    "ACCOUNT_LOCKED": "Обліковий запис тимчасово заблоковано",
+    "DEMO_FORBIDDEN": "Недоступно в демо-режимі",
+    "NOT_FOUND": "Не знайдено",
+    "PRODUCT_UNAVAILABLE": "Товар недоступний",
+    "STALE_REVISION": "Дані застаріли, оновіть сторінку",
+    "PAYLOAD_TOO_LARGE": "Файл завеликий",
+    "TRANSLATION_MISSING": "Не вистачає перекладу",
+    "UNSUPPORTED_IMAGE_TYPE": "Непідтримуваний формат зображення",
+    "IMAGE_STORAGE_FAILED": "Не вдалося зберегти зображення",
+    "CATEGORY_ARCHIVED": "Категорію архівовано",
+    "CATEGORY_IN_USE": "Категорія використовується",
+    "CATEGORY_NOT_FOUND": "Категорію не знайдено",
+    "MATERIAL_TYPE_NOT_FOUND": "Тип матеріалу не знайдено",
+    "IMAGE_NOT_FOUND": "Зображення не знайдено",
+    "CODE_TAKEN": "Такий код уже існує",
+    "ZERO_PRICE_NOT_CONFIRMED": "Підтвердьте нульову ціну",
+    "SURFACE_DATA_MISSING": "Не вистачає даних про поверхню",
+    "PRIMARY_IMAGE_MISSING": "Додайте головне зображення",
+    "PRODUCT_IN_USE": "Товар використовується",
+    "STYLE_SET_MISMATCH": "Набір стилів не збігається",
+    "STYLE_IMAGE_MISSING": "Не вистачає зображення стилю",
+    "PAIR_NOT_IN_ROOM_TYPE": "Ця пара недоступна для типу кімнати",
+    "PRODUCT_CATEGORY_MISMATCH": "Товар не належить до цієї категорії",
+    "PRODUCT_NOT_FOUND": "Товар не знайдено",
+    "PRICE_REQUIRED": "Вкажіть ціну",
+    "QUANTITY_BOUNDS_REQUIRED": "Вкажіть межі кількості",
+    "ROOM_TYPES_NOT_ALLOWED": "Ці типи кімнат не дозволені",
+    "ROOM_TYPE_NOT_FOUND": "Тип кімнати не знайдено",
+    "RATE_LIMITED": "Забагато запитів, спробуйте пізніше",
+    "INTERNAL": "Внутрішня помилка сервера",
+    "FORBIDDEN": "Доступ заборонено",
+    "CONFLICT": "Конфлікт даних",
+    "UNPROCESSABLE": "Запит неможливо обробити",
+    "unknown": "Щось пішло не так",
+    "network": "Немає зв'язку із сервером"
+  },
+  "Layout": {
+    "skipLink": "Перейти до вмісту",
+    "brandName": "Roomwise",
+    "brandCaption": "кресленик ремонту з цінами",
+    "brandLink": "Roomwise, головна сторінка",
+    "prefs": "Налаштування",
+    "language": "Змінити мову на {language}",
+    "currency": "Змінити валюту на {currency}",
+    "theme": "Змінити тему на {theme}",
+    "themeNeutral": "Змінити тему",
+    "currencyNeutral": "Змінити валюту",
+    "languageCodes": {
+      "en": "EN",
+      "uk": "UK"
+    },
+    "languageFullNames": {
+      "en": "English",
+      "uk": "Українська"
+    },
+    "languageNames": {
+      "en": "англійську",
+      "uk": "українську"
+    },
+    "themeNames": {
+      "system": "системну",
+      "light": "світлу",
+      "dark": "темну"
+    },
+    "footer": "Розрахунок орієнтовний і не є пропозицією.",
+    "footerBrand": "© Roomwise"
+  },
+  "ExchangeRate": {
+    "noteNbu": "Курс НБУ: {rate} ₴ за $1 на {date}",
+    "noteManual": "Курс: {rate} ₴ за $1 на {date}",
+    "unavailable": "Курс гривні зараз недоступний, тож суми показано в доларах США.",
+    "dismiss": "Закрити"
+  },
+  "Error": {
+    "title": "Щось пішло не так",
+    "message": "Сталася непередбачена помилка. Спробуйте ще раз або поверніться на головну.",
+    "retry": "Спробувати ще раз",
+    "home": "На головну"
+  },
+  "SystemStates": {
+    "errorTitle": "Не вдалося завантажити дані",
+    "errorMessage": "Щось пішло не так на нашому боці. Чернетка збережена, спробуйте ще раз за мить.",
+    "offlineTitle": "Немає підключення до інтернету",
+    "offlineMessage": "Перевірте з'єднання. Ми спробуємо ще раз, щойно ви знову будете онлайн.",
+    "retry": "Спробувати ще раз",
+    "retrying": "Повторна спроба",
+    "warmupTitle": "Сервер прокидається",
+    "warmupMessage": "Це до хвилини. Зачекайте, введені дані нікуди не зникнуть.",
+    "warmupProgress": "Очікування сервера",
+    "warmupFailedTitle": "Сервер не відповів",
+    "warmupFailedMessage": "Сервер зараз не відповідає. Чернетка збережена, спробуйте ще раз."
+  },
+  "StepLayout": {
+    "steps": "Кроки конфігуратора",
+    "scene": "Вигляд кімнати",
+    "showcase": "Специфікація",
+    "cost": "Кошторис"
+  },
+  "ZoneStub": {
+    "scene": "3D-перегляд кімнати",
+    "showcase": "Вітрина специфікації",
+    "content": "Вміст кроку"
+  },
+  "Configurator": {
+    "title": "Об'єкт",
+    "pageTitle": "Об'єкт. Roomwise",
+    "base": "База",
+    "materials": "Матеріали",
+    "engineering": "Інженерія",
+    "options": "Опції",
+    "back": "Назад",
+    "next": "Далі",
+    "tapeLabel": "Кроки конфігуратора",
+    "state": {
+      "done": "виконано",
+      "now": "поточний",
+      "later": "попереду"
+    },
+    "announcement": "Разом тепер {total}",
+    "barLabel": "Розподіл кошторису: база {base}%, матеріали {materials}%, інженерія {engineering}%, опції {options}%",
+    "totalLabel": "Разом за кресленням",
+    "toggleLabel": "Показати розбивку",
+    "steps": {
+      "1": "Об'єкт",
+      "2": "Стиль",
+      "3": "Інтер'єр",
+      "4": "Інженерія",
+      "5": "Кошторис"
+    }
+  },
+  "ZoneStates": {
+    "loading": {
+      "showcase": "Завантажуємо каталог",
+      "rooms": "Завантажуємо кімнати",
+      "specification": "Завантажуємо специфікацію",
+      "estimate": "Завантажуємо кошторис"
+    },
+    "empty": {
+      "showcase": {
+        "title": "Каталог порожній",
+        "text": "Поки що немає варіантів на вибір. Спробуйте іншу категорію або зазирніть трохи пізніше."
+      },
+      "rooms": {
+        "title": "Кімнат ще немає",
+        "text": "Додайте першу кімнату, щоб почати розрахунок. Інші кімнати можна додати пізніше."
+      },
+      "specification": {
+        "title": "Специфікація порожня",
+        "text": "Позиції з'являться тут, коли ви оберете матеріали й опції на попередніх кроках."
+      },
+      "estimate": {
+        "title": "Поки що нічого рахувати",
+        "text": "Кошторис рахується за вашими кімнатами та вибором. Додайте кімнату, щоб побачити вартість."
+      }
+    }
+  },
+  "ShowcaseSystemStates": {
+    "showcase": "Каталог",
+    "rooms": "Кімнати",
+    "specification": "Специфікація",
+    "estimate": "Кошторис",
+    "loadingTitle": "Скелетони завантаження",
+    "emptyTitle": "Порожні стани",
+    "action": "Додати кімнату"
+  },
+  "Manifest": {
+    "name": "Roomwise: конфігуратор вартості ремонту",
+    "description": "Спроєктуйте кімнату, оберіть оздоблення й одразу побачте вартість ремонту."
+  },
+  "UpdateNotice": {
+    "newVersion": "Доступна нова версія.",
+    "reload": "Оновити",
+    "dismiss": "Закрити"
+  }
+}
