@@ -9,11 +9,12 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfiguratorEstimate } from '@/app/[locale]/configurator/ConfiguratorEstimate';
-import { api } from '@/lib/api/client';
 import { THEME_COLORS, THEME_STORAGE_KEY } from '@/lib/theme';
 import { resetThemeDom, stubMatchMedia } from '@/lib/theme/test-utils';
 import { resetExchangeRate } from '@/stores/exchange-rate';
 import { PREFERENCES_STORAGE_KEY, usePreferences } from '@/stores/preferences';
+import { resetPricingData } from '@/stores/pricing-data';
+import { makePricingData } from '@/test/fixtures';
 import { setLoadedRate } from '@/test/fixtures/exchange-rate';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { ExchangeRateNotice } from './ExchangeRateNotice/ExchangeRateNotice';
@@ -21,14 +22,19 @@ import { PreferenceSwitches } from './PreferenceSwitches/PreferenceSwitches';
 
 const navigation = vi.hoisted(() => ({ replace: vi.fn() }));
 
-vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
 vi.mock('@/i18n/navigation', () => ({
   useRouter: () => ({ replace: navigation.replace }),
   usePathname: () => '/configurator',
   Link: () => null,
 }));
 
-const get = vi.mocked(api.GET) as unknown as ReturnType<typeof vi.fn>;
+const get = vi.fn();
+
+function pricingResponse(exchangeRate: unknown) {
+  return new Response(JSON.stringify({ ...makePricingData(), exchangeRate }), {
+    status: 200,
+  });
+}
 
 function themeColor() {
   return document
@@ -62,9 +68,11 @@ beforeEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   resetThemeDom();
+  resetPricingData();
   resetExchangeRate();
   navigation.replace.mockClear();
   get.mockReset();
+  vi.stubGlobal('fetch', get);
   stubMatchMedia(false);
   window.history.replaceState(null, '', '/');
 });
@@ -146,7 +154,7 @@ describe('switching the currency', () => {
         <ConfiguratorEstimate />
         <ExchangeRateNotice />
       </>,
-      { currency },
+      { currency, pricing: false },
     );
   }
 
@@ -180,7 +188,7 @@ describe('switching the currency', () => {
   });
 
   it('returns to dollars and explains it when the rate is unavailable', async () => {
-    get.mockResolvedValue({ data: { exchangeRate: null } });
+    get.mockImplementation(async () => pricingResponse(null));
     renderEstimate();
     await waitForHydration();
 
@@ -207,7 +215,7 @@ describe('switching the currency', () => {
   });
 
   it('keeps a saved UAH after a failed load and shows dollars with the notice', async () => {
-    get.mockResolvedValue({ data: { exchangeRate: null } });
+    get.mockImplementation(async () => pricingResponse(null));
     renderEstimate('UAH');
     await waitFor(() =>
       expect(
@@ -227,7 +235,7 @@ describe('switching the currency', () => {
   });
 
   it('retries on click after a failed load', async () => {
-    get.mockResolvedValueOnce({ data: { exchangeRate: null } });
+    get.mockImplementationOnce(async () => pricingResponse(null));
     renderEstimate();
     await waitForHydration();
     fireEvent.click(
@@ -236,11 +244,9 @@ describe('switching the currency', () => {
     await screen.findByText(/The hryvnia rate is unavailable right now/);
     expect(usePreferences.getState().currency).toBe('USD');
 
-    get.mockResolvedValueOnce({
-      data: {
-        exchangeRate: { rate: '41.5', date: '2026-10-01', source: 'NBU' },
-      },
-    });
+    get.mockImplementationOnce(async () =>
+      pricingResponse({ rate: '41.5000', date: '2026-10-01', source: 'NBU' }),
+    );
     fireEvent.click(
       screen.getByRole('button', { name: 'Switch currency to UAH' }),
     );
@@ -269,7 +275,7 @@ describe('switching the currency', () => {
   });
 
   it('returns to dollars when the rate request fails', async () => {
-    get.mockRejectedValue(new Error('offline'));
+    get.mockRejectedValue(new TypeError('offline'));
     renderEstimate();
     await waitForHydration();
 

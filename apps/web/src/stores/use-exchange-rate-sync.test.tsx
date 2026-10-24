@@ -1,25 +1,33 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { api } from '@/lib/api/client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { makePricingData } from '@/test/fixtures';
 import { resetExchangeRate, useExchangeRate } from './exchange-rate';
 import { usePreferences } from './preferences';
+import { resetPricingData } from './pricing-data';
 import { useDisplayCurrency } from './use-display-currency';
 import { chooseCurrency, useExchangeRateSync } from './use-exchange-rate-sync';
 
-vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
+const get = vi.fn();
 
-const get = vi.mocked(api.GET) as unknown as ReturnType<typeof vi.fn>;
+function pricing(exchangeRate: unknown) {
+  return new Response(JSON.stringify({ ...makePricingData(), exchangeRate }), {
+    status: 200,
+  });
+}
 
-const READY = {
-  data: {
-    exchangeRate: { rate: '41.5', date: '2026-10-01', source: 'NBU' },
-  },
-};
+const READY = pricing({ rate: '41.5000', date: '2026-10-01', source: 'NBU' });
+const NO_RATE = pricing(null);
 
 beforeEach(() => {
   get.mockReset();
+  vi.stubGlobal('fetch', get);
+  resetPricingData();
   resetExchangeRate();
   usePreferences.setState({ currency: 'USD' });
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe('useExchangeRateSync', () => {
@@ -38,7 +46,7 @@ describe('useExchangeRateSync', () => {
   });
 
   it('loads the rate for UAH and keeps the currency', async () => {
-    get.mockResolvedValue(READY);
+    get.mockImplementation(async () => READY.clone());
     usePreferences.setState({ currency: 'UAH' });
 
     renderHook(() => useExchangeRateSync(true));
@@ -51,7 +59,7 @@ describe('useExchangeRateSync', () => {
   });
 
   it('keeps a saved UAH and shows the notice when the rate is unavailable', async () => {
-    get.mockResolvedValue({ data: { exchangeRate: null } });
+    get.mockImplementation(async () => NO_RATE.clone());
     usePreferences.setState({ currency: 'UAH' });
 
     renderHook(() => useExchangeRateSync(true));
@@ -66,7 +74,7 @@ describe('useExchangeRateSync', () => {
 
 describe('chooseCurrency', () => {
   it('switches to UAH once the rate is ready', async () => {
-    get.mockResolvedValue(READY);
+    get.mockImplementation(async () => READY.clone());
 
     await chooseCurrency('UAH');
 
@@ -75,7 +83,7 @@ describe('chooseCurrency', () => {
   });
 
   it('reverts to USD with a notice when the rate is unavailable', async () => {
-    get.mockResolvedValue({ data: { exchangeRate: null } });
+    get.mockImplementation(async () => NO_RATE.clone());
 
     await chooseCurrency('UAH');
 
@@ -84,12 +92,12 @@ describe('chooseCurrency', () => {
   });
 
   it('retries after a failure even though the saved currency is UAH', async () => {
-    get.mockResolvedValueOnce({ data: { exchangeRate: null } });
+    get.mockImplementationOnce(async () => NO_RATE.clone());
     usePreferences.setState({ currency: 'UAH' });
     renderHook(() => useExchangeRateSync(true));
     await waitFor(() => expect(useExchangeRate.getState().notice).toBe(true));
 
-    get.mockResolvedValueOnce(READY);
+    get.mockImplementationOnce(async () => READY.clone());
     await chooseCurrency('UAH');
 
     expect(get).toHaveBeenCalledTimes(2);

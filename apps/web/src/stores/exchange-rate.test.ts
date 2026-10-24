@@ -1,26 +1,37 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { api } from '@/lib/api/client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { makePricingData } from '@/test/fixtures';
 import {
   loadExchangeRate,
   resetExchangeRate,
   useExchangeRate,
 } from './exchange-rate';
+import { checkPricingData, resetPricingData } from './pricing-data';
 
-vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
-
-const get = vi.mocked(api.GET) as unknown as ReturnType<typeof vi.fn>;
+const fetchMock = vi.fn();
 
 function respond(exchangeRate: unknown) {
-  get.mockResolvedValue({ data: { exchangeRate } });
+  fetchMock.mockImplementation(
+    async () =>
+      new Response(JSON.stringify({ ...makePricingData(), exchangeRate }), {
+        status: 200,
+        headers: { ETag: 'W/"1"' },
+      }),
+  );
 }
 
 describe('loadExchangeRate', () => {
   beforeEach(() => {
-    get.mockReset();
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+    resetPricingData();
     resetExchangeRate();
   });
 
-  it('parses the server rate and caches it', async () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('reads the server rate and caches it', async () => {
     respond({ rate: '41.5000', date: '2026-10-01', source: 'NBU' });
 
     await loadExchangeRate();
@@ -30,60 +41,50 @@ describe('loadExchangeRate', () => {
       status: 'ready',
       rate: { uahPerUsd: 41.5, date: '2026-10-01', source: 'NBU' },
     });
-    expect(get).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('shares one request between concurrent callers', async () => {
-    respond({ rate: '41.5', date: '2026-10-01', source: 'MANUAL' });
+  it('shares one pricing-data request with the pricing store', async () => {
+    respond({ rate: '41.5000', date: '2026-10-01', source: 'MANUAL' });
 
     const loading = loadExchangeRate();
     expect(useExchangeRate.getState().status).toBe('loading');
-    await Promise.all([loading, loadExchangeRate()]);
+    await Promise.all([loading, checkPricingData(), loadExchangeRate()]);
 
-    expect(get).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(useExchangeRate.getState().status).toBe('ready');
   });
 
-  it.each([
-    ['a null rate', { data: { exchangeRate: null } }],
-    ['a failed response', { error: { message: 'boom' } }],
-    [
-      'a non-numeric rate',
-      { data: { exchangeRate: { rate: 'abc', date: 'x', source: 'NBU' } } },
-    ],
-    [
-      'a zero rate',
-      { data: { exchangeRate: { rate: '0', date: 'x', source: 'NBU' } } },
-    ],
-    [
-      'a negative rate',
-      { data: { exchangeRate: { rate: '-3', date: 'x', source: 'NBU' } } },
-    ],
-  ])('is unavailable for %s', async (_name, response) => {
-    get.mockResolvedValue(response);
+  it('makes no request when pricing data is already loaded', async () => {
+    respond({ rate: '41.5000', date: '2026-10-01', source: 'NBU' });
+    await checkPricingData();
 
     await loadExchangeRate();
 
-    expect(useExchangeRate.getState()).toMatchObject({
-      status: 'unavailable',
-      rate: null,
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(useExchangeRate.getState().status).toBe('ready');
+  });
+
+  it('follows a later pricing-data refresh', async () => {
+    respond({ rate: '41.5000', date: '2026-10-01', source: 'NBU' });
+    await loadExchangeRate();
+
+    respond({ rate: '42.0000', date: '2026-10-02', source: 'MANUAL' });
+    await checkPricingData();
+
+    expect(useExchangeRate.getState().rate).toEqual({
+      uahPerUsd: 42,
+      date: '2026-10-02',
+      source: 'MANUAL',
     });
   });
 
-  it('is unavailable after a network error and can retry', async () => {
-    get.mockRejectedValueOnce(new TypeError('offline'));
-    await loadExchangeRate();
-    expect(useExchangeRate.getState().status).toBe('unavailable');
-
-    respond({ rate: '40', date: '2026-10-02', source: 'NBU' });
-    await loadExchangeRate();
-
-    expect(useExchangeRate.getState().status).toBe('ready');
-    expect(get).toHaveBeenCalledTimes(2);
-  });
-
   it.each([
-    ['a missing date', { rate: '41.5', source: 'NBU' }],
-    ['an unparsable date', { rate: '41.5', date: 'soon', source: 'NBU' }],
+    ['a null rate', null],
+    ['a non-numeric rate', { rate: 'abc', date: '2026-10-01', source: 'NBU' }],
+    ['a zero rate', { rate: '0.0000', date: '2026-10-01', source: 'NBU' }],
+    ['a missing date', { rate: '41.5000', source: 'NBU' }],
+    ['an unparsable date', { rate: '41.5000', date: 'soon', source: 'NBU' }],
   ])('is unavailable for %s', async (_name, exchangeRate) => {
     respond(exchangeRate);
 
@@ -95,9 +96,32 @@ describe('loadExchangeRate', () => {
     });
   });
 
+  it('is unavailable for a failed response', async () => {
+    fetchMock.mockResolvedValue(new Response('boom', { status: 500 }));
+
+    await loadExchangeRate();
+
+    expect(useExchangeRate.getState()).toMatchObject({
+      status: 'unavailable',
+      rate: null,
+    });
+  });
+
+  it('is unavailable after a network error and can retry', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('offline'));
+    await loadExchangeRate();
+    expect(useExchangeRate.getState().status).toBe('unavailable');
+
+    respond({ rate: '40.0000', date: '2026-10-02', source: 'NBU' });
+    await loadExchangeRate();
+
+    expect(useExchangeRate.getState().status).toBe('ready');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('clears the notice once the rate loads', async () => {
     useExchangeRate.setState({ notice: true });
-    respond({ rate: '41.5', date: '2026-10-01', source: 'NBU' });
+    respond({ rate: '41.5000', date: '2026-10-01', source: 'NBU' });
 
     await loadExchangeRate();
 
@@ -105,23 +129,32 @@ describe('loadExchangeRate', () => {
   });
 
   it('ignores a load that finishes after a reset', async () => {
-    let finish: (value: unknown) => void = () => {};
-    get.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)));
+    let finish: (value: Response) => void = () => {};
+    fetchMock.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        finish = resolve;
+      }),
+    );
     const stale = loadExchangeRate();
 
+    resetPricingData();
     resetExchangeRate();
-    finish({
-      data: {
-        exchangeRate: { rate: '41.5', date: '2026-10-01', source: 'NBU' },
-      },
-    });
+    finish(
+      new Response(
+        JSON.stringify({
+          ...makePricingData(),
+          exchangeRate: { rate: '41.5000', date: '2026-10-01', source: 'NBU' },
+        }),
+        { status: 200 },
+      ),
+    );
     await stale;
 
     expect(useExchangeRate.getState()).toMatchObject({
       status: 'idle',
       rate: null,
     });
-    respond({ rate: '40', date: '2026-10-02', source: 'NBU' });
+    respond({ rate: '40.0000', date: '2026-10-02', source: 'NBU' });
     await loadExchangeRate();
     expect(useExchangeRate.getState().rate?.uahPerUsd).toBe(40);
   });
