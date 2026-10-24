@@ -29,7 +29,13 @@ export type RunEstimateResult = {
 };
 
 const CACHE_SIZE = 8;
-const cache = new Map<string, RunEstimateResult>();
+type CacheEntry = {
+  draft: DraftV1;
+  pricing: PricingData;
+  result: RunEstimateResult;
+};
+
+const cache = new Map<string, CacheEntry>();
 
 function blockedLines(
   estimate: Estimate,
@@ -50,6 +56,8 @@ function blockedLines(
           return line.roomClientId === target.roomClientId;
         case 'option':
           return line.optionId === target.optionId;
+        case 'rooms':
+          return false;
         default:
           return true;
       }
@@ -95,11 +103,18 @@ function compute(input: RunEstimateInput): RunEstimateResult {
 export function runEstimate(input: RunEstimateInput): RunEstimateResult {
   const key = `${input.draftRevision}|${input.pricingVersion}|${input.currency}`;
   const cached = cache.get(key);
-  if (cached) {
-    return cached;
+  if (
+    cached &&
+    cached.draft === input.draft &&
+    cached.pricing === input.pricing
+  ) {
+    cache.delete(key);
+    cache.set(key, cached);
+    return cached.result;
   }
   const result = compute(input);
-  cache.set(key, result);
+  cache.delete(key);
+  cache.set(key, { draft: input.draft, pricing: input.pricing, result });
   if (cache.size > CACHE_SIZE) {
     const oldest = cache.keys().next().value;
     if (oldest !== undefined) {

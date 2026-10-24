@@ -56,6 +56,20 @@ describe('runEstimate', () => {
     expect(other).not.toBe(first);
   });
 
+  it('recomputes for a different draft with the same revision and version', () => {
+    const first = run(makeInteriorDraft(), 3);
+    const second = run(makeInteriorDraft({ styleId: null }), 3);
+    expect(second).not.toBe(first);
+    expect(second.panel.materials).toBeNull();
+    expect(first.panel.materials).not.toBeNull();
+  });
+
+  it('keeps the base cost when only the rooms count is out of limits', () => {
+    const result = run(makeInteriorDraft({ rooms: [] }));
+    expect(result.violations.length).toBeGreaterThan(0);
+    expect(result.panel.base).not.toBeNull();
+  });
+
   it('has no estimate and an empty panel without area', () => {
     const result = run(makeEmptyDraft());
     expect(result.configuration).toBeNull();
