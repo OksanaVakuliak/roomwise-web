@@ -12,7 +12,11 @@ import {
   NoticeStack,
   SkipLink,
 } from '@/components/layout';
-import { UpdateNotice, WarmupStarter } from '@/components/system';
+import {
+  PricingDataSync,
+  UpdateNotice,
+  WarmupStarter,
+} from '@/components/system';
 import { routing } from '@/i18n/routing';
 import { SHORT_NAME, workerUrl } from '@/lib/pwa';
 import { QueryProvider } from '@/lib/query';
@@ -77,6 +81,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
           <NextIntlClientProvider>
             <QueryProvider>
               <WarmupStarter />
+              <PricingDataSync />
               <SkipLink />
               <AppHeader />
               <main id={MAIN_ID} tabIndex={-1}>
