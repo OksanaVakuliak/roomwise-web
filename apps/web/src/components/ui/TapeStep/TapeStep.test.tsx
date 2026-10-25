@@ -99,6 +99,38 @@ describe('TapeStep', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
+  it('opens a later step marked available', () => {
+    const onClick = vi.fn();
+    renderInList(
+      <TapeStep
+        number="A3"
+        state="later"
+        stateLabel="upcoming"
+        available
+        onClick={onClick}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'A3 upcoming' }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks an unavailable step aria-disabled without activating it', () => {
+    const onClick = vi.fn();
+    renderInList(
+      <TapeStep
+        number="A4"
+        state="done"
+        stateLabel="done"
+        available={false}
+        onClick={onClick}
+      />,
+    );
+    const button = screen.getByRole('button', { name: 'A4 done' });
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
   it('shows the pointer only on the current step', () => {
     const { container } = render(
       <ol>
