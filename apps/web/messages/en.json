@@ -601,6 +601,14 @@
       "pcs": "pcs"
     }
   },
+  "CostPanel": {
+    "base": "Base cost",
+    "materials": "Materials",
+    "engineering": "Engineering",
+    "additional": "Additional options",
+    "errorTitle": "Prices are unavailable",
+    "errorMessage": "The cost cannot be calculated without pricing data. You can keep filling in the steps and retry."
+  },
   "Layout": {
     "skipLink": "Skip to content",
     "brandName": "Roomwise",

@@ -7,6 +7,7 @@ import { usePathname } from '@/i18n/navigation';
 import type { StepId } from '@/lib/draft/schema';
 import { useDraftHydration } from '@/stores/use-draft-hydration';
 import { useDraftTabSync } from '@/stores/use-draft-tab-sync';
+import { CostPanel } from '../CostPanel/CostPanel';
 import { DraftNotices } from '../DraftNotices/DraftNotices';
 import { StepGuard } from '../StepGuard/StepGuard';
 import { StepNav } from '../StepNav/StepNav';
@@ -52,7 +53,14 @@ function ConfiguratorFrame({
         scene={null}
         showcase={ready ? null : <ZoneSkeleton kind="showcase" />}
         cost={
-          ready ? <StepNav step={step} /> : <ZoneSkeleton kind="estimate" />
+          ready ? (
+            <>
+              <CostPanel />
+              <StepNav step={step} />
+            </>
+          ) : (
+            <ZoneSkeleton kind="estimate" />
+          )
         }
       />
     </StepValidationProvider>
