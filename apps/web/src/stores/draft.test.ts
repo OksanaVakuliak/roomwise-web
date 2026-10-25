@@ -64,6 +64,14 @@ describe('useDraft', () => {
     expect(useDraft.getState().revision).toBe(2);
   });
 
+  it('dismisses the notice without touching the draft revision', () => {
+    useDraft.setState({ notice: 'draftReset' });
+    useDraft.getState().dismissNotice();
+
+    expect(useDraft.getState().notice).toBeNull();
+    expect(useDraft.getState().revision).toBe(0);
+  });
+
   it('resets to the default draft', () => {
     useDraft.getState().setStep('result');
     useDraft.getState().reset();

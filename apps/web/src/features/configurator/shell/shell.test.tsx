@@ -4,6 +4,7 @@ import { useId } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PageTitle } from '@/components/ui';
 import { createDefaultDraft, type StepId } from '@/lib/draft/schema';
+import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { useDraft } from '@/stores/draft';
 import { axe } from '@/test/axe';
 import {
@@ -59,7 +60,13 @@ const interior = () => makeInteriorDraft();
 
 describe('ConfiguratorShell', () => {
   beforeEach(() => {
-    useDraft.setState({ ...createDefaultDraft(), revision: 0 });
+    installMemoryStorage();
+    useDraft.setState({
+      ...createDefaultDraft(),
+      revision: 0,
+      storageAvailable: true,
+      notice: null,
+    });
   });
 
   it.each(forEachLocale)('shows tape states in %s', async (locale) => {
@@ -145,6 +152,52 @@ describe('ConfiguratorShell', () => {
 
     expect(useDraft.getState().step).toBe('style');
     expect(location().pathname).toBe('/en/configurator/interior');
+  });
+
+  it.each(forEachLocale)(
+    'warns that the draft will not be saved in %s',
+    async (locale) => {
+      useDraft.setState({ storageAvailable: false });
+      const { container } = await renderShell('interior', interior(), locale);
+      const text = catalogs[locale].DraftNotices.storageUnavailable;
+
+      expect(screen.getByText(text).closest('[role="status"]')).not.toBeNull();
+      expect(await axe(container)).toHaveNoViolations();
+    },
+  );
+
+  it.each(forEachLocale)(
+    'reports a draft that could not be restored in %s and dismisses it',
+    async (locale) => {
+      useDraft.setState({ notice: 'draftReset' });
+      await renderShell('interior', interior(), locale);
+
+      expect(
+        screen.getByText(catalogs[locale].DraftNotices.draftReset),
+      ).toBeInTheDocument();
+
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: catalogs[locale].ConfiguratorShell.dismiss,
+        }),
+      );
+
+      expect(
+        screen.queryByText(catalogs[locale].DraftNotices.draftReset),
+      ).not.toBeInTheDocument();
+      expect(useDraft.getState().notice).toBeNull();
+    },
+  );
+
+  it('shows no draft notices when storage works and nothing was reset', async () => {
+    await renderShell('interior', interior());
+
+    expect(
+      screen.queryByText(en.DraftNotices.storageUnavailable),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(en.DraftNotices.draftReset),
+    ).not.toBeInTheDocument();
   });
 
   it('renders the index route without the shell', async () => {

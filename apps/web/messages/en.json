@@ -756,6 +756,10 @@
     "reload": "Reload",
     "dismiss": "Dismiss"
   },
+  "DraftNotices": {
+    "storageUnavailable": "Your browser blocks storage, so the draft won’t be saved. It will be lost when you close or reload the page.",
+    "draftReset": "We couldn’t restore your saved draft, so you’re starting from scratch."
+  },
   "ConfiguratorShell": {
     "guardIncomplete": "Fill in the “{step}” step first",
     "guardOrder": "Go through the steps in order and continue with “{step}”",

@@ -24,6 +24,7 @@ type DraftState = DraftV1 & {
   notice: DraftNotice | null;
   setStep: (step: StepId) => void;
   reset: () => void;
+  dismissNotice: () => void;
 };
 
 let pendingNotice: DraftNotice | null = null;
@@ -59,6 +60,7 @@ export const useDraft = create<DraftState>()(
           ...createDefaultDraft(),
           revision: state.revision + 1,
         })),
+      dismissNotice: () => set({ notice: null }),
     }),
     {
       name: DRAFT_STORAGE_KEY,

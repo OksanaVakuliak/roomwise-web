@@ -7,6 +7,7 @@ import { usePathname } from '@/i18n/navigation';
 import type { StepId } from '@/lib/draft/schema';
 import { useDraftHydration } from '@/stores/use-draft-hydration';
 import { useDraftTabSync } from '@/stores/use-draft-tab-sync';
+import { DraftNotices } from '../DraftNotices/DraftNotices';
 import { StepGuard } from '../StepGuard/StepGuard';
 import { StepNav } from '../StepNav/StepNav';
 import { StepTape } from '../StepTape/StepTape';
@@ -38,9 +39,12 @@ function ConfiguratorFrame({
         steps={<StepTape current={step} context={ready ? context : null} />}
         content={
           ready ? (
-            <StepGuard step={step} context={context}>
-              {children}
-            </StepGuard>
+            <>
+              <DraftNotices />
+              <StepGuard step={step} context={context}>
+                {children}
+              </StepGuard>
+            </>
           ) : (
             <ZoneSkeleton kind="rooms" />
           )
