@@ -80,8 +80,10 @@ export function loadExchangeRate(): Promise<void> {
   pending ??= (async () => {
     const started = generation;
     tracking = true;
-    syncFromPricing();
-    if (!parseRate(usePricingData.getState().data?.exchangeRate)) {
+    if (parseRate(usePricingData.getState().data?.exchangeRate)) {
+      syncFromPricing();
+    } else {
+      useExchangeRate.setState({ status: 'loading' });
       await checkPricingData();
     }
     if (started !== generation) {

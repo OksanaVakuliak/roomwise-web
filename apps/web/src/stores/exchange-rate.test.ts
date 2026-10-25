@@ -65,6 +65,19 @@ describe('loadExchangeRate', () => {
     expect(useExchangeRate.getState().status).toBe('ready');
   });
 
+  it('stays loading while it rechecks stored pricing data without a rate', async () => {
+    respond(null);
+    await checkPricingData();
+    respond({ rate: '41.5000', date: '2026-10-01', source: 'NBU' });
+
+    const loading = loadExchangeRate();
+    expect(useExchangeRate.getState().status).toBe('loading');
+    await loading;
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(useExchangeRate.getState().status).toBe('ready');
+  });
+
   it('follows a later pricing-data refresh', async () => {
     respond({ rate: '41.5000', date: '2026-10-01', source: 'NBU' });
     await loadExchangeRate();
