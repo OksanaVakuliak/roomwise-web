@@ -4,6 +4,7 @@ export * from './Brand/Brand';
 export * from './Button/Button';
 export * from './ButtonLink/ButtonLink';
 export * from './Checkbox/Checkbox';
+export * from './ConfirmDialog/ConfirmDialog';
 export * from './CostBar/CostBar';
 export * from './CutLayer/CutLayer';
 export * from './CutLayers/CutLayers';

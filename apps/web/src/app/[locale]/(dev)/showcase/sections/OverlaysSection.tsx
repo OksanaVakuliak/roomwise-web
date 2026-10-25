@@ -5,6 +5,7 @@ import { type MouseEvent, useCallback, useState } from 'react';
 import {
   BottomSheet,
   Button,
+  ConfirmDialog,
   Modal,
   SidePanel,
   Toast,
@@ -70,7 +71,10 @@ export function OverlaysSection() {
   const t = useTranslations('ShowcaseOverlays');
   const [open, setOpen] = useState<Overlay | null>(null);
   const [toasts, setToasts] = useState<readonly ToastVariant[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const close = useCallback(() => setOpen(null), []);
+  const openConfirm = useCallback(() => setConfirmOpen(true), []);
+  const closeConfirm = useCallback(() => setConfirmOpen(false), []);
 
   const handleOpen = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     setOpen(event.currentTarget.dataset.overlay as Overlay);
@@ -122,6 +126,24 @@ export function OverlaysSection() {
           </Component>
         );
       })}
+
+      <h3 className={styles.title}>{t('confirmTitle')}</h3>
+      <p className={styles.row}>
+        <Button kind="outline" onClick={openConfirm}>
+          {t('confirmButton')}
+        </Button>
+      </p>
+      <ConfirmDialog
+        open={confirmOpen}
+        tone="danger"
+        title={t('confirmHeading')}
+        description={t('confirmBody')}
+        confirmLabel={t('confirmDelete')}
+        cancelLabel={t('confirmKeep')}
+        closeLabel={t('closeLabel')}
+        onConfirm={closeConfirm}
+        onCancel={closeConfirm}
+      />
 
       <h3 className={styles.title}>{t('tooltipTitle')}</h3>
       <p className={styles.row}>
