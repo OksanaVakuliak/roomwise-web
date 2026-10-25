@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { NextRequest } from 'next/server';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import proxy, { config } from './proxy';
 
 function visit(path: string, headers: Record<string, string> = {}) {
@@ -88,7 +88,8 @@ describe('shared links', () => {
 });
 
 describe('matcher', () => {
-  const matcher = new RegExp(`^${config.matcher}$`);
+  const [, pageMatcher] = config.matcher;
+  const matcher = new RegExp(`^${pageMatcher}$`);
 
   it.each([
     '/~offline',
@@ -106,4 +107,58 @@ describe('matcher', () => {
       expect(matcher.test(path)).toBe(true);
     },
   );
+});
+
+describe('api proxy secret', () => {
+  const secret = 's'.repeat(32);
+  const header = 'x-roomwise-proxy-secret';
+  const forwarded = (response: Response) =>
+    response.headers.get(`x-middleware-request-${header}`);
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('attaches the secret to api requests', async () => {
+    vi.stubEnv('API_PROXY_SECRET', secret);
+
+    const response = await visit('/api/v1/health');
+
+    expect(forwarded(response)).toBe(secret);
+    expect(response.headers.get('x-middleware-override-headers')).toContain(
+      header,
+    );
+    expect(response.headers.get(header)).toBeNull();
+  });
+
+  it('replaces a secret sent by the client', async () => {
+    vi.stubEnv('API_PROXY_SECRET', secret);
+
+    const response = await visit('/api/v1/health', { [header]: 'forged' });
+
+    expect(forwarded(response)).toBe(secret);
+  });
+
+  it('drops a client secret when none is configured', async () => {
+    vi.stubEnv('API_PROXY_SECRET', '');
+
+    const response = await visit('/api/v1/health', { [header]: 'forged' });
+
+    expect(forwarded(response)).toBeNull();
+  });
+
+  it('does not redirect api paths to a locale', async () => {
+    const response = await visit('/api/v1/health');
+
+    expect(response.headers.get('location')).toBeNull();
+    expect(response.headers.get('x-middleware-next')).toBe('1');
+  });
+
+  it('does not attach the secret to pages', async () => {
+    vi.stubEnv('API_PROXY_SECRET', secret);
+
+    const response = await visit('/uk/configurator');
+
+    expect(forwarded(response)).toBeNull();
+  });
 });

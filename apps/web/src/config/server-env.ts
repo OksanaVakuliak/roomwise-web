@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 const serverEnvSchema = z.object({
   API_ORIGIN: z.url(),
+  API_PROXY_SECRET: z.string().min(32).or(z.literal('')).optional(),
   SENTRY_AUTH_TOKEN: z.string().min(1).optional(),
 });
 
