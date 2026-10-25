@@ -39,6 +39,26 @@ describe('createSentryOptions', () => {
   });
 });
 
+describe('message events', () => {
+  it('keeps tags while dropping extra and user', () => {
+    const event: ErrorEvent = {
+      type: undefined,
+      message: 'estimate-discrepancy',
+      tags: { pricingVersion: 'v1', diffCents: 5, matched: false },
+      extra: { configuration: { rooms: [] } },
+      user: { id: '1' },
+    };
+    const result = createSentryOptions(DSN).beforeSend(event, hint);
+    expect(result.tags).toMatchObject({
+      pricingVersion: 'v1',
+      diffCents: 5,
+      matched: false,
+    });
+    expect(result.extra).toBeUndefined();
+    expect(result.user).toBeUndefined();
+  });
+});
+
 describe('beforeBreadcrumb', () => {
   const { beforeBreadcrumb } = createSentryOptions(DSN);
 

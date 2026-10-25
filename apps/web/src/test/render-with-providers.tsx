@@ -1,3 +1,4 @@
+import type { PricingData } from '@roomwise/calc-engine';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type RenderOptions, render } from '@testing-library/react';
 import {
@@ -20,6 +21,7 @@ import { routing } from '@/i18n/routing';
 import type { Currency } from '@/lib/format';
 import { applyTheme, type ThemeMode } from '@/lib/theme';
 import { usePreferences } from '@/stores/preferences';
+import { resetPricingData, seedPricingData } from '@/stores/pricing-data';
 import en from '../../messages/en.json';
 import uk from '../../messages/uk.json';
 import {
@@ -27,6 +29,7 @@ import {
   makeCategoryProducts,
   makeDefaultMaterials,
   makeEngineering,
+  makePricingData,
   makeProductDetails,
   makeRoomTypes,
   makeStyles,
@@ -51,6 +54,7 @@ type Options = {
   preferences?: Partial<ReturnType<typeof usePreferences.getState>>;
   url?: string;
   catalog?: boolean;
+  pricing?: PricingData | false;
   queryClient?: QueryClient;
   renderOptions?: Omit<RenderOptions, 'wrapper'>;
 };
@@ -113,6 +117,7 @@ export function renderWithProviders(
     preferences,
     url = '/',
     catalog = true,
+    pricing = makePricingData(),
     queryClient = createTestQueryClient(),
     renderOptions,
   }: Options = {},
@@ -120,6 +125,8 @@ export function renderWithProviders(
   usePreferences.setState({ locale, currency, theme, ...preferences });
   applyTheme(theme);
   if (catalog) seedCatalog(queryClient, locale);
+  resetPricingData();
+  if (pricing) seedPricingData(pricing, null);
 
   const location = createLocation(`/${locale}${url === '/' ? '' : url}`);
   const router = {
