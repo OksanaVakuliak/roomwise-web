@@ -1,23 +1,15 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { relative, resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { SCANNED_DIRS, SRC, walk } from './scanned-dirs';
 
-const SRC = resolve(import.meta.dirname, '../..');
-const DIRS = ['components', 'app'].map((dir) => resolve(SRC, dir));
 const CLIENT_ONLY =
   /\b(?:useState|useEffect|useLayoutEffect|useInsertionEffect|useReducer|useRef|useContext|createContext|useSyncExternalStore|useTransition|useOptimistic|useActionState|useImperativeHandle)\b/;
 const DIRECTIVE = /^\s*['"]use client['"];?/;
 
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((name) => {
-    const full = resolve(dir, name);
-    return statSync(full).isDirectory() ? walk(full) : [full];
-  });
-}
-
 describe('client directive', () => {
   it('marks every component that uses a client-only React API', () => {
-    const missing = DIRS.flatMap(walk)
+    const missing = SCANNED_DIRS.flatMap(walk)
       .filter((file) => file.endsWith('.tsx') && !file.endsWith('.test.tsx'))
       .filter((file) => {
         const text = readFileSync(file, 'utf8');
