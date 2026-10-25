@@ -56,7 +56,7 @@ function ConfiguratorFrame({
           ready ? (
             <>
               <CostPanel />
-              <StepNav step={step} />
+              <StepNav step={step} context={context} />
             </>
           ) : (
             <ZoneSkeleton kind="estimate" />

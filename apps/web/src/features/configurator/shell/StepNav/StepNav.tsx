@@ -6,16 +6,23 @@ import { Button } from '@/components/ui';
 import { STEP_PATHS } from '@/config/routes';
 import { useRouter } from '@/i18n/navigation';
 import type { StepId } from '@/lib/draft/schema';
-import { nextStep, STEP_ORDER, stepIndex } from '@/lib/draft/steps';
+import {
+  isStepComplete,
+  nextStep,
+  STEP_ORDER,
+  type StepContext,
+  stepIndex,
+} from '@/lib/draft/steps';
 import { useDraft } from '@/stores/draft';
 import { useRunStepValidation } from '../StepValidation/step-validation-context';
 import styles from './StepNav.module.css';
 
 export type StepNavProps = {
   step: StepId;
+  context: StepContext | null;
 };
 
-export function StepNav({ step }: StepNavProps) {
+export function StepNav({ step, context }: StepNavProps) {
   const t = useTranslations('Configurator');
   const router = useRouter();
   const setStep = useDraft((state) => state.setStep);
@@ -36,9 +43,12 @@ export function StepNav({ step }: StepNavProps) {
       document.getElementById(invalidFieldId)?.focus();
       return;
     }
+    if (!context || !isStepComplete(step, useDraft.getState(), context)) {
+      return;
+    }
     setStep(next);
     router.push(STEP_PATHS[next]);
-  }, [next, router, runValidation, setStep]);
+  }, [context, next, router, runValidation, setStep, step]);
 
   return (
     <div className={styles.root}>

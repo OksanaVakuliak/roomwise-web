@@ -6,6 +6,7 @@ import { PageTitle } from '@/components/ui';
 import { createDefaultDraft, type StepId } from '@/lib/draft/schema';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { useDraft } from '@/stores/draft';
+import { usePricingData } from '@/stores/pricing-data';
 import { axe } from '@/test/axe';
 import {
   type DraftV1,
@@ -215,6 +216,32 @@ describe('ConfiguratorShell', () => {
     expect(location().pathname).toBe('/en/configurator/engineering');
     expect(useDraft.getState().step).toBe('engineering');
     expect(useDraft.getState().furthestStep).toBe('engineering');
+  });
+
+  it('does not go forward from an incomplete step', async () => {
+    const { location } = await renderShell('object', makeEmptyDraft());
+
+    fireEvent.click(screen.getByRole('button', { name: en.Configurator.next }));
+
+    expect(location().pathname).toBe('/en/configurator/object');
+    expect(useDraft.getState().furthestStep).toBe('object');
+  });
+
+  it('keeps the step order while pricing data are unavailable', async () => {
+    useDraft.setState({ ...makeEmptyDraft(), revision: 0 });
+    let result!: ReturnType<typeof renderWithProviders>;
+    await act(async () => {
+      result = renderWithProviders(
+        <ConfiguratorShell>
+          <Page />
+        </ConfiguratorShell>,
+        { locale: 'en', url: '/configurator/result', pricing: false },
+      );
+    });
+    await act(async () => usePricingData.setState({ status: 'error' }));
+
+    expect(result.location().pathname).toBe('/en/configurator/object');
+    expect(useDraft.getState().furthestStep).toBe('object');
   });
 
   it('focuses the first invalid field instead of going forward', async () => {

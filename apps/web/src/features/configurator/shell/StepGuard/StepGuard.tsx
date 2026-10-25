@@ -14,7 +14,7 @@ import {
   type StepContext,
   stepIndex,
 } from '@/lib/draft/steps';
-import { useDraft } from '@/stores/draft';
+import { useDraft, useDraftValue } from '@/stores/draft';
 import { STEP_LABEL_KEYS } from '../step-path';
 
 export type StepGuardProps = {
@@ -37,14 +37,21 @@ export function StepGuard({ step, context, children }: StepGuardProps) {
   const t = useTranslations('Configurator');
   const tShell = useTranslations('ConfiguratorShell');
   const router = useRouter();
-  const draft = useDraft();
+  const draft = useDraftValue();
   const setStep = useDraft((state) => state.setStep);
   const [notice, setNotice] = useState<Redirect | null>(null);
 
   const dismiss = useCallback(() => setNotice(null), []);
 
-  const blocked = context !== null && !canOpen(step, draft, context);
-  const redirect = blocked ? resolveRedirect(draft, context) : null;
+  const blocked = context
+    ? !canOpen(step, draft, context)
+    : stepIndex(step) > stepIndex(draft.furthestStep);
+  let redirect: Redirect | null = null;
+  if (blocked) {
+    redirect = context
+      ? resolveRedirect(draft, context)
+      : { target: draft.furthestStep, reason: 'order' };
+  }
   const target = redirect?.target;
   const reason = redirect?.reason;
 
