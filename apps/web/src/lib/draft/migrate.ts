@@ -4,6 +4,7 @@ import {
   type DraftV1,
   DraftV1Schema,
   MAX_ROOMS_STORED,
+  StepIdSchema,
 } from './schema';
 
 export const DRAFT_VERSION = 1;
@@ -43,6 +44,10 @@ export function salvage(state: unknown): DraftV1 | null {
       return result.success ? [result.data] : [];
     });
     recovered += draft.rooms.length;
+  }
+  const order = StepIdSchema.options;
+  if (order.indexOf(draft.step) > order.indexOf(draft.furthestStep)) {
+    draft.step = draft.furthestStep;
   }
   return recovered > 0 ? draft : null;
 }

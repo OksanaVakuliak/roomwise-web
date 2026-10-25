@@ -90,4 +90,10 @@ describe('salvage', () => {
     expect(salvage({ rooms: 'x', step: 7 })).toBeNull();
     expect(salvage(undefined)).toBeNull();
   });
+
+  it('keeps the step within the furthest recovered step', () => {
+    const draft = salvage({ step: 'result', furthestStep: 9 });
+    expect(draft?.step).toBe('object');
+    expect(draft?.furthestStep).toBe('object');
+  });
 });
