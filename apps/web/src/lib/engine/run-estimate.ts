@@ -41,9 +41,12 @@ function blockedLines(
   estimate: Estimate,
   violations: readonly LimitViolation[],
   configuration: Configuration,
-): { lineIds: Set<string>; sections: Set<Section> } {
+): { lineIds: Set<string>; sections: Set<Section>; total: boolean } {
   const targets = toFormLimitViolations(violations, configuration).map(
     (violation) => violation.target,
+  );
+  const total = targets.some(
+    (target) => target.kind === 'rooms' || target.kind === 'unknown',
   );
   const lineIds = new Set<string>();
   const sections = new Set<Section>();
@@ -56,10 +59,8 @@ function blockedLines(
           return line.roomClientId === target.roomClientId;
         case 'option':
           return line.optionId === target.optionId;
-        case 'rooms':
-          return false;
         default:
-          return true;
+          return false;
       }
     });
     if (blocked) {
@@ -67,7 +68,7 @@ function blockedLines(
       sections.add(line.section);
     }
   }
-  return { lineIds, sections };
+  return { lineIds, sections, total };
 }
 
 function compute(input: RunEstimateInput): RunEstimateResult {
@@ -95,6 +96,7 @@ function compute(input: RunEstimateInput): RunEstimateResult {
     blockedLineIds: blocked.lineIds,
     panel: toCostPanelView(estimate, {
       blockedSections: blocked.sections,
+      totalBlocked: blocked.total,
       materialsReady: draft.styleId !== null,
     }),
   };

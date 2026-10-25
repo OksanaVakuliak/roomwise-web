@@ -12,6 +12,7 @@ export type CostPanelView = {
 
 export type CostPanelOptions = {
   blockedSections?: ReadonlySet<Section>;
+  totalBlocked?: boolean;
   materialsReady?: boolean;
 };
 
@@ -60,8 +61,11 @@ export function toCostPanelView(
   if (estimate === null) {
     return EMPTY_PANEL;
   }
-  const { blockedSections = new Set<Section>(), materialsReady = true } =
-    options;
+  const {
+    blockedSections = new Set<Section>(),
+    totalBlocked = false,
+    materialsReady = true,
+  } = options;
   const { sections } = estimate.totals;
   const pick = (...names: Section[]): Money | null =>
     names.some((name) => blockedSections.has(name))
@@ -72,7 +76,8 @@ export function toCostPanelView(
   const materials = materialsReady ? pick('MATERIALS') : null;
   const engineering = pick('ENGINEERING');
   const additional = pick('ADDITIONAL');
-  const total = blockedSections.size > 0 ? null : estimate.totals;
+  const total =
+    totalBlocked || blockedSections.size > 0 ? null : estimate.totals;
 
   return {
     base,

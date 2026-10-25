@@ -64,10 +64,12 @@ describe('runEstimate', () => {
     expect(first.panel.materials).not.toBeNull();
   });
 
-  it('keeps the base cost when only the rooms count is out of limits', () => {
+  it('keeps the base cost but hides the total when only the rooms count is out of limits', () => {
     const result = run(makeInteriorDraft({ rooms: [] }));
     expect(result.violations.length).toBeGreaterThan(0);
+    expect(result.blockedLineIds.size).toBe(0);
     expect(result.panel.base).not.toBeNull();
+    expect(result.panel.total).toBeNull();
   });
 
   it('has no estimate and an empty panel without area', () => {
