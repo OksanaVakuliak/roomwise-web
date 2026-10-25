@@ -140,3 +140,87 @@ describe('useDraft', () => {
     expect(useDraft.getState().storageAvailable).toBe(false);
   });
 });
+
+describe('useDraft room actions', () => {
+  const rooms = () => useDraft.getState().rooms;
+
+  it('merges a patch into the object without touching rooms', () => {
+    const id = useDraft.getState().addRoom();
+    useDraft.getState().setObject({ totalAreaSqm: 60, gas: true });
+    useDraft.getState().setObject({ kitchenType: 'KITCHEN_LIVING' });
+
+    expect(useDraft.getState().object).toMatchObject({
+      totalAreaSqm: 60,
+      gas: true,
+      kitchenType: 'KITCHEN_LIVING',
+    });
+    expect(rooms()).toHaveLength(1);
+    expect(rooms()[0]?.clientId).toBe(id);
+    expect(rooms()[0]?.roomTypeCode).toBe('LIVING_ROOM');
+  });
+
+  it('adds a room and returns its id', () => {
+    const id = useDraft.getState().addRoom();
+
+    expect(id).not.toBeNull();
+    expect(rooms()).toHaveLength(1);
+    expect(rooms()[0]).toMatchObject({ clientId: id, name: null });
+    expect(useDraft.getState().revision).toBe(1);
+  });
+
+  it('returns null and changes nothing at the room limit', () => {
+    for (let i = 0; i < 50; i++) {
+      useDraft.getState().addRoom();
+    }
+
+    expect(useDraft.getState().addRoom()).toBeNull();
+    expect(rooms()).toHaveLength(50);
+  });
+
+  it('updates only the patched fields of the given room', () => {
+    const first = useDraft.getState().addRoom() as string;
+    const second = useDraft.getState().addRoom() as string;
+    useDraft.getState().updateRoom(second, {
+      roomTypeCode: 'BATHROOM',
+      lengthM: 3,
+      widthM: 2,
+      heightM: 2.7,
+    });
+
+    expect(rooms().find((r) => r.clientId === second)).toMatchObject({
+      roomTypeCode: 'BATHROOM',
+      lengthM: 3,
+      widthM: 2,
+      heightM: 2.7,
+    });
+    expect(rooms().find((r) => r.clientId === first)?.lengthM).toBeNull();
+  });
+
+  it('renames a room and clears a blank name', () => {
+    const id = useDraft.getState().addRoom() as string;
+    useDraft.getState().renameRoom(id, '  Study ');
+    expect(rooms()[0]?.name).toBe('Study');
+
+    useDraft.getState().renameRoom(id, '   ');
+    expect(rooms()[0]?.name).toBeNull();
+  });
+
+  it('removes a room and cleans options that referenced it', () => {
+    const first = useDraft.getState().addRoom() as string;
+    const second = useDraft.getState().addRoom() as string;
+    useDraft.setState({
+      options: {
+        only: { roomClientIds: [first] },
+        both: { roomClientIds: [first, second] },
+        global: { quantity: 2 },
+      },
+    });
+    useDraft.getState().removeRoom(first);
+
+    expect(rooms().map((r) => r.clientId)).toEqual([second]);
+    expect(useDraft.getState().options).toEqual({
+      both: { roomClientIds: [second] },
+      global: { quantity: 2 },
+    });
+  });
+});

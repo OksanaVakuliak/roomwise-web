@@ -7,7 +7,14 @@ import {
   migrate as migrateDraft,
 } from '@/lib/draft/migrate';
 import {
+  addRoom as addDraftRoom,
+  createRoom,
+  removeRoom as removeDraftRoom,
+  renameRoom as renameDraftRoom,
+} from '@/lib/draft/rooms';
+import {
   createDefaultDraft,
+  type DraftRoom,
   type DraftV1,
   DraftV1Schema,
   type StepId,
@@ -24,6 +31,16 @@ type DraftState = DraftV1 & {
   storageAvailable: boolean;
   notice: DraftNotice | null;
   setStep: (step: StepId) => void;
+  setObject: (patch: Partial<DraftV1['object']>) => void;
+  addRoom: () => string | null;
+  updateRoom: (
+    clientId: string,
+    patch: Partial<
+      Pick<DraftRoom, 'roomTypeCode' | 'lengthM' | 'widthM' | 'heightM'>
+    >,
+  ) => void;
+  renameRoom: (clientId: string, name: string) => void;
+  removeRoom: (clientId: string) => void;
   reset: () => void;
   dismissNotice: () => void;
 };
@@ -50,7 +67,7 @@ function markStorageUnavailable() {
 
 export const useDraft = create<DraftState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...createDefaultDraft(),
       revision: 0,
       storageAvailable: true,
@@ -62,6 +79,38 @@ export const useDraft = create<DraftState>()(
             stepIndex(step) > stepIndex(state.furthestStep)
               ? step
               : state.furthestStep,
+          revision: state.revision + 1,
+        })),
+      setObject: (patch) =>
+        set((state) => ({
+          object: { ...state.object, ...patch },
+          revision: state.revision + 1,
+        })),
+      addRoom: () => {
+        const draft = pickDraft(get());
+        const room = createRoom(draft);
+        const next = addDraftRoom(draft, room);
+        if (next === draft) {
+          return null;
+        }
+        set((state) => ({ ...next, revision: state.revision + 1 }));
+        return room.clientId;
+      },
+      updateRoom: (clientId, patch) =>
+        set((state) => ({
+          rooms: state.rooms.map((room) =>
+            room.clientId === clientId ? { ...room, ...patch } : room,
+          ),
+          revision: state.revision + 1,
+        })),
+      renameRoom: (clientId, name) =>
+        set((state) => ({
+          ...renameDraftRoom(pickDraft(state), clientId, name),
+          revision: state.revision + 1,
+        })),
+      removeRoom: (clientId) =>
+        set((state) => ({
+          ...removeDraftRoom(pickDraft(state), clientId),
           revision: state.revision + 1,
         })),
       reset: () =>
