@@ -1,32 +1,23 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useShallow } from 'zustand/react/shallow';
 import { ExchangeRateNote } from '@/components/layout';
 import { ErrorState, ZoneSkeleton } from '@/components/system';
 import { EstimateStamp } from '@/components/ui';
-import { type DraftV1, DraftV1Schema } from '@/lib/draft/schema';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import type { Money } from '@/lib/engine/sections';
 import { moneyMinor } from '@/lib/format';
-import { useDraft } from '@/stores/draft';
+import { useDraft, useDraftValue } from '@/stores/draft';
 import { checkPricingData, usePricingData } from '@/stores/pricing-data';
 import { useDisplayCurrency } from '@/stores/use-display-currency';
 
-const DRAFT_KEYS = Object.keys(DraftV1Schema.shape) as (keyof DraftV1)[];
 const EMPTY_VALUE = '—';
-
-function pickDraft(state: DraftV1): DraftV1 {
-  return Object.fromEntries(
-    DRAFT_KEYS.map((key) => [key, state[key]]),
-  ) as DraftV1;
-}
 
 export function CostPanel() {
   const t = useTranslations('CostPanel');
   const tConfigurator = useTranslations('Configurator');
   const locale = useLocale();
-  const draft = useDraft(useShallow(pickDraft));
+  const draft = useDraftValue();
   const revision = useDraft((state) => state.revision);
   const pricing = usePricingData((state) => state.data);
   const version = usePricingData((state) => state.version);

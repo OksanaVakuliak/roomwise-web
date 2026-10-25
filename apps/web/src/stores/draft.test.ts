@@ -81,13 +81,27 @@ describe('useDraft', () => {
   });
 
   it('salvages valid fields from a damaged draft of the same version', async () => {
-    seed({ ...createDefaultDraft(), step: 'style', rooms: 'garbage' });
+    seed({
+      ...createDefaultDraft(),
+      step: 'style',
+      furthestStep: 'style',
+      rooms: 'garbage',
+    });
 
     await useDraft.persist.rehydrate();
 
     expect(useDraft.getState().step).toBe('style');
     expect(useDraft.getState().rooms).toEqual([]);
     expect(useDraft.getState().notice).toBeNull();
+  });
+
+  it('resets with a notice when the stored draft is not valid JSON', async () => {
+    window.localStorage.setItem(DRAFT_STORAGE_KEY, '{"state":');
+
+    await useDraft.persist.rehydrate();
+
+    expect(useDraft.getState().step).toBe('object');
+    expect(useDraft.getState().notice).toBe('draftReset');
   });
 
   it('resets with a notice when nothing can be recovered', async () => {
@@ -100,7 +114,7 @@ describe('useDraft', () => {
   });
 
   it('salvages a draft from a newer version', async () => {
-    seed({ ...createDefaultDraft(), step: 'style' }, 7);
+    seed({ ...createDefaultDraft(), step: 'style', furthestStep: 'style' }, 7);
 
     await useDraft.persist.rehydrate();
 

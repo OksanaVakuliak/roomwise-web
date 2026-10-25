@@ -1,6 +1,9 @@
 import type { StateStorage } from 'zustand/middleware';
 
-export function createSafeStorage(onUnavailable?: () => void): StateStorage {
+export function createSafeStorage(
+  onUnavailable?: () => void,
+  onCorrupt?: () => void,
+): StateStorage {
   return {
     getItem: (name) => {
       let raw: string | null;
@@ -17,6 +20,7 @@ export function createSafeStorage(onUnavailable?: () => void): StateStorage {
         JSON.parse(raw);
         return raw;
       } catch {
+        onCorrupt?.();
         return null;
       }
     },

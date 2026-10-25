@@ -7,7 +7,6 @@ import {
   styleIds,
 } from '@/test/fixtures';
 import {
-  advance,
   canOpen,
   firstIncomplete,
   nextStep,
@@ -247,38 +246,5 @@ describe('nextStep', () => {
     expect(nextStep('object')).toBe('style');
     expect(nextStep('engineering')).toBe('result');
     expect(nextStep('result')).toBeNull();
-  });
-});
-
-describe('advance', () => {
-  it('moves forward and raises furthestStep', () => {
-    const next = advance(
-      makeInteriorDraft({ step: 'interior', furthestStep: 'interior' }),
-    );
-    expect(next.step).toBe('engineering');
-    expect(next.furthestStep).toBe('engineering');
-  });
-
-  it('keeps a further furthestStep', () => {
-    const next = advance(
-      makeInteriorDraft({ step: 'object', furthestStep: 'engineering' }),
-    );
-    expect(next.step).toBe('style');
-    expect(next.furthestStep).toBe('engineering');
-  });
-
-  it('stays on result', () => {
-    const draft = makeInteriorDraft({ step: 'result', furthestStep: 'result' });
-    expect(advance(draft)).toBe(draft);
-  });
-
-  it('does not mutate the input', () => {
-    const draft = makeInteriorDraft({
-      step: 'interior',
-      furthestStep: 'interior',
-    });
-    advance(draft);
-    expect(draft.step).toBe('interior');
-    expect(draft.furthestStep).toBe('interior');
   });
 });

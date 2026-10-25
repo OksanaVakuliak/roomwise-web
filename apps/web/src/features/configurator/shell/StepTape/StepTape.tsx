@@ -12,7 +12,7 @@ import {
   type StepContext,
   stepState,
 } from '@/lib/draft/steps';
-import { useDraft } from '@/stores/draft';
+import { useDraftValue } from '@/stores/draft';
 import { STEP_LABEL_KEYS, STEP_NUMBERS } from '../step-path';
 
 export type StepTapeProps = {
@@ -46,7 +46,7 @@ function TapeItem({ step, state, available }: TapeItemProps) {
 
 export function StepTape({ current, context }: StepTapeProps) {
   const t = useTranslations('Configurator');
-  const draft = useDraft();
+  const draft = useDraftValue();
   const view = { ...draft, step: current };
 
   return (

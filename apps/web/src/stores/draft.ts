@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import {
   DRAFT_VERSION,
   type DraftMigration,
@@ -10,8 +11,8 @@ import {
   type DraftV1,
   DraftV1Schema,
   type StepId,
-  StepIdSchema,
 } from '@/lib/draft/schema';
+import { stepIndex } from '@/lib/draft/steps';
 import { createSafeStorage } from './safe-storage';
 
 export const DRAFT_STORAGE_KEY = 'roomwise-draft';
@@ -29,8 +30,16 @@ type DraftState = DraftV1 & {
 
 let pendingNotice: DraftNotice | null = null;
 
-function stepIndex(step: StepId): number {
-  return StepIdSchema.options.indexOf(step);
+const DRAFT_KEYS = Object.keys(DraftV1Schema.shape) as (keyof DraftV1)[];
+
+function pickDraft(state: DraftV1): DraftV1 {
+  return Object.fromEntries(
+    DRAFT_KEYS.map((key) => [key, state[key]]),
+  ) as DraftV1;
+}
+
+function markStorageCorrupt() {
+  pendingNotice = 'draftReset';
 }
 
 function markStorageUnavailable() {
@@ -65,7 +74,7 @@ export const useDraft = create<DraftState>()(
     {
       name: DRAFT_STORAGE_KEY,
       storage: createJSONStorage(() =>
-        createSafeStorage(markStorageUnavailable),
+        createSafeStorage(markStorageUnavailable, markStorageCorrupt),
       ),
       version: DRAFT_VERSION,
       skipHydration: true,
@@ -87,7 +96,7 @@ export const useDraft = create<DraftState>()(
         const notice = pendingNotice;
         pendingNotice = null;
         if (persisted == null) {
-          return { ...current, notice: null };
+          return { ...current, notice };
         }
         const parsed = DraftV1Schema.safeParse(persisted);
         const result = parsed.success
@@ -103,3 +112,7 @@ export const useDraft = create<DraftState>()(
     },
   ),
 );
+
+export function useDraftValue(): DraftV1 {
+  return useDraft(useShallow(pickDraft));
+}

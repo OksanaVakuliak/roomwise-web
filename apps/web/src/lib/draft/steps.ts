@@ -133,13 +133,3 @@ export function stepState(
 export function nextStep(step: StepId): StepId | null {
   return STEP_ORDER[stepIndex(step) + 1] ?? null;
 }
-
-export function advance(draft: DraftV1): DraftV1 {
-  const next = nextStep(draft.step);
-  if (next === null) {
-    return draft;
-  }
-  const furthestStep =
-    stepIndex(next) > stepIndex(draft.furthestStep) ? next : draft.furthestStep;
-  return { ...draft, step: next, furthestStep };
-}
