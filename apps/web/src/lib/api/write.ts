@@ -1,4 +1,4 @@
-import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
+import { selectWarmupStatus, startWarmup, useWarmup } from '@/lib/warmup';
 import { ApiRequestError } from './request-error';
 
 export const DEFAULT_RETRY_AFTER_SECONDS = 60;
@@ -43,6 +43,7 @@ function waitUntilReady(): Promise<void> {
     }
     return false;
   };
+  startWarmup();
   return new Promise((resolve, reject) => {
     if (settle(resolve, reject)) {
       return;

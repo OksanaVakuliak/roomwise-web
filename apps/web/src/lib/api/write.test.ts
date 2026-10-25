@@ -20,6 +20,16 @@ beforeEach(() => {
 });
 
 describe('createWriteGate', () => {
+  it('starts warmup when it has not started yet', async () => {
+    resetWarmup();
+    const send = vi.fn().mockResolvedValue(ok({ id: 1 }));
+    const pending = createWriteGate().write(send, 'key-1');
+
+    expect(useWarmup.getState().server).not.toBe('unknown');
+    act(() => useWarmup.setState({ server: 'ready' }));
+    await expect(pending).resolves.toEqual({ id: 1 });
+  });
+
   it('passes the idempotency key to the sender and returns data', async () => {
     const send = vi.fn().mockResolvedValue(ok({ id: 1 }));
     await expect(createWriteGate().write(send, 'key-1')).resolves.toEqual({
