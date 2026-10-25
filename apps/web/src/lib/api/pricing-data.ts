@@ -9,6 +9,13 @@ export class PricingDataRequestError extends Error {
   }
 }
 
+export class PricingDataNetworkError extends Error {
+  constructor(options: { cause: unknown }) {
+    super('Pricing data request did not reach the server', options);
+    this.name = 'PricingDataNetworkError';
+  }
+}
+
 export type PricingDataResponse =
   | { kind: 'not-modified' }
   | { kind: 'modified'; data: PricingData; etag: string | null };
@@ -16,10 +23,15 @@ export type PricingDataResponse =
 export async function fetchPricingData(
   etag: string | null,
 ): Promise<PricingDataResponse> {
-  const response = await fetch(PRICING_DATA_PATH, {
-    cache: 'no-store',
-    headers: etag ? { 'If-None-Match': etag } : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(PRICING_DATA_PATH, {
+      cache: 'no-store',
+      headers: etag ? { 'If-None-Match': etag } : undefined,
+    });
+  } catch (cause) {
+    throw new PricingDataNetworkError({ cause });
+  }
   if (response.status === 304) {
     return { kind: 'not-modified' };
   }

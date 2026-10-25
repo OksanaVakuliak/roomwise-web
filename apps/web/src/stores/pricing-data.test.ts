@@ -155,6 +155,17 @@ describe('checkPricingData', () => {
       true,
     ],
     ['an invalid body', () => Promise.resolve(ok({ version: 1 })), true],
+    [
+      'a TypeError while reading the body',
+      () =>
+        Promise.resolve({
+          status: 200,
+          ok: true,
+          headers: new Headers(),
+          json: () => Promise.reject(new TypeError('broken body')),
+        } as unknown as Response),
+      true,
+    ],
   ])('keeps previous data after %s', async (_name, failure, reported) => {
     const data = makePricingData();
     fetchMock.mockResolvedValueOnce(ok(data, 'W/"1"'));
