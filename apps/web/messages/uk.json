@@ -815,7 +815,8 @@
       "deleteCancel": "Залишити",
       "typeMismatch": "Цей тип приміщення недоступний для обраного типу кухні",
       "changeType": "Змінити тип",
-      "deleteMismatched": "Видалити"
+      "deleteMismatched": "Видалити",
+      "deleteClose": "Закрити вікно"
     },
     "validation": {
       "finishLevelRequired": "Оберіть стан здачі",

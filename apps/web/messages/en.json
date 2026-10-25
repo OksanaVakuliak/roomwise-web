@@ -815,7 +815,8 @@
       "deleteCancel": "Keep",
       "typeMismatch": "This room type is not available with the selected kitchen type",
       "changeType": "Change type",
-      "deleteMismatched": "Delete"
+      "deleteMismatched": "Delete",
+      "deleteClose": "Close dialog"
     },
     "validation": {
       "finishLevelRequired": "Choose the finish level",
