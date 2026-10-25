@@ -12,6 +12,7 @@ vi.mock('@/lib/monitoring/client', () => ({ captureException: vi.fn() }));
 
 const V1 = '1111111111111111';
 const V2 = '2222222222222222';
+const V3 = '3333333333333333';
 const fetchMock = vi.fn();
 
 function ok(data: unknown, etag?: string) {
@@ -121,6 +122,27 @@ describe('checkPricingData', () => {
     });
     usePricingData.getState().acknowledgePriceUpdate();
     expect(usePricingData.getState().priceUpdate).toBeNull();
+  });
+
+  it('keeps the first version of an unacknowledged price update', async () => {
+    fetchMock.mockResolvedValueOnce(
+      ok(makePricingData({ version: V1 }), 'W/"1"'),
+    );
+    await checkPricingData();
+    fetchMock.mockResolvedValueOnce(
+      ok(makePricingData({ version: V2 }), 'W/"2"'),
+    );
+    await checkPricingData();
+    fetchMock.mockResolvedValueOnce(
+      ok(makePricingData({ version: V3 }), 'W/"3"'),
+    );
+
+    await checkPricingData();
+
+    expect(usePricingData.getState().priceUpdate).toEqual({
+      from: V1,
+      to: V3,
+    });
   });
 
   it('does not raise a price update for an unchanged version', async () => {

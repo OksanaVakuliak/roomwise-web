@@ -78,7 +78,10 @@ async function run(started: number): Promise<void> {
       checkedAt: Date.now(),
       priceUpdate:
         current.version !== null && current.version !== data.version
-          ? { from: current.version, to: data.version }
+          ? {
+              from: current.priceUpdate?.from ?? current.version,
+              to: data.version,
+            }
           : current.priceUpdate,
     });
   } catch (error) {
