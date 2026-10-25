@@ -755,5 +755,10 @@
     "newVersion": "Доступна нова версія.",
     "reload": "Оновити",
     "dismiss": "Закрити"
+  },
+  "ConfiguratorShell": {
+    "guardIncomplete": "Спершу заповніть крок «{step}»",
+    "guardOrder": "Проходьте кроки по порядку й продовжте кроком «{step}»",
+    "dismiss": "Закрити"
   }
 }

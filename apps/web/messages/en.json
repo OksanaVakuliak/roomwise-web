@@ -755,5 +755,10 @@
     "newVersion": "A new version is available.",
     "reload": "Reload",
     "dismiss": "Dismiss"
+  },
+  "ConfiguratorShell": {
+    "guardIncomplete": "Fill in the “{step}” step first",
+    "guardOrder": "Go through the steps in order and continue with “{step}”",
+    "dismiss": "Dismiss"
   }
 }
