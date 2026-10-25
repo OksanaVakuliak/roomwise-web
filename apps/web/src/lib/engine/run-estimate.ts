@@ -7,7 +7,7 @@ import {
   type PricingData,
   type Section,
 } from '@roomwise/calc-engine';
-import type { DraftV1 } from '@/test/fixtures/draft';
+import type { DraftV1 } from '@/lib/draft/schema';
 import { findLimitViolations, toFormLimitViolations } from './limits';
 import { type CostPanelView, toCostPanelView } from './sections';
 import { toConfiguration } from './to-configuration';

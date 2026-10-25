@@ -8,7 +8,7 @@ import type {
   RoomConfiguration,
   RoomTypeCode,
 } from '@roomwise/calc-engine';
-import type { DraftRoom, DraftV1 } from '@/test/fixtures/draft';
+import type { DraftRoom, DraftV1 } from '@/lib/draft/schema';
 
 export type ConfigurationMode = 'preview' | 'strict';
 
