@@ -78,6 +78,7 @@ Defined in `apps/web/.env.example`.
 | Variable                       | Required | Description                                                                                                                  |
 | ------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `API_ORIGIN`                   | yes      | Backend origin, validated as a URL. `/api/*` is proxied to it through Next.js rewrites, so cookies stay same-origin.         |
+| `API_PROXY_SECRET`             | no       | At least 32 characters. Sent to the API as `x-roomwise-proxy-secret` so it can trust the real client IP; must match the API's `API_PROXY_SECRET` on Render. Without it, rate limits fall back to the Vercel egress IP. |
 | `NEXT_PUBLIC_SHOWCASE_ENABLED` | no       | `true` or `false` (default `false`). Enables the component showcase route in `pnpm dev`; production builds never serve it.  |
 | `SENTRY_DSN`                   | no       | Sentry DSN for server-side reporting.                                                                                        |
 | `NEXT_PUBLIC_SENTRY_DSN`       | no       | Sentry DSN for the browser.                                                                                                  |
