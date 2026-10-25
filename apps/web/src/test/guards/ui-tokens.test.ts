@@ -1,9 +1,7 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { relative, resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
-
-const SRC = resolve(import.meta.dirname, '../..');
-const COMPONENTS = resolve(SRC, 'components');
+import { SRC, TOKEN_DIRS, walk } from './scanned-dirs';
 
 const COLOR_FUNCTION = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i;
 const HEX_COLOR = /#[0-9a-f]{3,8}\b/i;
@@ -14,14 +12,6 @@ const NAMED_COLORS = new Set(
     ' ',
   ),
 );
-
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((name) => {
-    const full = resolve(dir, name);
-    if (name === 'node_modules') return [];
-    return statSync(full).isDirectory() ? walk(full) : [full];
-  });
-}
 
 function blankOutComments(css: string): string {
   return css.replace(/\/\*[\s\S]*?\*\//g, (match) =>
@@ -80,7 +70,9 @@ function scan(file: string): string[] {
 }
 
 describe('component css uses tokens only', () => {
-  const files = walk(COMPONENTS).filter((file) => file.endsWith('.module.css'));
+  const files = TOKEN_DIRS.flatMap(walk).filter((file) =>
+    file.endsWith('.module.css'),
+  );
 
   it('finds css modules to check', () => {
     expect(files.length).toBeGreaterThan(0);

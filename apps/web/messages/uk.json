@@ -601,6 +601,14 @@
       "pcs": "шт."
     }
   },
+  "CostPanel": {
+    "base": "Базова вартість",
+    "materials": "Матеріали",
+    "engineering": "Інженерія",
+    "additional": "Додаткові опції",
+    "errorTitle": "Ціни недоступні",
+    "errorMessage": "Без цінових даних вартість порахувати не можна. Можна й далі заповнювати кроки та повторити спробу."
+  },
   "Layout": {
     "skipLink": "Перейти до вмісту",
     "brandName": "Roomwise",
@@ -662,6 +670,23 @@
     "scene": "Вигляд кімнати",
     "showcase": "Специфікація",
     "cost": "Кошторис"
+  },
+  "ConfiguratorSteps": {
+    "title": {
+      "index": "Конфігуратор. Roomwise",
+      "object": "Об'єкт. Roomwise",
+      "style": "Стиль. Roomwise",
+      "interior": "Інтер'єр. Roomwise",
+      "engineering": "Інженерія. Roomwise",
+      "result": "Кошторис. Roomwise"
+    },
+    "heading": {
+      "object": "Об'єкт",
+      "style": "Стиль",
+      "interior": "Інтер'єр",
+      "engineering": "Інженерія",
+      "result": "Кошторис"
+    }
   },
   "ZoneStub": {
     "scene": "3D-перегляд кімнати",
@@ -737,6 +762,15 @@
   "UpdateNotice": {
     "newVersion": "Доступна нова версія.",
     "reload": "Оновити",
+    "dismiss": "Закрити"
+  },
+  "DraftNotices": {
+    "storageUnavailable": "Браузер блокує сховище, тому чернетка не збережеться. Вона зникне, коли ви закриєте або перезавантажите сторінку.",
+    "draftReset": "Не вдалося відновити збережену чернетку, тому ви починаєте з чистого аркуша."
+  },
+  "ConfiguratorShell": {
+    "guardIncomplete": "Спершу заповніть крок «{step}»",
+    "guardOrder": "Проходьте кроки по порядку й продовжте кроком «{step}»",
     "dismiss": "Закрити"
   }
 }

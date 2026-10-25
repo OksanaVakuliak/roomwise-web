@@ -601,6 +601,14 @@
       "pcs": "pcs"
     }
   },
+  "CostPanel": {
+    "base": "Base cost",
+    "materials": "Materials",
+    "engineering": "Engineering",
+    "additional": "Additional options",
+    "errorTitle": "Prices are unavailable",
+    "errorMessage": "The cost cannot be calculated without pricing data. You can keep filling in the steps and retry."
+  },
   "Layout": {
     "skipLink": "Skip to content",
     "brandName": "Roomwise",
@@ -662,6 +670,23 @@
     "scene": "Room view",
     "showcase": "Specification",
     "cost": "Estimate"
+  },
+  "ConfiguratorSteps": {
+    "title": {
+      "index": "Configurator. Roomwise",
+      "object": "Object. Roomwise",
+      "style": "Style. Roomwise",
+      "interior": "Interior. Roomwise",
+      "engineering": "Engineering. Roomwise",
+      "result": "Estimate. Roomwise"
+    },
+    "heading": {
+      "object": "Object",
+      "style": "Style",
+      "interior": "Interior",
+      "engineering": "Engineering",
+      "result": "Estimate"
+    }
   },
   "ZoneStub": {
     "scene": "3D room view",
@@ -737,6 +762,15 @@
   "UpdateNotice": {
     "newVersion": "A new version is available.",
     "reload": "Reload",
+    "dismiss": "Dismiss"
+  },
+  "DraftNotices": {
+    "storageUnavailable": "Your browser blocks storage, so the draft won’t be saved. It will be lost when you close or reload the page.",
+    "draftReset": "We couldn’t restore your saved draft, so you’re starting from scratch."
+  },
+  "ConfiguratorShell": {
+    "guardIncomplete": "Fill in the “{step}” step first",
+    "guardOrder": "Go through the steps in order and continue with “{step}”",
     "dismiss": "Dismiss"
   }
 }

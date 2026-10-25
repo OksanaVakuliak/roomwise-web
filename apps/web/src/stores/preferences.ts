@@ -1,13 +1,10 @@
 import type { Locale } from 'next-intl';
 import { create } from 'zustand';
-import {
-  createJSONStorage,
-  persist,
-  type StateStorage,
-} from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { routing } from '@/i18n/routing';
 import { type Currency, currencies } from '@/lib/format';
 import { applyTheme, type ThemeMode, writeThemeMode } from '@/lib/theme';
+import { createSafeStorage } from './safe-storage';
 
 export const PREFERENCES_STORAGE_KEY = 'roomwise-preferences';
 const PREFERENCES_VERSION = 1;
@@ -49,35 +46,6 @@ function sanitize(
   };
 }
 
-const safeStorage: StateStorage = {
-  getItem: (name) => {
-    try {
-      const raw = localStorage.getItem(name);
-      if (raw === null) {
-        return null;
-      }
-      JSON.parse(raw);
-      return raw;
-    } catch {
-      return null;
-    }
-  },
-  setItem: (name, value) => {
-    try {
-      localStorage.setItem(name, value);
-    } catch {
-      return;
-    }
-  },
-  removeItem: (name) => {
-    try {
-      localStorage.removeItem(name);
-    } catch {
-      return;
-    }
-  },
-};
-
 export const usePreferences = create<PreferencesState>()(
   persist(
     (set) => ({
@@ -92,7 +60,7 @@ export const usePreferences = create<PreferencesState>()(
     }),
     {
       name: PREFERENCES_STORAGE_KEY,
-      storage: createJSONStorage(() => safeStorage),
+      storage: createJSONStorage(() => createSafeStorage()),
       version: PREFERENCES_VERSION,
       migrate: () => sanitize(undefined),
       merge: (persisted, current) =>

@@ -1,46 +1,11 @@
-import type { RoomTypeCode } from '@roomwise/calc-engine';
+import type {
+  DraftOption,
+  DraftRoom,
+  DraftSelection,
+  DraftV1,
+  StepId,
+} from '@/lib/draft/schema';
 import { categoryIds, productIds, styleIds } from './catalog';
-
-export type StepId = 'object' | 'style' | 'interior' | 'engineering' | 'result';
-
-export type DraftSelection = {
-  productId: string | null;
-  disabled: boolean;
-  source: 'style' | 'manual';
-};
-
-export type DraftRoom = {
-  clientId: string;
-  roomTypeCode: RoomTypeCode | null;
-  name: string | null;
-  lengthM: number | null;
-  widthM: number | null;
-  heightM: number | null;
-  heatedFloor: boolean;
-  selections: Record<string, DraftSelection>;
-};
-
-export type DraftOption = { quantity?: number; roomClientIds?: string[] };
-
-export type DraftV1 = {
-  step: StepId;
-  furthestStep: StepId;
-  object: {
-    finishLevel: 'ROUGH' | 'PRE_FINISH' | null;
-    totalAreaSqm: number | null;
-    gas: boolean;
-    kitchenType: 'SEPARATE' | 'KITCHEN_LIVING';
-    balcony: { present: boolean; areaSqm: number | null; tiles: boolean };
-  };
-  rooms: DraftRoom[];
-  styleId: string | null;
-  options: Record<string, DraftOption>;
-  lastSaved: {
-    publicId: string;
-    versionNumber: number;
-    configurationHash: string;
-  } | null;
-};
 
 export function makeDraftRoom(overrides: Partial<DraftRoom> = {}): DraftRoom {
   return {
@@ -144,3 +109,5 @@ export function makeFullRoomsDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
     ...overrides,
   });
 }
+
+export type { DraftOption, DraftRoom, DraftSelection, DraftV1, StepId };

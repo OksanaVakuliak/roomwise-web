@@ -10,6 +10,7 @@ export type TapeStepProps = {
   state: TapeStepState;
   stateLabel: string;
   label?: string;
+  available?: boolean;
   size?: 'mobile' | 'desktop' | 'responsive';
   href?: string;
   onClick?: () => void;
@@ -20,6 +21,7 @@ export function TapeStep({
   state,
   stateLabel,
   label,
+  available,
   size = 'mobile',
   href,
   onClick,
@@ -36,12 +38,25 @@ export function TapeStep({
     </>
   );
 
+  const interactive = available ?? state !== 'later';
+
   let control = (
     <span className={styles.control} aria-current={ariaCurrent}>
       {content}
     </span>
   );
-  if (state !== 'later' && href) {
+  if (available === false && (href || onClick)) {
+    control = (
+      <button
+        type="button"
+        className={styles.control}
+        aria-disabled="true"
+        aria-current={ariaCurrent}
+      >
+        {content}
+      </button>
+    );
+  } else if (interactive && href) {
     control = (
       <a
         className={`${styles.control} ${styles.interactive}`}
@@ -51,7 +66,7 @@ export function TapeStep({
         {content}
       </a>
     );
-  } else if (state !== 'later' && onClick) {
+  } else if (interactive && onClick) {
     control = (
       <button
         type="button"
