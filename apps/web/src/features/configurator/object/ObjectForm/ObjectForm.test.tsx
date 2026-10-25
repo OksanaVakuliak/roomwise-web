@@ -5,7 +5,6 @@ import { createDefaultDraft } from '@/lib/draft/schema';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { useDraft } from '@/stores/draft';
 import { axe } from '@/test/axe';
-import { makePricingData } from '@/test/fixtures/pricing-data';
 import {
   forEachLocale,
   renderWithProviders,
@@ -16,7 +15,6 @@ import { objectFieldDomId } from './field-ids';
 import { ObjectForm, type ObjectFormErrors } from './ObjectForm';
 
 const catalogs = { en, uk };
-const { limits } = makePricingData();
 
 function form(locale: Locale) {
   return createTranslator({
@@ -53,9 +51,7 @@ describe('ObjectForm', () => {
       screen.getByRole('radio', { name: t('finishRough') }),
     ).not.toBeChecked();
     expect(screen.getByRole('radio', { name: t('finishPre') })).toBeVisible();
-    expect(
-      screen.getByRole('spinbutton', { name: t('totalArea') }),
-    ).toBeVisible();
+    expect(screen.getByRole('textbox', { name: t('totalArea') })).toBeVisible();
     expect(
       screen.getByRole('radio', { name: t('kitchenSeparate') }),
     ).toBeChecked();
@@ -67,7 +63,7 @@ describe('ObjectForm', () => {
       screen.getByRole('switch', { name: t('balcony') }),
     ).not.toBeChecked();
     expect(
-      screen.queryByRole('spinbutton', { name: t('balconyArea') }),
+      screen.queryByRole('textbox', { name: t('balconyArea') }),
     ).not.toBeInTheDocument();
   });
 
@@ -89,7 +85,7 @@ describe('ObjectForm', () => {
   it('writes the total area as a number and an empty field as null', async () => {
     const t = form('en');
     await renderForm();
-    const input = screen.getByRole('spinbutton', { name: t('totalArea') });
+    const input = screen.getByRole('textbox', { name: t('totalArea') });
 
     fireEvent.change(input, { target: { value: '64' } });
     expect(useDraft.getState().object.totalAreaSqm).toBe(64);
@@ -101,23 +97,6 @@ describe('ObjectForm', () => {
     expect(useDraft.getState().object.totalAreaSqm).toBeNull();
   });
 
-  it('takes its limits from the pricing data', async () => {
-    const t = form('en');
-    await renderForm();
-    const input = screen.getByRole('spinbutton', { name: t('totalArea') });
-
-    expect(input).toHaveAttribute('min', String(limits.totalAreaSqm.min));
-    expect(input).toHaveAttribute('max', String(limits.totalAreaSqm.max));
-
-    fireEvent.click(screen.getByRole('switch', { name: t('balcony') }));
-    const balcony = screen.getByRole('spinbutton', { name: t('balconyArea') });
-    expect(balcony).toHaveAttribute('min', '0');
-    expect(balcony).toHaveAttribute('max', String(limits.totalAreaSqm.max));
-
-    fireEvent.change(input, { target: { value: '40' } });
-    expect(balcony).toHaveAttribute('max', '40');
-  });
-
   it('shows the balcony fields and writes them to the draft', async () => {
     const t = form('en');
     await renderForm();
@@ -125,10 +104,9 @@ describe('ObjectForm', () => {
     fireEvent.click(screen.getByRole('switch', { name: t('balcony') }));
     expect(useDraft.getState().object.balcony.present).toBe(true);
 
-    fireEvent.change(
-      screen.getByRole('spinbutton', { name: t('balconyArea') }),
-      { target: { value: '4.5' } },
-    );
+    fireEvent.change(screen.getByRole('textbox', { name: t('balconyArea') }), {
+      target: { value: '4.5' },
+    });
     fireEvent.click(screen.getByRole('checkbox', { name: t('balconyTiles') }));
 
     expect(useDraft.getState().object.balcony).toEqual({
@@ -139,19 +117,49 @@ describe('ObjectForm', () => {
 
     fireEvent.click(screen.getByRole('switch', { name: t('balcony') }));
     expect(
-      screen.queryByRole('spinbutton', { name: t('balconyArea') }),
+      screen.queryByRole('textbox', { name: t('balconyArea') }),
     ).not.toBeInTheDocument();
   });
 
-  it('never writes NaN when the browser reports an unparsable value', async () => {
+  it('accepts a comma as the decimal separator', async () => {
     const t = form('en');
     await renderForm();
-    const input = screen.getByRole('spinbutton', { name: t('totalArea') });
+    const input = screen.getByRole('textbox', { name: t('totalArea') });
+
+    fireEvent.change(input, { target: { value: '64,5' } });
+    expect(useDraft.getState().object.totalAreaSqm).toBe(64.5);
+    expect(input).toHaveValue('64,5');
+
+    fireEvent.click(screen.getByRole('switch', { name: t('balcony') }));
+    fireEvent.change(screen.getByRole('textbox', { name: t('balconyArea') }), {
+      target: { value: '3,5' },
+    });
+    expect(useDraft.getState().object.balcony.areaSqm).toBe(3.5);
+  });
+
+  it('keeps an intermediate separator while typing', async () => {
+    const t = form('en');
+    await renderForm();
+    const input = screen.getByRole('textbox', { name: t('totalArea') });
+
+    fireEvent.change(input, { target: { value: '64,' } });
+    expect(input).toHaveValue('64,');
+    expect(useDraft.getState().object.totalAreaSqm).toBe(64);
+
+    fireEvent.change(input, { target: { value: '64.' } });
+    expect(input).toHaveValue('64.');
+  });
+
+  it('keeps invalid text and clears the stored value', async () => {
+    const t = form('en');
+    await renderForm();
+    const input = screen.getByRole('textbox', { name: t('totalArea') });
 
     fireEvent.change(input, { target: { value: '64' } });
-    fireEvent.change(input, { target: { value: '64,5' } });
+    fireEvent.change(input, { target: { value: '6x' } });
 
-    expect(useDraft.getState().object.totalAreaSqm).not.toBeNaN();
+    expect(input).toHaveValue('6x');
+    expect(useDraft.getState().object.totalAreaSqm).toBeNull();
   });
 
   it('renders errors with aria-invalid and a description', async () => {
@@ -161,7 +169,7 @@ describe('ObjectForm', () => {
       totalArea: 'Out of range',
     });
 
-    const area = screen.getByRole('spinbutton', { name: t('totalArea') });
+    const area = screen.getByRole('textbox', { name: t('totalArea') });
     expect(area).toHaveAttribute('aria-invalid', 'true');
     expect(area).toHaveAccessibleDescription(/Out of range/);
     expect(screen.getByRole('radio', { name: t('finishPre') })).toHaveAttribute(
@@ -182,10 +190,10 @@ describe('ObjectForm', () => {
       screen.getByRole('radio', { name: t('finishRough') }),
     ).toHaveAttribute('id', objectFieldDomId('finishLevel'));
     expect(
-      screen.getByRole('spinbutton', { name: t('totalArea') }),
+      screen.getByRole('textbox', { name: t('totalArea') }),
     ).toHaveAttribute('id', objectFieldDomId('totalArea'));
     expect(
-      screen.getByRole('spinbutton', { name: t('balconyArea') }),
+      screen.getByRole('textbox', { name: t('balconyArea') }),
     ).toHaveAttribute('id', objectFieldDomId('balconyArea'));
   });
 

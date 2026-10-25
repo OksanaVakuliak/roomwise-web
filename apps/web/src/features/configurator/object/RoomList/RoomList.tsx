@@ -6,7 +6,6 @@ import { Button, ConfirmDialog, Icon } from '@/components/ui';
 import { useRoomTypes } from '@/lib/api/catalog';
 import { needsDeleteConfirm } from '@/lib/draft/rooms';
 import { useDraft } from '@/stores/draft';
-import { usePricingData } from '@/stores/pricing-data';
 import { RoomEditor, type RoomTypeOption } from '../RoomEditor/RoomEditor';
 import {
   type RoomFieldErrors,
@@ -25,7 +24,6 @@ export function RoomList({ errors = {} }: RoomListProps) {
   const kitchenType = useDraft((state) => state.object.kitchenType);
   const addRoom = useDraft((state) => state.addRoom);
   const removeRoom = useDraft((state) => state.removeRoom);
-  const limits = usePricingData((state) => state.data?.limits ?? null);
   const roomTypesQuery = useRoomTypes();
   const roomTypes: RoomTypeOption[] = roomTypesQuery.data?.items ?? [];
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
@@ -96,7 +94,6 @@ export function RoomList({ errors = {} }: RoomListProps) {
                 rooms={rooms}
                 kitchenType={kitchenType}
                 roomTypes={roomTypes}
-                limits={limits}
                 errors={errors[room.clientId]}
                 onDelete={requestDelete}
               />

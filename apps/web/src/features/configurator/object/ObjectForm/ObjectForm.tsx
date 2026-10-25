@@ -11,8 +11,8 @@ import {
 } from '@/components/ui';
 import { cx } from '@/lib/cx';
 import type { DraftV1 } from '@/lib/draft/schema';
+import { parseDecimal, useDecimalText } from '@/lib/form';
 import { useDraft } from '@/stores/draft';
-import { usePricingData } from '@/stores/pricing-data';
 import { type ObjectFieldId, objectFieldDomId } from './field-ids';
 import styles from './ObjectForm.module.css';
 
@@ -39,23 +39,14 @@ const KITCHEN_LABEL = {
   KITCHEN_LIVING: 'kitchenLiving',
 } as const satisfies Record<KitchenType, string>;
 
-function parseAmount(raw: string): number | null | undefined {
-  const text = raw.trim().replace(',', '.');
-  if (text === '') {
-    return null;
-  }
-  const value = Number(text);
-  return Number.isFinite(value) ? value : undefined;
-}
-
 export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
   const t = useTranslations('ObjectStep.form');
   const object = useDraft((state) => state.object);
   const setObject = useDraft((state) => state.setObject);
-  const limits = usePricingData((state) => state.data?.limits);
   const { balcony } = object;
   const unit = t('unitSqm');
-  const balconyMax = object.totalAreaSqm ?? limits?.totalAreaSqm.max;
+  const [totalText, setTotalText] = useDecimalText(object.totalAreaSqm);
+  const [balconyText, setBalconyText] = useDecimalText(balcony.areaSqm);
 
   const changeFinish = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -69,12 +60,10 @@ export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
   );
   const changeTotal = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      const totalAreaSqm = parseAmount(event.target.value);
-      if (totalAreaSqm !== undefined) {
-        setObject({ totalAreaSqm });
-      }
+      setTotalText(event.target.value);
+      setObject({ totalAreaSqm: parseDecimal(event.target.value) ?? null });
     },
-    [setObject],
+    [setObject, setTotalText],
   );
   const changeGas = useCallback(
     (gas: boolean) => setObject({ gas }),
@@ -86,12 +75,11 @@ export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
   );
   const changeBalconyArea = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      const areaSqm = parseAmount(event.target.value);
-      if (areaSqm !== undefined) {
-        setObject({ balcony: { ...balcony, areaSqm } });
-      }
+      setBalconyText(event.target.value);
+      const areaSqm = parseDecimal(event.target.value) ?? null;
+      setObject({ balcony: { ...balcony, areaSqm } });
     },
-    [setObject, balcony],
+    [setObject, balcony, setBalconyText],
   );
   const changeTiles = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -124,11 +112,9 @@ export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
         label={t('totalArea')}
         unit={unit}
         error={errors.totalArea}
-        min={limits?.totalAreaSqm.min}
-        max={limits?.totalAreaSqm.max}
-        step="any"
+        decimal
         required
-        value={object.totalAreaSqm ?? ''}
+        value={totalText}
         onChange={changeTotal}
       />
 
@@ -165,10 +151,8 @@ export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
               label={t('balconyArea')}
               unit={unit}
               error={errors.balconyArea}
-              min={0}
-              max={balconyMax}
-              step="any"
-              value={balcony.areaSqm ?? ''}
+              decimal
+              value={balconyText}
               onChange={changeBalconyArea}
             />
             <Checkbox

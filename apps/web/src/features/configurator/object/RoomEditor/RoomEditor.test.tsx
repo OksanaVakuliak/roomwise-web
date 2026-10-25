@@ -7,7 +7,6 @@ import { useDraft } from '@/stores/draft';
 import { axe } from '@/test/axe';
 import { makeRoomTypes } from '@/test/fixtures/catalog';
 import { makeDraftRoom } from '@/test/fixtures/draft';
-import { makePricingData } from '@/test/fixtures/pricing-data';
 import {
   forEachLocale,
   renderWithProviders,
@@ -19,7 +18,6 @@ import { roomFieldDomId } from './room-field';
 
 const catalogs = { en, uk };
 const noop = () => undefined;
-const { limits } = makePricingData();
 const roomTypes = makeRoomTypes().items.map(({ code, name }) => ({
   code,
   name,
@@ -47,7 +45,6 @@ async function renderEditor(
         rooms={[room]}
         kitchenType="SEPARATE"
         roomTypes={roomTypes}
-        limits={limits}
         onDelete={noop}
         {...props}
       />,
@@ -104,7 +101,7 @@ describe('RoomEditor', () => {
     fireEvent.change(screen.getByRole('combobox', { name: t('type') }), {
       target: { value: 'KITCHEN' },
     });
-    fireEvent.change(screen.getByRole('spinbutton', { name: t('length') }), {
+    fireEvent.change(screen.getByRole('textbox', { name: t('length') }), {
       target: { value: '5' },
     });
     fireEvent.change(screen.getByRole('textbox', { name: t('name') }), {
@@ -125,23 +122,34 @@ describe('RoomEditor', () => {
       room: makeDraftRoom({ roomTypeCode: 'BEDROOM', lengthM: 4 }),
     });
 
-    fireEvent.change(screen.getByRole('spinbutton', { name: t('length') }), {
+    fireEvent.change(screen.getByRole('textbox', { name: t('length') }), {
       target: { value: '' },
     });
 
     expect(useDraft.getState().rooms[0].lengthM).toBeNull();
   });
 
-  it('uses the pricing limits as field bounds', async () => {
+  it('accepts a comma as the decimal separator', async () => {
     const t = translator('en');
     await renderEditor();
 
-    const height = screen.getByRole('spinbutton', { name: t('height') });
-    expect(height).toHaveAttribute('min', String(limits.roomHeightM.min));
-    expect(height).toHaveAttribute('max', String(limits.roomHeightM.max));
-    expect(
-      screen.getByRole('spinbutton', { name: t('length') }),
-    ).toHaveAttribute('max', String(limits.roomSideM.max));
+    fireEvent.change(screen.getByRole('textbox', { name: t('length') }), {
+      target: { value: '3,5' },
+    });
+    expect(useDraft.getState().rooms[0].lengthM).toBe(3.5);
+  });
+
+  it('keeps invalid text and clears the stored value', async () => {
+    const t = translator('en');
+    await renderEditor({
+      room: makeDraftRoom({ roomTypeCode: 'BEDROOM', lengthM: 4 }),
+    });
+    const length = screen.getByRole('textbox', { name: t('length') });
+
+    fireEvent.change(length, { target: { value: '4x' } });
+
+    expect(length).toHaveValue('4x');
+    expect(useDraft.getState().rooms[0].lengthM).toBeNull();
   });
 
   it('offers only types allowed for the kitchen type', async () => {
@@ -186,7 +194,7 @@ describe('RoomEditor', () => {
     const t = translator('en');
     await renderEditor({ errors: { heightM: 'Enter a value' } });
 
-    const height = screen.getByRole('spinbutton', { name: t('height') });
+    const height = screen.getByRole('textbox', { name: t('height') });
     expect(height).toHaveAttribute('aria-invalid', 'true');
     expect(height).toHaveAccessibleDescription(/Enter a value/);
   });
@@ -196,9 +204,7 @@ describe('RoomEditor', () => {
 
     expect(
       document.getElementById(roomFieldDomId(room.clientId, 'heightM')),
-    ).toBe(
-      screen.getByRole('spinbutton', { name: translator('en')('height') }),
-    );
+    ).toBe(screen.getByRole('textbox', { name: translator('en')('height') }));
   });
 
   it.each(forEachLocale)(

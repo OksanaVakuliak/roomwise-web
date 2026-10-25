@@ -2,7 +2,6 @@
 
 import {
   type KitchenType,
-  type PricingData,
   type RoomTypeCode,
   roomVariables,
 } from '@roomwise/calc-engine';
@@ -21,6 +20,7 @@ import {
   roomTypeMismatch,
 } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
+import { parseDecimal, useDecimalText } from '@/lib/form';
 import { useDraft } from '@/stores/draft';
 import styles from './RoomEditor.module.css';
 import {
@@ -31,43 +31,16 @@ import {
 
 export type RoomTypeOption = { code: RoomTypeCode; name: string };
 
-export type RoomLimits = Pick<
-  PricingData['limits'],
-  'roomSideM' | 'roomHeightM'
->;
-
 export type RoomEditorProps = {
   room: DraftRoom;
   rooms: readonly DraftRoom[];
   kitchenType: KitchenType;
   roomTypes: readonly RoomTypeOption[];
-  limits?: RoomLimits | null;
   errors?: RoomFieldErrors;
   onDelete: (clientId: string) => void;
 };
 
 const NAME_MAX = 60;
-const DIMENSION_STEP = 0.1;
-
-function toText(value: number | null): string {
-  return value === null ? '' : String(value);
-}
-
-function parseNumber(text: string): number | null {
-  if (text.trim() === '') {
-    return null;
-  }
-  const value = Number(text);
-  return Number.isFinite(value) ? value : null;
-}
-
-function useNumberText(value: number | null) {
-  const [text, setText] = useState(toText(value));
-  if (parseNumber(text) !== value) {
-    setText(toText(value));
-  }
-  return [text, setText] as const;
-}
 
 function normalizeName(text: string): string {
   return text.trim().slice(0, NAME_MAX);
@@ -97,7 +70,6 @@ type DimensionFieldProps = {
   field: DimensionKey;
   label: string;
   unit: string;
-  range?: { min: number; max: number };
   error?: string;
 };
 
@@ -106,16 +78,17 @@ function DimensionField({
   field,
   label,
   unit,
-  range,
   error,
 }: DimensionFieldProps) {
   const updateRoom = useDraft((state) => state.updateRoom);
-  const [text, setText] = useNumberText(room[field]);
+  const [text, setText] = useDecimalText(room[field]);
   const { clientId } = room;
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       setText(event.target.value);
-      updateRoom(clientId, { [field]: parseNumber(event.target.value) });
+      updateRoom(clientId, {
+        [field]: parseDecimal(event.target.value) ?? null,
+      });
     },
     [clientId, field, setText, updateRoom],
   );
@@ -126,9 +99,7 @@ function DimensionField({
       label={label}
       unit={unit}
       error={error}
-      min={range?.min}
-      max={range?.max}
-      step={DIMENSION_STEP}
+      decimal
       value={text}
       onChange={handleChange}
     />
@@ -140,7 +111,6 @@ export function RoomEditor({
   rooms,
   kitchenType,
   roomTypes,
-  limits = null,
   errors = {},
   onDelete,
 }: RoomEditorProps) {
@@ -246,7 +216,6 @@ export function RoomEditor({
           field="lengthM"
           label={t('length')}
           unit={t('unitM')}
-          range={limits?.roomSideM}
           error={errors.lengthM}
         />
         <DimensionField
@@ -254,7 +223,6 @@ export function RoomEditor({
           field="widthM"
           label={t('width')}
           unit={t('unitM')}
-          range={limits?.roomSideM}
           error={errors.widthM}
         />
         <DimensionField
@@ -262,7 +230,6 @@ export function RoomEditor({
           field="heightM"
           label={t('height')}
           unit={t('unitM')}
-          range={limits?.roomHeightM}
           error={errors.heightM}
         />
       </div>

@@ -91,14 +91,12 @@ describe('RoomList', () => {
     fireEvent.change(within(room).getByRole('combobox', { name: t('type') }), {
       target: { value: 'BEDROOM' },
     });
-    fireEvent.change(
-      within(room).getByRole('spinbutton', { name: t('length') }),
-      { target: { value: '4' } },
-    );
-    fireEvent.change(
-      within(room).getByRole('spinbutton', { name: t('width') }),
-      { target: { value: '3.5' } },
-    );
+    fireEvent.change(within(room).getByRole('textbox', { name: t('length') }), {
+      target: { value: '4' },
+    });
+    fireEvent.change(within(room).getByRole('textbox', { name: t('width') }), {
+      target: { value: '3.5' },
+    });
 
     expect(
       within(room).getByText(t('areaValue', { value: '14' })),
@@ -218,13 +216,13 @@ describe('RoomList', () => {
     const [first, second] = items('en');
 
     expect(
-      within(first).getByRole('spinbutton', { name: t('height') }),
+      within(first).getByRole('textbox', { name: t('height') }),
     ).toHaveAttribute('aria-invalid', 'true');
     expect(
-      within(second).getByRole('spinbutton', { name: t('height') }),
+      within(second).getByRole('textbox', { name: t('height') }),
     ).not.toHaveAttribute('aria-invalid');
     expect(document.getElementById(roomFieldDomId('plain', 'heightM'))).toBe(
-      within(first).getByRole('spinbutton', { name: t('height') }),
+      within(first).getByRole('textbox', { name: t('height') }),
     );
   });
 

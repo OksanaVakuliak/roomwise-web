@@ -87,6 +87,7 @@ function FieldsDemo({ size }: { size: 'mobile' | 'desktop' }) {
               hint={t('areaHint')}
               defaultValue={state === 'filled' ? 18.5 : undefined}
               step={0.1}
+              decimal
               {...stateProps(state, t('areaError'), t('loadingLabel'))}
             />
           </Cell>
