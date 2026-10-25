@@ -8,15 +8,17 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ConfiguratorEstimate } from '@/app/[locale]/configurator/ConfiguratorEstimate';
+import { money } from '@/lib/format';
 import { THEME_COLORS, THEME_STORAGE_KEY } from '@/lib/theme';
 import { resetThemeDom, stubMatchMedia } from '@/lib/theme/test-utils';
 import { resetExchangeRate } from '@/stores/exchange-rate';
 import { PREFERENCES_STORAGE_KEY, usePreferences } from '@/stores/preferences';
 import { resetPricingData } from '@/stores/pricing-data';
+import { useDisplayCurrency } from '@/stores/use-display-currency';
 import { makePricingData } from '@/test/fixtures';
 import { setLoadedRate } from '@/test/fixtures/exchange-rate';
 import { renderWithProviders } from '@/test/render-with-providers';
+import { ExchangeRateNote } from './ExchangeRateNote/ExchangeRateNote';
 import { ExchangeRateNotice } from './ExchangeRateNotice/ExchangeRateNotice';
 import { PreferenceSwitches } from './PreferenceSwitches/PreferenceSwitches';
 
@@ -146,12 +148,22 @@ describe('switching the language', () => {
   });
 });
 
+function Amount() {
+  const { currency, rate } = useDisplayCurrency();
+  return (
+    <>
+      <p>{money(684400, currency, 'en', rate)}</p>
+      {currency === 'UAH' ? <ExchangeRateNote /> : null}
+    </>
+  );
+}
+
 describe('switching the currency', () => {
   function renderEstimate(currency?: 'USD' | 'UAH') {
     return renderWithProviders(
       <>
         <PreferenceSwitches />
-        <ConfiguratorEstimate />
+        <Amount />
         <ExchangeRateNotice />
       </>,
       { currency, pricing: false },

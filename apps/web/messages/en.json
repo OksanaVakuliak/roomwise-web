@@ -663,6 +663,23 @@
     "showcase": "Specification",
     "cost": "Estimate"
   },
+  "ConfiguratorSteps": {
+    "title": {
+      "index": "Configurator. Roomwise",
+      "object": "Object. Roomwise",
+      "style": "Style. Roomwise",
+      "interior": "Interior. Roomwise",
+      "engineering": "Engineering. Roomwise",
+      "result": "Estimate. Roomwise"
+    },
+    "heading": {
+      "object": "Object",
+      "style": "Style",
+      "interior": "Interior",
+      "engineering": "Engineering",
+      "result": "Estimate"
+    }
+  },
   "ZoneStub": {
     "scene": "3D room view",
     "showcase": "Specification showcase",

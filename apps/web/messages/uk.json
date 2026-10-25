@@ -663,6 +663,23 @@
     "showcase": "Специфікація",
     "cost": "Кошторис"
   },
+  "ConfiguratorSteps": {
+    "title": {
+      "index": "Конфігуратор. Roomwise",
+      "object": "Об'єкт. Roomwise",
+      "style": "Стиль. Roomwise",
+      "interior": "Інтер'єр. Roomwise",
+      "engineering": "Інженерія. Roomwise",
+      "result": "Кошторис. Roomwise"
+    },
+    "heading": {
+      "object": "Об'єкт",
+      "style": "Стиль",
+      "interior": "Інтер'єр",
+      "engineering": "Інженерія",
+      "result": "Кошторис"
+    }
+  },
   "ZoneStub": {
     "scene": "3D-перегляд кімнати",
     "showcase": "Вітрина специфікації",
