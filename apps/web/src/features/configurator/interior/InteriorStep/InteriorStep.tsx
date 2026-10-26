@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { type ReactNode, Suspense, useCallback, useEffect } from 'react';
+import { Suspense, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ErrorState } from '@/components/system';
 import { Skeleton } from '@/components/ui';
@@ -10,24 +10,18 @@ import { usePathname, useRouter } from '@/i18n/navigation';
 import { useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
+import { useMediaQuery } from '@/lib/media';
 import { useDraft } from '@/stores/draft';
 import { useSceneSlot } from '../../shell/SceneSlot/scene-slot-context';
+import { CategoryList } from '../CategoryList/CategoryList';
+import { ProductShowcase } from '../ProductShowcase/ProductShowcase';
 import { RoomSwitcher } from '../RoomSwitcher/RoomSwitcher';
 import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
 import styles from './InteriorStep.module.css';
 
-export type InteriorSlotProps = {
-  room: DraftRoom;
-  roomName: string;
-  categoryId: string | null;
-  onCategoryChange: (categoryId: string | null) => void;
-};
+const DESKTOP_QUERY = '(min-width: 768px)';
 
-export type InteriorStepProps = {
-  children?: (slot: InteriorSlotProps) => ReactNode;
-};
-
-function InteriorContent({ children }: InteriorStepProps) {
+function InteriorContent() {
   const t = useTranslations('InteriorStep');
   const router = useRouter();
   const pathname = usePathname();
@@ -35,6 +29,7 @@ function InteriorContent({ children }: InteriorStepProps) {
   const rooms = useDraft((state) => state.rooms);
   const roomTypesQuery = useRoomTypes();
   const sceneSlot = useSceneSlot();
+  const desktop = useMediaQuery(DESKTOP_QUERY);
 
   const requestedRoom = searchParams.get('room');
   const categoryId = searchParams.get('category');
@@ -71,6 +66,7 @@ function InteriorContent({ children }: InteriorStepProps) {
     (id: string | null) => navigate({ category: id }, 'replace'),
     [navigate],
   );
+  const openDetail = useCallback(() => undefined, []);
   const { refetch } = roomTypesQuery;
   const retry = useCallback(() => {
     void refetch();
@@ -102,6 +98,22 @@ function InteriorContent({ children }: InteriorStepProps) {
     label: nameOf(room),
   }));
   const roomName = nameOf(current);
+  const categories =
+    roomTypes.find((type) => type.code === current.roomTypeCode)?.categories ??
+    [];
+  const selectable = categories.filter((category) => category.productCount > 0);
+  const activeIndex = categories.findIndex(
+    (category) => category.id === categoryId && category.productCount > 0,
+  );
+  const fallback = desktop ? selectable[0] : undefined;
+  const activeEntry = activeIndex >= 0 ? categories[activeIndex] : fallback;
+  const activeCategory = activeEntry
+    ? {
+        id: activeEntry.id,
+        name: activeEntry.name,
+        position: categories.indexOf(activeEntry) + 1,
+      }
+    : null;
   const { lengthM, widthM, heightM } = current;
   const scene =
     lengthM === null || widthM === null || heightM === null ? null : (
@@ -121,12 +133,20 @@ function InteriorContent({ children }: InteriorStepProps) {
         value={current.clientId}
         onValueChange={switchRoom}
       >
-        {children?.({
-          room: current,
-          roomName,
-          categoryId,
-          onCategoryChange: changeCategory,
-        })}
+        <ProductShowcase
+          room={current}
+          category={activeCategory}
+          placement={desktop ? 'zone' : 'sheet'}
+          onCategoryChange={changeCategory}
+          onOpenDetail={openDetail}
+        />
+        <CategoryList
+          room={current}
+          roomName={roomName}
+          categories={categories}
+          activeCategoryId={activeCategory?.id ?? null}
+          onCategoryChange={changeCategory}
+        />
       </RoomSwitcher>
       {sceneSlot && scene ? createPortal(scene, sceneSlot) : null}
     </div>
@@ -143,10 +163,10 @@ function InteriorFallback() {
   );
 }
 
-export function InteriorStep(props: InteriorStepProps) {
+export function InteriorStep() {
   return (
     <Suspense fallback={<InteriorFallback />}>
-      <InteriorContent {...props} />
+      <InteriorContent />
     </Suspense>
   );
 }

@@ -877,5 +877,37 @@
       "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue."
     },
     "plan": "Plan of the apartment"
+  },
+  "CategoryList": {
+    "title": "Materials",
+    "note": "{name}, {count, plural, one {# category} other {# categories}}",
+    "choose": "choose a material",
+    "excluded": "not included in the estimate",
+    "empty": "no products for this room",
+    "toggle": "Include {name} in the estimate"
+  },
+  "ProductShowcase": {
+    "title": "Specification",
+    "note": "{name}, {count, plural, one {# item} other {# items}}",
+    "loading": "Loading products",
+    "sortLabel": "Sort by",
+    "sort": {
+      "server": "Recommended",
+      "asc": "Price: low to high",
+      "desc": "Price: high to low"
+    },
+    "unit": {
+      "SQM": "per m²",
+      "LINEAR_M": "per m",
+      "PIECE": "per piece"
+    },
+    "picked": "picked",
+    "unavailable": "temporarily unavailable",
+    "forRoom": "for the room",
+    "detail": "Details",
+    "detailLabel": "Details: {name}",
+    "close": "Close",
+    "dismiss": "Dismiss",
+    "categoryGone": "This category is no longer available. The catalog has been refreshed."
   }
 }
