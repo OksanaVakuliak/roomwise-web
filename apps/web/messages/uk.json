@@ -820,11 +820,9 @@
     },
     "validation": {
       "finishLevelRequired": "Оберіть стан здачі",
-      "required": "Введіть значення",
       "range": "Від {min, number} до {max, number} {unit, select, m {м} sqm {м²} pcs {шт.} other {}}",
       "roomsRequired": "Потрібне хоча б одне приміщення",
       "roomTypeRequired": "Оберіть тип приміщення",
-      "nameTooLong": "Не більше {max} символів",
       "roomsExceedTotal": "Сума площ приміщень перевищує загальну площу на {difference, number} м². Ви можете продовжити."
     },
     "plan": "План квартири"

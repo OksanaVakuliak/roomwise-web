@@ -820,11 +820,9 @@
     },
     "validation": {
       "finishLevelRequired": "Choose the finish level",
-      "required": "Enter a value",
       "range": "From {min, number} to {max, number} {unit, select, m {m} sqm {m²} pcs {pcs} other {}}",
       "roomsRequired": "At least one room is required",
       "roomTypeRequired": "Choose the room type",
-      "nameTooLong": "Up to {max} characters",
       "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue."
     },
     "plan": "Plan of the apartment"

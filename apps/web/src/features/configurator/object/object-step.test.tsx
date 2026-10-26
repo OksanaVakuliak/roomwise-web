@@ -100,7 +100,7 @@ function roomTypeName(code: string) {
 
 function setNumber(name: string, value: string, scope?: HTMLElement) {
   const queries = scope ? within(scope) : screen;
-  fireEvent.change(queries.getByRole('spinbutton', { name }), {
+  fireEvent.change(queries.getByRole('textbox', { name }), {
     target: { value },
   });
 }
@@ -231,7 +231,7 @@ describe('ObjectStep', () => {
 
       clickNext(locale);
 
-      const height = within(room).getByRole('spinbutton', {
+      const height = within(room).getByRole('textbox', {
         name: step('rooms.height'),
       });
       expect(height).toHaveFocus();
@@ -263,7 +263,7 @@ describe('ObjectStep', () => {
     clickNext('en');
 
     expect(
-      screen.getByRole('spinbutton', { name: step('form.totalArea') }),
+      screen.getByRole('textbox', { name: step('form.totalArea') }),
     ).toHaveFocus();
     expect(
       screen.getByText(
