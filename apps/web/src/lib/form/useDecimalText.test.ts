@@ -41,4 +41,26 @@ describe('useDecimalText', () => {
     rerender({ value: null });
     expect(result.current[0]).toBe('');
   });
+
+  it('re-syncs invalid text when the value is set externally', () => {
+    const { result, rerender } = renderHook(
+      ({ value }) => useDecimalText(value),
+      { initialProps: { value: null as number | null } },
+    );
+    act(() => result.current[1]('1,2,3'));
+    rerender({ value: null });
+    expect(result.current[0]).toBe('1,2,3');
+    rerender({ value: 45 });
+    expect(result.current[0]).toBe('45');
+  });
+
+  it('keeps invalid text when the value becomes null from the edit', () => {
+    const { result, rerender } = renderHook(
+      ({ value }) => useDecimalText(value),
+      { initialProps: { value: 64 as number | null } },
+    );
+    act(() => result.current[1]('6x'));
+    rerender({ value: null });
+    expect(result.current[0]).toBe('6x');
+  });
 });

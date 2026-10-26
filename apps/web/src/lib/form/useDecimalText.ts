@@ -9,8 +9,15 @@ function toText(value: number | null): string {
 
 export function useDecimalText(value: number | null) {
   const [text, setText] = useState(toText(value));
+  const [seen, setSeen] = useState(value);
   const parsed = parseDecimal(text);
-  if (parsed !== undefined && parsed !== value) {
+  const stale = parsed === undefined ? value !== null : parsed !== value;
+  if (value !== seen) {
+    setSeen(value);
+    if (stale) {
+      setText(toText(value));
+    }
+  } else if (parsed !== undefined && stale) {
     setText(toText(value));
   }
   return [text, setText] as const;
