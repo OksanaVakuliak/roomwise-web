@@ -241,11 +241,11 @@ export function StyleStep() {
           />
         ))}
       </ul>
-      {applyingId !== null ? (
-        <div id={APPLYING_STATUS_DOM_ID} role="status" tabIndex={-1}>
+      <div id={APPLYING_STATUS_DOM_ID} role="status" tabIndex={-1}>
+        {applyingId !== null ? (
           <VisuallyHidden>{t('applying')}</VisuallyHidden>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
       {attempted && !chosen && applyingId === null ? (
         <p id={REQUIRED_MESSAGE_DOM_ID} tabIndex={-1} className={styles.error}>
           <Icon name="warning" size="sm" />
