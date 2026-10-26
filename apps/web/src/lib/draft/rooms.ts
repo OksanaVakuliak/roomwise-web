@@ -5,9 +5,12 @@ import {
   type DraftRoom,
   type DraftV1,
   MAX_ROOMS_STORED,
+  ROOM_NAME_MAX,
 } from './schema';
 
-const ROOM_NAME_MAX = 60;
+export function normalizeRoomName(text: string): string {
+  return text.trim().slice(0, ROOM_NAME_MAX);
+}
 
 const ROOM_TYPE_ORDER: readonly RoomTypeCode[] = [
   'LIVING_ROOM',
@@ -84,7 +87,7 @@ export function renameRoom(
   clientId: string,
   name: string,
 ): DraftV1 {
-  const trimmed = name.trim().slice(0, ROOM_NAME_MAX);
+  const trimmed = normalizeRoomName(name);
   return {
     ...draft,
     rooms: draft.rooms.map((room) =>

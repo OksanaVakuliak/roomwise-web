@@ -16,10 +16,11 @@ import {
 } from '@/components/ui';
 import {
   allowedRoomTypes,
+  normalizeRoomName,
   roomDisplayName,
   roomTypeMismatch,
 } from '@/lib/draft/rooms';
-import type { DraftRoom } from '@/lib/draft/schema';
+import { type DraftRoom, ROOM_NAME_MAX } from '@/lib/draft/schema';
 import { parseDecimal, useDecimalText } from '@/lib/form';
 import { useDraft } from '@/stores/draft';
 import styles from './RoomEditor.module.css';
@@ -39,12 +40,6 @@ export type RoomEditorProps = {
   errors?: RoomFieldErrors;
   onDelete: (clientId: string) => void;
 };
-
-const NAME_MAX = 60;
-
-function normalizeName(text: string): string {
-  return text.trim().slice(0, NAME_MAX);
-}
 
 function floorArea(room: DraftRoom): number | null {
   if (
@@ -119,7 +114,7 @@ export function RoomEditor({
   const updateRoom = useDraft((state) => state.updateRoom);
   const renameRoom = useDraft((state) => state.renameRoom);
   const [nameText, setNameText] = useState(room.name ?? '');
-  if (normalizeName(nameText) !== (room.name ?? '')) {
+  if (normalizeRoomName(nameText) !== (room.name ?? '')) {
     setNameText(room.name ?? '');
   }
 
@@ -196,7 +191,7 @@ export function RoomEditor({
           id={roomFieldDomId(room.clientId, 'name')}
           label={t('name')}
           placeholder={placeholder}
-          maxLength={NAME_MAX}
+          maxLength={ROOM_NAME_MAX}
           error={errors.name}
           value={nameText}
           onChange={handleNameChange}
