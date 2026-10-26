@@ -35,7 +35,9 @@ export function RoomList({ errors = {} }: RoomListProps) {
   const roomTypesQuery = useRoomTypes();
   const roomTypes: RoomTypeOption[] = roomTypesQuery.data?.items ?? [];
   const styleId = useDraft((state) => state.styleId);
-  const defaultMaterials = useDefaultMaterials(styleId).data ?? null;
+  const defaultMaterialsQuery = useDefaultMaterials(styleId);
+  const defaultMaterials = defaultMaterialsQuery.data ?? null;
+  const waitingForStyle = styleId !== null && defaultMaterialsQuery.isPending;
   const catalog = useMemo<RoomCatalog | undefined>(
     () =>
       roomTypesQuery.data
@@ -119,7 +121,12 @@ export function RoomList({ errors = {} }: RoomListProps) {
           ))}
         </ul>
       )}
-      <Button id={addId} className={styles.add} onClick={handleAdd}>
+      <Button
+        id={addId}
+        className={styles.add}
+        disabled={waitingForStyle}
+        onClick={handleAdd}
+      >
         <Icon name="plus" size="sm" />
         {t('add')}
       </Button>
