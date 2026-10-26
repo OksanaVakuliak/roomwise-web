@@ -52,6 +52,76 @@ describe('SpecItem', () => {
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
 
+  it('renders color after dimensions and alone', () => {
+    const { rerender } = render(<SpecItem {...props} color="honey oak" />);
+    expect(screen.getByText('1380 × 193 × 8, honey oak')).toBeInTheDocument();
+    rerender(<SpecItem {...props} dimensions={undefined} color="honey oak" />);
+    expect(screen.getByText('honey oak')).toBeInTheDocument();
+  });
+
+  it('shows the cost for the room only when given', () => {
+    const { rerender } = render(
+      <SpecItem {...props} roomCostLabel="for the room" />,
+    );
+    expect(screen.queryByText('for the room')).toBeNull();
+    rerender(
+      <SpecItem {...props} roomCost="$85.20" roomCostLabel="for the room" />,
+    );
+    expect(screen.getByText('$85.20')).toBeInTheDocument();
+    expect(screen.getByText('for the room')).toBeInTheDocument();
+  });
+
+  it('shows a warning without blocking selection', () => {
+    const onSelect = vi.fn();
+    render(
+      <SpecItem
+        {...props}
+        warning="not for heated floor"
+        onSelect={onSelect}
+      />,
+    );
+    expect(screen.getByText('not for heated floor')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeEnabled();
+    fireEvent.click(screen.getByRole('button'));
+    expect(onSelect).toHaveBeenCalledTimes(1);
+  });
+
+  it('is disabled with a label when unavailable', () => {
+    const onSelect = vi.fn();
+    render(
+      <SpecItem
+        {...props}
+        unavailable
+        unavailableLabel="out of stock"
+        onSelect={onSelect}
+      />,
+    );
+    expect(screen.getByRole('button')).toBeDisabled();
+    expect(screen.getByText('out of stock')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button'));
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('is enabled by default', () => {
+    render(<SpecItem {...props} />);
+    expect(screen.getByRole('button')).toBeEnabled();
+  });
+
+  it('has no axe violations with every extra shown', async () => {
+    const { container } = render(
+      <SpecItem
+        {...props}
+        color="honey oak"
+        warning="not for heated floor"
+        roomCost="$85.20"
+        roomCostLabel="for the room"
+        unavailable
+        unavailableLabel="out of stock"
+      />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
   it.each(['no', 'ok'] as const)(
     'has no axe violations for fit=%s',
     async (fit) => {

@@ -12,12 +12,18 @@ export type SpecItemProps = {
   name: ReactNode;
   brand?: ReactNode;
   dimensions?: ReactNode;
+  color?: ReactNode;
   fit?: SpecItemFit;
   fitLabel?: ReactNode;
+  warning?: ReactNode;
+  unavailable?: boolean;
+  unavailableLabel?: ReactNode;
   selected?: boolean;
   pickedLabel: ReactNode;
   price: ReactNode;
   unit?: ReactNode;
+  roomCost?: ReactNode;
+  roomCostLabel?: ReactNode;
   onSelect?: () => void;
 };
 
@@ -28,21 +34,33 @@ export function SpecItem({
   name,
   brand,
   dimensions,
+  color,
   fit,
   fitLabel,
+  warning,
+  unavailable = false,
+  unavailableLabel,
   selected = false,
   pickedLabel,
   price,
   unit,
+  roomCost,
+  roomCostLabel,
   onSelect,
 }: SpecItemProps) {
-  const classes = cx(styles.root, styles[size], selected && styles.on);
+  const classes = cx(
+    styles.root,
+    styles[size],
+    selected && styles.on,
+    unavailable && styles.unavailable,
+  );
 
   return (
     <button
       type="button"
       className={classes}
       aria-pressed={selected}
+      disabled={unavailable}
       onClick={onSelect}
     >
       {selected ? <span className={styles.bar} aria-hidden="true" /> : null}
@@ -52,14 +70,24 @@ export function SpecItem({
       </span>
       <span className={styles.body}>
         <span className={styles.name}>{name}</span>
-        {brand || dimensions ? (
+        {brand || dimensions || color ? (
           <span className={styles.details}>
             {brand ? <span className={styles.brand}>{brand}</span> : null}
-            {dimensions ? <span>{dimensions}</span> : null}
+            {dimensions || color ? (
+              <span>
+                {dimensions}
+                {dimensions && color ? ', ' : null}
+                {color}
+              </span>
+            ) : null}
           </span>
         ) : null}
         {fit && fitLabel ? (
           <span className={cx(styles.fit, styles[fit])}>{fitLabel}</span>
+        ) : null}
+        {warning ? <span className={styles.warning}>{warning}</span> : null}
+        {unavailable && unavailableLabel ? (
+          <span className={styles.unavailableNote}>{unavailableLabel}</span>
         ) : null}
         {selected ? (
           <span className={styles.picked}>
@@ -70,6 +98,14 @@ export function SpecItem({
       <span className={`${styles.price} num`}>
         {price}
         {unit ? <span className={styles.unit}>{unit}</span> : null}
+        {roomCost ? (
+          <span className={styles.roomCost}>
+            {roomCostLabel ? (
+              <span className={styles.roomCostLabel}>{roomCostLabel}</span>
+            ) : null}
+            {roomCost}
+          </span>
+        ) : null}
       </span>
     </button>
   );

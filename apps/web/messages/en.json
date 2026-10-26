@@ -313,6 +313,12 @@
         "name": "Tile “Graphite Concrete”",
         "brand": "Kerama Nova, Azov Ceramics",
         "dimensions": "600 × 600 × 9, graphite"
+      },
+      "walnut": {
+        "name": "Laminate “Tokay Walnut”",
+        "brand": "Forest & Co, Kronowerk",
+        "dimensions": "1285 × 192 × 10",
+        "color": "dark walnut"
       }
     },
     "styleCard": "Style card",
@@ -329,6 +335,18 @@
         "name": "Classic",
         "description": "warm wood, mouldings"
       }
+    },
+    "forRoom": "for the room (6 m²)",
+    "warning": "Not for heated floor, selection stays available",
+    "unavailable": "temporarily unavailable",
+    "gallery": "Gallery",
+    "galleryNote": "Arrow keys, Home and End move between thumbnails.",
+    "galleryLabel": "Product photos",
+    "imageOf": "image {index} of {total}",
+    "shots": {
+      "front": "Front view",
+      "side": "Side view",
+      "close": "Close-up"
     }
   },
   "ShowcaseFormFields": {

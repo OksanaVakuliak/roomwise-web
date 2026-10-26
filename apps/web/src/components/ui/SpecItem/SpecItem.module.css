@@ -131,3 +131,42 @@
   font-size: var(--text-caption-s-size);
   color: var(--line-2);
 }
+
+.warning {
+  display: block;
+  margin-top: var(--space-4);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-caption-default-size);
+  color: var(--heat);
+}
+
+.unavailableNote {
+  display: block;
+  margin-top: var(--space-4);
+  font-size: var(--text-caption-default-size);
+  color: var(--line-2);
+}
+
+.unavailable {
+  cursor: not-allowed;
+}
+
+.unavailable > :not(.bar, .body),
+.unavailable .body > :not(.unavailableNote) {
+  opacity: var(--opacity-disabled);
+}
+
+.roomCost {
+  display: block;
+  margin-top: var(--space-4);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-caption-default-size);
+  color: var(--line);
+}
+
+.roomCostLabel {
+  display: block;
+  font-weight: var(--text-body-default-weight);
+  font-size: var(--text-caption-s-size);
+  color: var(--line-2);
+}

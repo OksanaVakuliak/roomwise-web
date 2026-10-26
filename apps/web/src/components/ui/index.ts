@@ -13,6 +13,7 @@ export * from './EmptyState/EmptyState';
 export * from './EstimateStamp/EstimateStamp';
 export * from './FileField/FileField';
 export * from './FormField/FormField';
+export * from './Gallery/Gallery';
 export * from './Hatch/Hatch';
 export * from './Icon/Icon';
 export * from './IconButton/IconButton';
