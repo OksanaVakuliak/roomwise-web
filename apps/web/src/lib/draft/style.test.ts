@@ -159,6 +159,47 @@ describe('retypeSelections', () => {
     expect(next[categoryIds.walls]).toEqual(fromStyle(productIds.paint));
   });
 
+  it('replaces style materials with the new type defaults', () => {
+    const next = retypeSelections(
+      { [categoryIds.floor]: fromStyle(productIds.laminate) },
+      'BATHROOM',
+      defaults,
+      roomTypes,
+    );
+
+    expect(next[categoryIds.floor]).toEqual(fromStyle(productIds.tile));
+  });
+
+  it('keeps a disabled category disabled with the new type default', () => {
+    const next = retypeSelections(
+      {
+        [categoryIds.floor]: {
+          ...fromStyle(productIds.laminate),
+          disabled: true,
+        },
+      },
+      'BATHROOM',
+      defaults,
+      roomTypes,
+    );
+
+    expect(next[categoryIds.floor]).toEqual({
+      ...fromStyle(productIds.tile),
+      disabled: true,
+    });
+  });
+
+  it('keeps style materials of shared categories without a style', () => {
+    expect(
+      retypeSelections(
+        { [categoryIds.floor]: fromStyle(productIds.laminate) },
+        'BATHROOM',
+        null,
+        roomTypes,
+      ),
+    ).toEqual({ [categoryIds.floor]: fromStyle(productIds.laminate) });
+  });
+
   it('adds nothing new without a style', () => {
     expect(retypeSelections({}, 'BEDROOM', null, roomTypes)).toEqual({});
   });

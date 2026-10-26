@@ -91,10 +91,19 @@ export function retypeSelections(
     defaultMaterials === null
       ? {}
       : materialsForRoom(roomTypeCode, defaultMaterials, roomTypes);
-  const kept = Object.fromEntries(
-    categoryIdsOf(roomTypeCode, roomTypes)
-      .filter((categoryId) => categoryId in previous)
-      .map((categoryId) => [categoryId, previous[categoryId]]),
+  return Object.fromEntries(
+    categoryIdsOf(roomTypeCode, roomTypes).flatMap((categoryId) => {
+      const before = previous[categoryId];
+      const styled = fresh[categoryId];
+      if (before && (before.source === 'manual' || !styled)) {
+        return [[categoryId, before]];
+      }
+      if (styled) {
+        return [
+          [categoryId, { ...styled, disabled: before?.disabled ?? false }],
+        ];
+      }
+      return [];
+    }),
   );
-  return { ...fresh, ...kept };
 }
