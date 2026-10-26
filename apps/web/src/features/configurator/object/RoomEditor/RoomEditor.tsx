@@ -18,6 +18,7 @@ import {
   roomTypeMismatch,
 } from '@/lib/draft/rooms';
 import { type DraftRoom, ROOM_NAME_MAX } from '@/lib/draft/schema';
+import type { RoomCatalog } from '@/lib/draft/style';
 import { parseDecimal, useDecimalText } from '@/lib/form';
 import { useDraft } from '@/stores/draft';
 import styles from './RoomEditor.module.css';
@@ -34,6 +35,7 @@ export type RoomEditorProps = {
   rooms: readonly DraftRoom[];
   kitchenType: KitchenType;
   roomTypes: readonly RoomTypeOption[];
+  catalog?: RoomCatalog;
   errors?: RoomFieldErrors;
   onDelete: (clientId: string) => void;
 };
@@ -86,6 +88,7 @@ export function RoomEditor({
   rooms,
   kitchenType,
   roomTypes,
+  catalog,
   errors = {},
   onDelete,
 }: RoomEditorProps) {
@@ -126,10 +129,12 @@ export function RoomEditor({
   );
   const handleTypeChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) =>
-      updateRoom(clientId, {
-        roomTypeCode: event.target.value as RoomTypeCode,
-      }),
-    [updateRoom, clientId],
+      updateRoom(
+        clientId,
+        { roomTypeCode: event.target.value as RoomTypeCode },
+        catalog,
+      ),
+    [updateRoom, clientId, catalog],
   );
   const handleNameChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {

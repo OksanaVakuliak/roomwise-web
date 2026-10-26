@@ -20,6 +20,14 @@ import {
   type StepId,
 } from '@/lib/draft/schema';
 import { stepIndex } from '@/lib/draft/steps';
+import {
+  applyStyle,
+  type DefaultMaterials,
+  materialsForRoom,
+  type RoomCatalog,
+  type RoomTypesCatalog,
+  retypeSelections,
+} from '@/lib/draft/style';
 import { createSafeStorage } from './safe-storage';
 
 export const DRAFT_STORAGE_KEY = 'roomwise-draft';
@@ -32,12 +40,18 @@ type DraftState = DraftV1 & {
   notice: DraftNotice | null;
   setStep: (step: StepId) => void;
   setObject: (patch: Partial<DraftV1['object']>) => void;
-  addRoom: () => string | null;
+  selectStyle: (
+    defaultMaterials: DefaultMaterials,
+    roomTypes: RoomTypesCatalog,
+  ) => void;
+  clearStyle: () => void;
+  addRoom: (catalog?: RoomCatalog) => string | null;
   updateRoom: (
     clientId: string,
     patch: Partial<
       Pick<DraftRoom, 'roomTypeCode' | 'lengthM' | 'widthM' | 'heightM'>
     >,
+    catalog?: RoomCatalog,
   ) => void;
   renameRoom: (clientId: string, name: string) => void;
   removeRoom: (clientId: string) => void;
@@ -86,9 +100,27 @@ export const useDraft = create<DraftState>()(
           object: { ...state.object, ...patch },
           revision: state.revision + 1,
         })),
-      addRoom: () => {
+      selectStyle: (defaultMaterials, roomTypes) =>
+        set((state) => ({
+          ...applyStyle(pickDraft(state), defaultMaterials, roomTypes),
+          revision: state.revision + 1,
+        })),
+      clearStyle: () =>
+        set((state) => ({ styleId: null, revision: state.revision + 1 })),
+      addRoom: (catalog) => {
         const draft = pickDraft(get());
-        const room = createRoom(draft);
+        const created = createRoom(draft);
+        const room =
+          catalog?.defaultMaterials && draft.styleId !== null
+            ? {
+                ...created,
+                selections: materialsForRoom(
+                  created.roomTypeCode,
+                  catalog.defaultMaterials,
+                  catalog.roomTypes,
+                ),
+              }
+            : created;
         const next = addDraftRoom(draft, room);
         if (next === draft) {
           return null;
@@ -96,11 +128,30 @@ export const useDraft = create<DraftState>()(
         set((state) => ({ ...next, revision: state.revision + 1 }));
         return room.clientId;
       },
-      updateRoom: (clientId, patch) =>
+      updateRoom: (clientId, patch, catalog) =>
         set((state) => ({
-          rooms: state.rooms.map((room) =>
-            room.clientId === clientId ? { ...room, ...patch } : room,
-          ),
+          rooms: state.rooms.map((room) => {
+            if (room.clientId !== clientId) {
+              return room;
+            }
+            const next = { ...room, ...patch };
+            if (
+              !catalog ||
+              patch.roomTypeCode === undefined ||
+              patch.roomTypeCode === room.roomTypeCode
+            ) {
+              return next;
+            }
+            return {
+              ...next,
+              selections: retypeSelections(
+                room.selections,
+                patch.roomTypeCode,
+                state.styleId === null ? null : catalog.defaultMaterials,
+                catalog.roomTypes,
+              ),
+            };
+          }),
           revision: state.revision + 1,
         })),
       renameRoom: (clientId, name) =>

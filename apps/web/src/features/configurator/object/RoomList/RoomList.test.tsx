@@ -5,10 +5,13 @@ import { createDefaultDraft } from '@/lib/draft/schema';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { useDraft } from '@/stores/draft';
 import { axe } from '@/test/axe';
+import { styleIds } from '@/test/fixtures/catalog';
 import { makeDraftRoom, makeEmptyDraft } from '@/test/fixtures/draft';
 import {
+  createTestQueryClient,
   forEachLocale,
   renderWithProviders,
+  seedCatalog,
 } from '@/test/render-with-providers';
 import en from '../../../../../messages/en.json';
 import uk from '../../../../../messages/uk.json';
@@ -81,6 +84,72 @@ describe('RoomList', () => {
       ).toHaveFocus();
     },
   );
+
+  describe('with a style selected', () => {
+    function styledClient(
+      prepare: (client: ReturnType<typeof createTestQueryClient>) => void,
+    ) {
+      const queryClient = createTestQueryClient();
+      seedCatalog(queryClient, 'en');
+      queryClient.removeQueries({
+        queryKey: ['default-materials', styleIds.modern],
+      });
+      prepare(queryClient);
+      return queryClient;
+    }
+
+    function createReadyClient() {
+      const queryClient = createTestQueryClient();
+      seedCatalog(queryClient, 'en');
+      return queryClient;
+    }
+
+    async function renderStyled(
+      queryClient: ReturnType<typeof createTestQueryClient>,
+    ) {
+      useDraft.setState({
+        ...makeEmptyDraft({ styleId: styleIds.modern }),
+        revision: 1,
+      });
+      await act(async () => {
+        renderWithProviders(<RoomList />, { queryClient, catalog: false });
+      });
+    }
+
+    it('disables adding a room until the style materials are loaded', async () => {
+      const t = translator('en');
+      await renderStyled(styledClient(() => undefined));
+
+      expect(screen.getByRole('button', { name: t('add') })).toBeDisabled();
+    });
+
+    it('enables adding a room once the style materials are loaded', async () => {
+      const t = translator('en');
+      await renderStyled(createReadyClient());
+
+      expect(screen.getByRole('button', { name: t('add') })).toBeEnabled();
+    });
+
+    it('keeps adding a room available when the style materials failed to load', async () => {
+      const t = translator('en');
+      await renderStyled(
+        styledClient((client) => {
+          client
+            .getQueryCache()
+            .build(client, {
+              queryKey: ['default-materials', styleIds.modern],
+            })
+            .setState({
+              status: 'error',
+              error: new Error('failed'),
+              data: undefined,
+            });
+        }),
+      );
+
+      expect(screen.getByRole('button', { name: t('add') })).toBeEnabled();
+    });
+  });
 
   it('shows 14 m² for a 4 × 3.5 bedroom', async () => {
     const t = translator('en');
