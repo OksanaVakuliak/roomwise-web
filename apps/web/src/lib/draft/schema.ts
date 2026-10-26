@@ -2,6 +2,7 @@ import { RoomTypeCodeSchema } from '@roomwise/calc-engine';
 import { z } from 'zod';
 
 export const MAX_ROOMS_STORED = 50;
+export const ROOM_NAME_MAX = 60;
 
 const id = z.string().min(1).max(64);
 const amount = z.number().nonnegative();

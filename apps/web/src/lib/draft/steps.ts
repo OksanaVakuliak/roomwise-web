@@ -1,6 +1,11 @@
 import type { PricingData, Range } from '@roomwise/calc-engine';
 import { isRoomTypeAllowed } from '@/lib/engine/to-configuration';
-import type { DraftRoom, DraftV1, StepId } from './schema';
+import {
+  type DraftRoom,
+  type DraftV1,
+  ROOM_NAME_MAX,
+  type StepId,
+} from './schema';
 
 export const STEP_ORDER = [
   'object',
@@ -16,8 +21,6 @@ export type StepContext = {
   limits: PricingData['limits'];
   styleIds: readonly string[];
 };
-
-const ROOM_NAME_MAX = 60;
 
 export function stepIndex(step: StepId): number {
   return STEP_ORDER.indexOf(step);

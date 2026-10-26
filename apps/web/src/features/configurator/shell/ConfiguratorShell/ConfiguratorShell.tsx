@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { StepLayout } from '@/components/layout';
 import { ZoneSkeleton } from '@/components/system';
 import { usePathname } from '@/i18n/navigation';
@@ -9,6 +9,7 @@ import { useDraftHydration } from '@/stores/use-draft-hydration';
 import { useDraftTabSync } from '@/stores/use-draft-tab-sync';
 import { CostPanel } from '../CostPanel/CostPanel';
 import { DraftNotices } from '../DraftNotices/DraftNotices';
+import { SceneSlotContext } from '../SceneSlot/scene-slot-context';
 import { StepGuard } from '../StepGuard/StepGuard';
 import { StepNav } from '../StepNav/StepNav';
 import { StepTape } from '../StepTape/StepTape';
@@ -31,38 +32,41 @@ function ConfiguratorFrame({
   const state = useStepContext();
   const ready = hydrated && state.status !== 'loading';
   const context = state.status === 'ready' ? state.context : null;
+  const [sceneSlot, setSceneSlot] = useState<HTMLElement | null>(null);
 
   useDraftTabSync();
 
   return (
     <StepValidationProvider>
-      <StepLayout
-        steps={<StepTape current={step} context={ready ? context : null} />}
-        content={
-          ready ? (
-            <>
-              <DraftNotices />
-              <StepGuard step={step} context={context}>
-                {children}
-              </StepGuard>
-            </>
-          ) : (
-            <ZoneSkeleton kind="rooms" />
-          )
-        }
-        scene={null}
-        showcase={ready ? null : <ZoneSkeleton kind="showcase" />}
-        cost={
-          ready ? (
-            <>
-              <CostPanel />
-              <StepNav step={step} context={context} />
-            </>
-          ) : (
-            <ZoneSkeleton kind="estimate" />
-          )
-        }
-      />
+      <SceneSlotContext value={sceneSlot}>
+        <StepLayout
+          steps={<StepTape current={step} context={ready ? context : null} />}
+          content={
+            ready ? (
+              <>
+                <DraftNotices />
+                <StepGuard step={step} context={context}>
+                  {children}
+                </StepGuard>
+              </>
+            ) : (
+              <ZoneSkeleton kind="rooms" />
+            )
+          }
+          scene={<div ref={setSceneSlot} />}
+          showcase={ready ? null : <ZoneSkeleton kind="showcase" />}
+          cost={
+            ready ? (
+              <>
+                <CostPanel />
+                <StepNav step={step} context={context} />
+              </>
+            ) : (
+              <ZoneSkeleton kind="estimate" />
+            )
+          }
+        />
+      </SceneSlotContext>
     </StepValidationProvider>
   );
 }

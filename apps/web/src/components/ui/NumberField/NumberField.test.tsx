@@ -12,6 +12,20 @@ describe('NumberField', () => {
     expect(input).toHaveValue(4.2);
   });
 
+  it('renders a text input with decimal keyboard in decimal mode', () => {
+    renderWithProviders(
+      <NumberField label="Length" decimal min={1} max={9} step={0.1} />,
+    );
+    const input = screen.getByRole('textbox', { name: 'Length' });
+    expect(input).toHaveAttribute('type', 'text');
+    expect(input).toHaveAttribute('inputmode', 'decimal');
+    expect(input).toHaveAttribute('autocomplete', 'off');
+    expect(input).toHaveAttribute('pattern');
+    expect(input).not.toHaveAttribute('min');
+    expect(input).not.toHaveAttribute('max');
+    expect(input).not.toHaveAttribute('step');
+  });
+
   it('shows the unit and includes it in the description', () => {
     renderWithProviders(
       <NumberField label="Area" unit="m²" hint="Floor only" error="Too big" />,

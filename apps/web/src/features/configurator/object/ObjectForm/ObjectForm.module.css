@@ -1,0 +1,17 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-18);
+}
+
+.balcony {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.balconyFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}

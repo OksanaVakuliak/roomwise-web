@@ -251,6 +251,12 @@
     "panelBody": "A panel that slides in from the side on wide screens.",
     "closeLabel": "Close dialog",
     "confirm": "Apply choice",
+    "confirmTitle": "Confirm dialog",
+    "confirmButton": "Open confirm dialog",
+    "confirmHeading": "Delete this room?",
+    "confirmBody": "The materials chosen for this room will be lost.",
+    "confirmDelete": "Delete room",
+    "confirmKeep": "Keep room",
     "tooltipTitle": "Tooltip",
     "tooltipButton": "Hover or focus me",
     "tooltipContent": "Prices include materials and labour",
@@ -772,5 +778,53 @@
     "guardIncomplete": "Fill in the “{step}” step first",
     "guardOrder": "Go through the steps in order and continue with “{step}”",
     "dismiss": "Dismiss"
+  },
+  "ObjectStep": {
+    "form": {
+      "finishLevel": "Finish level",
+      "finishRough": "Rough",
+      "finishPre": "Pre-finish",
+      "totalArea": "Total area",
+      "gas": "Gas in the apartment",
+      "kitchenType": "Kitchen type",
+      "kitchenSeparate": "Separate kitchen",
+      "kitchenLiving": "Kitchen-living room",
+      "balcony": "Balcony",
+      "balconyArea": "Balcony area",
+      "balconyTiles": "Tile the balcony floor",
+      "unitSqm": "m²"
+    },
+    "rooms": {
+      "title": "Rooms",
+      "add": "Add room",
+      "empty": "No rooms yet",
+      "type": "Room type",
+      "typePlaceholder": "Choose a type",
+      "name": "Name",
+      "namePlaceholder": "{type} {number}",
+      "length": "Length",
+      "width": "Width",
+      "height": "Height",
+      "area": "Area",
+      "areaValue": "{value} m²",
+      "unitM": "m",
+      "delete": "Delete room",
+      "deleteTitle": "Delete this room?",
+      "deleteMessage": "The materials and options chosen for this room will be removed too.",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Keep",
+      "typeMismatch": "This room type is not available with the selected kitchen type",
+      "changeType": "Change type",
+      "deleteMismatched": "Delete",
+      "deleteClose": "Close dialog"
+    },
+    "validation": {
+      "finishLevelRequired": "Choose the finish level",
+      "range": "From {min, number} to {max, number} {unit, select, m {m} sqm {m²} pcs {pcs} other {}}",
+      "roomsRequired": "At least one room is required",
+      "roomTypeRequired": "Choose the room type",
+      "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue."
+    },
+    "plan": "Plan of the apartment"
   }
 }

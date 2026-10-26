@@ -251,6 +251,12 @@
     "panelBody": "Панель, що висувається збоку на широких екранах.",
     "closeLabel": "Закрити вікно",
     "confirm": "Застосувати вибір",
+    "confirmTitle": "Діалог підтвердження",
+    "confirmButton": "Відкрити діалог підтвердження",
+    "confirmHeading": "Видалити це приміщення?",
+    "confirmBody": "Матеріали, обрані для цього приміщення, буде втрачено.",
+    "confirmDelete": "Видалити приміщення",
+    "confirmKeep": "Залишити приміщення",
     "tooltipTitle": "Підказка",
     "tooltipButton": "Наведіть або сфокусуйте",
     "tooltipContent": "У ціну входять матеріали та робота",
@@ -772,5 +778,53 @@
     "guardIncomplete": "Спершу заповніть крок «{step}»",
     "guardOrder": "Проходьте кроки по порядку й продовжте кроком «{step}»",
     "dismiss": "Закрити"
+  },
+  "ObjectStep": {
+    "form": {
+      "finishLevel": "Стан здачі",
+      "finishRough": "Чорнова",
+      "finishPre": "Передчистова",
+      "totalArea": "Загальна площа",
+      "gas": "Газ у квартирі",
+      "kitchenType": "Тип кухні",
+      "kitchenSeparate": "Окрема кухня",
+      "kitchenLiving": "Кухня-вітальня",
+      "balcony": "Балкон",
+      "balconyArea": "Площа балкона",
+      "balconyTiles": "Класти плитку на балконі",
+      "unitSqm": "м²"
+    },
+    "rooms": {
+      "title": "Приміщення",
+      "add": "Додати приміщення",
+      "empty": "Приміщень ще немає",
+      "type": "Тип приміщення",
+      "typePlaceholder": "Оберіть тип",
+      "name": "Назва",
+      "namePlaceholder": "{type} {number}",
+      "length": "Довжина",
+      "width": "Ширина",
+      "height": "Висота",
+      "area": "Площа",
+      "areaValue": "{value} м²",
+      "unitM": "м",
+      "delete": "Видалити приміщення",
+      "deleteTitle": "Видалити приміщення?",
+      "deleteMessage": "Обрані для нього матеріали й опції теж буде видалено.",
+      "deleteConfirm": "Видалити",
+      "deleteCancel": "Залишити",
+      "typeMismatch": "Цей тип приміщення недоступний для обраного типу кухні",
+      "changeType": "Змінити тип",
+      "deleteMismatched": "Видалити",
+      "deleteClose": "Закрити вікно"
+    },
+    "validation": {
+      "finishLevelRequired": "Оберіть стан здачі",
+      "range": "Від {min, number} до {max, number} {unit, select, m {м} sqm {м²} pcs {шт.} other {}}",
+      "roomsRequired": "Потрібне хоча б одне приміщення",
+      "roomTypeRequired": "Оберіть тип приміщення",
+      "roomsExceedTotal": "Сума площ приміщень перевищує загальну площу на {difference, number} м². Ви можете продовжити."
+    },
+    "plan": "План квартири"
   }
 }
