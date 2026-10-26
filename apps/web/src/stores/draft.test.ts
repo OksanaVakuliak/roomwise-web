@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDefaultDraft } from '@/lib/draft/schema';
 import { breakStorage, resetThemeDom } from '@/lib/theme/test-utils';
+import {
+  categoryIds,
+  makeDefaultMaterials,
+  makeRoomTypes,
+  productIds,
+  styleIds,
+} from '@/test/fixtures/catalog';
 import { DRAFT_STORAGE_KEY, useDraft } from './draft';
 
 const stored = () => {
@@ -222,5 +229,108 @@ describe('useDraft room actions', () => {
       both: { roomClientIds: [second] },
       global: { quantity: 2 },
     });
+  });
+});
+
+describe('useDraft style actions', () => {
+  const roomTypes = makeRoomTypes();
+  const defaults = makeDefaultMaterials(styleIds.modern);
+  const catalog = { defaultMaterials: defaults, roomTypes };
+  const rooms = () => useDraft.getState().rooms;
+  const manual = (productId: string) =>
+    ({ productId, disabled: false, source: 'manual' }) as const;
+
+  it('selects a style and fills every room, bumping revision', () => {
+    useDraft.getState().addRoom();
+    useDraft.setState({
+      rooms: [
+        {
+          ...rooms()[0]!,
+          selections: { [categoryIds.floor]: manual(productIds.tile) },
+        },
+      ],
+    });
+
+    useDraft.getState().selectStyle(defaults, roomTypes);
+
+    expect(useDraft.getState().styleId).toBe(styleIds.modern);
+    expect(rooms()[0]?.selections[categoryIds.floor]).toEqual({
+      productId: productIds.laminate,
+      disabled: false,
+      source: 'style',
+    });
+    expect(useDraft.getState().revision).toBe(2);
+  });
+
+  it('gives a new room the style materials when a style is chosen', () => {
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    useDraft.getState().addRoom(catalog);
+
+    expect(rooms()[0]?.selections[categoryIds.walls]?.productId).toBe(
+      productIds.paint,
+    );
+  });
+
+  it('adds an empty room without a style or catalog', () => {
+    useDraft.getState().addRoom(catalog);
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    useDraft.getState().clearStyle();
+    useDraft.getState().addRoom(catalog);
+
+    expect(rooms()[0]?.selections).not.toEqual({});
+    expect(rooms()[1]?.selections).toEqual({});
+  });
+
+  it('refits selections when the room type changes', () => {
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    const id = useDraft.getState().addRoom(catalog) as string;
+    useDraft.setState({
+      rooms: [
+        {
+          ...rooms()[0]!,
+          selections: {
+            [categoryIds.floor]: manual(productIds.tile),
+            stale: manual(productIds.tile),
+          },
+        },
+      ],
+    });
+
+    useDraft.getState().updateRoom(id, { roomTypeCode: 'BATHROOM' }, catalog);
+
+    const selections = rooms()[0]?.selections;
+    expect(selections?.stale).toBeUndefined();
+    expect(selections?.[categoryIds.floor]).toEqual(manual(productIds.tile));
+    expect(selections?.[categoryIds.walls]?.productId).toBe(productIds.paint);
+  });
+
+  it('keeps selections when other fields change or no catalog is given', () => {
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    const id = useDraft.getState().addRoom(catalog) as string;
+    const before = rooms()[0]?.selections;
+
+    useDraft.getState().updateRoom(id, { lengthM: 4 }, catalog);
+    useDraft.getState().updateRoom(id, { roomTypeCode: 'BEDROOM' });
+
+    expect(rooms()[0]?.selections).toEqual(before);
+  });
+
+  it('adds no new entries on retype without a style', () => {
+    const id = useDraft.getState().addRoom() as string;
+
+    useDraft.getState().updateRoom(id, { roomTypeCode: 'BEDROOM' }, catalog);
+
+    expect(rooms()[0]?.selections).toEqual({});
+  });
+
+  it('clears the style but keeps selections', () => {
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    useDraft.getState().addRoom(catalog);
+    const before = rooms();
+
+    useDraft.getState().clearStyle();
+
+    expect(useDraft.getState().styleId).toBeNull();
+    expect(rooms()).toEqual(before);
   });
 });

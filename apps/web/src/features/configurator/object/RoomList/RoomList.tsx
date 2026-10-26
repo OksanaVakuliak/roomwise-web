@@ -1,10 +1,18 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Button, ConfirmDialog, Icon } from '@/components/ui';
-import { useRoomTypes } from '@/lib/api/catalog';
+import { useDefaultMaterials, useRoomTypes } from '@/lib/api/catalog';
 import { needsDeleteConfirm } from '@/lib/draft/rooms';
+import type { RoomCatalog } from '@/lib/draft/style';
 import { useDraft } from '@/stores/draft';
 import { RoomEditor, type RoomTypeOption } from '../RoomEditor/RoomEditor';
 import {
@@ -26,6 +34,15 @@ export function RoomList({ errors = {} }: RoomListProps) {
   const removeRoom = useDraft((state) => state.removeRoom);
   const roomTypesQuery = useRoomTypes();
   const roomTypes: RoomTypeOption[] = roomTypesQuery.data?.items ?? [];
+  const styleId = useDraft((state) => state.styleId);
+  const defaultMaterials = useDefaultMaterials(styleId).data ?? null;
+  const catalog = useMemo<RoomCatalog | undefined>(
+    () =>
+      roomTypesQuery.data
+        ? { defaultMaterials, roomTypes: roomTypesQuery.data }
+        : undefined,
+    [defaultMaterials, roomTypesQuery.data],
+  );
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const pendingFocus = useRef<string | null>(null);
   const titleId = useId();
@@ -41,11 +58,11 @@ export function RoomList({ errors = {} }: RoomListProps) {
   });
 
   const handleAdd = useCallback(() => {
-    const clientId = addRoom();
+    const clientId = addRoom(catalog);
     if (clientId !== null) {
       pendingFocus.current = roomFieldDomId(clientId, 'roomTypeCode');
     }
-  }, [addRoom]);
+  }, [addRoom, catalog]);
 
   const performDelete = useCallback(
     (clientId: string) => {
@@ -94,6 +111,7 @@ export function RoomList({ errors = {} }: RoomListProps) {
                 rooms={rooms}
                 kitchenType={kitchenType}
                 roomTypes={roomTypes}
+                catalog={catalog}
                 errors={errors[room.clientId]}
                 onDelete={requestDelete}
               />
