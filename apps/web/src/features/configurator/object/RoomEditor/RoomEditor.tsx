@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  type KitchenType,
-  type RoomTypeCode,
-  roomVariables,
-} from '@roomwise/calc-engine';
+import type { KitchenType, RoomTypeCode } from '@roomwise/calc-engine';
 import { useFormatter, useTranslations } from 'next-intl';
 import { type ChangeEvent, useCallback, useState } from 'react';
 import {
@@ -18,6 +14,7 @@ import {
   allowedRoomTypes,
   normalizeRoomName,
   roomDisplayName,
+  roomFloorArea,
   roomTypeMismatch,
 } from '@/lib/draft/rooms';
 import { type DraftRoom, ROOM_NAME_MAX } from '@/lib/draft/schema';
@@ -40,23 +37,6 @@ export type RoomEditorProps = {
   errors?: RoomFieldErrors;
   onDelete: (clientId: string) => void;
 };
-
-function floorArea(room: DraftRoom): number | null {
-  if (
-    room.roomTypeCode === null ||
-    room.lengthM === null ||
-    room.widthM === null
-  ) {
-    return null;
-  }
-  return roomVariables({
-    roomTypeCode: room.roomTypeCode,
-    lengthM: room.lengthM,
-    widthM: room.widthM,
-    heightM: room.heightM ?? 0,
-    heatedFloor: room.heatedFloor,
-  }).floorArea;
-}
 
 type DimensionKey = 'lengthM' | 'widthM' | 'heightM';
 
@@ -132,7 +112,7 @@ export function RoomEditor({
     { ...room, name: null },
     ordinalLabel,
   );
-  const areaValue = floorArea(room);
+  const areaValue = roomFloorArea(room);
   const { clientId } = room;
   const typeId = roomFieldDomId(clientId, 'roomTypeCode');
 

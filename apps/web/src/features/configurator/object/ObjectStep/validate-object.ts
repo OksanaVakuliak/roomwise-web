@@ -1,5 +1,5 @@
 import type { PricingData, Range } from '@roomwise/calc-engine';
-import { roomVariables } from '@roomwise/calc-engine';
+import { roomFloorArea } from '@/lib/draft/rooms';
 import type { DraftRoom, DraftV1 } from '@/lib/draft/schema';
 import { isRoomTypeAllowed } from '@/lib/engine/to-configuration';
 import { type ObjectFieldId, objectFieldDomId } from '../ObjectForm/field-ids';
@@ -115,19 +115,7 @@ export function roomsExcess(
   }
   let sum = 0;
   for (const room of rooms) {
-    if (
-      room.roomTypeCode !== null &&
-      room.lengthM !== null &&
-      room.widthM !== null
-    ) {
-      sum += roomVariables({
-        roomTypeCode: room.roomTypeCode,
-        lengthM: room.lengthM,
-        widthM: room.widthM,
-        heightM: room.heightM ?? 0,
-        heatedFloor: room.heatedFloor,
-      }).floorArea;
-    }
+    sum += roomFloorArea(room) ?? 0;
   }
   const difference = roundArea(sum - totalAreaSqm);
   return difference > 0 ? difference : null;

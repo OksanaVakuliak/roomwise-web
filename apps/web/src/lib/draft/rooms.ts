@@ -1,4 +1,8 @@
-import type { KitchenType, RoomTypeCode } from '@roomwise/calc-engine';
+import {
+  type KitchenType,
+  type RoomTypeCode,
+  roomVariables,
+} from '@roomwise/calc-engine';
 import { isRoomTypeAllowed } from '@/lib/engine/to-configuration';
 import {
   type DraftOption,
@@ -57,6 +61,23 @@ export function roomDisplayName(
     return room.name;
   }
   return `${typeLabel} ${roomOrdinal(rooms, room.clientId) ?? 1}`;
+}
+
+export function roomFloorArea(room: DraftRoom): number | null {
+  if (
+    room.roomTypeCode === null ||
+    room.lengthM === null ||
+    room.widthM === null
+  ) {
+    return null;
+  }
+  return roomVariables({
+    roomTypeCode: room.roomTypeCode,
+    lengthM: room.lengthM,
+    widthM: room.widthM,
+    heightM: room.heightM ?? 0,
+    heatedFloor: room.heatedFloor,
+  }).floorArea;
 }
 
 export function createRoom(
