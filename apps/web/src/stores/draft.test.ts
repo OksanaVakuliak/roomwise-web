@@ -334,3 +334,88 @@ describe('useDraft style actions', () => {
     expect(rooms()).toEqual(before);
   });
 });
+
+describe('useDraft selection actions', () => {
+  const roomTypes = makeRoomTypes();
+  const defaults = makeDefaultMaterials(styleIds.modern);
+  const catalog = { defaultMaterials: defaults, roomTypes };
+  const selection = () =>
+    useDraft.getState().rooms[0]?.selections[categoryIds.floor];
+  let roomId = '';
+
+  beforeEach(() => {
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    roomId = useDraft.getState().addRoom(catalog) ?? '';
+  });
+
+  it('selects a product as manual and replaces the previous one', () => {
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+
+    expect(selection()).toEqual({
+      productId: productIds.tile,
+      disabled: false,
+      source: 'manual',
+    });
+  });
+
+  it('re-enables a disabled category when a product is selected', () => {
+    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+
+    expect(selection()?.disabled).toBe(false);
+  });
+
+  it('disables a category but keeps its product', () => {
+    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+
+    expect(selection()).toEqual({
+      productId: productIds.laminate,
+      disabled: true,
+      source: 'style',
+    });
+  });
+
+  it('restores the product when the category is enabled again', () => {
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft.getState().enableCategory(roomId, categoryIds.floor);
+
+    expect(selection()).toEqual({
+      productId: productIds.tile,
+      disabled: false,
+      source: 'manual',
+    });
+  });
+
+  it('ignores an unknown room but still bumps revision', () => {
+    const before = useDraft.getState().rooms;
+    const revision = useDraft.getState().revision;
+
+    useDraft
+      .getState()
+      .selectProduct('missing', categoryIds.floor, productIds.tile);
+    useDraft.getState().disableCategory('missing', categoryIds.floor);
+    useDraft.getState().enableCategory('missing', categoryIds.floor);
+
+    expect(useDraft.getState().rooms).toEqual(before);
+    expect(useDraft.getState().revision).toBe(revision + 3);
+  });
+
+  it('increments revision on every action', () => {
+    const revision = useDraft.getState().revision;
+
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft.getState().enableCategory(roomId, categoryIds.floor);
+
+    expect(useDraft.getState().revision).toBe(revision + 3);
+  });
+});

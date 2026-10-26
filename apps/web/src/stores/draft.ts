@@ -19,6 +19,11 @@ import {
   DraftV1Schema,
   type StepId,
 } from '@/lib/draft/schema';
+import {
+  disableCategory as disableDraftCategory,
+  enableCategory as enableDraftCategory,
+  selectProduct as selectDraftProduct,
+} from '@/lib/draft/selections';
 import { stepIndex } from '@/lib/draft/steps';
 import {
   applyStyle,
@@ -55,6 +60,13 @@ type DraftState = DraftV1 & {
   ) => void;
   renameRoom: (clientId: string, name: string) => void;
   removeRoom: (clientId: string) => void;
+  selectProduct: (
+    roomClientId: string,
+    categoryId: string,
+    productId: string,
+  ) => void;
+  disableCategory: (roomClientId: string, categoryId: string) => void;
+  enableCategory: (roomClientId: string, categoryId: string) => void;
   reset: () => void;
   dismissNotice: () => void;
 };
@@ -162,6 +174,26 @@ export const useDraft = create<DraftState>()(
       removeRoom: (clientId) =>
         set((state) => ({
           ...removeDraftRoom(pickDraft(state), clientId),
+          revision: state.revision + 1,
+        })),
+      selectProduct: (roomClientId, categoryId, productId) =>
+        set((state) => ({
+          ...selectDraftProduct(
+            pickDraft(state),
+            roomClientId,
+            categoryId,
+            productId,
+          ),
+          revision: state.revision + 1,
+        })),
+      disableCategory: (roomClientId, categoryId) =>
+        set((state) => ({
+          ...disableDraftCategory(pickDraft(state), roomClientId, categoryId),
+          revision: state.revision + 1,
+        })),
+      enableCategory: (roomClientId, categoryId) =>
+        set((state) => ({
+          ...enableDraftCategory(pickDraft(state), roomClientId, categoryId),
           revision: state.revision + 1,
         })),
       reset: () =>
