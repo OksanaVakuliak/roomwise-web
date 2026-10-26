@@ -17,6 +17,7 @@ import {
   VisuallyHidden,
 } from '@/components/ui';
 import {
+  catalogRoots,
   defaultMaterialsQuery,
   useRoomTypes,
   useStyles,
@@ -90,7 +91,6 @@ export function StyleStep() {
   const roomTypesQuery = useRoomTypes();
   const styleId = useDraft((state) => state.styleId);
   const selectStyle = useDraft((state) => state.selectStyle);
-  const clearStyle = useDraft((state) => state.clearStyle);
   const [attempted, setAttempted] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -133,8 +133,10 @@ export function StyleStep() {
           return;
         }
         if (error instanceof ApiRequestError && error.status === 404) {
-          clearStyle();
           setFailure('unavailable');
+          void queryClient.invalidateQueries({
+            queryKey: [catalogRoots.styles],
+          });
           return;
         }
         setFailure('failed');
@@ -144,7 +146,7 @@ export function StyleStep() {
         }
       }
     },
-    [clearStyle, queryClient, roomTypes, selectStyle],
+    [queryClient, roomTypes, selectStyle],
   );
 
   const choose = useCallback(

@@ -1,10 +1,17 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { createTranslator, type Locale } from 'next-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '@/lib/api/client';
 import { createDefaultDraft } from '@/lib/draft/schema';
 import { clearEstimateCache } from '@/lib/engine/run-estimate';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
+import { resetWarmup, useWarmup } from '@/lib/warmup/warmup';
 import { useDraft } from '@/stores/draft';
 import { resetExchangeRate } from '@/stores/exchange-rate';
 import { axe } from '@/test/axe';
@@ -124,6 +131,7 @@ describe('StyleStep', () => {
     clearEstimateCache();
     resetExchangeRate();
     vi.mocked(api.GET).mockReset();
+    resetWarmup();
     useDraft.setState({
       ...createDefaultDraft(),
       revision: 0,
@@ -377,9 +385,10 @@ describe('StyleStep', () => {
   );
 
   it.each(forEachLocale)(
-    'clears the style and says it is unavailable when default materials are missing in %s',
+    'keeps the current style, says the chosen one is unavailable and refreshes the list in %s',
     async (locale) => {
       const { step } = translators(locale);
+      useWarmup.setState({ server: 'ready' });
       const { queryClient } = await renderStep(
         withManualChoice(unstyledDraft()),
         locale,
@@ -387,11 +396,21 @@ describe('StyleStep', () => {
       queryClient.removeQueries({
         queryKey: ['default-materials', styleIds.classic],
       });
-      vi.mocked(api.GET).mockResolvedValue({
-        data: undefined,
-        error: { error: { code: 'NOT_FOUND' } },
-        response: { status: 404 },
-      } as never);
+      const remaining = makeStyles();
+      remaining.items = remaining.items.filter(
+        (item) => item.id !== styleIds.classic,
+      );
+      vi.mocked(api.GET).mockImplementation(((path: string) =>
+        Promise.resolve(
+          path === '/api/v1/public/styles'
+            ? { data: remaining, response: { status: 200 } }
+            : {
+                data: undefined,
+                error: { error: { code: 'NOT_FOUND' } },
+                response: { status: 404 },
+              },
+        )) as never);
+      const before = selectionsOf(0);
 
       await chooseCard('Classic');
       await act(async () => {
@@ -400,8 +419,16 @@ describe('StyleStep', () => {
         );
       });
 
-      expect(useDraft.getState().styleId).toBeNull();
+      expect(useDraft.getState().styleId).toBe(styleIds.modern);
+      expect(selectionsOf(0)).toEqual(before);
       expect(screen.getByText(step('unavailable'))).toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          within(
+            screen.getByRole('list', { name: step('listLabel') }),
+          ).queryAllByText('Classic'),
+        ).toHaveLength(0),
+      );
     },
   );
 
