@@ -779,6 +779,29 @@
     "guardOrder": "Go through the steps in order and continue with “{step}”",
     "dismiss": "Dismiss"
   },
+  "StyleStep": {
+    "listLabel": "Styles",
+    "picked": "Selected",
+    "previewOpen": "Zoom in",
+    "preview": "Zoom in on {name}",
+    "previewClose": "Close preview",
+    "previewSelect": "Choose this style",
+    "previewSelected": "Style chosen",
+    "required": "Choose a style to continue.",
+    "unavailable": "This style is unavailable right now. Choose another one.",
+    "loadFailed": "Could not load the style materials. Try again.",
+    "dismiss": "Dismiss message",
+    "loading": "Loading styles",
+    "emptyTitle": "No styles yet",
+    "emptyText": "Styles will appear here as soon as they are published.",
+    "confirm": {
+      "title": "Replace your materials?",
+      "description": "Some materials in your rooms were chosen by hand. A new style replaces all of them with its own.",
+      "confirm": "Replace",
+      "cancel": "Keep my choice",
+      "close": "Close dialog"
+    }
+  },
   "ObjectStep": {
     "form": {
       "finishLevel": "Finish level",
