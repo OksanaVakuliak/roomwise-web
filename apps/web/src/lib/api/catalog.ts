@@ -112,16 +112,22 @@ export function useProduct(productId: string | null) {
   });
 }
 
-export function useDefaultMaterials(styleId: string | null) {
-  const ready = useCatalogReady();
-  return useQuery({
-    queryKey: catalogKeys.defaultMaterials(styleId ?? ''),
+export function defaultMaterialsQuery(styleId: string) {
+  return {
+    queryKey: catalogKeys.defaultMaterials(styleId),
     queryFn: () =>
       unwrap(
         api.GET('/api/v1/public/styles/{styleId}/default-materials', {
-          params: { path: { styleId: styleId ?? '' } },
+          params: { path: { styleId } },
         }),
       ),
+  };
+}
+
+export function useDefaultMaterials(styleId: string | null) {
+  const ready = useCatalogReady();
+  return useQuery({
+    ...defaultMaterialsQuery(styleId ?? ''),
     enabled: ready && styleId !== null,
   });
 }
