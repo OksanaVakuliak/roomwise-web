@@ -1,3 +1,4 @@
+export * from './interior/InteriorStep/InteriorStep';
 export * from './object/ObjectStep/ObjectStep';
 export * from './shell/ConfiguratorShell/ConfiguratorShell';
 export * from './shell/CostPanel/CostPanel';

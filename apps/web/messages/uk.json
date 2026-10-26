@@ -821,6 +821,15 @@
       "close": "Закрити діалог"
     }
   },
+  "InteriorStep": {
+    "switcherLabel": "Приміщення",
+    "loading": "Завантаження приміщень",
+    "roomFallback": "Приміщення",
+    "scene": {
+      "cut": "А",
+      "description": "{name} {length} на {width}, висота {height}, лінія розрізу А–А через підлогу"
+    }
+  },
   "ObjectStep": {
     "form": {
       "finishLevel": "Стан здачі",
