@@ -10,6 +10,7 @@ import { resetExchangeRate } from '@/stores/exchange-rate';
 import { axe } from '@/test/axe';
 import {
   categoryIds,
+  makeDefaultMaterials,
   makeStyles,
   productIds,
   styleIds,
@@ -420,6 +421,35 @@ describe('StyleStep', () => {
 
     expect(useDraft.getState().styleId).toBeNull();
     expect(screen.getByText(step('loadFailed'))).toBeInTheDocument();
+  });
+
+  it('keeps the latest choice when an earlier request resolves last', async () => {
+    const { queryClient } = await renderStep(unstyledDraft());
+    queryClient.removeQueries({ queryKey: ['default-materials'] });
+    const resolvers = new Map<string, (value: unknown) => void>();
+    vi.mocked(api.GET).mockImplementation(
+      ((_path: string, options: { params: { path: { styleId: string } } }) =>
+        new Promise((resolve) => {
+          resolvers.set(options.params.path.styleId, resolve);
+        })) as never,
+    );
+
+    await chooseCard('Modern');
+    await chooseCard('Classic');
+    await act(async () => {
+      resolvers.get(styleIds.classic)?.({
+        data: makeDefaultMaterials(styleIds.classic),
+        response: { status: 200 },
+      });
+    });
+    await act(async () => {
+      resolvers.get(styleIds.modern)?.({
+        data: makeDefaultMaterials(styleIds.modern),
+        response: { status: 200 },
+      });
+    });
+
+    expect(useDraft.getState().styleId).toBe(styleIds.classic);
   });
 
   it.each(forEachLocale)(

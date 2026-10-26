@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { ErrorState } from '@/components/system';
 import {
@@ -91,6 +91,7 @@ export function StyleStep() {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
+  const latestRequest = useRef(0);
 
   const items = stylesQuery.data?.items;
   const roomTypes = roomTypesQuery.data;
@@ -109,13 +110,19 @@ export function StyleStep() {
       if (!roomTypes) {
         return;
       }
+      const requestId = ++latestRequest.current;
       setFailure(null);
       try {
         const defaults = await queryClient.fetchQuery(
           defaultMaterialsQuery(id),
         );
-        selectStyle(defaults, roomTypes);
+        if (requestId === latestRequest.current) {
+          selectStyle(defaults, roomTypes);
+        }
       } catch (error) {
+        if (requestId !== latestRequest.current) {
+          return;
+        }
         if (error instanceof ApiRequestError && error.status === 404) {
           clearStyle();
           setFailure('unavailable');
