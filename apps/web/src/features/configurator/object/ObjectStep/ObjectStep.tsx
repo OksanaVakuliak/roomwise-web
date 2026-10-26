@@ -95,11 +95,22 @@ export function ObjectStep() {
   const roomsMessage = shown?.roomsMessage ?? null;
   const excess = validation?.excessAreaSqm ?? null;
 
-  const plannedRooms = rooms.flatMap((room) =>
-    room.lengthM === null || room.widthM === null
-      ? []
-      : [{ room, lengthM: room.lengthM, widthM: room.widthM }],
-  );
+  const plannedRooms = rooms.flatMap((room) => {
+    const { lengthM, widthM } = room;
+    const side = limits?.roomSideM;
+    if (
+      !side ||
+      lengthM === null ||
+      widthM === null ||
+      lengthM < side.min ||
+      lengthM > side.max ||
+      widthM < side.min ||
+      widthM > side.max
+    ) {
+      return [];
+    }
+    return [{ room, lengthM, widthM }];
+  });
 
   const plan =
     plannedRooms.length === 0 ? null : (

@@ -216,6 +216,29 @@ describe('ObjectStep', () => {
     },
   );
 
+  it('sketches only rooms whose sides are inside the allowed range', async () => {
+    const { step } = translators('en');
+    await renderStep(
+      validObject(
+        {},
+        makeEmptyDraft({
+          rooms: [
+            fullRoom({ clientId: 'ok', lengthM: 5, widthM: 4 }),
+            fullRoom({ clientId: 'huge', lengthM: 1000, widthM: 4 }),
+            fullRoom({
+              clientId: 'infinite',
+              lengthM: Number.POSITIVE_INFINITY,
+              widthM: 4,
+            }),
+          ],
+        }),
+      ),
+    );
+
+    const plan = screen.getByRole('list', { name: step('plan') });
+    expect(within(plan).getAllByRole('listitem')).toHaveLength(1);
+  });
+
   it.each(forEachLocale)(
     'focuses the empty height and explains the allowed range in %s',
     async (locale) => {
