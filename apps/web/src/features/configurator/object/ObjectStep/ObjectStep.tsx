@@ -38,8 +38,8 @@ function PlanItem({ clientId, name, details, lengthM, widthM }: PlanItemProps) {
     <RoomPlan
       name={name}
       details={details}
-      lengthCm={lengthM * 100}
-      widthCm={widthM * 100}
+      lengthCm={Math.round(lengthM * 100)}
+      widthCm={Math.round(widthM * 100)}
       onClick={focusRoom}
     />
   );
