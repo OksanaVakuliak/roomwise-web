@@ -21,6 +21,10 @@
   min-width: 0;
 }
 
+.item[aria-busy="true"] {
+  opacity: var(--opacity-disabled);
+}
+
 .preview {
   align-self: flex-start;
 }

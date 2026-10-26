@@ -788,6 +788,7 @@
     "previewSelect": "Choose this style",
     "previewSelected": "Style chosen",
     "required": "Choose a style to continue.",
+    "applying": "Applying style…",
     "unavailable": "This style is unavailable right now. Choose another one.",
     "loadFailed": "Could not load the style materials. Try again.",
     "dismiss": "Dismiss message",

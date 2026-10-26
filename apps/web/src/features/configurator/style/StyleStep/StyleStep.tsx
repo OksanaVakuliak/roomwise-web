@@ -14,6 +14,7 @@ import {
   ImageWithFallback,
   Skeleton,
   StyleCard,
+  VisuallyHidden,
 } from '@/components/ui';
 import {
   defaultMaterialsQuery,
@@ -31,12 +32,14 @@ import {
 import styles from './StyleStep.module.css';
 
 const REQUIRED_MESSAGE_DOM_ID = 'style-required';
+const APPLYING_STATUS_DOM_ID = 'style-applying';
 
 type Failure = 'unavailable' | 'failed';
 
 type StyleOptionProps = {
   item: StylePreviewStyle & { image: { card: string; zoom: string } | null };
   selected: boolean;
+  busy: boolean;
   onChoose: (styleId: string) => void;
   onPreview: (styleId: string) => void;
 };
@@ -44,6 +47,7 @@ type StyleOptionProps = {
 function StyleOption({
   item,
   selected,
+  busy,
   onChoose,
   onPreview,
 }: StyleOptionProps) {
@@ -58,7 +62,7 @@ function StyleOption({
   );
 
   return (
-    <li className={styles.item}>
+    <li className={styles.item} aria-busy={busy || undefined}>
       <StyleCard
         image={<ImageWithFallback src={item.image?.card} name={item.name} />}
         name={item.name}
@@ -91,6 +95,7 @@ export function StyleStep() {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
   const latestRequest = useRef(0);
 
   const items = stylesQuery.data?.items;
@@ -98,6 +103,9 @@ export function StyleStep() {
   const chosen = items?.some((item) => item.id === styleId) ?? false;
 
   useStepValidation(() => {
+    if (applyingId !== null) {
+      return APPLYING_STATUS_DOM_ID;
+    }
     if (chosen) {
       return null;
     }
@@ -112,6 +120,7 @@ export function StyleStep() {
       }
       const requestId = ++latestRequest.current;
       setFailure(null);
+      setApplyingId(id);
       try {
         const defaults = await queryClient.fetchQuery(
           defaultMaterialsQuery(id),
@@ -129,6 +138,10 @@ export function StyleStep() {
           return;
         }
         setFailure('failed');
+      } finally {
+        if (requestId === latestRequest.current) {
+          setApplyingId(null);
+        }
       }
     },
     [clearStyle, queryClient, roomTypes, selectStyle],
@@ -220,12 +233,18 @@ export function StyleStep() {
             key={item.id}
             item={item}
             selected={item.id === styleId}
+            busy={item.id === applyingId}
             onChoose={choose}
             onPreview={setPreviewId}
           />
         ))}
       </ul>
-      {attempted && !chosen ? (
+      {applyingId !== null ? (
+        <div id={APPLYING_STATUS_DOM_ID} role="status" tabIndex={-1}>
+          <VisuallyHidden>{t('applying')}</VisuallyHidden>
+        </div>
+      ) : null}
+      {attempted && !chosen && applyingId === null ? (
         <p id={REQUIRED_MESSAGE_DOM_ID} tabIndex={-1} className={styles.error}>
           <Icon name="warning" size="sm" />
           {t('required')}

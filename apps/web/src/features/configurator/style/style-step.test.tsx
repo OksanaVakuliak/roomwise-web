@@ -453,6 +453,51 @@ describe('StyleStep', () => {
   });
 
   it.each(forEachLocale)(
+    'marks the card busy and blocks Next while a style is applied in %s',
+    async (locale) => {
+      const { step, shell } = translators(locale);
+      const { queryClient, location } = await renderStep(
+        unstyledDraft(),
+        locale,
+      );
+      queryClient.removeQueries({ queryKey: ['default-materials'] });
+      let resolve!: (value: unknown) => void;
+      vi.mocked(api.GET).mockImplementation(
+        (() =>
+          new Promise((done) => {
+            resolve = done;
+          })) as never,
+      );
+
+      await chooseCard('Modern');
+
+      const item = screen
+        .getByRole('list', { name: step('listLabel') })
+        .querySelector('[aria-busy="true"]');
+      expect(item).toHaveTextContent('Modern');
+      const status = screen.getByText(step('applying')).parentElement;
+      expect(status).toHaveAttribute('role', 'status');
+
+      fireEvent.click(screen.getByRole('button', { name: shell('next') }));
+
+      expect(status).toHaveFocus();
+      expect(screen.queryByText(step('required'))).toBeNull();
+      expect(location().pathname).toBe(`/${locale}/configurator/style`);
+
+      await act(async () => {
+        resolve({
+          data: makeDefaultMaterials(styleIds.modern),
+          response: { status: 200 },
+        });
+      });
+
+      expect(screen.queryByText(step('applying'))).toBeNull();
+      expect(document.querySelector('[aria-busy="true"]')).toBeNull();
+      expect(useDraft.getState().styleId).toBe(styleIds.modern);
+    },
+  );
+
+  it.each(forEachLocale)(
     'has no axe violations with the grid and the dialogs in %s',
     async (locale) => {
       const { step } = translators(locale);
