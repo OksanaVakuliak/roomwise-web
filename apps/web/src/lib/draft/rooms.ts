@@ -80,6 +80,31 @@ export function roomFloorArea(room: DraftRoom): number | null {
   }).floorArea;
 }
 
+export type RoomMetrics = {
+  floorArea: number;
+  perimeter: number;
+  wallArea: number;
+};
+
+export function roomMetrics(room: DraftRoom): RoomMetrics | null {
+  if (
+    room.roomTypeCode === null ||
+    room.lengthM === null ||
+    room.widthM === null ||
+    room.heightM === null
+  ) {
+    return null;
+  }
+  const { floorArea, perimeter, wallArea } = roomVariables({
+    roomTypeCode: room.roomTypeCode,
+    lengthM: room.lengthM,
+    widthM: room.widthM,
+    heightM: room.heightM,
+    heatedFloor: room.heatedFloor,
+  });
+  return { floorArea, perimeter, wallArea };
+}
+
 export function createRoom(
   draft: DraftV1,
   clientId: string = crypto.randomUUID(),

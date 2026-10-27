@@ -8,6 +8,7 @@ import {
   removeRoom,
   renameRoom,
   roomDisplayName,
+  roomMetrics,
   roomOrdinal,
   roomTypeMismatch,
 } from './rooms';
@@ -210,5 +211,28 @@ describe('needsDeleteConfirm', () => {
       options: { o: { roomClientIds: ['a'] } },
     });
     expect(needsDeleteConfirm(draft, 'a')).toBe(true);
+  });
+});
+
+describe('roomMetrics', () => {
+  it('computes floor area, perimeter and wall area without openings', () => {
+    const metrics = roomMetrics(
+      makeDraftRoom({
+        roomTypeCode: 'BEDROOM',
+        lengthM: 4,
+        widthM: 3,
+        heightM: 2.5,
+      }),
+    );
+
+    expect(metrics?.floorArea).toBeCloseTo(12);
+    expect(metrics?.perimeter).toBeCloseTo(14);
+    expect(metrics?.wallArea).toBeCloseTo(35);
+  });
+
+  it('returns null while a dimension is missing', () => {
+    expect(
+      roomMetrics(makeDraftRoom({ lengthM: 4, widthM: null, heightM: 2.5 })),
+    ).toBeNull();
   });
 });

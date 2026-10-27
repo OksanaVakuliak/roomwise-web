@@ -828,7 +828,10 @@
     "scene": {
       "cut": "A",
       "description": "{name} {length} by {width}, height {height}, section line A–A through the floor"
-    }
+    },
+    "unitM": "m",
+    "wallsMobile": "walls {walls}",
+    "wallsDesktop": "walls {walls}, perimeter {perimeter}"
   },
   "ObjectStep": {
     "form": {
@@ -878,17 +881,20 @@
     },
     "plan": "Plan of the apartment"
   },
-  "CategoryList": {
-    "title": "Materials",
-    "note": "{name}, {count, plural, one {# category} other {# categories}}",
-    "choose": "choose a material",
-    "excluded": "not included in the estimate",
-    "empty": "no products for this room",
-    "toggle": "Include {name} in the estimate"
-  },
-  "ProductShowcase": {
+  "Specification": {
     "title": "Specification",
     "note": "{name}, {count, plural, one {# item} other {# items}}",
+    "tabsLabel": "Categories",
+    "include": "Include in the estimate",
+    "chosen": "{name}, {sum}",
+    "choose": "choose a material",
+    "excluded": "not included in the estimate",
+    "emptyTitle": "No products for this room",
+    "emptyText": "This category has nothing to choose from yet.",
+    "dismiss": "Dismiss",
+    "categoryGone": "This category is no longer available. The catalog has been refreshed."
+  },
+  "ProductShowcase": {
     "loading": "Loading products",
     "sortLabel": "Sort by",
     "sort": {
@@ -905,10 +911,7 @@
     "unavailable": "temporarily unavailable",
     "forRoom": "for the room",
     "detail": "Details",
-    "detailLabel": "Details: {name}",
-    "close": "Close",
-    "dismiss": "Dismiss",
-    "categoryGone": "This category is no longer available. The catalog has been refreshed."
+    "detailLabel": "Details: {name}"
   },
   "ProductDetail": {
     "title": "Product",

@@ -1,35 +1,39 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ErrorState } from '@/components/system';
-import { Skeleton } from '@/components/ui';
+import { SheetTitle, Skeleton } from '@/components/ui';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { useRoomTypes } from '@/lib/api/catalog';
-import { roomDisplayName } from '@/lib/draft/rooms';
+import { roomDisplayName, roomMetrics } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
+import { area, dimension } from '@/lib/format';
 import { useMediaQuery } from '@/lib/media';
 import { useDraft } from '@/stores/draft';
 import { useSceneSlot } from '../../shell/SceneSlot/scene-slot-context';
-import { CategoryList } from '../CategoryList/CategoryList';
+import { useShowcaseSlot } from '../../shell/ShowcaseSlot/showcase-slot-context';
 import { ProductDetail } from '../ProductDetail/ProductDetail';
-import { ProductShowcase } from '../ProductShowcase/ProductShowcase';
-import { RoomSwitcher } from '../RoomSwitcher/RoomSwitcher';
+import { RoomPlans } from '../RoomPlans/RoomPlans';
 import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
+import { Specification } from '../Specification/Specification';
 import styles from './InteriorStep.module.css';
 
 const DESKTOP_QUERY = '(min-width: 768px)';
 
 function InteriorContent() {
   const t = useTranslations('InteriorStep');
+  const locale = useLocale();
+  const format = useFormatter();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const rooms = useDraft((state) => state.rooms);
   const roomTypesQuery = useRoomTypes();
   const sceneSlot = useSceneSlot();
+  const showcaseSlot = useShowcaseSlot();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const selectProduct = useDraft((state) => state.selectProduct);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -76,11 +80,8 @@ function InteriorContent() {
         selectProduct(current.clientId, productCategoryId, productId);
       }
       setDetailId(null);
-      if (!desktop) {
-        changeCategory(null);
-      }
     },
-    [changeCategory, current, desktop, selectProduct],
+    [current, selectProduct],
   );
   const { refetch } = roomTypesQuery;
   const retry = useCallback(() => {
@@ -108,27 +109,35 @@ function InteriorContent() {
       roomTypes.find((type) => type.code === room.roomTypeCode)?.name ??
         t('roomFallback'),
     );
-  const items = rooms.map((room) => ({
-    clientId: room.clientId,
-    label: nameOf(room),
-  }));
+  const size = desktop ? 'desktop' : 'mobile';
   const roomName = nameOf(current);
   const categories =
     roomTypes.find((type) => type.code === current.roomTypeCode)?.categories ??
     [];
-  const selectable = categories.filter((category) => category.productCount > 0);
-  const activeIndex = categories.findIndex(
-    (category) => category.id === categoryId && category.productCount > 0,
-  );
-  const fallback = desktop ? selectable[0] : undefined;
-  const activeEntry = activeIndex >= 0 ? categories[activeIndex] : fallback;
-  const activeCategory = activeEntry
-    ? {
-        id: activeEntry.id,
-        name: activeEntry.name,
-        position: categories.indexOf(activeEntry) + 1,
-      }
-    : null;
+  const activeCategory =
+    categories.find((category) => category.id === categoryId) ??
+    categories.find((category) => category.productCount > 0) ??
+    categories[0] ??
+    null;
+  const items = rooms.map((room) => {
+    const name = nameOf(room);
+    const floorArea = roomMetrics(room)?.floorArea ?? null;
+    const sizes = [room.lengthM, room.widthM]
+      .filter((value) => value !== null)
+      .map((value) => format.number(value))
+      .join(' × ');
+    return {
+      clientId: room.clientId,
+      name:
+        desktop && floorArea !== null
+          ? `${name}, ${area(floorArea, locale)}`
+          : name,
+      details: desktop ? `${sizes} ${t('unitM')}` : sizes,
+      lengthCm: Math.round((room.lengthM ?? 0) * 100),
+      widthCm: Math.round((room.widthM ?? 0) * 100),
+    };
+  });
+  const metrics = roomMetrics(current);
   const { lengthM, widthM, heightM } = current;
   const scene =
     lengthM === null || widthM === null || heightM === null ? null : (
@@ -142,27 +151,31 @@ function InteriorContent() {
 
   return (
     <div className={styles.root}>
-      <RoomSwitcher
+      <RoomPlans
         label={t('switcherLabel')}
         items={items}
         value={current.clientId}
+        size={size}
         onValueChange={switchRoom}
-      >
-        <ProductShowcase
-          room={current}
-          category={activeCategory}
-          placement={desktop ? 'zone' : 'sheet'}
-          onCategoryChange={changeCategory}
-          onOpenDetail={setDetailId}
-        />
-        <CategoryList
-          room={current}
-          roomName={roomName}
-          categories={categories}
-          activeCategoryId={activeCategory?.id ?? null}
-          onCategoryChange={changeCategory}
-        />
-      </RoomSwitcher>
+      />
+      {metrics ? (
+        <div className={styles.title}>
+          <SheetTitle
+            headingLevel={2}
+            size={size}
+            title={roomName}
+            primary={area(metrics.floorArea, locale)}
+            secondary={
+              desktop
+                ? t('wallsDesktop', {
+                    walls: area(metrics.wallArea, locale),
+                    perimeter: dimension(metrics.perimeter, locale),
+                  })
+                : t('wallsMobile', { walls: area(metrics.wallArea, locale) })
+            }
+          />
+        </div>
+      ) : null}
       <ProductDetail
         productId={detailId}
         categoryId={activeCategory?.id ?? null}
@@ -171,6 +184,19 @@ function InteriorContent() {
         onClose={closeDetail}
       />
       {sceneSlot && scene ? createPortal(scene, sceneSlot) : null}
+      {showcaseSlot
+        ? createPortal(
+            <Specification
+              room={current}
+              categories={categories}
+              activeCategoryId={activeCategory?.id ?? null}
+              size={size}
+              onCategoryChange={changeCategory}
+              onOpenDetail={setDetailId}
+            />,
+            showcaseSlot,
+          )
+        : null}
     </div>
   );
 }

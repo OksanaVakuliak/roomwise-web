@@ -1,6 +1,5 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import {
   type ChangeEvent,
@@ -9,24 +8,19 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import { ErrorState } from '@/components/system';
 import {
-  Banner,
-  BottomSheet,
   Button,
   ImageWithFallback,
-  SectionHeader,
   Select,
   Skeleton,
   SpecItem,
 } from '@/components/ui';
-import { catalogRoots, useCategoryProducts } from '@/lib/api/catalog';
+import { useCategoryProducts } from '@/lib/api/catalog';
 import { ApiRequestError } from '@/lib/api/request-error';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { productCardLine } from '@/lib/engine/card-cost';
 import { useDraft } from '@/stores/draft';
-import { useShowcaseSlot } from '../../shell/ShowcaseSlot/showcase-slot-context';
 import { type RoomPricing, useRoomPricing } from '../use-room-pricing';
 import styles from './ProductShowcase.module.css';
 
@@ -44,17 +38,8 @@ export type ProductShowcaseCategory = {
 
 export type ProductShowcaseProps = {
   room: DraftRoom;
-  category: ProductShowcaseCategory | null;
-  placement: 'sheet' | 'zone';
-  onCategoryChange: (categoryId: string | null) => void;
-  onOpenDetail: (productId: string) => void;
-};
-
-type BodyProps = {
-  room: DraftRoom;
   category: ProductShowcaseCategory;
-  placement: 'sheet' | 'zone';
-  onSelected: () => void;
+  size: 'mobile' | 'desktop';
   onUnavailable: () => void;
   onOpenDetail: (productId: string) => void;
 };
@@ -141,14 +126,13 @@ function ProductCard({
 
 const SORT_ORDERS: readonly SortOrder[] = ['server', 'asc', 'desc'];
 
-function ShowcaseBody({
+export function ProductShowcase({
   room,
   category,
-  placement,
-  onSelected,
+  size,
   onUnavailable,
   onOpenDetail,
-}: BodyProps) {
+}: ProductShowcaseProps) {
   const t = useTranslations('ProductShowcase');
   const query = useCategoryProducts(category.id);
   const pricing = useRoomPricing();
@@ -189,9 +173,8 @@ function ShowcaseBody({
   const choose = useCallback(
     (productId: string) => {
       selectProduct(room.clientId, category.id, productId);
-      onSelected();
     },
-    [category.id, onSelected, room.clientId, selectProduct],
+    [category.id, room.clientId, selectProduct],
   );
 
   if (notFound) {
@@ -211,16 +194,9 @@ function ShowcaseBody({
   }
 
   const selection = room.selections[category.id];
-  const size = placement === 'zone' ? 'desktop' : 'mobile';
 
   return (
     <div className={styles.root}>
-      {placement === 'zone' ? (
-        <SectionHeader
-          title={t('title')}
-          note={t('note', { name: category.name, count: sorted.length })}
-        />
-      ) : null}
       <Select
         label={t('sortLabel')}
         value={order}
@@ -251,68 +227,4 @@ function ShowcaseBody({
       </ul>
     </div>
   );
-}
-
-export function ProductShowcase({
-  room,
-  category,
-  placement,
-  onCategoryChange,
-  onOpenDetail,
-}: ProductShowcaseProps) {
-  const t = useTranslations('ProductShowcase');
-  const queryClient = useQueryClient();
-  const slot = useShowcaseSlot();
-  const [unavailable, setUnavailable] = useState(false);
-
-  const close = useCallback(() => onCategoryChange(null), [onCategoryChange]);
-  const dismiss = useCallback(() => setUnavailable(false), []);
-  const handleUnavailable = useCallback(() => {
-    setUnavailable(true);
-    void queryClient.invalidateQueries({ queryKey: [catalogRoots.roomTypes] });
-    void queryClient.invalidateQueries({ queryKey: [catalogRoots.products] });
-    onCategoryChange(null);
-  }, [onCategoryChange, queryClient]);
-
-  const body = category ? (
-    <ShowcaseBody
-      key={category.id}
-      room={room}
-      category={category}
-      placement={placement}
-      onSelected={placement === 'sheet' ? close : noop}
-      onUnavailable={handleUnavailable}
-      onOpenDetail={onOpenDetail}
-    />
-  ) : null;
-
-  return (
-    <>
-      {unavailable ? (
-        <Banner
-          variant="warning"
-          onDismiss={dismiss}
-          dismissLabel={t('dismiss')}
-        >
-          {t('categoryGone')}
-        </Banner>
-      ) : null}
-      {placement === 'sheet' ? (
-        <BottomSheet
-          open={category !== null}
-          title={category?.name ?? t('title')}
-          closeLabel={t('close')}
-          onClose={close}
-        >
-          {body}
-        </BottomSheet>
-      ) : slot && body ? (
-        createPortal(body, slot)
-      ) : null}
-    </>
-  );
-}
-
-function noop() {
-  return undefined;
 }

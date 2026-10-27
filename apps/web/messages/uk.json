@@ -828,7 +828,10 @@
     "scene": {
       "cut": "А",
       "description": "{name} {length} на {width}, висота {height}, лінія розрізу А–А через підлогу"
-    }
+    },
+    "unitM": "м",
+    "wallsMobile": "стіни {walls}",
+    "wallsDesktop": "стіни {walls}, периметр {perimeter}"
   },
   "ObjectStep": {
     "form": {
@@ -878,17 +881,20 @@
     },
     "plan": "План квартири"
   },
-  "CategoryList": {
-    "title": "Матеріали",
-    "note": "{name}, {count, plural, one {# категорія} few {# категорії} many {# категорій} other {# категорії}}",
-    "choose": "оберіть матеріал",
-    "excluded": "не входить у розрахунок",
-    "empty": "для цього приміщення немає товарів",
-    "toggle": "Включити «{name}» у розрахунок"
-  },
-  "ProductShowcase": {
+  "Specification": {
     "title": "Специфікація",
     "note": "{name}, {count, plural, one {# позиція} few {# позиції} many {# позицій} other {# позиції}}",
+    "tabsLabel": "Категорії",
+    "include": "Включити в розрахунок",
+    "chosen": "{name}, {sum}",
+    "choose": "оберіть матеріал",
+    "excluded": "не входить у розрахунок",
+    "emptyTitle": "Для цього приміщення немає товарів",
+    "emptyText": "У цій категорії поки немає з чого обирати.",
+    "dismiss": "Закрити",
+    "categoryGone": "Цієї категорії більше немає. Каталог оновлено."
+  },
+  "ProductShowcase": {
     "loading": "Завантаження товарів",
     "sortLabel": "Сортування",
     "sort": {
@@ -905,10 +911,7 @@
     "unavailable": "тимчасово недоступно",
     "forRoom": "для приміщення",
     "detail": "Детальніше",
-    "detailLabel": "Детальніше: {name}",
-    "close": "Закрити",
-    "dismiss": "Закрити",
-    "categoryGone": "Цієї категорії більше немає. Каталог оновлено."
+    "detailLabel": "Детальніше: {name}"
   },
   "ProductDetail": {
     "title": "Товар",

@@ -50,7 +50,7 @@
   }
 
   .showcase {
-    padding: 0 var(--space-16);
+    padding: 0 var(--space-16) var(--space-16);
   }
 }
 
@@ -70,10 +70,20 @@
     padding: var(--space-16) var(--space-16) var(--space-16);
   }
 
+  .showcase {
+    padding-bottom: var(--space-16);
+  }
+
   .cost {
     margin-top: auto;
     max-height: none;
     overflow-y: visible;
     border-top: 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) var(--layout-aside-width-desktop);
   }
 }

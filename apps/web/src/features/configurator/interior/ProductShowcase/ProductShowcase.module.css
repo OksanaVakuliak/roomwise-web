@@ -19,9 +19,22 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-6);
+  padding-bottom: var(--space-12);
+  border-bottom: var(--stroke-1) solid var(--hair);
 }
 
-.detail {
-  margin-inline-start: calc(var(--spec-pos-width) + var(--space-10));
+.item > button:first-child {
+  border-bottom: 0;
+}
+
+.item .detail {
+  margin-inline-start: calc(
+    var(--spec-pos-width) +
+    var(--spec-image) +
+    var(--space-10) *
+    2
+  );
+  min-height: var(--size-target);
+  padding: 0 var(--space-12);
+  font-size: var(--text-body-s-size);
 }

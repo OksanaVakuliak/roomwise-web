@@ -1,0 +1,12 @@
+.root {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-16);
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: var(--space-4);
+}
+
+.root > * {
+  flex: none;
+}
