@@ -909,5 +909,28 @@
     "close": "Закрити",
     "dismiss": "Закрити",
     "categoryGone": "Цієї категорії більше немає. Каталог оновлено."
+  },
+  "ProductDetail": {
+    "title": "Товар",
+    "loading": "Завантаження товару",
+    "close": "Закрити",
+    "gallery": "Фото товару",
+    "thumbnail": "Фото {index} з {total}",
+    "brand": "Бренд",
+    "size": "Розмір",
+    "color": "Колір",
+    "unitPrice": "Ціна",
+    "unit": {
+      "SQM": "за м²",
+      "LINEAR_M": "за м",
+      "PIECE": "за шт."
+    },
+    "quantity": "Кількість для приміщення",
+    "quantityValue": "{quantity, number, ::.##} {unit, select, SQM {м²} LINEAR_M {м} PIECE {шт.} other {}}",
+    "cost": "Вартість для приміщення",
+    "choose": "Обрати",
+    "picked": "Обрано",
+    "gone": "Товар більше недоступний.",
+    "unavailable": "Тимчасово недоступно"
   }
 }

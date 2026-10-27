@@ -1,0 +1,48 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.description {
+  margin: 0;
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-default-size);
+  line-height: 1.35;
+}
+
+.cost {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-12);
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-default-size);
+}
+
+.row dt {
+  color: var(--line-2);
+}
+
+.row dd {
+  margin: 0;
+  font-weight: var(--text-button-default-weight);
+}
+
+.gone {
+  margin: 0;
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-default-size);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

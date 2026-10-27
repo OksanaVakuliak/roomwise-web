@@ -909,5 +909,28 @@
     "close": "Close",
     "dismiss": "Dismiss",
     "categoryGone": "This category is no longer available. The catalog has been refreshed."
+  },
+  "ProductDetail": {
+    "title": "Product",
+    "loading": "Loading product",
+    "close": "Close",
+    "gallery": "Product photos",
+    "thumbnail": "Photo {index} of {total}",
+    "brand": "Brand",
+    "size": "Size",
+    "color": "Color",
+    "unitPrice": "Price",
+    "unit": {
+      "SQM": "per m²",
+      "LINEAR_M": "per m",
+      "PIECE": "per piece"
+    },
+    "quantity": "Quantity for the room",
+    "quantityValue": "{quantity, number, ::.##} {unit, select, SQM {m²} LINEAR_M {m} PIECE {pcs} other {}}",
+    "cost": "Cost for the room",
+    "choose": "Choose",
+    "picked": "Chosen",
+    "gone": "This product is no longer available.",
+    "unavailable": "Temporarily unavailable"
   }
 }

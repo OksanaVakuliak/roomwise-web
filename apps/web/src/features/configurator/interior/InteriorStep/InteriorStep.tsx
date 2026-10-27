@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Suspense, useCallback, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ErrorState } from '@/components/system';
 import { Skeleton } from '@/components/ui';
@@ -14,6 +14,7 @@ import { useMediaQuery } from '@/lib/media';
 import { useDraft } from '@/stores/draft';
 import { useSceneSlot } from '../../shell/SceneSlot/scene-slot-context';
 import { CategoryList } from '../CategoryList/CategoryList';
+import { ProductDetail } from '../ProductDetail/ProductDetail';
 import { ProductShowcase } from '../ProductShowcase/ProductShowcase';
 import { RoomSwitcher } from '../RoomSwitcher/RoomSwitcher';
 import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
@@ -30,6 +31,8 @@ function InteriorContent() {
   const roomTypesQuery = useRoomTypes();
   const sceneSlot = useSceneSlot();
   const desktop = useMediaQuery(DESKTOP_QUERY);
+  const selectProduct = useDraft((state) => state.selectProduct);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const requestedRoom = searchParams.get('room');
   const categoryId = searchParams.get('category');
@@ -66,7 +69,19 @@ function InteriorContent() {
     (id: string | null) => navigate({ category: id }, 'replace'),
     [navigate],
   );
-  const openDetail = useCallback(() => undefined, []);
+  const closeDetail = useCallback(() => setDetailId(null), []);
+  const chooseFromDetail = useCallback(
+    (productId: string, productCategoryId: string) => {
+      if (current !== null) {
+        selectProduct(current.clientId, productCategoryId, productId);
+      }
+      setDetailId(null);
+      if (!desktop) {
+        changeCategory(null);
+      }
+    },
+    [changeCategory, current, desktop, selectProduct],
+  );
   const { refetch } = roomTypesQuery;
   const retry = useCallback(() => {
     void refetch();
@@ -138,7 +153,7 @@ function InteriorContent() {
           category={activeCategory}
           placement={desktop ? 'zone' : 'sheet'}
           onCategoryChange={changeCategory}
-          onOpenDetail={openDetail}
+          onOpenDetail={setDetailId}
         />
         <CategoryList
           room={current}
@@ -148,6 +163,13 @@ function InteriorContent() {
           onCategoryChange={changeCategory}
         />
       </RoomSwitcher>
+      <ProductDetail
+        productId={detailId}
+        categoryId={activeCategory?.id ?? null}
+        room={current}
+        onChoose={chooseFromDetail}
+        onClose={closeDetail}
+      />
       {sceneSlot && scene ? createPortal(scene, sceneSlot) : null}
     </div>
   );
