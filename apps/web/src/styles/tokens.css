@@ -180,6 +180,8 @@
 
   --layout-aside-width-tablet: 21.25rem;
   --layout-aside-width-desktop: 29.375rem;
+  --layout-option-min-width: 10rem;
+  --layout-form-column-min-width: 20rem;
   --stub-scene-height: 15rem;
   --stub-showcase-height: 22.5rem;
   --stub-content-height: 10rem;
