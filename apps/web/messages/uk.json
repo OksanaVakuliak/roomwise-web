@@ -879,7 +879,17 @@
       "roomTypeRequired": "Оберіть тип приміщення",
       "roomsExceedTotal": "Сума площ приміщень перевищує загальну площу на {difference, number} м². Ви можете продовжити."
     },
-    "plan": "План квартири"
+    "plan": "План квартири",
+    "planCount": "{count, plural, one {# приміщення} few {# приміщення} many {# приміщень} other {# приміщення}}",
+    "planEmpty": "Додайте приміщення — тут з'явиться план квартири",
+    "planSummary": {
+      "roomsOfTotal": "Приміщення: {rooms} м² із {total} м²",
+      "roomsOnly": "Приміщення: {rooms} м²"
+    },
+    "planCost": {
+      "base": "Базова вартість: {area} м² × {price} = {amount}",
+      "balconyTiles": "Плитка на балконі: {amount}"
+    }
   },
   "Specification": {
     "title": "Специфікація",

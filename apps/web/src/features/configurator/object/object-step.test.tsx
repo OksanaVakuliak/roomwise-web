@@ -472,4 +472,81 @@ describe('ObjectStep', () => {
       expect(document.body.scrollWidth).toBeLessThanOrEqual(390);
     },
   );
+
+  it.each(forEachLocale)(
+    'shows the plan in the showcase column with rooms against the total in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      await renderStep(
+        validObject(
+          {},
+          makeEmptyDraft({
+            rooms: [
+              fullRoom({ clientId: 'a', lengthM: 5, widthM: 4 }),
+              fullRoom({ clientId: 'b', lengthM: 3, widthM: 3 }),
+            ],
+          }),
+        ),
+        locale,
+      );
+
+      const showcase = screen.getByRole('region', {
+        name: createTranslator({
+          locale,
+          messages: catalogs[locale],
+          namespace: 'StepLayout',
+        })('showcase'),
+      });
+      const plan = within(showcase).getByRole('region', { name: step('plan') });
+      expect(
+        within(plan).getAllByRole('listitem').length,
+      ).toBeGreaterThanOrEqual(2);
+      expect(plan).toHaveTextContent(step('planCount', { count: 2 }));
+      expect(plan).toHaveTextContent(
+        step('planSummary.roomsOfTotal', { rooms: '29', total: '64' }),
+      );
+    },
+  );
+
+  it.each(forEachLocale)(
+    'explains the base cost under the plan in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      await renderStep(
+        validObject(
+          {},
+          makeEmptyDraft({
+            rooms: [fullRoom({ clientId: 'a', lengthM: 5, widthM: 4 })],
+          }),
+        ),
+        locale,
+      );
+
+      const plan = screen.getByRole('region', { name: step('plan') });
+      const baseLine = runEstimate({
+        draft: useDraft.getState(),
+        draftRevision: useDraft.getState().revision,
+        pricing,
+        pricingVersion: pricing.version,
+        currency: 'UAH',
+      }).estimate?.lines.find((line) => line.section === 'BASE');
+      expect(baseLine?.unitPriceCents).toBeTruthy();
+      expect(plan).toHaveTextContent(
+        step('planCost.base', {
+          area: '64',
+          price: moneyMinor(baseLine?.unitPriceCents ?? 0, 'USD', locale),
+          amount: moneyMinor(baseLine?.amountCents ?? 0, 'USD', locale),
+        }).replace(/\s/g, ' '),
+      );
+    },
+  );
+
+  it('shows an empty state instead of the plan when no room is valid', async () => {
+    const { step } = translators('en');
+    await renderStep(validObject());
+
+    const plan = screen.getByRole('region', { name: step('plan') });
+    expect(within(plan).getByText(step('planEmpty'))).toBeInTheDocument();
+    expect(within(plan).queryByRole('list')).not.toBeInTheDocument();
+  });
 });

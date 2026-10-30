@@ -879,7 +879,17 @@
       "roomTypeRequired": "Choose the room type",
       "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue."
     },
-    "plan": "Plan of the apartment"
+    "plan": "Plan of the apartment",
+    "planCount": "{count, plural, one {# room} other {# rooms}}",
+    "planEmpty": "Add a room and the apartment plan will appear here",
+    "planSummary": {
+      "roomsOfTotal": "Rooms: {rooms} m² of {total} m²",
+      "roomsOnly": "Rooms: {rooms} m²"
+    },
+    "planCost": {
+      "base": "Base cost: {area} m² × {price} = {amount}",
+      "balconyTiles": "Balcony tiles: {amount}"
+    }
   },
   "Specification": {
     "title": "Specification",
