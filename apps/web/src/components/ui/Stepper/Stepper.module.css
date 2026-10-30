@@ -16,7 +16,10 @@
   background: transparent;
   color: var(--line);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 }
 
 .button:hover {
@@ -58,6 +61,11 @@
   font-size: var(--text-number-step-size);
   text-align: center;
   appearance: textfield;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 }
 
 .control::-webkit-inner-spin-button,

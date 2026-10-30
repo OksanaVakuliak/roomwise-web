@@ -38,6 +38,7 @@
   font-weight: var(--text-title-s-weight);
   font-size: var(--text-body-default-size);
   color: var(--line-2);
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
 .on .position {

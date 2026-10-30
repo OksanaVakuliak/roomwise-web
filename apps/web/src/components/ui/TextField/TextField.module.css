@@ -10,6 +10,11 @@
   font-family: var(--text-body-default-family);
   font-weight: var(--text-body-default-weight);
   font-size: var(--text-body-default-size);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 }
 
 .control::placeholder {
