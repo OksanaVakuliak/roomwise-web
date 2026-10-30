@@ -16,9 +16,9 @@ html {
   text-size-adjust: 100%;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1440px) {
   html {
-    font-size: max(100%, 1.5625vw);
+    font-size: max(100%, 1.1111vw);
   }
 }
 
