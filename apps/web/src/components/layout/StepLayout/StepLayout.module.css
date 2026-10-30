@@ -75,6 +75,7 @@
   }
 
   .cost {
+    position: static;
     margin-top: auto;
     max-height: none;
     overflow-y: visible;
