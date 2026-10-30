@@ -52,13 +52,10 @@ describe('ObjectForm', () => {
     ).not.toBeChecked();
     expect(screen.getByRole('radio', { name: t('finishPre') })).toBeVisible();
     expect(screen.getByRole('textbox', { name: t('totalArea') })).toBeVisible();
-    expect(
-      screen.getByRole('radio', { name: t('kitchenSeparate') }),
-    ).toBeChecked();
-    expect(
-      screen.getByRole('radio', { name: t('kitchenLiving') }),
-    ).not.toBeChecked();
-    expect(screen.getByRole('switch', { name: t('gas') })).not.toBeChecked();
+    expect(screen.queryByRole('switch', { name: /gas|газ/i })).toBeNull();
+    expect(screen.queryByRole('radio', { name: /kitchen|кухн/i })).toBeNull();
+    expect(screen.getAllByRole('switch')).toHaveLength(1);
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
     expect(
       screen.getByRole('switch', { name: t('balcony') }),
     ).not.toBeChecked();
@@ -67,18 +64,14 @@ describe('ObjectForm', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('writes the finish level, kitchen type and gas to the draft', async () => {
+  it('writes the finish level to the draft', async () => {
     const t = form('en');
     await renderForm();
 
     fireEvent.click(screen.getByRole('radio', { name: t('finishPre') }));
-    fireEvent.click(screen.getByRole('radio', { name: t('kitchenLiving') }));
-    fireEvent.click(screen.getByRole('switch', { name: t('gas') }));
 
     expect(useDraft.getState().object).toMatchObject({
       finishLevel: 'PRE_FINISH',
-      kitchenType: 'KITCHEN_LIVING',
-      gas: true,
     });
   });
 

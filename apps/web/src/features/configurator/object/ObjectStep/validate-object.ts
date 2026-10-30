@@ -1,7 +1,6 @@
 import type { PricingData, Range } from '@roomwise/calc-engine';
 import { roomFloorArea } from '@/lib/draft/rooms';
 import type { DraftRoom, DraftV1 } from '@/lib/draft/schema';
-import { isRoomTypeAllowed } from '@/lib/engine/to-configuration';
 import { type ObjectFieldId, objectFieldDomId } from '../ObjectForm/field-ids';
 import { type RoomFieldId, roomFieldDomId } from '../RoomEditor/room-field';
 
@@ -98,7 +97,6 @@ const ROOM_FIELD_ORDER: readonly RoomFieldId[] = [
 const OBJECT_FIELD_ORDER: readonly ObjectFieldId[] = [
   'finishLevel',
   'totalArea',
-  'kitchenType',
   'balconyArea',
 ];
 
@@ -132,16 +130,11 @@ export function validateObject(
 
   for (const room of rooms) {
     const messages = roomMessages(room, limits);
-    const mismatch =
-      room.roomTypeCode !== null &&
-      !isRoomTypeAllowed(object.kitchenType, room.roomTypeCode);
     if (Object.keys(messages).length > 0) {
       roomErrors[room.clientId] = messages;
     }
     if (firstRoomId === null) {
-      const field = mismatch
-        ? 'roomTypeCode'
-        : ROOM_FIELD_ORDER.find((candidate) => messages[candidate]);
+      const field = ROOM_FIELD_ORDER.find((candidate) => messages[candidate]);
       if (field) {
         firstRoomId = roomFieldDomId(room.clientId, field);
       }

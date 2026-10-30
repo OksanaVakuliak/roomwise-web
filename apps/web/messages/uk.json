@@ -839,10 +839,6 @@
       "finishRough": "Чорнова",
       "finishPre": "Передчистова",
       "totalArea": "Загальна площа",
-      "gas": "Газ у квартирі",
-      "kitchenType": "Тип кухні",
-      "kitchenSeparate": "Окрема кухня",
-      "kitchenLiving": "Кухня-вітальня",
       "balcony": "Балкон",
       "balconyArea": "Площа балкона",
       "balconyTiles": "Класти плитку на балконі",
@@ -867,9 +863,6 @@
       "deleteMessage": "Обрані для нього матеріали й опції теж буде видалено.",
       "deleteConfirm": "Видалити",
       "deleteCancel": "Залишити",
-      "typeMismatch": "Цей тип приміщення недоступний для обраного типу кухні",
-      "changeType": "Змінити тип",
-      "deleteMismatched": "Видалити",
       "deleteClose": "Закрити вікно"
     },
     "validation": {

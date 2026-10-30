@@ -29,7 +29,6 @@ export type RoomListProps = {
 export function RoomList({ errors = {} }: RoomListProps) {
   const t = useTranslations('ObjectStep.rooms');
   const rooms = useDraft((state) => state.rooms);
-  const kitchenType = useDraft((state) => state.object.kitchenType);
   const addRoom = useDraft((state) => state.addRoom);
   const removeRoom = useDraft((state) => state.removeRoom);
   const roomTypesQuery = useRoomTypes();
@@ -111,7 +110,6 @@ export function RoomList({ errors = {} }: RoomListProps) {
               <RoomEditor
                 room={room}
                 rooms={rooms}
-                kitchenType={kitchenType}
                 roomTypes={roomTypes}
                 catalog={catalog}
                 errors={errors[room.clientId]}

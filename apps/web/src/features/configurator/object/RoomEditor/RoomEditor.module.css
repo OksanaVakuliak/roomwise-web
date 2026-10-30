@@ -27,12 +27,6 @@
   min-width: 0;
 }
 
-.mismatch {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-}
-
 .dimensions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -99,19 +99,12 @@ describe('objectComplete', () => {
     expect(objectComplete(makeInteriorDraft({ rooms }), context)).toBe(false);
   });
 
-  it('requires a room type allowed by the kitchen type', () => {
-    const { object } = makeInteriorDraft();
-    const rooms = [makeDraftRoom({ roomTypeCode: 'KITCHEN_LIVING' })];
-    expect(objectComplete(makeInteriorDraft({ rooms }), context)).toBe(false);
-    expect(
-      objectComplete(
-        makeInteriorDraft({
-          rooms,
-          object: { ...object, kitchenType: 'KITCHEN_LIVING' },
-        }),
-        context,
-      ),
-    ).toBe(true);
+  it('accepts a kitchen and a kitchen-living room together', () => {
+    const rooms = [
+      makeDraftRoom({ clientId: 'a', roomTypeCode: 'KITCHEN' }),
+      makeDraftRoom({ clientId: 'b', roomTypeCode: 'KITCHEN_LIVING' }),
+    ];
+    expect(objectComplete(makeInteriorDraft({ rooms }), context)).toBe(true);
   });
 
   it('rejects an unselected room type', () => {

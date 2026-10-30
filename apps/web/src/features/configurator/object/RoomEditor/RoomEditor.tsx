@@ -1,21 +1,13 @@
 'use client';
 
-import type { KitchenType, RoomTypeCode } from '@roomwise/calc-engine';
+import type { RoomTypeCode } from '@roomwise/calc-engine';
 import { useFormatter, useTranslations } from 'next-intl';
 import { type ChangeEvent, useCallback, useState } from 'react';
+import { IconButton, NumberField, Select, TextField } from '@/components/ui';
 import {
-  Button,
-  IconButton,
-  NumberField,
-  Select,
-  TextField,
-} from '@/components/ui';
-import {
-  allowedRoomTypes,
   normalizeRoomName,
   roomDisplayName,
   roomFloorArea,
-  roomTypeMismatch,
 } from '@/lib/draft/rooms';
 import { type DraftRoom, ROOM_NAME_MAX } from '@/lib/draft/schema';
 import type { RoomCatalog } from '@/lib/draft/style';
@@ -33,7 +25,6 @@ export type RoomTypeOption = { code: RoomTypeCode; name: string };
 export type RoomEditorProps = {
   room: DraftRoom;
   rooms: readonly DraftRoom[];
-  kitchenType: KitchenType;
   roomTypes: readonly RoomTypeOption[];
   catalog?: RoomCatalog;
   errors?: RoomFieldErrors;
@@ -86,7 +77,6 @@ function DimensionField({
 export function RoomEditor({
   room,
   rooms,
-  kitchenType,
   roomTypes,
   catalog,
   errors = {},
@@ -101,11 +91,6 @@ export function RoomEditor({
     setNameText(room.name ?? '');
   }
 
-  const mismatch = roomTypeMismatch(room, kitchenType);
-  const allowed = allowedRoomTypes(kitchenType);
-  const selectable = roomTypes.filter(
-    (type) => allowed.includes(type.code) || type.code === room.roomTypeCode,
-  );
   const typeLabel =
     roomTypes.find((type) => type.code === room.roomTypeCode)?.name ?? null;
   const ordinalLabel = typeLabel ?? t('typePlaceholder');
@@ -122,10 +107,6 @@ export function RoomEditor({
   const handleDelete = useCallback(
     () => onDelete(clientId),
     [onDelete, clientId],
-  );
-  const handleChangeType = useCallback(
-    () => document.getElementById(typeId)?.focus(),
-    [typeId],
   );
   const handleTypeChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) =>
@@ -161,12 +142,10 @@ export function RoomEditor({
           label={t('type')}
           placeholder={t('typePlaceholder')}
           value={room.roomTypeCode ?? ''}
-          error={
-            errors.roomTypeCode ?? (mismatch ? t('typeMismatch') : undefined)
-          }
+          error={errors.roomTypeCode}
           onChange={handleTypeChange}
         >
-          {selectable.map((type) => (
+          {roomTypes.map((type) => (
             <option key={type.code} value={type.code}>
               {type.name}
             </option>
@@ -182,14 +161,6 @@ export function RoomEditor({
           onChange={handleNameChange}
         />
       </div>
-      {mismatch ? (
-        <div className={styles.mismatch}>
-          <Button onClick={handleChangeType}>{t('changeType')}</Button>
-          <Button kind="heat" onClick={handleDelete}>
-            {t('deleteMismatched')}
-          </Button>
-        </div>
-      ) : null}
       <div className={styles.dimensions}>
         <DimensionField
           room={room}

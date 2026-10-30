@@ -1,5 +1,4 @@
 import type { PricingData, Range } from '@roomwise/calc-engine';
-import { isRoomTypeAllowed } from '@/lib/engine/to-configuration';
 import {
   type DraftRoom,
   type DraftV1,
@@ -38,14 +37,9 @@ function nameValid(name: string | null): boolean {
   return trimmed.length > 0 && trimmed.length <= ROOM_NAME_MAX;
 }
 
-function roomComplete(
-  room: DraftRoom,
-  kitchenType: DraftV1['object']['kitchenType'],
-  limits: PricingData['limits'],
-): boolean {
+function roomComplete(room: DraftRoom, limits: PricingData['limits']): boolean {
   return (
     room.roomTypeCode !== null &&
-    isRoomTypeAllowed(kitchenType, room.roomTypeCode) &&
     nameValid(room.name) &&
     inRange(room.lengthM, limits.roomSideM) &&
     inRange(room.widthM, limits.roomSideM) &&
@@ -72,7 +66,7 @@ export function objectComplete(draft: DraftV1, context: StepContext): boolean {
   if (rooms.length < limits.rooms.min || rooms.length > limits.rooms.max) {
     return false;
   }
-  return rooms.every((room) => roomComplete(room, object.kitchenType, limits));
+  return rooms.every((room) => roomComplete(room, limits));
 }
 
 export function styleComplete(draft: DraftV1, context: StepContext): boolean {

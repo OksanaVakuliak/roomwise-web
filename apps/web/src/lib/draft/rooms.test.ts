@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { makeDraftRoom, makeEmptyDraft } from '@/test/fixtures';
 import {
   addRoom,
-  allowedRoomTypes,
   createRoom,
   needsDeleteConfirm,
   removeRoom,
@@ -10,42 +9,8 @@ import {
   roomDisplayName,
   roomMetrics,
   roomOrdinal,
-  roomTypeMismatch,
 } from './rooms';
 import { MAX_ROOMS_STORED } from './schema';
-
-describe('allowedRoomTypes', () => {
-  it('lists kitchen and living room for a separate kitchen', () => {
-    expect(allowedRoomTypes('SEPARATE')).toEqual([
-      'LIVING_ROOM',
-      'BEDROOM',
-      'KITCHEN',
-      'BATHROOM',
-    ]);
-  });
-
-  it('lists only the kitchen-living room for a combined kitchen', () => {
-    expect(allowedRoomTypes('KITCHEN_LIVING')).toEqual([
-      'BEDROOM',
-      'KITCHEN_LIVING',
-      'BATHROOM',
-    ]);
-  });
-});
-
-describe('roomTypeMismatch', () => {
-  it('flags a type the kitchen type does not allow', () => {
-    const kitchen = makeDraftRoom({ roomTypeCode: 'KITCHEN' });
-    expect(roomTypeMismatch(kitchen, 'SEPARATE')).toBe(false);
-    expect(roomTypeMismatch(kitchen, 'KITCHEN_LIVING')).toBe(true);
-  });
-
-  it('does not flag a room without a type', () => {
-    expect(
-      roomTypeMismatch(makeDraftRoom({ roomTypeCode: null }), 'SEPARATE'),
-    ).toBe(false);
-  });
-});
 
 describe('auto name', () => {
   const rooms = [
@@ -76,7 +41,7 @@ describe('auto name', () => {
 });
 
 describe('createRoom and addRoom', () => {
-  it('takes the first allowed type and no auto name', () => {
+  it('starts with the living room and no auto name', () => {
     expect(createRoom(makeEmptyDraft(), 'new')).toEqual({
       clientId: 'new',
       roomTypeCode: 'LIVING_ROOM',
@@ -87,13 +52,6 @@ describe('createRoom and addRoom', () => {
       heatedFloor: false,
       selections: {},
     });
-  });
-
-  it('follows the kitchen type for the first type', () => {
-    const draft = makeEmptyDraft({
-      object: { ...makeEmptyDraft().object, kitchenType: 'KITCHEN_LIVING' },
-    });
-    expect(createRoom(draft, 'new').roomTypeCode).toBe('BEDROOM');
   });
 
   it('takes the height from the previous room', () => {

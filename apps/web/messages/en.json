@@ -839,10 +839,6 @@
       "finishRough": "Rough",
       "finishPre": "Pre-finish",
       "totalArea": "Total area",
-      "gas": "Gas in the apartment",
-      "kitchenType": "Kitchen type",
-      "kitchenSeparate": "Separate kitchen",
-      "kitchenLiving": "Kitchen-living room",
       "balcony": "Balcony",
       "balconyArea": "Balcony area",
       "balconyTiles": "Tile the balcony floor",
@@ -867,9 +863,6 @@
       "deleteMessage": "The materials and options chosen for this room will be removed too.",
       "deleteConfirm": "Delete",
       "deleteCancel": "Keep",
-      "typeMismatch": "This room type is not available with the selected kitchen type",
-      "changeType": "Change type",
-      "deleteMismatched": "Delete",
       "deleteClose": "Close dialog"
     },
     "validation": {

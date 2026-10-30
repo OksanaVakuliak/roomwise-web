@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { createTranslator, type Locale } from 'next-intl';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { createDefaultDraft } from '@/lib/draft/schema';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { useDraft } from '@/stores/draft';
@@ -43,7 +43,6 @@ async function renderEditor(
       <RoomEditor
         room={room}
         rooms={[room]}
-        kitchenType="SEPARATE"
         roomTypes={roomTypes}
         onDelete={noop}
         {...props}
@@ -152,44 +151,6 @@ describe('RoomEditor', () => {
     expect(useDraft.getState().rooms[0].lengthM).toBeNull();
   });
 
-  it('offers only types allowed for the kitchen type', async () => {
-    const t = translator('en');
-    await renderEditor({ kitchenType: 'KITCHEN_LIVING' });
-
-    const options = screen
-      .getAllByRole('option')
-      .map((option) => option.getAttribute('value'));
-    expect(options).toContain('KITCHEN_LIVING');
-    expect(options).not.toContain('KITCHEN');
-    expect(options).not.toContain('LIVING_ROOM');
-    expect(screen.getByRole('combobox', { name: t('type') })).toHaveValue(
-      'BEDROOM',
-    );
-  });
-
-  it('keeps a mismatched type selected and offers both actions', async () => {
-    const t = translator('en');
-    const onDelete = vi.fn();
-    const { room } = await renderEditor({
-      room: makeDraftRoom({ roomTypeCode: 'LIVING_ROOM' }),
-      kitchenType: 'KITCHEN_LIVING',
-      onDelete,
-    });
-    const select = screen.getByRole('combobox', { name: t('type') });
-
-    expect(select).toHaveValue('LIVING_ROOM');
-    expect(select).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByText(t('typeMismatch'))).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: t('changeType') }));
-    expect(select).toHaveFocus();
-
-    fireEvent.click(
-      screen.getByRole('button', { name: t('deleteMismatched') }),
-    );
-    expect(onDelete).toHaveBeenCalledWith(room.clientId);
-  });
-
   it('marks fields from the errors prop invalid and describes them', async () => {
     const t = translator('en');
     await renderEditor({ errors: { heightM: 'Enter a value' } });
@@ -213,7 +174,6 @@ describe('RoomEditor', () => {
       const { container } = await renderEditor(
         {
           room: makeDraftRoom({ roomTypeCode: 'LIVING_ROOM' }),
-          kitchenType: 'KITCHEN_LIVING',
           errors: { heightM: 'x' },
         },
         locale,

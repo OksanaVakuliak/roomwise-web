@@ -1,8 +1,6 @@
 export type ObjectFieldId =
   | 'finishLevel'
   | 'totalArea'
-  | 'gas'
-  | 'kitchenType'
   | 'balconyArea'
   | 'balconyTiles';
 

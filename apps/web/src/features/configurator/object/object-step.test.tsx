@@ -316,81 +316,41 @@ describe('ObjectStep', () => {
   );
 
   it.each(forEachLocale)(
-    'offers room types according to the kitchen type in %s',
-    async (locale) => {
-      const { step } = translators(locale);
-      await renderStep(validObject(), locale);
-
-      fireEvent.click(screen.getByRole('button', { name: step('rooms.add') }));
-      const optionNames = () =>
-        within(
-          within(roomItems(locale)[0]).getByRole('combobox', {
-            name: step('rooms.type'),
-          }),
-        )
-          .getAllByRole('option')
-          .map((option) => option.textContent);
-
-      expect(optionNames()).toEqual(
-        expect.arrayContaining([
-          roomTypeName('LIVING_ROOM'),
-          roomTypeName('KITCHEN'),
-        ]),
-      );
-      expect(optionNames()).not.toContain(roomTypeName('KITCHEN_LIVING'));
-
-      fireEvent.click(
-        screen.getByRole('radio', { name: step('form.kitchenLiving') }),
-      );
-      fireEvent.click(screen.getByRole('button', { name: step('rooms.add') }));
-      const [, added] = roomItems(locale);
-      const addedOptions = within(
-        within(added).getByRole('combobox', { name: step('rooms.type') }),
-      )
-        .getAllByRole('option')
-        .map((option) => option.textContent);
-
-      expect(addedOptions).toContain(roomTypeName('KITCHEN_LIVING'));
-      expect(addedOptions).not.toContain(roomTypeName('LIVING_ROOM'));
-      expect(addedOptions).not.toContain(roomTypeName('KITCHEN'));
-    },
-  );
-
-  it.each(forEachLocale)(
-    'reports a room whose type does not fit the kitchen type and blocks the step in %s',
+    'offers every room type and lets a kitchen and a kitchen-living room coexist in %s',
     async (locale) => {
       const { step } = translators(locale);
       const { location } = await renderStep(
         makeInteriorDraft({
-          object: {
-            ...makeInteriorDraft().object,
-            kitchenType: 'KITCHEN_LIVING',
-          },
+          rooms: [
+            makeDraftRoom({ clientId: 'kitchen', roomTypeCode: 'KITCHEN' }),
+            makeDraftRoom({
+              clientId: 'kitchen-living',
+              roomTypeCode: 'KITCHEN_LIVING',
+            }),
+          ],
         }),
         locale,
       );
-      const [mismatched, fitting] = roomItems(locale);
+      const [first] = roomItems(locale);
+      const optionNames = within(
+        within(first).getByRole('combobox', { name: step('rooms.type') }),
+      )
+        .getAllByRole('option')
+        .map((option) => option.textContent);
 
-      expect(
-        within(mismatched).getByText(step('rooms.typeMismatch')),
-      ).toBeInTheDocument();
-      expect(
-        within(mismatched).getByRole('button', {
-          name: step('rooms.changeType'),
-        }),
-      ).toBeInTheDocument();
-      expect(
-        within(mismatched).getByRole('button', {
-          name: step('rooms.deleteMismatched'),
-        }),
-      ).toBeInTheDocument();
-      expect(
-        within(fitting).queryByText(step('rooms.typeMismatch')),
-      ).not.toBeInTheDocument();
+      for (const code of [
+        'LIVING_ROOM',
+        'BEDROOM',
+        'KITCHEN',
+        'KITCHEN_LIVING',
+        'BATHROOM',
+      ]) {
+        expect(optionNames).toContain(roomTypeName(code));
+      }
 
       clickNext(locale);
 
-      expect(location().pathname).toBe(`/${locale}/configurator/object`);
+      expect(location().pathname).not.toBe(`/${locale}/configurator/object`);
     },
   );
 
