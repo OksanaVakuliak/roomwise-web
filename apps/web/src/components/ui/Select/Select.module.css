@@ -16,6 +16,11 @@
   font-family: var(--text-body-default-family);
   font-weight: var(--text-body-default-weight);
   font-size: var(--text-body-default-size);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
   appearance: none;
   cursor: pointer;
 }
@@ -48,4 +53,90 @@
 
 .control:disabled ~ .chevron {
   opacity: var(--opacity-disabled);
+}
+
+.chevron {
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+@supports (appearance: base-select) {
+  .control,
+  .control::picker(select) {
+    appearance: base-select;
+  }
+
+  .control {
+    display: flex;
+    align-items: center;
+  }
+
+  .control::picker-icon {
+    display: none;
+  }
+
+  .control:open ~ .chevron {
+    transform: rotate(180deg);
+  }
+
+  .control::picker(select) {
+    padding: 0;
+    border: var(--stroke-1-5) solid var(--line);
+    border-radius: 0;
+    background: var(--paper);
+    color: var(--line);
+    box-shadow: none;
+    max-block-size: none;
+    position-try-order: most-block-size;
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transition:
+      opacity var(--duration-base) var(--ease-enter),
+      clip-path var(--duration-base) var(--ease-enter),
+      display var(--duration-base) allow-discrete,
+      overlay var(--duration-base) allow-discrete;
+  }
+
+  .control:open::picker(select) {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+
+  @starting-style {
+    .control:open::picker(select) {
+      opacity: 0;
+      clip-path: inset(0 0 100% 0);
+    }
+  }
+
+  .control option {
+    display: flex;
+    align-items: center;
+    min-height: var(--size-target);
+    padding: 0 var(--space-12);
+    border-top: var(--stroke-1) solid var(--fill-a);
+    font-family: var(--text-body-default-family);
+    font-weight: var(--text-body-default-weight);
+    font-size: var(--text-body-default-size);
+    cursor: pointer;
+  }
+
+  .control option::checkmark {
+    display: none;
+  }
+
+  .control option:hover,
+  .control option:focus-visible {
+    background: var(--fill-a);
+    outline: none;
+  }
+
+  .control option:checked {
+    background: var(--line);
+    color: var(--paper);
+  }
+
+  .control option:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
 }
