@@ -151,18 +151,22 @@ export function ProductShowcase({
   }, [notFound, onUnavailable]);
 
   const items = query.data?.items;
+  const pricedProducts = pricing?.pricing.products;
   const sorted = useMemo(() => {
     if (!items) {
       return null;
     }
-    const entries = items.map((product) => ({ product }));
-    if (order === 'asc') {
-      entries.sort((a, b) => a.product.priceCents - b.product.priceCents);
-    } else if (order === 'desc') {
-      entries.sort((a, b) => b.product.priceCents - a.product.priceCents);
+    if (order === 'server') {
+      return items;
     }
-    return entries;
-  }, [items, order]);
+    const prices = new Map(
+      (pricedProducts ?? []).map((item) => [item.id, item.priceCents]),
+    );
+    const priceOf = (product: ProductCardData) =>
+      prices.get(product.id) ?? product.priceCents;
+    const direction = order === 'asc' ? 1 : -1;
+    return [...items].sort((a, b) => direction * (priceOf(a) - priceOf(b)));
+  }, [items, order, pricedProducts]);
 
   const retry = useCallback(() => {
     void refetch();
@@ -202,7 +206,7 @@ export function ProductShowcase({
         <p className={styles.hint}>{t('excluded')}</p>
       ) : null}
       <ul className={styles.list} aria-label={category.name}>
-        {sorted.map(({ product }) => (
+        {sorted.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
