@@ -803,6 +803,8 @@
   "StyleStep": {
     "listLabel": "Styles",
     "picked": "Selected",
+    "choose": "Choose",
+    "chooseLabel": "Choose the {name} style",
     "previewOpen": "Zoom in",
     "preview": "Zoom in on {name}",
     "previewClose": "Close preview",

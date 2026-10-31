@@ -72,14 +72,26 @@ function StyleOption({
         pickedLabel={t('picked')}
         onSelect={handleChoose}
       />
-      <Button
-        kind="outline"
-        className={styles.preview}
-        aria-label={t('preview', { name: item.name })}
-        onClick={handlePreview}
-      >
-        {t('previewOpen')}
-      </Button>
+      <div className={styles.actions}>
+        <Button
+          kind={selected ? 'outline' : 'fill'}
+          className={styles.action}
+          aria-label={t('chooseLabel', { name: item.name })}
+          aria-pressed={selected}
+          disabled={busy}
+          onClick={handleChoose}
+        >
+          {selected ? t('picked') : t('choose')}
+        </Button>
+        <Button
+          kind="outline"
+          className={styles.action}
+          aria-label={t('preview', { name: item.name })}
+          onClick={handlePreview}
+        >
+          {t('previewOpen')}
+        </Button>
+      </div>
     </li>
   );
 }

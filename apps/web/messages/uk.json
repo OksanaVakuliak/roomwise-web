@@ -803,6 +803,8 @@
   "StyleStep": {
     "listLabel": "Стилі",
     "picked": "Обрано",
+    "choose": "Обрати",
+    "chooseLabel": "Обрати стиль: {name}",
     "previewOpen": "Збільшити",
     "preview": "Збільшити: {name}",
     "previewClose": "Закрити перегляд",

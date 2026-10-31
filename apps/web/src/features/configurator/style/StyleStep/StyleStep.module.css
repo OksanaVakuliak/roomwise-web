@@ -33,8 +33,18 @@
   opacity: var(--opacity-disabled);
 }
 
-.preview {
-  align-self: flex-start;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.action {
+  flex: 1 1 auto;
+  min-height: var(--size-compact);
+  padding: 0 var(--space-14);
+  font-size: var(--text-body-s-size);
+  white-space: nowrap;
 }
 
 .error {
