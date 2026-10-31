@@ -97,17 +97,23 @@ export function useCategoryProducts(categoryId: string | null) {
   });
 }
 
+export function productQuery(productId: string, lang: Lang) {
+  return {
+    queryKey: catalogKeys.product(productId, lang),
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/public/products/{productId}', {
+          params: { path: { productId }, query: { lang } },
+        }),
+      ),
+  };
+}
+
 export function useProduct(productId: string | null) {
   const lang = useLang();
   const ready = useCatalogReady();
   return useQuery({
-    queryKey: catalogKeys.product(productId ?? '', lang),
-    queryFn: () =>
-      unwrap(
-        api.GET('/api/v1/public/products/{productId}', {
-          params: { path: { productId: productId ?? '' }, query: { lang } },
-        }),
-      ),
+    ...productQuery(productId ?? '', lang),
     enabled: ready && productId !== null,
   });
 }

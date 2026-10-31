@@ -70,6 +70,61 @@ describe('RoomScene', () => {
     );
   });
 
+  it('draws no patterns without surfaces', () => {
+    const { container } = renderWithProviders(<RoomScene {...props} />);
+    expect(container.querySelector('pattern')).toBeNull();
+    expect(container.querySelector('image')).toBeNull();
+  });
+
+  it('fills floor and walls with real-scale texture patterns', () => {
+    const surface = {
+      textureUrl: 'https://cdn.test/oak.jpg',
+      tileWidthMm: 190,
+      tileLengthMm: 1200,
+      fallbackColor: '#aa0000',
+    };
+    const { container } = renderWithProviders(
+      <RoomScene
+        {...props}
+        surfaces={{ floor: surface, walls: surface, ceiling: surface }}
+      />,
+    );
+    const patterns = container.querySelectorAll('pattern');
+    expect(patterns).toHaveLength(3);
+    const ids = new Set([...patterns].map((pattern) => pattern.id));
+    expect(ids.size).toBe(3);
+    const floor = patterns[0];
+    expect(Number(floor.getAttribute('width'))).toBeCloseTo(31.2);
+    expect(Number(floor.getAttribute('height'))).toBeCloseTo(4.94);
+    expect(floor.querySelector('image')).toHaveAttribute(
+      'href',
+      surface.textureUrl,
+    );
+    expect(container.querySelectorAll('polygon[fill="#aa0000"]')).toHaveLength(
+      3,
+    );
+    expect(
+      container.querySelector(`polygon[fill="url(#${floor.id})"]`),
+    ).not.toBeNull();
+  });
+
+  it('keeps pattern ids unique across instances', () => {
+    const surface = {
+      textureUrl: 'a.jpg',
+      tileWidthMm: 600,
+      tileLengthMm: 600,
+      fallbackColor: '#fff',
+    };
+    const { container } = renderWithProviders(
+      <>
+        <RoomScene {...props} surfaces={{ floor: surface }} />
+        <RoomScene {...props} surfaces={{ floor: surface }} />
+      </>,
+    );
+    const [first, second] = container.querySelectorAll('pattern');
+    expect(first.id).not.toBe(second.id);
+  });
+
   it('has no axe violations', async () => {
     const { container } = renderWithProviders(<RoomScene {...props} />);
     expect(await axe(container)).toHaveNoViolations();

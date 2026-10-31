@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { RoomScene } from '@/components/ui';
+import { RoomScene, type SceneSurfaces } from '@/components/ui';
 import { dimension } from '@/lib/format';
 
 export type ScenePlaceholderProps = {
@@ -9,6 +9,7 @@ export type ScenePlaceholderProps = {
   lengthM: number;
   widthM: number;
   heightM: number;
+  surfaces?: SceneSurfaces;
 };
 
 export function ScenePlaceholder({
@@ -16,6 +17,7 @@ export function ScenePlaceholder({
   lengthM,
   widthM,
   heightM,
+  surfaces,
 }: ScenePlaceholderProps) {
   const t = useTranslations('InteriorStep');
   const locale = useLocale();
@@ -31,6 +33,7 @@ export function ScenePlaceholder({
       lengthLabel={lengthLabel}
       widthLabel={widthLabel}
       heightLabel={heightLabel}
+      surfaces={surfaces}
       cutLabel={t('scene.cut')}
       description={t('scene.description', {
         name,
