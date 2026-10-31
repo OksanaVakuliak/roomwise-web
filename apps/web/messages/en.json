@@ -887,7 +887,7 @@
     },
     "planCost": {
       "base": "Base cost: {area} m² × {price} = {amount}",
-      "balconyTiles": "Balcony tiles: {amount}"
+      "objectLine": "{name}: {amount}"
     }
   },
   "Specification": {

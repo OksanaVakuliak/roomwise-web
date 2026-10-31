@@ -887,7 +887,7 @@
     },
     "planCost": {
       "base": "Базова вартість: {area} м² × {price} = {amount}",
-      "balconyTiles": "Плитка на балконі: {amount}"
+      "objectLine": "{name}: {amount}"
     }
   },
   "Specification": {

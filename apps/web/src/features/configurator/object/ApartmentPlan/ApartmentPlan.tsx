@@ -100,16 +100,24 @@ function useCostLines() {
       }),
     );
   }
-  const tiles = estimate.lines.find(
-    (line) =>
-      line.section === 'OBJECT' &&
-      line.amountCents > 0 &&
-      !blockedLineIds.has(line.id),
-  );
-  if (tiles) {
+  const lang = locale === 'uk' ? 'uk' : 'en';
+  for (const line of estimate.lines) {
+    if (
+      line.section !== 'OBJECT' ||
+      line.status !== 'OK' ||
+      line.amountCents <= 0 ||
+      blockedLineIds.has(line.id)
+    ) {
+      continue;
+    }
+    const rule = pricing.rules.find((item) => item.id === line.ruleId);
+    if (!rule) {
+      continue;
+    }
     lines.push(
-      t('balconyTiles', {
-        amount: amount(tiles.amountCents, tiles.amountUahKopecks),
+      t('objectLine', {
+        name: rule.name[lang],
+        amount: amount(line.amountCents, line.amountUahKopecks),
       }),
     );
   }
