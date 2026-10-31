@@ -109,7 +109,10 @@ export function retypeSelections(
       }
       if (styled) {
         return [
-          [categoryId, { ...styled, disabled: before?.disabled ?? false }],
+          [
+            categoryId,
+            { ...styled, disabled: before?.disabled ?? styled.disabled },
+          ],
         ];
       }
       return [];

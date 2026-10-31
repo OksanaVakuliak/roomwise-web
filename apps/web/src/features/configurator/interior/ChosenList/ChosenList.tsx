@@ -12,7 +12,7 @@ import {
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
 import { useDraft } from '@/stores/draft';
-import { useRoomPricing } from '../use-room-pricing';
+import { type RoomPricing, useRoomPricing } from '../use-room-pricing';
 import styles from './ChosenList.module.css';
 
 export type ChosenListCategory = {
@@ -43,6 +43,7 @@ type ChosenRowProps = {
   category: ChosenListCategory;
   siblingIds: readonly string[];
   active: boolean;
+  pricing: RoomPricing | null;
   onSelect: (roomClientId: string, categoryId: string) => void;
 };
 
@@ -52,10 +53,10 @@ function ChosenRow({
   category,
   siblingIds,
   active,
+  pricing,
   onSelect,
 }: ChosenRowProps) {
   const t = useTranslations('ChosenList');
-  const pricing = useRoomPricing();
   const enableCategory = useDraft((state) => state.enableCategory);
   const disableCategory = useDraft((state) => state.disableCategory);
   const { clientId } = room;
@@ -169,10 +170,8 @@ function ChosenSection({
   const t = useTranslations('ChosenList');
   const headingId = useId();
   const pricing = useRoomPricing();
-  const { room, name } = group;
-  const listed = group.categories.filter(
-    (category) => category.productCount > 0,
-  );
+  const { room, name, categories } = group;
+  const listed = categories.filter((category) => category.productCount > 0);
   const rows = groupCategories(listed).map((group) => {
     const category =
       enabledCategoryOf(group, room.selections) ??
@@ -183,7 +182,7 @@ function ChosenSection({
     return {
       key: group.key,
       category,
-      siblingIds: surfaceSiblings(listed, category.id),
+      siblingIds: surfaceSiblings(categories, category.id),
       active: group.categories.some((item) => item.id === activeCategoryId),
     };
   });
@@ -216,6 +215,7 @@ function ChosenSection({
             category={row.category}
             siblingIds={row.siblingIds}
             active={current && row.active}
+            pricing={pricing}
             onSelect={onSelect}
           />
         ))}

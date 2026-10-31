@@ -79,7 +79,9 @@ export function normalizeSelections(
     const winner =
       enabled.find(
         (category) => selections[category.id]?.source === 'manual',
-      ) ?? enabled[0];
+      ) ??
+      enabled.find((category) => selections[category.id]?.productId != null) ??
+      enabled[0];
     for (const category of enabled) {
       const selection = selections[category.id];
       if (category.id !== winner?.id && selection) {
