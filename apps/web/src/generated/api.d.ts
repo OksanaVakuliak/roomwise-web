@@ -895,6 +895,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/projects/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProjectsSettingsController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ProjectsSettingsController_update"];
+        trace?: never;
+    };
+    "/api/v1/admin/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminLeadsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/leads/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminLeadsController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["AdminLeadsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/leads/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminLeadsController_changeStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/leads/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminLeadsController_addNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1082,6 +1162,7 @@ export interface components {
             options: {
                 /** Format: uuid */
                 id: string;
+                code: "HEATED_FLOOR" | null;
                 /** @enum {string} */
                 kind: "ENGINEERING" | "ADDITIONAL";
                 name: string;
@@ -1870,6 +1951,7 @@ export interface components {
             items: {
                 /** Format: uuid */
                 id: string;
+                code: "HEATED_FLOOR" | null;
                 /** @enum {string} */
                 kind: "ENGINEERING" | "ADDITIONAL";
                 name: {
@@ -1914,6 +1996,7 @@ export interface components {
         OptionAdminDto_Output: {
             /** Format: uuid */
             id: string;
+            code: "HEATED_FLOOR" | null;
             /** @enum {string} */
             kind: "ENGINEERING" | "ADDITIONAL";
             name: {
@@ -2092,6 +2175,7 @@ export interface components {
             }[];
             options: {
                 id: string;
+                code: "HEATED_FLOOR" | null;
                 /** @enum {string} */
                 kind: "ENGINEERING" | "ADDITIONAL";
                 priceCents: number;
@@ -2110,11 +2194,9 @@ export interface components {
                 totalAreaSqm: number;
                 balconyAreaSqm: number;
                 balconyTiles: boolean;
-                gas: boolean;
-                /** @enum {string} */
-                kitchenType: "SEPARATE" | "KITCHEN_LIVING";
                 rooms: {
                     clientId: string;
+                    name?: string;
                     /** @enum {string} */
                     roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
                     lengthM: number;
@@ -2297,9 +2379,6 @@ export interface components {
                     totalAreaSqm: number;
                     balconyAreaSqm: number;
                     balconyTiles: boolean;
-                    gas: boolean;
-                    /** @enum {string} */
-                    kitchenType: "SEPARATE" | "KITCHEN_LIVING";
                     /** @enum {string} */
                     finishLevel: "ROUGH" | "PRE_FINISH";
                     roomsCount: number;
@@ -2539,11 +2618,9 @@ export interface components {
                 totalAreaSqm: number;
                 balconyAreaSqm: number;
                 balconyTiles: boolean;
-                gas: boolean;
-                /** @enum {string} */
-                kitchenType: "SEPARATE" | "KITCHEN_LIVING";
                 rooms: {
                     clientId: string;
+                    name?: string;
                     /** @enum {string} */
                     roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
                     lengthM: number;
@@ -2589,11 +2666,9 @@ export interface components {
                     totalAreaSqm: number;
                     balconyAreaSqm: number;
                     balconyTiles: boolean;
-                    gas: boolean;
-                    /** @enum {string} */
-                    kitchenType: "SEPARATE" | "KITCHEN_LIVING";
                     rooms: {
                         clientId: string;
+                        name?: string;
                         /** @enum {string} */
                         roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
                         lengthM: number;
@@ -2622,6 +2697,7 @@ export interface components {
                     heightM: number;
                     heatedFloor: boolean;
                     name: string;
+                    roomTypeName: string;
                 }[];
                 lines: {
                     id: string;
@@ -2747,11 +2823,9 @@ export interface components {
                 totalAreaSqm: number;
                 balconyAreaSqm: number;
                 balconyTiles: boolean;
-                gas: boolean;
-                /** @enum {string} */
-                kitchenType: "SEPARATE" | "KITCHEN_LIVING";
                 rooms: {
                     clientId: string;
+                    name?: string;
                     /** @enum {string} */
                     roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
                     lengthM: number;
@@ -2780,6 +2854,7 @@ export interface components {
                 heightM: number;
                 heatedFloor: boolean;
                 name: string;
+                roomTypeName: string;
             }[];
             lines: {
                 id: string;
@@ -2888,11 +2963,9 @@ export interface components {
                     totalAreaSqm: number;
                     balconyAreaSqm: number;
                     balconyTiles: boolean;
-                    gas: boolean;
-                    /** @enum {string} */
-                    kitchenType: "SEPARATE" | "KITCHEN_LIVING";
                     rooms: {
                         clientId: string;
+                        name?: string;
                         /** @enum {string} */
                         roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
                         lengthM: number;
@@ -2915,6 +2988,7 @@ export interface components {
                 /** Format: uuid */
                 styleId: string;
                 clientPricingVersion: string;
+                clientTotalUsdCents: number;
             };
             name: string;
             phone: string;
@@ -2936,10 +3010,279 @@ export interface components {
                 versionNumber: number;
             };
             expiredAtSubmission: boolean;
+            priceDifference: {
+                clientTotalUsdCents: number;
+                savedTotalUsdCents: number;
+                diffCents: number;
+            } | null;
         };
         LeadFormSettingsDto_Output: {
             retentionDays: number;
             notice: string;
+        };
+        ProjectsSettingsAdminDto_Output: {
+            calculationValidityDays: number;
+            leadRetentionDays: number;
+            leadFormNotice: {
+                en: string;
+                uk: string;
+            };
+            lastRetentionRunAt: string | null;
+            /** Format: uuid */
+            revision: string;
+            /** Format: date-time */
+            updatedAt: string;
+            updatedBy: {
+                /** Format: uuid */
+                id: string;
+                login: string;
+            } | null;
+        };
+        PatchProjectsSettingsDto: {
+            calculationValidityDays?: number;
+            leadRetentionDays?: number;
+            leadFormNotice?: {
+                en: string;
+                uk: string;
+            };
+            /** Format: uuid */
+            revision: string;
+        };
+        LeadListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                number: number;
+                /** Format: date-time */
+                createdAt: string;
+                /** @enum {string} */
+                status: "NEW" | "IN_PROGRESS" | "DONE" | "REJECTED" | "SPAM";
+                name: string;
+                phone: string;
+                email: string | null;
+                expiredAtSubmission: boolean;
+                totalUsdCents: number;
+                masked: boolean;
+            }[];
+            page: number;
+            pageSize: number;
+            total: number;
+        };
+        LeadAdminDto_Output: {
+            /** Format: uuid */
+            id: string;
+            number: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            status: "NEW" | "IN_PROGRESS" | "DONE" | "REJECTED" | "SPAM";
+            name: string;
+            phone: string;
+            email: string[];
+            expiredAtSubmission: boolean;
+            totalUsdCents: number;
+            masked: boolean;
+            comment: string[];
+            consentText: string[];
+            /** Format: date-time */
+            consentAt: string;
+            /** @enum {string} */
+            locale: "en" | "uk";
+            /** Format: uuid */
+            revision: string;
+            statusHistory: {
+                fromStatus: ("NEW" | "IN_PROGRESS" | "DONE" | "REJECTED" | "SPAM") | null;
+                /** @enum {string} */
+                toStatus: "NEW" | "IN_PROGRESS" | "DONE" | "REJECTED" | "SPAM";
+                /** Format: date-time */
+                changedAt: string;
+                changedBy: {
+                    /** Format: uuid */
+                    id: string;
+                    login: string;
+                } | null;
+            }[];
+            notes: {
+                /** Format: uuid */
+                id: string;
+                text: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                author: {
+                    /** Format: uuid */
+                    id: string;
+                    login: string;
+                } | null;
+            }[];
+            calculation: {
+                publicId: string;
+                number: number;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                expiresAt: string;
+                expired: boolean;
+                incomplete: boolean;
+                pricingVersion: string;
+                style: {
+                    id: string;
+                    name: string;
+                } | null;
+                configuration: {
+                    /** @enum {string} */
+                    finishLevel: "ROUGH" | "PRE_FINISH";
+                    totalAreaSqm: number;
+                    balconyAreaSqm: number;
+                    balconyTiles: boolean;
+                    rooms: {
+                        clientId: string;
+                        name?: string;
+                        /** @enum {string} */
+                        roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                        lengthM: number;
+                        widthM: number;
+                        heightM: number;
+                        heatedFloor: boolean;
+                        selections: {
+                            categoryId: string;
+                            productId: string | null;
+                        }[];
+                    }[];
+                    options: {
+                        optionId: string;
+                        quantity?: number;
+                        roomClientIds?: string[];
+                    }[];
+                    /** @enum {string} */
+                    currency: "USD" | "UAH";
+                };
+                rooms: {
+                    clientId: string;
+                    /** @enum {string} */
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    lengthM: number;
+                    widthM: number;
+                    heightM: number;
+                    heatedFloor: boolean;
+                    name: string;
+                    roomTypeName: string;
+                }[];
+                lines: {
+                    id: string;
+                    /** @enum {string} */
+                    section: "BASE" | "OBJECT" | "MATERIALS" | "ENGINEERING" | "ADDITIONAL";
+                    /** @enum {string} */
+                    status: "OK" | "INCLUDED" | "NOT_CALCULATED" | "UNAVAILABLE" | "ERROR";
+                    roomClientId: string | null;
+                    categoryId: string | null;
+                    productId: string | null;
+                    optionId: string | null;
+                    packageItemId: string | null;
+                    ruleId: string | null;
+                    quantity: number | null;
+                    unit: string | null;
+                    unitPriceCents: number | null;
+                    amountCents: number;
+                    amountUahKopecks: number | null;
+                    warnings: {
+                        code: string;
+                        params?: {
+                            [key: string]: unknown;
+                        };
+                    }[];
+                    error: {
+                        code: string;
+                        params?: {
+                            [key: string]: unknown;
+                        };
+                    } | null;
+                    roomName: string | null;
+                    categoryName: string | null;
+                    optionName: string | null;
+                    packageItemName: string | null;
+                    ruleName: string | null;
+                    product: {
+                        name: string;
+                        brand: string;
+                        manufacturer: string;
+                        color: string;
+                        size: string;
+                        image: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uri */
+                            thumb: string;
+                            /** Format: uri */
+                            card: string;
+                            /** Format: uri */
+                            zoom: string;
+                        } | null;
+                    } | null;
+                }[];
+                totals: {
+                    usdCents: number;
+                    uahKopecks: number | null;
+                    sections: {
+                        [key: string]: {
+                            usdCents: number;
+                            uahKopecks: number | null;
+                        };
+                    };
+                };
+                warnings: {
+                    code: string;
+                    params?: {
+                        [key: string]: unknown;
+                    };
+                    lineId?: string;
+                }[];
+                exchangeRate: {
+                    rate: string;
+                    date: string;
+                    /** @enum {string} */
+                    source: "NBU" | "MANUAL";
+                } | null;
+                priceStatus: {
+                    changed: boolean;
+                    snapshotTotalUsdCents: number;
+                    currentTotalUsdCents: number;
+                    diffCents: number;
+                    unavailableItems: {
+                        lineId: string;
+                        productId: string | null;
+                        optionId: string | null;
+                    }[];
+                    currentPricingVersion: string;
+                } | null;
+                versions: {
+                    number: number;
+                    /** Format: date-time */
+                    createdAt: string;
+                    totalUsdCents: number;
+                    expired: boolean;
+                }[];
+            };
+        };
+        ChangeLeadStatusDto: {
+            /** @enum {string} */
+            status: "NEW" | "IN_PROGRESS" | "DONE" | "REJECTED" | "SPAM";
+            /** Format: uuid */
+            revision: string;
+        };
+        AddLeadNoteDto: {
+            text: string;
+        };
+        LeadNoteDto_Output: {
+            /** Format: uuid */
+            id: string;
+            text: string[];
+            /** Format: date-time */
+            createdAt: string;
+            author: {
+                /** Format: uuid */
+                id: string;
+                login: string;
+            } | null;
         };
     };
     responses: never;
@@ -5009,6 +5352,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description OPTION_CODE_PROTECTED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
         };
     };
     OptionsController_update: {
@@ -5061,7 +5413,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description STALE_REVISION */
+            /** @description STALE_REVISION | OPTION_CODE_PROTECTED */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -5171,7 +5523,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description STALE_REVISION */
+            /** @description STALE_REVISION | OPTION_CODE_PROTECTED */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -6100,7 +6452,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description INPUT_OUT_OF_BOUNDS | UNKNOWN_REFERENCE | STYLE_NOT_FOUND | IDEMPOTENCY_KEY_REUSED */
+            /** @description UNKNOWN_REFERENCE | STYLE_NOT_FOUND | IDEMPOTENCY_KEY_REUSED */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -6281,6 +6633,382 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LeadFormSettingsDto_Output"];
+                };
+            };
+        };
+    };
+    ProjectsSettingsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectsSettingsAdminDto_Output"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ProjectsSettingsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchProjectsSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectsSettingsAdminDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description DEMO_FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description STALE_REVISION */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOTICE_PLACEHOLDER_MISSING */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AdminLeadsController_list: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                status?: "NEW" | "IN_PROGRESS" | "DONE" | "REJECTED" | "SPAM";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadListResponseDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AdminLeadsController_get: {
+        parameters: {
+            query?: {
+                lang?: "en" | "uk";
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadAdminDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AdminLeadsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description DEMO_FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AdminLeadsController_changeStatus: {
+        parameters: {
+            query?: {
+                lang?: "en" | "uk";
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLeadStatusDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadAdminDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description DEMO_FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description STALE_REVISION */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description SAME_STATUS */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AdminLeadsController_addNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddLeadNoteDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadNoteDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description DEMO_FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
         };
