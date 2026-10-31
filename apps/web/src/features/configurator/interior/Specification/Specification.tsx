@@ -30,7 +30,9 @@ export type SpecificationProps = {
   categories: readonly SpecificationCategory[];
   activeCategoryId: string | null;
   size: 'mobile' | 'desktop';
+  hideTitle?: boolean;
   onCategoryChange: (categoryId: string | null) => void;
+  onChosen?: () => void;
   onOpenDetail: (productId: string) => void;
 };
 
@@ -93,7 +95,9 @@ export function Specification({
   categories,
   activeCategoryId,
   size,
+  hideTitle = false,
   onCategoryChange,
+  onChosen,
   onOpenDetail,
 }: SpecificationProps) {
   const t = useTranslations('Specification');
@@ -116,17 +120,23 @@ export function Specification({
   const active = categories[index];
 
   return (
-    <section className={styles.root} aria-labelledby={headingId}>
-      <SectionHeader
-        id={headingId}
-        size={size}
-        title={t('title')}
-        note={
-          active
-            ? t('note', { name: active.name, count: active.productCount })
-            : undefined
-        }
-      />
+    <section
+      className={styles.root}
+      aria-labelledby={hideTitle ? undefined : headingId}
+      aria-label={hideTitle ? t('title') : undefined}
+    >
+      {hideTitle ? null : (
+        <SectionHeader
+          id={headingId}
+          size={size}
+          title={t('title')}
+          note={
+            active
+              ? t('note', { name: active.name, count: active.productCount })
+              : undefined
+          }
+        />
+      )}
       {unavailable ? (
         <Banner
           variant="warning"
@@ -176,6 +186,7 @@ export function Specification({
                   }}
                   size={size}
                   onUnavailable={handleUnavailable}
+                  onChosen={onChosen}
                   onOpenDetail={onOpenDetail}
                 />
               </>

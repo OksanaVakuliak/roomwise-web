@@ -692,6 +692,7 @@
   "StepLayout": {
     "steps": "Кроки конфігуратора",
     "scene": "Вигляд кімнати",
+    "picker": "Підбір матеріалів",
     "showcase": "Специфікація",
     "cost": "Кошторис"
   },
@@ -831,7 +832,8 @@
     },
     "unitM": "м",
     "wallsMobile": "стіни {walls}",
-    "wallsDesktop": "стіни {walls}, периметр {perimeter}"
+    "wallsDesktop": "стіни {walls}, периметр {perimeter}",
+    "closePicker": "Закрити"
   },
   "ObjectStep": {
     "form": {
@@ -885,7 +887,7 @@
     }
   },
   "Specification": {
-    "title": "Специфікація",
+    "title": "Вибір матеріалів",
     "note": "{name}, {count, plural, one {# позиція} few {# позиції} many {# позицій} other {# позиції}}",
     "tabsLabel": "Категорії",
     "include": "Включити в розрахунок",
@@ -896,6 +898,13 @@
     "emptyText": "У цій категорії поки немає з чого обирати.",
     "dismiss": "Закрити",
     "categoryGone": "Цієї категорії більше немає. Каталог оновлено."
+  },
+  "ChosenList": {
+    "title": "Обрано",
+    "list": "Обрані матеріали",
+    "excluded": "не входить у розрахунок",
+    "choose": "оберіть матеріал",
+    "openPicker": "Обрати матеріал"
   },
   "ProductShowcase": {
     "loading": "Завантаження товарів",

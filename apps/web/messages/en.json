@@ -692,6 +692,7 @@
   "StepLayout": {
     "steps": "Configurator steps",
     "scene": "Room view",
+    "picker": "Material picker",
     "showcase": "Specification",
     "cost": "Estimate"
   },
@@ -831,7 +832,8 @@
     },
     "unitM": "m",
     "wallsMobile": "walls {walls}",
-    "wallsDesktop": "walls {walls}, perimeter {perimeter}"
+    "wallsDesktop": "walls {walls}, perimeter {perimeter}",
+    "closePicker": "Close"
   },
   "ObjectStep": {
     "form": {
@@ -885,7 +887,7 @@
     }
   },
   "Specification": {
-    "title": "Specification",
+    "title": "Choose materials",
     "note": "{name}, {count, plural, one {# item} other {# items}}",
     "tabsLabel": "Categories",
     "include": "Include in the estimate",
@@ -896,6 +898,13 @@
     "emptyText": "This category has nothing to choose from yet.",
     "dismiss": "Dismiss",
     "categoryGone": "This category is no longer available. The catalog has been refreshed."
+  },
+  "ChosenList": {
+    "title": "Chosen",
+    "list": "Chosen materials",
+    "excluded": "not included in the estimate",
+    "choose": "choose a material",
+    "openPicker": "Choose material"
   },
   "ProductShowcase": {
     "loading": "Loading products",

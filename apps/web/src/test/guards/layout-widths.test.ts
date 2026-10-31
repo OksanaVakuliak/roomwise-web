@@ -161,7 +161,8 @@ describe('layout widths guard', () => {
   it('defines the layout tokens it relies on', () => {
     for (const name of [
       '--layout-aside-width-tablet',
-      '--layout-aside-width-desktop',
+      '--layout-picker-min-width',
+      '--layout-aside-min-width',
     ]) {
       expect(TOKENS.get(name), name).toMatch(/^\d+(?:\.\d+)?rem$/);
     }

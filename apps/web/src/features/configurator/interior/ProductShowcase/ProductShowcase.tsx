@@ -41,6 +41,7 @@ export type ProductShowcaseProps = {
   category: ProductShowcaseCategory;
   size: 'mobile' | 'desktop';
   onUnavailable: () => void;
+  onChosen?: () => void;
   onOpenDetail: (productId: string) => void;
 };
 
@@ -131,6 +132,7 @@ export function ProductShowcase({
   category,
   size,
   onUnavailable,
+  onChosen,
   onOpenDetail,
 }: ProductShowcaseProps) {
   const t = useTranslations('ProductShowcase');
@@ -173,8 +175,9 @@ export function ProductShowcase({
   const choose = useCallback(
     (productId: string) => {
       selectProduct(room.clientId, category.id, productId);
+      onChosen?.();
     },
-    [category.id, room.clientId, selectProduct],
+    [category.id, onChosen, room.clientId, selectProduct],
   );
 
   if (notFound) {

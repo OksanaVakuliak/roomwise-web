@@ -5,7 +5,7 @@ import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ErrorState } from '@/components/system';
-import { SheetTitle, Skeleton } from '@/components/ui';
+import { BottomSheet, SheetTitle, Skeleton } from '@/components/ui';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName, roomMetrics } from '@/lib/draft/rooms';
@@ -13,18 +13,22 @@ import type { DraftRoom } from '@/lib/draft/schema';
 import { area, dimension } from '@/lib/format';
 import { useMediaQuery } from '@/lib/media';
 import { useDraft } from '@/stores/draft';
+import { usePickerSlot } from '../../shell/PickerSlot/picker-slot-context';
 import { useSceneSlot } from '../../shell/SceneSlot/scene-slot-context';
 import { useShowcaseSlot } from '../../shell/ShowcaseSlot/showcase-slot-context';
+import { ChosenList } from '../ChosenList/ChosenList';
 import { ProductDetail } from '../ProductDetail/ProductDetail';
 import { RoomPlans } from '../RoomPlans/RoomPlans';
 import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
 import { Specification } from '../Specification/Specification';
+import { useRoomSurfaces } from '../use-room-surfaces';
 import styles from './InteriorStep.module.css';
 
 const DESKTOP_QUERY = '(min-width: 768px)';
 
 function InteriorContent() {
   const t = useTranslations('InteriorStep');
+  const tSpec = useTranslations('Specification');
   const locale = useLocale();
   const format = useFormatter();
   const router = useRouter();
@@ -33,16 +37,19 @@ function InteriorContent() {
   const rooms = useDraft((state) => state.rooms);
   const roomTypesQuery = useRoomTypes();
   const sceneSlot = useSceneSlot();
+  const pickerSlot = usePickerSlot();
   const showcaseSlot = useShowcaseSlot();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const selectProduct = useDraft((state) => state.selectProduct);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const requestedRoom = searchParams.get('room');
   const categoryId = searchParams.get('category');
   const current =
     rooms.find((room) => room.clientId === requestedRoom) ?? rooms[0] ?? null;
   const needsRedirect = current !== null && current.clientId !== requestedRoom;
+  const surfaces = useRoomSurfaces(current);
 
   const navigate = useCallback(
     (changes: Record<string, string | null>, mode: 'push' | 'replace') => {
@@ -74,12 +81,22 @@ function InteriorContent() {
     [navigate],
   );
   const closeDetail = useCallback(() => setDetailId(null), []);
+  const openPicker = useCallback(() => setPickerOpen(true), []);
+  const closePicker = useCallback(() => setPickerOpen(false), []);
+  const chooseCategory = useCallback(
+    (id: string) => {
+      changeCategory(id);
+      setPickerOpen(true);
+    },
+    [changeCategory],
+  );
   const chooseFromDetail = useCallback(
     (productId: string, productCategoryId: string) => {
       if (current !== null) {
         selectProduct(current.clientId, productCategoryId, productId);
       }
       setDetailId(null);
+      setPickerOpen(false);
     },
     [current, selectProduct],
   );
@@ -146,6 +163,7 @@ function InteriorContent() {
         lengthM={lengthM}
         widthM={widthM}
         heightM={heightM}
+        surfaces={surfaces}
       />
     );
 
@@ -162,7 +180,7 @@ function InteriorContent() {
         <div className={styles.title}>
           <SheetTitle
             headingLevel={2}
-            size={size}
+            size="mobile"
             title={roomName}
             primary={area(metrics.floorArea, locale)}
             secondary={
@@ -184,7 +202,7 @@ function InteriorContent() {
         onClose={closeDetail}
       />
       {sceneSlot && scene ? createPortal(scene, sceneSlot) : null}
-      {showcaseSlot
+      {pickerSlot && desktop
         ? createPortal(
             <Specification
               room={current}
@@ -193,6 +211,38 @@ function InteriorContent() {
               size={size}
               onCategoryChange={changeCategory}
               onOpenDetail={setDetailId}
+            />,
+            pickerSlot,
+          )
+        : null}
+      {desktop ? null : (
+        <BottomSheet
+          open={pickerOpen}
+          onClose={closePicker}
+          title={tSpec('title')}
+          closeLabel={t('closePicker')}
+        >
+          <Specification
+            room={current}
+            categories={categories}
+            activeCategoryId={activeCategory?.id ?? null}
+            size={size}
+            hideTitle
+            onCategoryChange={changeCategory}
+            onChosen={closePicker}
+            onOpenDetail={setDetailId}
+          />
+        </BottomSheet>
+      )}
+      {showcaseSlot
+        ? createPortal(
+            <ChosenList
+              room={current}
+              categories={categories}
+              activeCategoryId={desktop ? (activeCategory?.id ?? null) : null}
+              size={size}
+              onSelectCategory={desktop ? changeCategory : chooseCategory}
+              onOpenPicker={desktop ? undefined : openPicker}
             />,
             showcaseSlot,
           )

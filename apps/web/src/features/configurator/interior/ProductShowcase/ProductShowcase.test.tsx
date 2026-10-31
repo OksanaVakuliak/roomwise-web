@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '@/lib/api/client';
 import { clearCardCostCache } from '@/lib/engine/card-cost';
@@ -15,22 +15,19 @@ import {
   renderWithProviders,
 } from '@/test/render-with-providers';
 import en from '../../../../../messages/en.json';
-import { ShowcaseSlotContext } from '../../shell/ShowcaseSlot/showcase-slot-context';
 import { ProductShowcase } from './ProductShowcase';
 
 vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
 
 const category = { id: categoryIds.floor, name: 'Flooring', position: 1 };
 
-type Placement = 'sheet' | 'zone';
-
 function Harness({
-  placement,
-  onCategoryChange,
+  onUnavailable,
+  onChosen,
   onOpenDetail,
 }: {
-  placement: Placement;
-  onCategoryChange: (id: string | null) => void;
+  onUnavailable: () => void;
+  onChosen: () => void;
   onOpenDetail: (id: string) => void;
 }) {
   const room = useDraft((state) => state.rooms[0]);
@@ -38,36 +35,39 @@ function Harness({
     <ProductShowcase
       room={room}
       category={category}
-      placement={placement}
-      onCategoryChange={onCategoryChange}
+      size="desktop"
+      onUnavailable={onUnavailable}
+      onChosen={onChosen}
       onOpenDetail={onOpenDetail}
     />
   );
 }
 
 async function renderShowcase(
-  placement: Placement,
   options: Parameters<typeof renderWithProviders>[1] = {},
 ) {
   useDraft.setState({ ...makeInteriorDraft(), revision: 1 });
-  const onCategoryChange = vi.fn();
+  const onUnavailable = vi.fn();
+  const onChosen = vi.fn();
   const onOpenDetail = vi.fn();
-  const slot = document.createElement('div');
-  document.body.append(slot);
   let result!: ReturnType<typeof renderWithProviders>;
   await act(async () => {
     result = renderWithProviders(
-      <ShowcaseSlotContext value={slot}>
-        <Harness
-          placement={placement}
-          onCategoryChange={onCategoryChange}
-          onOpenDetail={onOpenDetail}
-        />
-      </ShowcaseSlotContext>,
+      <Harness
+        onUnavailable={onUnavailable}
+        onChosen={onChosen}
+        onOpenDetail={onOpenDetail}
+      />,
       options,
     );
   });
-  return { ...result, onCategoryChange, onOpenDetail, slot };
+  return {
+    ...result,
+    onUnavailable,
+    onChosen,
+    onOpenDetail,
+    slot: result.container,
+  };
 }
 
 function cards(root: HTMLElement) {
@@ -100,7 +100,7 @@ describe('ProductShowcase', () => {
   });
 
   it('renders cards in the showcase zone with unit price, room cost and the picked marker', async () => {
-    const { slot } = await renderShowcase('zone');
+    const { slot } = await renderShowcase();
 
     const laminate = cardNamed(slot, 'Oak Natural Laminate');
     expect(laminate).toHaveAttribute('aria-pressed', 'true');
@@ -114,7 +114,7 @@ describe('ProductShowcase', () => {
   });
 
   it('sorts by price in both directions', async () => {
-    const { slot } = await renderShowcase('zone');
+    const { slot } = await renderShowcase();
     const select = within(slot).getByLabelText(en.ProductShowcase.sortLabel);
 
     await act(async () => {
@@ -131,12 +131,11 @@ describe('ProductShowcase', () => {
     expect(descending).toEqual([...ascending].reverse());
   });
 
-  it('opens in a bottom sheet on phones and closes when a product is chosen', async () => {
-    const { onCategoryChange } = await renderShowcase('sheet');
-    const dialog = screen.getByRole('dialog', { name: 'Flooring' });
+  it('selects a product with one click and reports it', async () => {
+    const { slot, onChosen, onOpenDetail } = await renderShowcase();
 
     await act(async () => {
-      fireEvent.click(cardNamed(dialog, 'Stone Grey Porcelain Tile'));
+      fireEvent.click(cardNamed(slot, 'Stone Grey Porcelain Tile'));
     });
 
     expect(useDraft.getState().rooms[0].selections[categoryIds.floor]).toEqual({
@@ -144,69 +143,49 @@ describe('ProductShowcase', () => {
       disabled: false,
       source: 'manual',
     });
-    expect(onCategoryChange).toHaveBeenCalledWith(null);
+    expect(onChosen).toHaveBeenCalledTimes(1);
+    expect(onOpenDetail).not.toHaveBeenCalled();
+    expect(cardNamed(slot, 'Stone Grey Porcelain Tile')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
-  it('closes the sheet without changing the selection', async () => {
-    const { onCategoryChange } = await renderShowcase('sheet');
+  it('opens the detail without changing the selection', async () => {
+    const { slot, onChosen, onOpenDetail } = await renderShowcase();
 
     await act(async () => {
       fireEvent.click(
-        screen.getByRole('button', { name: en.ProductShowcase.close }),
+        within(slot).getByRole('button', {
+          name: 'Details: Stone Grey Porcelain Tile',
+        }),
       );
     });
 
-    expect(onCategoryChange).toHaveBeenCalledWith(null);
+    expect(onOpenDetail).toHaveBeenCalledWith(productIds.tile);
+    expect(onChosen).not.toHaveBeenCalled();
     expect(
       useDraft.getState().rooms[0].selections[categoryIds.floor]?.productId,
     ).toBe(productIds.laminate);
   });
 
-  it('keeps the zone open after choosing and exposes the detail action', async () => {
-    const { slot, onCategoryChange, onOpenDetail } =
-      await renderShowcase('zone');
-
-    await act(async () => {
-      fireEvent.click(cardNamed(slot, 'Stone Grey Porcelain Tile'));
-    });
-    await act(async () => {
-      fireEvent.click(
-        within(slot).getByRole('button', {
-          name: 'Details: Oak Natural Laminate',
-        }),
-      );
-    });
-
-    expect(
-      useDraft.getState().rooms[0].selections[categoryIds.floor]?.productId,
-    ).toBe(productIds.tile);
-    expect(onCategoryChange).not.toHaveBeenCalled();
-    expect(onOpenDetail).toHaveBeenCalledWith(productIds.laminate);
-  });
-
-  it('refreshes the catalog and warns when the category is gone', async () => {
+  it('reports an unavailable category when the catalog answers 404', async () => {
     useWarmup.setState({ server: 'ready' });
     vi.mocked(api.GET).mockResolvedValue({
       data: undefined,
       error: { error: { code: 'NOT_FOUND' } },
       response: { status: 404 },
     } as never);
-    const queryClient = createTestQueryClient();
-    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
-    const { onCategoryChange } = await renderShowcase('zone', {
+    const { onUnavailable } = await renderShowcase({
       catalog: false,
-      queryClient,
+      queryClient: createTestQueryClient(),
     });
 
-    expect(
-      await screen.findByText(en.ProductShowcase.categoryGone),
-    ).toBeInTheDocument();
-    expect(onCategoryChange).toHaveBeenCalledWith(null);
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['room-types'] });
+    await vi.waitFor(() => expect(onUnavailable).toHaveBeenCalled());
   });
 
   it.each(forEachLocale)('has no axe violations in %s', async (locale) => {
-    const { slot } = await renderShowcase('zone', { locale });
+    const { slot } = await renderShowcase({ locale });
 
     expect(await axe(slot)).toHaveNoViolations();
   });

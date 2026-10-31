@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { useDraft } from '@/stores/draft';
@@ -27,6 +27,12 @@ async function renderStep(url: string) {
   return result;
 }
 
+function roomPlans() {
+  return within(
+    screen.getByRole('group', { name: en.InteriorStep.switcherLabel }),
+  ).getAllByRole('button');
+}
+
 function sceneDescription() {
   return screen.getByRole('img', { name: /section line A–A/ });
 }
@@ -39,12 +45,12 @@ describe('InteriorStep', () => {
   it('renders a tab for every draft room', async () => {
     await renderStep(`/configurator/interior?room=${firstId}`);
 
-    const tabs = screen.getAllByRole('tab');
-    expect(tabs).toHaveLength(2);
-    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
-    expect(
-      screen.getByRole('tablist', { name: en.InteriorStep.switcherLabel }),
-    ).toBeInTheDocument();
+    const group = screen.getByRole('group', {
+      name: en.InteriorStep.switcherLabel,
+    });
+    const plans = within(group).getAllByRole('button');
+    expect(plans).toHaveLength(2);
+    expect(plans[0]).toHaveAttribute('aria-current', 'true');
   });
 
   it('switches the room and reflects it in the query', async () => {
@@ -53,16 +59,13 @@ describe('InteriorStep', () => {
     );
 
     await act(async () => {
-      fireEvent.click(screen.getAllByRole('tab')[1]);
+      fireEvent.click(roomPlans()[1]);
     });
 
     const search = new URLSearchParams(location().search);
     expect(search.get('room')).toBe(secondId);
     expect(search.get('category')).toBe('c-1');
-    expect(screen.getAllByRole('tab')[1]).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
+    expect(roomPlans()[1]).toHaveAttribute('aria-current', 'true');
     expect(sceneDescription()).toHaveAccessibleName(/2\sm by 2\sm/);
   });
 
