@@ -43,7 +43,7 @@ export function RoomScene({
   surfaces,
 }: RoomSceneProps) {
   const descriptionId = useId();
-  const patternPrefix = useId().replace(/:/g, '');
+  const patternPrefix = useId();
   const geometry = computeGeometry(lengthCm, widthCm, heightCm);
   const { cutLine, backLeft } = geometry;
 

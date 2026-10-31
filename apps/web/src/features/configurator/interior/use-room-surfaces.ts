@@ -1,12 +1,15 @@
 'use client';
 
 import { useQueries } from '@tanstack/react-query';
-import { useLocale } from 'next-intl';
 import { useMemo } from 'react';
 import type { SceneSurface, SceneSurfaces } from '@/components/ui';
-import { productQuery, useRoomTypes } from '@/lib/api/catalog';
+import {
+  productQuery,
+  useCatalogReady,
+  useLang,
+  useRoomTypes,
+} from '@/lib/api/catalog';
 import type { DraftRoom } from '@/lib/draft/schema';
-import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
 
 const SURFACE_KEYS = {
   FLOOR: 'floor',
@@ -17,8 +20,8 @@ const SURFACE_KEYS = {
 type SurfaceKey = (typeof SURFACE_KEYS)[keyof typeof SURFACE_KEYS];
 
 export function useRoomSurfaces(room: DraftRoom | null): SceneSurfaces {
-  const lang = useLocale() as 'en' | 'uk';
-  const ready = useWarmup(selectWarmupStatus) === 'ready';
+  const lang = useLang();
+  const ready = useCatalogReady();
   const { data: roomTypes } = useRoomTypes();
 
   const picks = useMemo(() => {

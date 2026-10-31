@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { RoomPlan } from '@/components/ui';
 import styles from './RoomPlans.module.css';
 
@@ -17,6 +18,38 @@ export type RoomPlansProps = {
   onValueChange: (clientId: string) => void;
 };
 
+type RoomPlansEntryProps = {
+  item: RoomPlansItem;
+  current: boolean;
+  size: RoomPlansProps['size'];
+  onValueChange: (clientId: string) => void;
+};
+
+function RoomPlansEntry({
+  item,
+  current,
+  size,
+  onValueChange,
+}: RoomPlansEntryProps) {
+  const { clientId } = item;
+  const select = useCallback(
+    () => onValueChange(clientId),
+    [clientId, onValueChange],
+  );
+
+  return (
+    <RoomPlan
+      name={item.name}
+      details={item.details}
+      lengthCm={item.lengthCm}
+      widthCm={item.widthCm}
+      size={size}
+      state={current ? 'current' : 'default'}
+      onClick={select}
+    />
+  );
+}
+
 export function RoomPlans({
   label,
   items,
@@ -27,15 +60,12 @@ export function RoomPlans({
   return (
     <div className={styles.root} role="group" aria-label={label}>
       {items.map((item) => (
-        <RoomPlan
+        <RoomPlansEntry
           key={item.clientId}
-          name={item.name}
-          details={item.details}
-          lengthCm={item.lengthCm}
-          widthCm={item.widthCm}
+          item={item}
+          current={item.clientId === value}
           size={size}
-          state={item.clientId === value ? 'current' : 'default'}
-          onClick={() => onValueChange(item.clientId)}
+          onValueChange={onValueChange}
         />
       ))}
     </div>
