@@ -69,16 +69,6 @@ describe('toConfiguration object fields', () => {
     expect(configuration?.balconyAreaSqm).toBe(areaSqm);
     expect(configuration?.balconyTiles).toBe(tiles);
   });
-
-  it('passes gas and kitchen type from the draft as is', () => {
-    const configuration = toConfiguration(
-      withObject({ gas: true, kitchenType: 'KITCHEN_LIVING' }),
-      pricing,
-      preview,
-    );
-    expect(configuration?.gas).toBe(true);
-    expect(configuration?.kitchenType).toBe('KITCHEN_LIVING');
-  });
 });
 
 describe('toConfiguration currency', () => {
@@ -133,7 +123,7 @@ describe('toConfiguration rooms', () => {
     expect(previewRooms(rooms)).toEqual(['valid']);
   });
 
-  it('keeps every room type, including a kitchen next to a kitchen-living room', () => {
+  it('keeps every room type together', () => {
     const rooms = [
       makeDraftRoom({ clientId: 'living', roomTypeCode: 'LIVING_ROOM' }),
       makeDraftRoom({ clientId: 'kitchen', roomTypeCode: 'KITCHEN' }),

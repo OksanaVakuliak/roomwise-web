@@ -78,7 +78,6 @@ function makeKitchenLivingDraft(): DraftV1 {
   const base = makeInteriorDraft();
   return {
     ...base,
-    object: { ...base.object, kitchenType: 'KITCHEN_LIVING' },
     rooms: [
       makeDraftRoom({
         clientId: kitchenLivingId,

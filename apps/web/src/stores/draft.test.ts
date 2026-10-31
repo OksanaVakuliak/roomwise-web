@@ -128,6 +128,49 @@ describe('useDraft', () => {
     expect(useDraft.getState().step).toBe('style');
   });
 
+  it('opens a stored draft that still has gas and kitchen type', async () => {
+    const room = {
+      clientId: 'room-1',
+      roomTypeCode: 'BEDROOM',
+      name: null,
+      lengthM: 4,
+      widthM: 3,
+      heightM: 2.7,
+      heatedFloor: false,
+      selections: {},
+    };
+    const legacy = createDefaultDraft();
+    seed({
+      ...legacy,
+      step: 'style',
+      furthestStep: 'style',
+      styleId: 'modern',
+      object: {
+        ...legacy.object,
+        finishLevel: 'ROUGH',
+        totalAreaSqm: 60,
+        gas: true,
+        kitchenType: 'KITCHEN_LIVING',
+      },
+      rooms: [room],
+    });
+
+    await useDraft.persist.rehydrate();
+
+    const { object, rooms, step, styleId, notice } = useDraft.getState();
+    expect(notice).toBeNull();
+    expect(step).toBe('style');
+    expect(styleId).toBe('modern');
+    expect(rooms).toEqual([room]);
+    expect(object).toEqual({
+      ...legacy.object,
+      finishLevel: 'ROUGH',
+      totalAreaSqm: 60,
+    });
+    expect(object).not.toHaveProperty('gas');
+    expect(object).not.toHaveProperty('kitchenType');
+  });
+
   it('resets with a notice for an unrecoverable newer version', async () => {
     seed('junk', 7);
 
@@ -153,13 +196,12 @@ describe('useDraft room actions', () => {
 
   it('merges a patch into the object without touching rooms', () => {
     const id = useDraft.getState().addRoom();
-    useDraft.getState().setObject({ totalAreaSqm: 60, gas: true });
-    useDraft.getState().setObject({ kitchenType: 'KITCHEN_LIVING' });
+    useDraft.getState().setObject({ totalAreaSqm: 60 });
+    useDraft.getState().setObject({ finishLevel: 'ROUGH' });
 
     expect(useDraft.getState().object).toMatchObject({
       totalAreaSqm: 60,
-      gas: true,
-      kitchenType: 'KITCHEN_LIVING',
+      finishLevel: 'ROUGH',
     });
     expect(rooms()).toHaveLength(1);
     expect(rooms()[0]?.clientId).toBe(id);

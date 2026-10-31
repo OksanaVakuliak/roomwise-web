@@ -1,3 +1,4 @@
+import type { RoomTypeCode } from '@roomwise/calc-engine';
 import { describe, expect, it } from 'vitest';
 import {
   makeDraftRoom,
@@ -99,11 +100,17 @@ describe('objectComplete', () => {
     expect(objectComplete(makeInteriorDraft({ rooms }), context)).toBe(false);
   });
 
-  it('accepts a kitchen and a kitchen-living room together', () => {
-    const rooms = [
-      makeDraftRoom({ clientId: 'a', roomTypeCode: 'KITCHEN' }),
-      makeDraftRoom({ clientId: 'b', roomTypeCode: 'KITCHEN_LIVING' }),
+  it('accepts every room type together', () => {
+    const codes: RoomTypeCode[] = [
+      'LIVING_ROOM',
+      'BEDROOM',
+      'KITCHEN',
+      'KITCHEN_LIVING',
+      'BATHROOM',
     ];
+    const rooms = codes.map((roomTypeCode) =>
+      makeDraftRoom({ clientId: roomTypeCode, roomTypeCode }),
+    );
     expect(objectComplete(makeInteriorDraft({ rooms }), context)).toBe(true);
   });
 

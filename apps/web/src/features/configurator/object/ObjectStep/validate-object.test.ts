@@ -258,6 +258,21 @@ describe('validateObject', () => {
     });
   });
 
+  it('accepts every room type together', () => {
+    const result = validateObject(
+      makeDraft({}, [
+        validRoom({ clientId: 'r1', roomTypeCode: 'LIVING_ROOM' }),
+        validRoom({ clientId: 'r2', roomTypeCode: 'BEDROOM' }),
+        validRoom({ clientId: 'r3', roomTypeCode: 'KITCHEN' }),
+        validRoom({ clientId: 'r4', roomTypeCode: 'KITCHEN_LIVING' }),
+        validRoom({ clientId: 'r5', roomTypeCode: 'BATHROOM' }),
+      ]),
+      limits,
+    );
+    expect(result.rooms).toEqual({});
+    expect(isObjectValid(result)).toBe(true);
+  });
+
   describe('focus order', () => {
     const badBalcony = { present: true, areaSqm: -1, tiles: false };
 
