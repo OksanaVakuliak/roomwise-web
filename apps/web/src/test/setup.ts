@@ -5,4 +5,8 @@ import * as matchers from 'vitest-axe/matchers';
 
 expect.extend(matchers);
 
+if (typeof Element !== 'undefined') {
+  Element.prototype.scrollIntoView ??= () => {};
+}
+
 afterEach(cleanup);

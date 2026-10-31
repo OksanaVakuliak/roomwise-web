@@ -4,6 +4,7 @@ import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useCallback, useId } from 'react';
 import { EmptyState, RoomPlan, SectionHeader } from '@/components/ui';
 import { runEstimate } from '@/lib/engine/run-estimate';
+import { focusField } from '@/lib/focus';
 import { moneyMinor, unitPrice } from '@/lib/format';
 import { useDraft, useDraftValue } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
@@ -33,7 +34,7 @@ function PlanItem({ room, size }: PlanItemProps) {
   const format = useFormatter();
   const { clientId, name, lengthM, widthM } = room;
   const focusRoom = useCallback(
-    () => document.getElementById(roomFieldDomId(clientId, 'lengthM'))?.focus(),
+    () => focusField(roomFieldDomId(clientId, 'lengthM')),
     [clientId],
   );
 

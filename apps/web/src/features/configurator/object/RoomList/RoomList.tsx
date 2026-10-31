@@ -13,6 +13,7 @@ import { Button, ConfirmDialog, Icon } from '@/components/ui';
 import { useDefaultMaterials, useRoomTypes } from '@/lib/api/catalog';
 import { needsDeleteConfirm } from '@/lib/draft/rooms';
 import type { RoomCatalog } from '@/lib/draft/style';
+import { focusField } from '@/lib/focus';
 import { useDraft } from '@/stores/draft';
 import { RoomEditor, type RoomTypeOption } from '../RoomEditor/RoomEditor';
 import {
@@ -53,9 +54,9 @@ export function RoomList({ errors = {} }: RoomListProps) {
     if (pendingFocus.current === null) {
       return;
     }
-    const target = document.getElementById(pendingFocus.current);
+    const target = pendingFocus.current;
     pendingFocus.current = null;
-    target?.focus();
+    focusField(target);
   });
 
   const handleAdd = useCallback(() => {

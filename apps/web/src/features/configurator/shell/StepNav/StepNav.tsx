@@ -13,6 +13,7 @@ import {
   type StepContext,
   stepIndex,
 } from '@/lib/draft/steps';
+import { focusField } from '@/lib/focus';
 import { useDraft } from '@/stores/draft';
 import { useRunStepValidation } from '../StepValidation/step-validation-context';
 import styles from './StepNav.module.css';
@@ -40,7 +41,7 @@ export function StepNav({ step, context }: StepNavProps) {
     }
     const invalidFieldId = runValidation();
     if (invalidFieldId !== null) {
-      document.getElementById(invalidFieldId)?.focus();
+      focusField(invalidFieldId);
       return;
     }
     if (!context || !isStepComplete(step, useDraft.getState(), context)) {
