@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ErrorState } from '@/components/system';
 import { BottomSheet, SheetTitle, Skeleton } from '@/components/ui';
@@ -10,6 +10,7 @@ import { usePathname, useRouter } from '@/i18n/navigation';
 import { useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName, roomMetrics } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
+import { surfaceSiblings } from '@/lib/draft/surfaces';
 import { area, dimension } from '@/lib/format';
 import { useMediaQuery } from '@/lib/media';
 import { useDraft } from '@/stores/draft';
@@ -41,6 +42,7 @@ function InteriorContent() {
   const showcaseSlot = useShowcaseSlot();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const selectProduct = useDraft((state) => state.selectProduct);
+  const normalizeSurfaces = useDraft((state) => state.normalizeSurfaces);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -95,17 +97,34 @@ function InteriorContent() {
     },
     [current?.clientId, desktop, navigate],
   );
+  const roomTypeItems = roomTypesQuery.data?.items;
+  const currentCategories = useMemo(
+    () =>
+      roomTypeItems?.find((type) => type.code === current?.roomTypeCode)
+        ?.categories ?? [],
+    [roomTypeItems, current?.roomTypeCode],
+  );
   const chooseFromDetail = useCallback(
     (productId: string, productCategoryId: string) => {
       if (current !== null) {
-        selectProduct(current.clientId, productCategoryId, productId);
+        selectProduct(
+          current.clientId,
+          productCategoryId,
+          productId,
+          surfaceSiblings(currentCategories, productCategoryId),
+        );
       }
       setDetailId(null);
       setPickerOpen(false);
     },
-    [current, selectProduct],
+    [current, currentCategories, selectProduct],
   );
-  const { refetch } = roomTypesQuery;
+  const { data: roomTypesCatalog, refetch } = roomTypesQuery;
+  useEffect(() => {
+    if (roomTypesCatalog) {
+      normalizeSurfaces(roomTypesCatalog);
+    }
+  }, [normalizeSurfaces, roomTypesCatalog]);
   const retry = useCallback(() => {
     void refetch();
   }, [refetch]);
@@ -196,12 +215,21 @@ function InteriorContent() {
             title={roomName}
             primary={area(metrics.floorArea, locale)}
             secondary={
-              desktop
-                ? t('wallsDesktop', {
-                    walls: area(metrics.wallArea, locale),
-                    perimeter: dimension(metrics.perimeter, locale),
-                  })
-                : t('wallsMobile', { walls: area(metrics.wallArea, locale) })
+              <>
+                <span className={styles.unbreakable}>
+                  {t('wallsMobile', { walls: area(metrics.wallArea, locale) })}
+                </span>
+                {desktop ? (
+                  <>
+                    {', '}
+                    <span className={styles.unbreakable}>
+                      {t('perimeter', {
+                        perimeter: dimension(metrics.perimeter, locale),
+                      })}
+                    </span>
+                  </>
+                ) : null}
+              </>
             }
           />
         </div>

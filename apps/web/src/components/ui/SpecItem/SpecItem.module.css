@@ -96,8 +96,16 @@
   color: var(--heat);
 }
 
+.media {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: var(--spec-image);
+}
+
 .picked {
   display: block;
+  min-height: calc(var(--text-caption-s-size) * 1.4 + var(--stroke-1-2) * 2);
   margin-top: var(--space-5);
 }
 

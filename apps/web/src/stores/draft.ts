@@ -33,6 +33,7 @@ import {
   type RoomTypesCatalog,
   retypeSelections,
 } from '@/lib/draft/style';
+import { normalizeDraft } from '@/lib/draft/surfaces';
 import { createSafeStorage } from './safe-storage';
 
 export const DRAFT_STORAGE_KEY = 'roomwise-draft';
@@ -64,9 +65,15 @@ type DraftState = DraftV1 & {
     roomClientId: string,
     categoryId: string,
     productId: string,
+    siblingIds?: readonly string[],
   ) => void;
   disableCategory: (roomClientId: string, categoryId: string) => void;
-  enableCategory: (roomClientId: string, categoryId: string) => void;
+  enableCategory: (
+    roomClientId: string,
+    categoryId: string,
+    siblingIds?: readonly string[],
+  ) => void;
+  normalizeSurfaces: (roomTypes: RoomTypesCatalog) => void;
   reset: () => void;
   dismissNotice: () => void;
 };
@@ -176,13 +183,14 @@ export const useDraft = create<DraftState>()(
           ...removeDraftRoom(pickDraft(state), clientId),
           revision: state.revision + 1,
         })),
-      selectProduct: (roomClientId, categoryId, productId) =>
+      selectProduct: (roomClientId, categoryId, productId, siblingIds) =>
         set((state) => ({
           ...selectDraftProduct(
             pickDraft(state),
             roomClientId,
             categoryId,
             productId,
+            siblingIds,
           ),
           revision: state.revision + 1,
         })),
@@ -191,11 +199,23 @@ export const useDraft = create<DraftState>()(
           ...disableDraftCategory(pickDraft(state), roomClientId, categoryId),
           revision: state.revision + 1,
         })),
-      enableCategory: (roomClientId, categoryId) =>
+      enableCategory: (roomClientId, categoryId, siblingIds) =>
         set((state) => ({
-          ...enableDraftCategory(pickDraft(state), roomClientId, categoryId),
+          ...enableDraftCategory(
+            pickDraft(state),
+            roomClientId,
+            categoryId,
+            siblingIds,
+          ),
           revision: state.revision + 1,
         })),
+      normalizeSurfaces: (roomTypes) => {
+        const draft = pickDraft(get());
+        const next = normalizeDraft(draft, roomTypes);
+        if (next !== draft) {
+          set((state) => ({ ...next, revision: state.revision + 1 }));
+        }
+      },
       reset: () =>
         set((state) => ({
           ...createDefaultDraft(),

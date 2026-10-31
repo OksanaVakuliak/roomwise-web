@@ -35,6 +35,11 @@ describe('SpecItem', () => {
   it('shows the picked badge when selected', () => {
     render(<SpecItem {...props} selected />);
     expect(screen.getByText('picked')).toBeInTheDocument();
+    const column = screen.getByText('picked').closest('div');
+    expect(column).toContainElement(
+      screen.getByRole('presentation', { hidden: true }),
+    );
+    expect(column).not.toContainElement(screen.getByText('Oak laminate'));
   });
 
   it('omits the fit note without a label', () => {

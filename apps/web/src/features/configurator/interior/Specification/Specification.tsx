@@ -7,6 +7,7 @@ import {
   Banner,
   EmptyState,
   SectionHeader,
+  SegmentedControl,
   Select,
   Tab,
   TabPanel,
@@ -14,6 +15,11 @@ import {
 } from '@/components/ui';
 import { catalogRoots } from '@/lib/api/catalog';
 import type { DraftRoom } from '@/lib/draft/schema';
+import {
+  enabledCategoryOf,
+  groupCategories,
+  surfaceSiblings,
+} from '@/lib/draft/surfaces';
 import {
   ProductShowcase,
   type SortOrder,
@@ -26,6 +32,7 @@ export type SpecificationCategory = {
   id: string;
   name: string;
   productCount: number;
+  surface: 'FLOOR' | 'WALLS' | 'CEILING' | 'NONE';
 };
 
 export type SpecificationProps = {
@@ -50,6 +57,7 @@ export function Specification({
   onOpenDetail,
 }: SpecificationProps) {
   const t = useTranslations('Specification');
+  const tSurface = useTranslations('Surface');
   const tShowcase = useTranslations('ProductShowcase');
   const headingId = useId();
   const tabsId = useId();
@@ -88,6 +96,38 @@ export function Specification({
   const active = categories.find(
     (category) => category.id === activeCategoryId,
   );
+  const groups = groupCategories(
+    categories.filter(
+      (category) => category.productCount > 0 || category.id === active?.id,
+    ),
+  );
+  const activeGroup = groups.find((group) =>
+    group.categories.some((category) => category.id === active?.id),
+  );
+  const changeGroup = useCallback(
+    (key: string) => {
+      const group = groups.find((item) => item.key === key);
+      if (group) {
+        const target =
+          enabledCategoryOf(group, room.selections) ?? group.categories[0];
+        onCategoryChange(target.id);
+      }
+    },
+    [groups, onCategoryChange, room.selections],
+  );
+  const groupLabel = (group: (typeof groups)[number]) =>
+    group.surface === 'NONE'
+      ? (group.categories[0]?.name ?? '')
+      : tSurface(group.surface);
+  const surfaceKey = activeGroup?.surface ?? 'NONE';
+  const replaced =
+    activeGroup && surfaceKey !== 'NONE'
+      ? enabledCategoryOf(activeGroup, room.selections)
+      : undefined;
+  const replaces =
+    replaced && surfaceKey !== 'NONE' && replaced.id !== active?.id
+      ? { surface: tSurface(`for.${surfaceKey}`), name: replaced.name }
+      : undefined;
 
   const sortable = active !== undefined && active.productCount > 0;
 
@@ -115,28 +155,39 @@ export function Specification({
           {t('categoryGone')}
         </Banner>
       ) : null}
-      {active ? (
+      {active && activeGroup ? (
         <>
           <Tabs
             id={tabsId}
             label={t('tabsLabel')}
             size={size}
-            value={active.id}
-            onValueChange={onCategoryChange}
+            value={activeGroup.key}
+            onValueChange={changeGroup}
           >
-            {categories.map((category) => (
-              <Tab key={category.id} value={category.id}>
-                {category.name}
+            {groups.map((group) => (
+              <Tab key={group.key} value={group.key}>
+                {groupLabel(group)}
               </Tab>
             ))}
           </Tabs>
           <TabPanel
-            key={active.id}
+            key={activeGroup.key}
             tabsId={tabsId}
-            value={active.id}
+            value={activeGroup.key}
             selected
             className={styles.panel}
           >
+            {activeGroup.categories.length > 1 ? (
+              <SegmentedControl
+                label={t('finishLabel')}
+                value={active.id}
+                options={activeGroup.categories.map((category) => ({
+                  value: category.id,
+                  label: category.name,
+                }))}
+                onValueChange={onCategoryChange}
+              />
+            ) : null}
             {active.productCount === 0 ? (
               <EmptyState
                 headingLevel={3}
@@ -148,6 +199,8 @@ export function Specification({
                 <ProductShowcase
                   room={room}
                   category={{ id: active.id, name: active.name }}
+                  siblingIds={surfaceSiblings(categories, active.id)}
+                  replaces={replaces}
                   size={size}
                   order={order}
                   onUnavailable={handleUnavailable}

@@ -1,6 +1,11 @@
 import type { RoomTypeCode } from '@roomwise/calc-engine';
 import type { components } from '@/generated/api';
 import type { DraftSelection, DraftV1 } from './schema';
+import {
+  activateFirstPerSurface,
+  categoriesOfRoomType,
+  normalizeSelections,
+} from './surfaces';
 
 type Schemas = components['schemas'];
 
@@ -46,11 +51,15 @@ export function materialsForRoom(
   if (roomTypeCode === null) {
     return {};
   }
-  return Object.fromEntries(
+  const selections = Object.fromEntries(
     categoryIdsOf(roomTypeCode, roomTypes).map((categoryId) => [
       categoryId,
       styleSelection(roomTypeCode, categoryId, defaultMaterials),
     ]),
+  );
+  return activateFirstPerSurface(
+    selections,
+    categoriesOfRoomType(roomTypeCode, roomTypes),
   );
 }
 
@@ -91,7 +100,7 @@ export function retypeSelections(
     defaultMaterials === null
       ? {}
       : materialsForRoom(roomTypeCode, defaultMaterials, roomTypes);
-  return Object.fromEntries(
+  const merged = Object.fromEntries(
     categoryIdsOf(roomTypeCode, roomTypes).flatMap((categoryId) => {
       const before = previous[categoryId];
       const styled = fresh[categoryId];
@@ -105,5 +114,9 @@ export function retypeSelections(
       }
       return [];
     }),
+  );
+  return normalizeSelections(
+    merged,
+    categoriesOfRoomType(roomTypeCode, roomTypes),
   );
 }

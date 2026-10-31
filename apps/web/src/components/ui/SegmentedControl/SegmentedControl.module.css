@@ -1,0 +1,36 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  border: var(--stroke-1-5) solid var(--line);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.option {
+  min-height: var(--size-compact);
+  padding: 0 var(--space-10);
+  border: 0;
+  background: transparent;
+  color: var(--line-2);
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-caption-default-size);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.option + .option {
+  border-inline-start: var(--stroke-1) solid var(--line);
+}
+
+.option:hover {
+  color: var(--line);
+}
+
+.selected,
+.selected:hover {
+  background: var(--line);
+  color: var(--sheet);
+}

@@ -26,6 +26,8 @@ export type ProductShowcaseCategory = {
 export type ProductShowcaseProps = {
   room: DraftRoom;
   category: ProductShowcaseCategory;
+  siblingIds?: readonly string[];
+  replaces?: { surface: string; name: string };
   size: 'mobile' | 'desktop';
   order: SortOrder;
   onUnavailable: () => void;
@@ -126,6 +128,8 @@ function ProductCard({
 export function ProductShowcase({
   room,
   category,
+  siblingIds,
+  replaces,
   size,
   order,
   onUnavailable,
@@ -165,10 +169,10 @@ export function ProductShowcase({
   }, [refetch]);
   const choose = useCallback(
     (productId: string) => {
-      selectProduct(room.clientId, category.id, productId);
+      selectProduct(room.clientId, category.id, productId, siblingIds);
       onChosen?.();
     },
-    [category.id, onChosen, room.clientId, selectProduct],
+    [category.id, onChosen, room.clientId, selectProduct, siblingIds],
   );
 
   if (notFound) {
@@ -192,7 +196,11 @@ export function ProductShowcase({
 
   return (
     <div className={styles.root}>
-      {excluded ? <p className={styles.hint}>{t('excluded')}</p> : null}
+      {replaces ? (
+        <p className={styles.note}>{t('replaces', replaces)}</p>
+      ) : excluded ? (
+        <p className={styles.hint}>{t('excluded')}</p>
+      ) : null}
       <ul className={styles.list} aria-label={category.name}>
         {sorted.map(({ product }) => (
           <ProductCard

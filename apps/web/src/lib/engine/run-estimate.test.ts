@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { selectProduct } from '@/lib/draft/selections';
 import {
   makeDraftRoom,
   makeEmptyDraft,
   makeInteriorDraft,
   makePricingData,
 } from '@/test/fixtures';
+import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import type { DraftV1 } from '@/test/fixtures/draft';
 import { clearEstimateCache, runEstimate } from './run-estimate';
 import { groupLines } from './sections';
@@ -162,5 +164,36 @@ describe('groupLines', () => {
     const draft = makeInteriorDraft({ rooms: [makeDraftRoom()] });
     const { estimate } = run(draft);
     expect(groupLines(estimate!, ['absent']).materials).toEqual([]);
+  });
+});
+
+describe('runEstimate surface exclusivity', () => {
+  const materialIds = (draft: DraftV1) =>
+    (run(draft).estimate?.lines ?? [])
+      .filter(
+        (line) =>
+          line.section === 'MATERIALS' &&
+          line.roomClientId === draft.rooms[0].clientId,
+      )
+      .map((line) => line.categoryId);
+
+  it('prices only the finish chosen last for a surface', () => {
+    const base = makeInteriorDraft();
+    const roomId = base.rooms[0].clientId;
+    const before = materialIds(base);
+    expect(before).toContain(categoryIds.floor);
+    expect(before).toContain(categoryIds.walls);
+
+    const swapped = selectProduct(
+      base,
+      roomId,
+      categoryIds.floor,
+      productIds.tile,
+      [categoryIds.walls],
+    );
+
+    const after = materialIds(swapped);
+    expect(after).toContain(categoryIds.floor);
+    expect(after).not.toContain(categoryIds.walls);
   });
 });

@@ -6,6 +6,11 @@ import { Button, ImageWithFallback, SectionHeader } from '@/components/ui';
 import { useCategoryProducts } from '@/lib/api/catalog';
 import { cx } from '@/lib/cx';
 import type { DraftRoom } from '@/lib/draft/schema';
+import {
+  enabledCategoryOf,
+  groupCategories,
+  surfaceSiblings,
+} from '@/lib/draft/surfaces';
 import { useDraft } from '@/stores/draft';
 import { useRoomPricing } from '../use-room-pricing';
 import styles from './ChosenList.module.css';
@@ -14,6 +19,7 @@ export type ChosenListCategory = {
   id: string;
   name: string;
   productCount: number;
+  surface: 'FLOOR' | 'WALLS' | 'CEILING' | 'NONE';
 };
 
 export type ChosenListGroup = {
@@ -35,6 +41,7 @@ type ChosenRowProps = {
   room: DraftRoom;
   roomName: string;
   category: ChosenListCategory;
+  siblingIds: readonly string[];
   active: boolean;
   onSelect: (roomClientId: string, categoryId: string) => void;
 };
@@ -43,6 +50,7 @@ function ChosenRow({
   room,
   roomName,
   category,
+  siblingIds,
   active,
   onSelect,
 }: ChosenRowProps) {
@@ -75,9 +83,9 @@ function ChosenRow({
     if (productId === null) {
       onSelect(clientId, category.id);
     } else {
-      enableCategory(clientId, category.id);
+      enableCategory(clientId, category.id, siblingIds);
     }
-  }, [category.id, clientId, enableCategory, onSelect, productId]);
+  }, [category.id, clientId, enableCategory, onSelect, productId, siblingIds]);
   const shown = !disabled && product !== undefined;
   const context = { category: category.name, room: roomName };
 
@@ -91,8 +99,9 @@ function ChosenRow({
           onClick={select}
         >
           <span className={styles.body}>
-            <span className={styles.category}>{category.name}</span>
-            <span className={styles.muted}>{t('excluded')}</span>
+            <span className={cx(styles.category, styles.muted)}>
+              {category.name}
+            </span>
           </span>
         </button>
         <Button
@@ -164,8 +173,22 @@ function ChosenSection({
   const listed = group.categories.filter(
     (category) => category.productCount > 0,
   );
+  const rows = groupCategories(listed).map((group) => {
+    const category =
+      enabledCategoryOf(group, room.selections) ??
+      group.categories.find(
+        (item) => room.selections[item.id]?.productId != null,
+      ) ??
+      group.categories[0];
+    return {
+      key: group.key,
+      category,
+      siblingIds: surfaceSiblings(listed, category.id),
+      active: group.categories.some((item) => item.id === activeCategoryId),
+    };
+  });
   const lines = pricing
-    ? listed.flatMap((category) => {
+    ? rows.flatMap(({ category }) => {
         const line = pricing.materialsLine(room.clientId, category.id);
         return line?.status === 'OK' ? [line] : [];
       })
@@ -185,13 +208,14 @@ function ChosenSection({
         ) : null}
       </h3>
       <ul className={styles.list} aria-labelledby={headingId}>
-        {listed.map((category) => (
+        {rows.map((row) => (
           <ChosenRow
-            key={category.id}
+            key={row.key}
             room={room}
             roomName={name}
-            category={category}
-            active={current && category.id === activeCategoryId}
+            category={row.category}
+            siblingIds={row.siblingIds}
+            active={current && row.active}
             onSelect={onSelect}
           />
         ))}

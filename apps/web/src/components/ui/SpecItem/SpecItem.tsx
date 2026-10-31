@@ -56,9 +56,14 @@ export function SpecItem({
     <div className={classes}>
       {selected ? <span className={styles.bar} aria-hidden="true" /> : null}
       <div className={styles.grid}>
-        <span className={styles.image} aria-hidden="true">
-          {image}
-        </span>
+        <div className={styles.media}>
+          <span className={styles.image} aria-hidden="true">
+            {image}
+          </span>
+          <span className={styles.picked}>
+            {selected ? <PickedBadge>{pickedLabel}</PickedBadge> : null}
+          </span>
+        </div>
         <div className={styles.body}>
           <span className={styles.name}>{name}</span>
           {brand || dimensions || color ? (
@@ -79,11 +84,6 @@ export function SpecItem({
           {warning ? <span className={styles.warning}>{warning}</span> : null}
           {unavailable && unavailableLabel ? (
             <span className={styles.unavailableNote}>{unavailableLabel}</span>
-          ) : null}
-          {selected ? (
-            <span className={styles.picked}>
-              <PickedBadge>{pickedLabel}</PickedBadge>
-            </span>
           ) : null}
         </div>
         <span className={`${styles.price} num`}>

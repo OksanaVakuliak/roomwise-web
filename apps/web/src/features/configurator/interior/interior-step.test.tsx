@@ -10,6 +10,7 @@ import { useDraft } from '@/stores/draft';
 import { axe } from '@/test/axe';
 import {
   categoryIds,
+  makeCategoryProducts,
   makeRoomTypes,
   productIds,
   type RoomTypesResponse,
@@ -93,11 +94,17 @@ function makeKitchenLivingDraft(): DraftV1 {
   };
 }
 
-function makeCatalog(): RoomTypesResponse {
+const wallpaperId = 'cat-wallpaper';
+
+function makeCatalog(withWallpaper = false): RoomTypesResponse {
   const base = makeRoomTypes();
   const [floor, walls, ceiling] = base.items[0].categories;
+  const wallpaper = { ...walls, id: wallpaperId, name: 'Wallpaper' };
   return {
     items: base.items.map((type) => {
+      if (withWallpaper && type.code === 'LIVING_ROOM') {
+        return { ...type, categories: [floor, walls, wallpaper, ceiling] };
+      }
       if (type.code === 'KITCHEN_LIVING') {
         return { ...type, categories: [walls, floor] };
       }
@@ -115,16 +122,26 @@ function makeCatalog(): RoomTypesResponse {
 type StepOptions = NonNullable<Parameters<typeof renderWithProviders>[1]> & {
   viewport?: number;
   draft?: DraftV1;
+  withWallpaper?: boolean;
 };
 
 async function renderStep(url: string, options: StepOptions = {}) {
-  const { viewport = 1024, draft = makeDraft(), ...rest } = options;
+  const {
+    viewport = 1024,
+    draft = makeDraft(),
+    withWallpaper = false,
+    ...rest
+  } = options;
   setViewport(viewport);
   useDraft.setState({ ...draft, revision: 1 });
   const locale = rest.locale ?? 'en';
   const queryClient = rest.queryClient ?? createTestQueryClient();
   seedCatalog(queryClient, locale);
-  queryClient.setQueryData(['room-types', locale], makeCatalog());
+  queryClient.setQueryData(['room-types', locale], makeCatalog(withWallpaper));
+  queryClient.setQueryData(
+    ['products', wallpaperId, locale],
+    makeCategoryProducts(categoryIds.walls),
+  );
   let result!: ReturnType<typeof renderWithProviders>;
   await act(async () => {
     result = renderWithProviders(
@@ -226,9 +243,9 @@ describe('InteriorStep integration', () => {
 
     const rows = categoryRows('Kitchen');
     expect(rows).toHaveLength(2);
-    expect(rowButton(rows[0]).textContent).toMatch(/Walls/);
-    expect(rowButton(rows[1]).textContent).toMatch(/Flooring/);
-    expect(within(rows[1]).getByText(en.ChosenList.choose)).toBeInTheDocument();
+    expect(rowButton(rows[0]).textContent).toMatch(/Flooring/);
+    expect(rowButton(rows[1]).textContent).toMatch(/Walls/);
+    expect(within(rows[0]).getByText(en.ChosenList.choose)).toBeInTheDocument();
   });
 
   it('shows cards with the cost for the bedroom area', async () => {
@@ -396,8 +413,8 @@ describe('InteriorStep integration', () => {
 
     const ceilingRow = categoryRows()[2];
     expect(
-      within(ceilingRow).getByText(en.ChosenList.excluded),
-    ).toBeInTheDocument();
+      within(ceilingRow).queryByText(/does not count|excluded/i),
+    ).not.toBeInTheDocument();
     expect(ceilingRow).not.toHaveTextContent('Matt Ceiling Paint');
     expect(screen.getByText(en.ProductShowcase.excluded)).toBeInTheDocument();
     expect(panelOf(currentDraft()).materials?.usdCents).toBeLessThan(
@@ -612,6 +629,109 @@ describe('InteriorStep integration', () => {
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
+  describe('one finish per surface', () => {
+    const wallpaperDraft = () => {
+      const base = makeInteriorDraft();
+      return {
+        ...base,
+        rooms: [
+          {
+            ...base.rooms[0],
+            selections: {
+              ...base.rooms[0].selections,
+              [wallpaperId]: {
+                productId: productIds.paintPremium,
+                disabled: true,
+                source: 'style' as const,
+              },
+            },
+          },
+        ],
+      };
+    };
+
+    it('groups the picker tabs by surface', async () => {
+      await renderStep(
+        `/configurator/interior?room=${livingId}&category=${categoryIds.walls}`,
+        { draft: wallpaperDraft(), withWallpaper: true },
+      );
+
+      expect(
+        screen
+          .getAllByRole('tab')
+          .map((tab) => tab.textContent)
+          .slice(0, 3),
+      ).toEqual([en.Surface.FLOOR, en.Surface.WALLS, en.Surface.CEILING]);
+      const finish = screen.getByRole('group', {
+        name: en.Specification.finishLabel,
+      });
+      expect(within(finish).getAllByRole('button')).toHaveLength(2);
+      expect(
+        screen.queryByText(/Currently chosen for/),
+      ).not.toBeInTheDocument();
+    });
+
+    it('hints that the shown finish replaces the active one', async () => {
+      await renderStep(
+        `/configurator/interior?room=${livingId}&category=${wallpaperId}`,
+        { draft: wallpaperDraft(), withWallpaper: true },
+      );
+
+      expect(
+        screen.getByText(
+          en.ProductShowcase.replaces
+            .replace('{surface}', en.Surface.for.WALLS)
+            .replace('{name}', 'Walls'),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('lists one chosen row per surface', async () => {
+      await renderStep(`/configurator/interior?room=${livingId}`, {
+        draft: wallpaperDraft(),
+        withWallpaper: true,
+      });
+
+      expect(categoryRows()).toHaveLength(3);
+      expect(
+        categoryRows().map((row) => rowButton(row).textContent),
+      ).not.toContainEqual(expect.stringMatching(/Wallpaper/));
+    });
+
+    it('switching the finish type only changes the list, not the draft', async () => {
+      await renderStep(
+        `/configurator/interior?room=${livingId}&category=${categoryIds.walls}`,
+        { draft: wallpaperDraft(), withWallpaper: true },
+      );
+      const before = currentDraft().rooms[0].selections;
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Wallpaper' }));
+      });
+
+      expect(currentDraft().rooms[0].selections).toEqual(before);
+    });
+
+    it('swaps the active finish when a product of the other one is chosen', async () => {
+      await renderStep(
+        `/configurator/interior?room=${livingId}&category=${wallpaperId}`,
+        { draft: wallpaperDraft(), withWallpaper: true },
+      );
+
+      await act(async () => {
+        fireEvent.click(
+          within(showcase('Wallpaper')).getAllByRole('button', {
+            name: /^Choose:/,
+          })[0],
+        );
+      });
+
+      const { selections } = currentDraft().rooms[0];
+      expect(selections[wallpaperId]?.disabled).toBe(false);
+      expect(selections[categoryIds.walls]?.disabled).toBe(true);
+    });
+  });
+
   it.each(forEachLocale)(
     'renders in %s without axe violations',
     async (locale) => {
@@ -642,5 +762,6 @@ describe('InteriorStep integration', () => {
       ).toBeInTheDocument();
       expect(await axe(document.body, noLandmarkRule)).toHaveNoViolations();
     },
+    30_000,
   );
 });

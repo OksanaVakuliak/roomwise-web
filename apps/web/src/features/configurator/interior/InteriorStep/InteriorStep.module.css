@@ -5,6 +5,10 @@
   min-width: 0;
 }
 
+.unbreakable {
+  white-space: nowrap;
+}
+
 .title > div {
   padding: 0;
 }

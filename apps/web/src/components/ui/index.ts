@@ -35,6 +35,7 @@ export * from './RevisionMark/RevisionMark';
 export * from './RoomPlan/RoomPlan';
 export * from './RoomScene/RoomScene';
 export * from './SectionHeader/SectionHeader';
+export * from './SegmentedControl/SegmentedControl';
 export * from './Select/Select';
 export * from './SheetTitle/SheetTitle';
 export * from './SidePanel/SidePanel';

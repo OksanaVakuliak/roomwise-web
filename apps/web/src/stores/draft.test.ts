@@ -419,3 +419,98 @@ describe('useDraft selection actions', () => {
     expect(useDraft.getState().revision).toBe(revision + 3);
   });
 });
+
+describe('useDraft one finish per surface', () => {
+  const wallpaperId = 'cat-wallpaper';
+  const base = makeRoomTypes();
+  const wallpaper = {
+    ...base.items[0].categories[1],
+    id: wallpaperId,
+    name: 'Wallpaper',
+  };
+  const roomTypes = {
+    items: base.items.map((type) => {
+      const [floor, walls, ceiling] = type.categories;
+      return { ...type, categories: [floor, walls, wallpaper, ceiling] };
+    }),
+  };
+  const defaults = makeDefaultMaterials(styleIds.modern);
+  const withWallpaper = {
+    ...defaults,
+    items: [
+      ...defaults.items,
+      ...(['LIVING_ROOM', 'BEDROOM'] as const).map((roomTypeCode) => ({
+        roomTypeCode,
+        categoryId: wallpaperId,
+        productId: productIds.paintPremium,
+      })),
+    ],
+  };
+  const catalog = { defaultMaterials: withWallpaper, roomTypes };
+  const selections = () => useDraft.getState().rooms[0]?.selections ?? {};
+  let roomId = '';
+
+  beforeEach(() => {
+    useDraft.getState().selectStyle(withWallpaper, roomTypes);
+    roomId = useDraft.getState().addRoom(catalog) ?? '';
+  });
+
+  it('applies a style with only the first finish of a surface enabled', () => {
+    expect(selections()[categoryIds.walls]?.disabled).toBe(false);
+    expect(selections()[wallpaperId]).toEqual({
+      productId: productIds.paintPremium,
+      disabled: true,
+      source: 'style',
+    });
+  });
+
+  it('disables the sibling when a product is selected', () => {
+    useDraft
+      .getState()
+      .selectProduct(roomId, wallpaperId, productIds.paintPremium, [
+        categoryIds.walls,
+      ]);
+
+    expect(selections()[wallpaperId]?.disabled).toBe(false);
+    expect(selections()[categoryIds.walls]).toMatchObject({
+      productId: productIds.paint,
+      disabled: true,
+    });
+  });
+
+  it('disables the sibling when a category is enabled again', () => {
+    useDraft
+      .getState()
+      .enableCategory(roomId, wallpaperId, [categoryIds.walls]);
+
+    expect(selections()[wallpaperId]?.disabled).toBe(false);
+    expect(selections()[categoryIds.walls]?.disabled).toBe(true);
+  });
+
+  it('normalises a stored draft with two finishes on one surface', () => {
+    useDraft.setState({
+      rooms: useDraft.getState().rooms.map((room) => ({
+        ...room,
+        selections: Object.fromEntries(
+          Object.entries(room.selections).map(([id, selection]) => [
+            id,
+            { ...selection, disabled: false },
+          ]),
+        ),
+      })),
+    });
+
+    useDraft.getState().normalizeSurfaces(roomTypes);
+
+    expect(selections()[categoryIds.walls]?.disabled).toBe(false);
+    expect(selections()[wallpaperId]?.disabled).toBe(true);
+  });
+
+  it('leaves the revision alone when nothing needs normalising', () => {
+    const revision = useDraft.getState().revision;
+
+    useDraft.getState().normalizeSurfaces(roomTypes);
+
+    expect(useDraft.getState().revision).toBe(revision);
+  });
+});

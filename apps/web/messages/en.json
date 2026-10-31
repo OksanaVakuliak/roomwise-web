@@ -834,7 +834,7 @@
     },
     "unitM": "m",
     "wallsMobile": "walls {walls}",
-    "wallsDesktop": "walls {walls}, perimeter {perimeter}",
+    "perimeter": "perimeter {perimeter}",
     "closePicker": "Close"
   },
   "ObjectStep": {
@@ -894,11 +894,11 @@
     "emptyTitle": "No products for this room",
     "emptyText": "This category has nothing to choose from yet.",
     "dismiss": "Dismiss",
-    "categoryGone": "This category is no longer available. The catalog has been refreshed."
+    "categoryGone": "This category is no longer available. The catalog has been refreshed.",
+    "finishLabel": "Finish type"
   },
   "ChosenList": {
     "title": "Chosen",
-    "excluded": "not included in the estimate",
     "choose": "choose a material",
     "openPicker": "Choose a material",
     "current": "open",
@@ -928,7 +928,8 @@
     "choose": "Choose",
     "chosen": "Selected",
     "chooseLabel": "Choose: {name}",
-    "excluded": "Not in the estimate — choose a material to add it"
+    "excluded": "Not in the estimate — choose a material to add it",
+    "replaces": "Currently chosen for {surface}: {name}. The material you pick here will replace it"
   },
   "ProductDetail": {
     "title": "Product",
@@ -952,5 +953,15 @@
     "picked": "Chosen",
     "gone": "This product is no longer available.",
     "unavailable": "Temporarily unavailable"
+  },
+  "Surface": {
+    "FLOOR": "Floor",
+    "WALLS": "Walls",
+    "CEILING": "Ceiling",
+    "for": {
+      "FLOOR": "the floor",
+      "WALLS": "the walls",
+      "CEILING": "the ceiling"
+    }
   }
 }

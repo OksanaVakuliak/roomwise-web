@@ -1,5 +1,19 @@
 import type { DraftSelection, DraftV1 } from './schema';
 
+function disableSiblings(
+  draft: DraftV1,
+  roomClientId: string,
+  siblingIds: readonly string[],
+): DraftV1 {
+  return siblingIds.reduce(
+    (next, siblingId) =>
+      updateSelection(next, roomClientId, siblingId, (previous) =>
+        previous ? { ...previous, disabled: true } : undefined,
+      ),
+    draft,
+  );
+}
+
 function updateSelection(
   draft: DraftV1,
   roomClientId: string,
@@ -25,12 +39,17 @@ export function selectProduct(
   roomClientId: string,
   categoryId: string,
   productId: string,
+  siblingIds: readonly string[] = [],
 ): DraftV1 {
-  return updateSelection(draft, roomClientId, categoryId, () => ({
-    productId,
-    disabled: false,
-    source: 'manual',
-  }));
+  return disableSiblings(
+    updateSelection(draft, roomClientId, categoryId, () => ({
+      productId,
+      disabled: false,
+      source: 'manual',
+    })),
+    roomClientId,
+    siblingIds,
+  );
 }
 
 export function disableCategory(
@@ -49,8 +68,13 @@ export function enableCategory(
   draft: DraftV1,
   roomClientId: string,
   categoryId: string,
+  siblingIds: readonly string[] = [],
 ): DraftV1 {
-  return updateSelection(draft, roomClientId, categoryId, (previous) =>
-    previous ? { ...previous, disabled: false } : undefined,
+  return disableSiblings(
+    updateSelection(draft, roomClientId, categoryId, (previous) =>
+      previous ? { ...previous, disabled: false } : undefined,
+    ),
+    roomClientId,
+    siblingIds,
   );
 }
