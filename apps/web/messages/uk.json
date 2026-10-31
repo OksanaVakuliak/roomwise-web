@@ -280,6 +280,8 @@
     "headerNote": "товщини збільшено",
     "pickedBadge": "Бейдж «обрано»",
     "picked": "обрано",
+    "choose": "Обрати",
+    "chosen": "Обрано",
     "price": "Ціна",
     "priceUsd": "USD",
     "priceUah": "UAH за зразковим курсом",
@@ -888,12 +890,7 @@
   },
   "Specification": {
     "title": "Вибір матеріалів",
-    "note": "{name}, {count, plural, one {# позиція} few {# позиції} many {# позицій} other {# позиції}}",
     "tabsLabel": "Категорії",
-    "include": "Включити в розрахунок",
-    "chosen": "{name}, {sum}",
-    "choose": "оберіть матеріал",
-    "excluded": "не входить у розрахунок",
     "emptyTitle": "Для цього приміщення немає товарів",
     "emptyText": "У цій категорії поки немає з чого обирати.",
     "dismiss": "Закрити",
@@ -901,10 +898,14 @@
   },
   "ChosenList": {
     "title": "Обрано",
-    "list": "Обрані матеріали",
     "excluded": "не входить у розрахунок",
     "choose": "оберіть матеріал",
-    "openPicker": "Обрати матеріал"
+    "openPicker": "Обрати матеріал",
+    "current": "відкрито",
+    "remove": "Прибрати",
+    "removeLabel": "Прибрати {category} з приміщення {room}",
+    "add": "Додати",
+    "addLabel": "Додати {category} до приміщення {room}"
   },
   "ProductShowcase": {
     "loading": "Завантаження товарів",
@@ -923,7 +924,11 @@
     "unavailable": "тимчасово недоступно",
     "forRoom": "для приміщення",
     "detail": "Детальніше",
-    "detailLabel": "Детальніше: {name}"
+    "detailLabel": "Детальніше: {name}",
+    "choose": "Обрати",
+    "chosen": "Обрано",
+    "chooseLabel": "Обрати: {name}",
+    "excluded": "Не входить у розрахунок — оберіть матеріал, щоб додати"
   },
   "ProductDetail": {
     "title": "Товар",

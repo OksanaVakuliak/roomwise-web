@@ -83,12 +83,17 @@ function InteriorContent() {
   const closeDetail = useCallback(() => setDetailId(null), []);
   const openPicker = useCallback(() => setPickerOpen(true), []);
   const closePicker = useCallback(() => setPickerOpen(false), []);
-  const chooseCategory = useCallback(
-    (id: string) => {
-      changeCategory(id);
-      setPickerOpen(true);
+  const chooseFromList = useCallback(
+    (roomClientId: string, id: string) => {
+      navigate(
+        { room: roomClientId, category: id },
+        roomClientId === current?.clientId ? 'replace' : 'push',
+      );
+      if (!desktop) {
+        setPickerOpen(true);
+      }
     },
-    [changeCategory],
+    [current?.clientId, desktop, navigate],
   );
   const chooseFromDetail = useCallback(
     (productId: string, productCategoryId: string) => {
@@ -136,6 +141,13 @@ function InteriorContent() {
     categories.find((category) => category.productCount > 0) ??
     categories[0] ??
     null;
+  const groups = rooms.map((room) => ({
+    room,
+    name: nameOf(room),
+    categories:
+      roomTypes.find((type) => type.code === room.roomTypeCode)?.categories ??
+      [],
+  }));
   const items = rooms.map((room) => {
     const name = nameOf(room);
     const floorArea = roomMetrics(room)?.floorArea ?? null;
@@ -237,11 +249,11 @@ function InteriorContent() {
       {showcaseSlot
         ? createPortal(
             <ChosenList
-              room={current}
-              categories={categories}
-              activeCategoryId={desktop ? (activeCategory?.id ?? null) : null}
+              groups={groups}
+              currentRoomId={current.clientId}
+              activeCategoryId={activeCategory?.id ?? null}
               size={size}
-              onSelectCategory={desktop ? changeCategory : chooseCategory}
+              onSelect={chooseFromList}
               onOpenPicker={desktop ? undefined : openPicker}
             />,
             showcaseSlot,

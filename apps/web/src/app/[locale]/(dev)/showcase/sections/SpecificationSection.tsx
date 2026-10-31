@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useState } from 'react';
 import {
+  Button,
   Gallery,
   PickedBadge,
   Price,
@@ -18,11 +19,11 @@ const RATE = { uahPerUsd: 41.5 };
 const ROOM_AREA = 6;
 const SIZES = ['mobile', 'desktop'] as const;
 const ITEMS = [
-  { id: 'oak', position: '1.1', cents: 1420, fit: 'no', tone: 'wood' },
-  { id: 'ash', position: '1.4', cents: 4100, fit: 'no', tone: 'paint' },
-  { id: 'pine', position: '1.2', cents: 1980, fit: 'ok', tone: 'concrete' },
-  { id: 'graphite', position: '1.3', cents: 2250, fit: 'ok', tone: 'line' },
-  { id: 'walnut', position: '1.5', cents: 1190, fit: 'no', tone: 'wood' },
+  { id: 'oak', cents: 1420, fit: 'no', tone: 'wood' },
+  { id: 'ash', cents: 4100, fit: 'no', tone: 'paint' },
+  { id: 'pine', cents: 1980, fit: 'ok', tone: 'concrete' },
+  { id: 'graphite', cents: 2250, fit: 'ok', tone: 'line' },
+  { id: 'walnut', cents: 1190, fit: 'no', tone: 'wood' },
 ] as const;
 const SHOTS = ['front', 'side', 'close'] as const;
 const STYLES = ['scandinavian', 'loft', 'classic'] as const;
@@ -52,7 +53,6 @@ function SpecRow({ item, size }: { item: Item; size: (typeof SIZES)[number] }) {
   return (
     <SpecItem
       size={size}
-      position={item.position}
       image={<Swatch tone={item.tone} />}
       name={t(`items.${item.id}.name`)}
       brand={t(`items.${item.id}.brand`)}
@@ -83,7 +83,15 @@ function SpecRow({ item, size }: { item: Item; size: (typeof SIZES)[number] }) {
         />
       }
       roomCostLabel={t('forRoom')}
-      onSelect={toggle}
+      actions={
+        <Button
+          kind={selected ? 'outline' : 'fill'}
+          aria-pressed={selected}
+          onClick={toggle}
+        >
+          {t(selected ? 'chosen' : 'choose')}
+        </Button>
+      }
     />
   );
 }

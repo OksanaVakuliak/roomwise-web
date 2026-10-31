@@ -16,6 +16,7 @@ export type FormFieldProps = {
   loadingLabel?: string;
   id?: string;
   group?: boolean;
+  hideLabel?: boolean;
   className?: string;
   children: (control: FieldControlProps) => ReactNode;
 };
@@ -53,6 +54,7 @@ export function FormField({
   loadingLabel,
   id: idProp,
   group,
+  hideLabel,
   className,
   children,
 }: FormFieldProps) {
@@ -108,7 +110,10 @@ export function FormField({
 
   return (
     <div className={classes}>
-      <label htmlFor={id} className={styles.label}>
+      <label
+        htmlFor={id}
+        className={cx(styles.label, hideLabel && styles.hidden)}
+      >
         {caption}
       </label>
       {children(control)}

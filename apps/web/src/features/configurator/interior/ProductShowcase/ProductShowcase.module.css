@@ -1,12 +1,14 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: var(--space-12);
+  gap: var(--space-4);
   min-width: 0;
 }
 
-.sort {
-  align-self: flex-start;
+.hint {
+  margin: 0;
+  font-size: var(--text-body-s-size);
+  color: var(--heat);
 }
 
 .list {
@@ -15,41 +17,8 @@
   list-style: none;
 }
 
-.item {
-  container-type: inline-size;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding-bottom: var(--space-12);
-  border-bottom: var(--stroke-1) solid var(--hair);
-}
-
-.item > button:first-child {
-  border-bottom: 0;
-}
-
-.item .detail {
-  margin-inline-start: calc(
-    var(--spec-pos-width) +
-    var(--spec-image) +
-    var(--space-10) *
-    2
-  );
-  min-height: var(--size-target);
-  padding: 0 var(--space-12);
+.action {
+  min-height: var(--size-compact);
+  padding: 0 var(--space-14);
   font-size: var(--text-body-s-size);
-}
-
-@container (max-width: 28rem) {
-  .item > button:first-child {
-    grid-template-columns: var(--spec-pos-width) var(--spec-image) minmax(
-        0,
-        1fr
-      );
-  }
-
-  .item > button:first-child > :last-child {
-    grid-column: 3;
-    text-align: left;
-  }
 }

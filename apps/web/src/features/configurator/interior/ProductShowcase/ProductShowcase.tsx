@@ -1,21 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { ErrorState } from '@/components/system';
-import {
-  Button,
-  ImageWithFallback,
-  Select,
-  Skeleton,
-  SpecItem,
-} from '@/components/ui';
+import { Button, ImageWithFallback, Skeleton, SpecItem } from '@/components/ui';
 import { useCategoryProducts } from '@/lib/api/catalog';
 import { ApiRequestError } from '@/lib/api/request-error';
 import type { DraftRoom } from '@/lib/draft/schema';
@@ -28,18 +16,18 @@ type ProductCardData = NonNullable<
   ReturnType<typeof useCategoryProducts>['data']
 >['items'][number];
 
-type SortOrder = 'server' | 'asc' | 'desc';
+export type SortOrder = 'server' | 'asc' | 'desc';
 
 export type ProductShowcaseCategory = {
   id: string;
   name: string;
-  position: number;
 };
 
 export type ProductShowcaseProps = {
   room: DraftRoom;
   category: ProductShowcaseCategory;
   size: 'mobile' | 'desktop';
+  order: SortOrder;
   onUnavailable: () => void;
   onChosen?: () => void;
   onOpenDetail: (productId: string) => void;
@@ -47,7 +35,6 @@ export type ProductShowcaseProps = {
 
 type ProductCardProps = {
   product: ProductCardData;
-  position: string;
   size: 'mobile' | 'desktop';
   room: DraftRoom;
   categoryId: string;
@@ -59,7 +46,6 @@ type ProductCardProps = {
 
 function ProductCard({
   product,
-  position,
   size,
   room,
   categoryId,
@@ -90,10 +76,9 @@ function ProductCard({
   );
 
   return (
-    <li className={styles.item}>
+    <li>
       <SpecItem
         size={size}
-        position={position}
         image={
           <ImageWithFallback src={product.image?.thumb} name={product.name} />
         }
@@ -111,26 +96,38 @@ function ProductCard({
         unit={t(`unit.${product.unit}`)}
         roomCost={cost}
         roomCostLabel={cost ? t('forRoom') : undefined}
-        onSelect={choose}
+        actions={
+          <>
+            <Button
+              kind={picked ? 'outline' : 'fill'}
+              className={styles.action}
+              aria-label={t('chooseLabel', { name: product.name })}
+              aria-pressed={picked}
+              disabled={unavailable}
+              onClick={choose}
+            >
+              {picked ? t('chosen') : t('choose')}
+            </Button>
+            <Button
+              kind="outline"
+              className={styles.action}
+              aria-label={t('detailLabel', { name: product.name })}
+              onClick={openDetail}
+            >
+              {t('detail')}
+            </Button>
+          </>
+        }
       />
-      <Button
-        kind="outline"
-        className={styles.detail}
-        aria-label={t('detailLabel', { name: product.name })}
-        onClick={openDetail}
-      >
-        {t('detail')}
-      </Button>
     </li>
   );
 }
-
-const SORT_ORDERS: readonly SortOrder[] = ['server', 'asc', 'desc'];
 
 export function ProductShowcase({
   room,
   category,
   size,
+  order,
   onUnavailable,
   onChosen,
   onOpenDetail,
@@ -139,7 +136,6 @@ export function ProductShowcase({
   const query = useCategoryProducts(category.id);
   const pricing = useRoomPricing();
   const selectProduct = useDraft((state) => state.selectProduct);
-  const [order, setOrder] = useState<SortOrder>('server');
   const { refetch } = query;
 
   const notFound =
@@ -155,7 +151,7 @@ export function ProductShowcase({
     if (!items) {
       return null;
     }
-    const entries = items.map((product, index) => ({ product, index }));
+    const entries = items.map((product) => ({ product }));
     if (order === 'asc') {
       entries.sort((a, b) => a.product.priceCents - b.product.priceCents);
     } else if (order === 'desc') {
@@ -164,11 +160,6 @@ export function ProductShowcase({
     return entries;
   }, [items, order]);
 
-  const changeOrder = useCallback(
-    (event: ChangeEvent<HTMLSelectElement>) =>
-      setOrder(event.target.value as SortOrder),
-    [],
-  );
   const retry = useCallback(() => {
     void refetch();
   }, [refetch]);
@@ -197,27 +188,16 @@ export function ProductShowcase({
   }
 
   const selection = room.selections[category.id];
+  const excluded = selection?.disabled ?? false;
 
   return (
     <div className={styles.root}>
-      <Select
-        label={t('sortLabel')}
-        value={order}
-        onChange={changeOrder}
-        className={styles.sort}
-      >
-        {SORT_ORDERS.map((value) => (
-          <option key={value} value={value}>
-            {t(`sort.${value}`)}
-          </option>
-        ))}
-      </Select>
+      {excluded ? <p className={styles.hint}>{t('excluded')}</p> : null}
       <ul className={styles.list} aria-label={category.name}>
-        {sorted.map(({ product, index }) => (
+        {sorted.map(({ product }) => (
           <ProductCard
             key={product.id}
             product={product}
-            position={`${category.position}.${index + 1}`}
             size={size}
             room={room}
             categoryId={category.id}

@@ -19,6 +19,7 @@ export type RoomPricing = {
     categoryId: string,
   ) => EstimateLine | null;
   formatLine: (line: EstimateLine) => string;
+  formatTotal: (lines: readonly EstimateLine[]) => string;
   formatUnitPrice: (cents: number) => string;
 };
 
@@ -63,6 +64,19 @@ export function useRoomPricing(): RoomPricing | null {
         currency === 'UAH' && line.amountUahKopecks !== null
           ? moneyMinor(line.amountUahKopecks, 'UAH', locale)
           : moneyMinor(line.amountCents, 'USD', locale),
+      formatTotal: (total) => {
+        const cents = total.reduce((sum, line) => sum + line.amountCents, 0);
+        const kopecks = total.reduce<number | null>(
+          (sum, line) =>
+            sum === null || line.amountUahKopecks === null
+              ? null
+              : sum + line.amountUahKopecks,
+          0,
+        );
+        return currency === 'UAH' && kopecks !== null
+          ? moneyMinor(kopecks, 'UAH', locale)
+          : moneyMinor(cents, 'USD', locale);
+      },
       formatUnitPrice: (cents) => unitPrice(cents, currency, locale, rate),
     };
   }, [pricing, version, lines, draft, currency, rate, locale]);

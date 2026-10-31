@@ -280,6 +280,8 @@
     "headerNote": "thicknesses enlarged",
     "pickedBadge": "Picked badge",
     "picked": "picked",
+    "choose": "Choose",
+    "chosen": "Selected",
     "price": "Price",
     "priceUsd": "USD",
     "priceUah": "UAH at the sample rate",
@@ -888,12 +890,7 @@
   },
   "Specification": {
     "title": "Choose materials",
-    "note": "{name}, {count, plural, one {# item} other {# items}}",
     "tabsLabel": "Categories",
-    "include": "Include in the estimate",
-    "chosen": "{name}, {sum}",
-    "choose": "choose a material",
-    "excluded": "not included in the estimate",
     "emptyTitle": "No products for this room",
     "emptyText": "This category has nothing to choose from yet.",
     "dismiss": "Dismiss",
@@ -901,10 +898,14 @@
   },
   "ChosenList": {
     "title": "Chosen",
-    "list": "Chosen materials",
     "excluded": "not included in the estimate",
     "choose": "choose a material",
-    "openPicker": "Choose material"
+    "openPicker": "Choose a material",
+    "current": "open",
+    "remove": "Remove",
+    "removeLabel": "Remove {category} from {room}",
+    "add": "Add",
+    "addLabel": "Add {category} to {room}"
   },
   "ProductShowcase": {
     "loading": "Loading products",
@@ -923,7 +924,11 @@
     "unavailable": "temporarily unavailable",
     "forRoom": "for the room",
     "detail": "Details",
-    "detailLabel": "Details: {name}"
+    "detailLabel": "Details: {name}",
+    "choose": "Choose",
+    "chosen": "Selected",
+    "chooseLabel": "Choose: {name}",
+    "excluded": "Not in the estimate — choose a material to add it"
   },
   "ProductDetail": {
     "title": "Product",

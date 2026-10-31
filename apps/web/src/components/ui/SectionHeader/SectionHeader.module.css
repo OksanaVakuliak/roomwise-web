@@ -1,6 +1,7 @@
 .root {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-12);
   padding-bottom: var(--space-5);

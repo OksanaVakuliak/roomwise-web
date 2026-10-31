@@ -2,22 +2,25 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useCallback, useId, useState } from 'react';
+import { type ChangeEvent, useCallback, useId, useState } from 'react';
 import {
   Banner,
   EmptyState,
   SectionHeader,
-  SwitchRow,
+  Select,
   Tab,
   TabPanel,
   Tabs,
 } from '@/components/ui';
-import { catalogRoots, useCategoryProducts } from '@/lib/api/catalog';
+import { catalogRoots } from '@/lib/api/catalog';
 import type { DraftRoom } from '@/lib/draft/schema';
-import { useDraft } from '@/stores/draft';
-import { ProductShowcase } from '../ProductShowcase/ProductShowcase';
-import { useRoomPricing } from '../use-room-pricing';
+import {
+  ProductShowcase,
+  type SortOrder,
+} from '../ProductShowcase/ProductShowcase';
 import styles from './Specification.module.css';
+
+const SORT_ORDERS: readonly SortOrder[] = ['server', 'asc', 'desc'];
 
 export type SpecificationCategory = {
   id: string;
@@ -36,60 +39,6 @@ export type SpecificationProps = {
   onOpenDetail: (productId: string) => void;
 };
 
-type CategorySwitchProps = {
-  room: DraftRoom;
-  category: SpecificationCategory;
-};
-
-function CategorySwitch({ room, category }: CategorySwitchProps) {
-  const t = useTranslations('Specification');
-  const pricing = useRoomPricing();
-  const enableCategory = useDraft((state) => state.enableCategory);
-  const disableCategory = useDraft((state) => state.disableCategory);
-  const selection = room.selections[category.id];
-  const productId = selection?.productId ?? null;
-  const disabled = selection?.disabled ?? false;
-  const productsQuery = useCategoryProducts(
-    productId === null ? null : category.id,
-  );
-  const product = productsQuery.data?.items.find(
-    (item) => item.id === productId,
-  );
-  const line = pricing?.materialsLine(room.clientId, category.id);
-  const sum =
-    pricing && line?.status === 'OK' ? pricing.formatLine(line) : null;
-  const { clientId } = room;
-
-  const toggle = useCallback(
-    (included: boolean) => {
-      if (included) {
-        enableCategory(clientId, category.id);
-      } else {
-        disableCategory(clientId, category.id);
-      }
-    },
-    [category.id, clientId, disableCategory, enableCategory],
-  );
-
-  let description: string | undefined;
-  if (disabled) {
-    description = t('excluded');
-  } else if (product) {
-    description = sum ? t('chosen', { name: product.name, sum }) : product.name;
-  } else if (productId === null) {
-    description = t('choose');
-  }
-
-  return (
-    <SwitchRow
-      title={t('include')}
-      description={description}
-      checked={!disabled}
-      onCheckedChange={toggle}
-    />
-  );
-}
-
 export function Specification({
   room,
   categories,
@@ -101,10 +50,17 @@ export function Specification({
   onOpenDetail,
 }: SpecificationProps) {
   const t = useTranslations('Specification');
+  const tShowcase = useTranslations('ProductShowcase');
   const headingId = useId();
   const tabsId = useId();
   const queryClient = useQueryClient();
   const [unavailable, setUnavailable] = useState(false);
+  const [order, setOrder] = useState<SortOrder>('server');
+  const changeOrder = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) =>
+      setOrder(event.target.value as SortOrder),
+    [],
+  );
 
   const dismiss = useCallback(() => setUnavailable(false), []);
   const handleUnavailable = useCallback(() => {
@@ -114,10 +70,26 @@ export function Specification({
     onCategoryChange(null);
   }, [onCategoryChange, queryClient]);
 
-  const index = categories.findIndex(
+  const sort = (
+    <Select
+      label={tShowcase('sortLabel')}
+      hideLabel
+      value={order}
+      onChange={changeOrder}
+      className={styles.sort}
+    >
+      {SORT_ORDERS.map((value) => (
+        <option key={value} value={value}>
+          {tShowcase(`sort.${value}`)}
+        </option>
+      ))}
+    </Select>
+  );
+  const active = categories.find(
     (category) => category.id === activeCategoryId,
   );
-  const active = categories[index];
+
+  const sortable = active !== undefined && active.productCount > 0;
 
   return (
     <section
@@ -128,15 +100,12 @@ export function Specification({
       {hideTitle ? null : (
         <SectionHeader
           id={headingId}
-          size={size}
+          size="mobile"
           title={t('title')}
-          note={
-            active
-              ? t('note', { name: active.name, count: active.productCount })
-              : undefined
-          }
+          note={sortable ? sort : undefined}
         />
       )}
+      {hideTitle && sortable ? sort : null}
       {unavailable ? (
         <Banner
           variant="warning"
@@ -176,15 +145,11 @@ export function Specification({
               />
             ) : (
               <>
-                <CategorySwitch room={room} category={active} />
                 <ProductShowcase
                   room={room}
-                  category={{
-                    id: active.id,
-                    name: active.name,
-                    position: index + 1,
-                  }}
+                  category={{ id: active.id, name: active.name }}
                   size={size}
+                  order={order}
                   onUnavailable={handleUnavailable}
                   onChosen={onChosen}
                   onOpenDetail={onOpenDetail}

@@ -137,15 +137,22 @@ async function renderStep(url: string, options: StepOptions = {}) {
   return result;
 }
 
-function categoryRows() {
-  const list = screen.getByRole('list', { name: en.ChosenList.list });
-  return within(list).getAllByRole('listitem');
+function roomSection(name: string) {
+  return screen.getByRole('region', { name: new RegExp(name) });
+}
+
+function categoryRows(name = 'Living room') {
+  return within(within(roomSection(name)).getByRole('list')).getAllByRole(
+    'listitem',
+  );
+}
+
+function rowButton(row: HTMLElement) {
+  return within(row).getAllByRole('button')[0];
 }
 
 function productCards(root: HTMLElement) {
-  return within(root)
-    .getAllByRole('button')
-    .filter((button) => button.hasAttribute('aria-pressed'));
+  return within(root).getAllByRole('listitem');
 }
 
 function showcase(name: string) {
@@ -160,6 +167,12 @@ function cardNamed(root: HTMLElement, name: string) {
     throw new Error(`No card named ${name}`);
   }
   return found;
+}
+
+function chooseButton(root: HTMLElement, name: string) {
+  return within(cardNamed(root, name)).getByRole('button', {
+    name: `Choose: ${name}`,
+  });
 }
 
 function currentDraft(): DraftV1 {
@@ -199,9 +212,7 @@ describe('InteriorStep integration', () => {
   it('lists the categories of the room type in server order', async () => {
     await renderStep(`/configurator/interior?room=${livingId}`);
 
-    expect(
-      categoryRows().map((row) => within(row).getByRole('button').textContent),
-    ).toEqual([
+    expect(categoryRows().map((row) => rowButton(row).textContent)).toEqual([
       expect.stringMatching(/Flooring/),
       expect.stringMatching(/Walls/),
       expect.stringMatching(/Ceiling/),
@@ -213,10 +224,10 @@ describe('InteriorStep integration', () => {
       draft: makeKitchenLivingDraft(),
     });
 
-    const rows = categoryRows();
+    const rows = categoryRows('Kitchen');
     expect(rows).toHaveLength(2);
-    expect(within(rows[0]).getByRole('button').textContent).toMatch(/Walls/);
-    expect(within(rows[1]).getByRole('button').textContent).toMatch(/Flooring/);
+    expect(rowButton(rows[0]).textContent).toMatch(/Walls/);
+    expect(rowButton(rows[1]).textContent).toMatch(/Flooring/);
     expect(within(rows[1]).getByText(en.ChosenList.choose)).toBeInTheDocument();
   });
 
@@ -266,7 +277,7 @@ describe('InteriorStep integration', () => {
 
     await act(async () => {
       fireEvent.click(
-        cardNamed(showcase('Flooring'), 'Walnut Premium Laminate'),
+        chooseButton(showcase('Flooring'), 'Walnut Premium Laminate'),
       );
     });
 
@@ -368,17 +379,19 @@ describe('InteriorStep integration', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('excludes the ceiling from the estimate and restores the choice on enable', async () => {
+  it('removes the ceiling from the estimate and re-adds it', async () => {
     await renderStep(
       `/configurator/interior?room=${livingId}&category=${categoryIds.ceiling}`,
     );
-    const toggle = screen.getByRole('switch', {
-      name: en.Specification.include,
-    });
     const before = panelOf(currentDraft());
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument();
 
     await act(async () => {
-      fireEvent.click(toggle);
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: /Remove Ceiling from Living room/,
+        }),
+      );
     });
 
     const ceilingRow = categoryRows()[2];
@@ -386,12 +399,15 @@ describe('InteriorStep integration', () => {
       within(ceilingRow).getByText(en.ChosenList.excluded),
     ).toBeInTheDocument();
     expect(ceilingRow).not.toHaveTextContent('Matt Ceiling Paint');
+    expect(screen.getByText(en.ProductShowcase.excluded)).toBeInTheDocument();
     expect(panelOf(currentDraft()).materials?.usdCents).toBeLessThan(
       before.materials?.usdCents ?? 0,
     );
 
     await act(async () => {
-      fireEvent.click(toggle);
+      fireEvent.click(
+        screen.getByRole('button', { name: /Add Ceiling to Living room/ }),
+      );
     });
 
     expect(categoryRows()[2]).toHaveTextContent('Matt Ceiling Paint');
@@ -400,14 +416,55 @@ describe('InteriorStep integration', () => {
     );
   });
 
+  it('re-enables an excluded category by choosing a product in the picker', async () => {
+    await renderStep(
+      `/configurator/interior?room=${livingId}&category=${categoryIds.floor}`,
+    );
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: /Remove Flooring from Living room/,
+        }),
+      );
+    });
+    await act(async () => {
+      fireEvent.click(
+        chooseButton(showcase('Flooring'), 'Stone Grey Porcelain Tile'),
+      );
+    });
+
+    expect(
+      useDraft.getState().rooms[0].selections[categoryIds.floor],
+    ).toMatchObject({ productId: productIds.tile, disabled: false });
+    expect(categoryRows()[0]).toHaveTextContent('Stone Grey Porcelain Tile');
+  });
+
+  it('groups the chosen list by room and opens another room from a row', async () => {
+    const { location } = await renderStep(
+      `/configurator/interior?room=${livingId}&category=${categoryIds.floor}`,
+    );
+
+    expect(roomSection('Living room')).toBeInTheDocument();
+    expect(roomSection('Bathroom')).toBeInTheDocument();
+    expect(roomSection('Bedroom')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(rowButton(categoryRows('Bedroom')[1]));
+    });
+
+    const search = new URLSearchParams(location().search);
+    expect(search.get('room')).toBe(bedroomId);
+    expect(search.get('category')).toBe(categoryIds.walls);
+  });
+
   it('leaves a category without products out of the chosen list and shows the empty state in the picker', async () => {
     await renderStep(
       `/configurator/interior?room=${bedroomId}&category=${categoryIds.ceiling}`,
     );
 
-    expect(categoryRows()).toHaveLength(2);
+    expect(categoryRows('Bedroom')).toHaveLength(2);
     expect(screen.getByText(en.Specification.emptyTitle)).toBeInTheDocument();
-    expect(screen.queryByRole('switch')).not.toBeInTheDocument();
   });
 
   it('selects a product with one click in the picker and shows it in the chosen list', async () => {
@@ -417,7 +474,7 @@ describe('InteriorStep integration', () => {
 
     await act(async () => {
       fireEvent.click(
-        cardNamed(showcase('Flooring'), 'Stone Grey Porcelain Tile'),
+        chooseButton(showcase('Flooring'), 'Stone Grey Porcelain Tile'),
       );
     });
 
@@ -433,18 +490,18 @@ describe('InteriorStep integration', () => {
     );
 
     await act(async () => {
-      fireEvent.click(within(categoryRows()[1]).getByRole('button'));
+      fireEvent.click(rowButton(categoryRows()[1]));
     });
 
     expect(new URLSearchParams(location().search).get('category')).toBe(
       categoryIds.walls,
     );
-    expect(within(categoryRows()[1]).getByRole('button')).toHaveAttribute(
+    expect(rowButton(categoryRows()[1])).toHaveAttribute(
       'aria-current',
       'true',
     );
     expect(
-      cardNamed(showcase('Walls'), 'Silk White Wall Paint'),
+      chooseButton(showcase('Walls'), 'Silk White Wall Paint'),
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
@@ -474,7 +531,7 @@ describe('InteriorStep integration', () => {
     });
     const sheet = screen.getByRole('dialog', { name: en.Specification.title });
     await act(async () => {
-      fireEvent.click(cardNamed(sheet, 'Stone Grey Porcelain Tile'));
+      fireEvent.click(chooseButton(sheet, 'Stone Grey Porcelain Tile'));
     });
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -490,14 +547,14 @@ describe('InteriorStep integration', () => {
     );
 
     await act(async () => {
-      fireEvent.click(within(categoryRows()[1]).getByRole('button'));
+      fireEvent.click(rowButton(categoryRows()[1]));
     });
 
     const sheet = screen.getByRole('dialog', { name: en.Specification.title });
     expect(new URLSearchParams(location().search).get('category')).toBe(
       categoryIds.walls,
     );
-    expect(cardNamed(sheet, 'Silk White Wall Paint')).toHaveAttribute(
+    expect(chooseButton(sheet, 'Silk White Wall Paint')).toHaveAttribute(
       'aria-pressed',
       'true',
     );
@@ -546,12 +603,12 @@ describe('InteriorStep integration', () => {
         screen.getByRole('group', { name: en.InteriorStep.switcherLabel }),
       ).getAllByRole('button')[1],
     ).toHaveAttribute('aria-current', 'true');
-    expect(within(categoryRows()[1]).getByRole('button')).toHaveAttribute(
+    expect(rowButton(categoryRows('Bathroom')[1])).toHaveAttribute(
       'aria-current',
       'true',
     );
     expect(
-      cardNamed(showcase('Walls'), 'Silk White Wall Paint'),
+      chooseButton(showcase('Walls'), 'Silk White Wall Paint'),
     ).toHaveAttribute('aria-pressed', 'true');
   });
 

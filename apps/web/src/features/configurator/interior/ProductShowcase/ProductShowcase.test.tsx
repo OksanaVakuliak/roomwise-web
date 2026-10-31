@@ -19,7 +19,7 @@ import { ProductShowcase } from './ProductShowcase';
 
 vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
 
-const category = { id: categoryIds.floor, name: 'Flooring', position: 1 };
+const category = { id: categoryIds.floor, name: 'Flooring' };
 
 function Harness({
   onUnavailable,
@@ -36,6 +36,7 @@ function Harness({
       room={room}
       category={category}
       size="desktop"
+      order="server"
       onUnavailable={onUnavailable}
       onChosen={onChosen}
       onOpenDetail={onOpenDetail}
@@ -71,9 +72,7 @@ async function renderShowcase(
 }
 
 function cards(root: HTMLElement) {
-  return within(root)
-    .getAllByRole('button')
-    .filter((button) => button.hasAttribute('aria-pressed'));
+  return within(root).getAllByRole('listitem');
 }
 
 function cardNamed(root: HTMLElement, name: string) {
@@ -84,10 +83,10 @@ function cardNamed(root: HTMLElement, name: string) {
   return found;
 }
 
-function unitPrices(root: HTMLElement) {
-  return cards(root).map((card) =>
-    Number(/\$([\d.]+)per/.exec(card.textContent ?? '')?.[1]),
-  );
+function chooseButton(root: HTMLElement, name: string) {
+  return within(cardNamed(root, name)).getByRole('button', {
+    name: `Choose: ${name}`,
+  });
 }
 
 describe('ProductShowcase', () => {
@@ -103,39 +102,24 @@ describe('ProductShowcase', () => {
     const { slot } = await renderShowcase();
 
     const laminate = cardNamed(slot, 'Oak Natural Laminate');
-    expect(laminate).toHaveAttribute('aria-pressed', 'true');
+    expect(chooseButton(slot, 'Oak Natural Laminate')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     expect(laminate).toHaveTextContent('$18');
     expect(laminate).toHaveTextContent(en.ProductShowcase.forRoom);
     expect(laminate).toHaveTextContent(en.ProductShowcase.picked);
-    expect(cardNamed(slot, 'Stone Grey Porcelain Tile')).toHaveAttribute(
+    expect(chooseButton(slot, 'Stone Grey Porcelain Tile')).toHaveAttribute(
       'aria-pressed',
       'false',
     );
-  });
-
-  it('sorts by price in both directions', async () => {
-    const { slot } = await renderShowcase();
-    const select = within(slot).getByLabelText(en.ProductShowcase.sortLabel);
-
-    await act(async () => {
-      fireEvent.change(select, { target: { value: 'asc' } });
-    });
-    const ascending = unitPrices(slot);
-    expect(ascending).toEqual([...ascending].sort((a, b) => a - b));
-
-    await act(async () => {
-      fireEvent.change(select, { target: { value: 'desc' } });
-    });
-    const descending = unitPrices(slot);
-    expect(descending).toEqual([...descending].sort((a, b) => b - a));
-    expect(descending).toEqual([...ascending].reverse());
   });
 
   it('selects a product with one click and reports it', async () => {
     const { slot, onChosen, onOpenDetail } = await renderShowcase();
 
     await act(async () => {
-      fireEvent.click(cardNamed(slot, 'Stone Grey Porcelain Tile'));
+      fireEvent.click(chooseButton(slot, 'Stone Grey Porcelain Tile'));
     });
 
     expect(useDraft.getState().rooms[0].selections[categoryIds.floor]).toEqual({
@@ -145,7 +129,7 @@ describe('ProductShowcase', () => {
     });
     expect(onChosen).toHaveBeenCalledTimes(1);
     expect(onOpenDetail).not.toHaveBeenCalled();
-    expect(cardNamed(slot, 'Stone Grey Porcelain Tile')).toHaveAttribute(
+    expect(chooseButton(slot, 'Stone Grey Porcelain Tile')).toHaveAttribute(
       'aria-pressed',
       'true',
     );
@@ -167,6 +151,35 @@ describe('ProductShowcase', () => {
     expect(
       useDraft.getState().rooms[0].selections[categoryIds.floor]?.productId,
     ).toBe(productIds.laminate);
+  });
+
+  it('shows the hint and re-enables an excluded category on choose', async () => {
+    const { slot } = await renderShowcase();
+    await act(async () => {
+      useDraft
+        .getState()
+        .disableCategory(
+          useDraft.getState().rooms[0].clientId,
+          categoryIds.floor,
+        );
+    });
+
+    expect(
+      within(slot).getByText(en.ProductShowcase.excluded),
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(chooseButton(slot, 'Stone Grey Porcelain Tile'));
+    });
+
+    expect(useDraft.getState().rooms[0].selections[categoryIds.floor]).toEqual({
+      productId: productIds.tile,
+      disabled: false,
+      source: 'manual',
+    });
+    expect(
+      within(slot).queryByText(en.ProductShowcase.excluded),
+    ).not.toBeInTheDocument();
   });
 
   it('reports an unavailable category when the catalog answers 404', async () => {
