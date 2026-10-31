@@ -18,6 +18,7 @@ import { StepTape } from '../StepTape/StepTape';
 import { StepValidationProvider } from '../StepValidation/StepValidation';
 import { stepFromPath } from '../step-path';
 import { useStepContext } from '../use-step-context';
+import { useSurfaceNormalization } from '../use-surface-normalization';
 
 export type ConfiguratorShellProps = {
   children: ReactNode;
@@ -39,6 +40,7 @@ function ConfiguratorFrame({
   const [pickerSlot, setPickerSlot] = useState<HTMLElement | null>(null);
 
   useDraftTabSync();
+  useSurfaceNormalization(hydrated);
 
   return (
     <StepValidationProvider>

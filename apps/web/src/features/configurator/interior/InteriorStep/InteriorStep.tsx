@@ -42,7 +42,6 @@ function InteriorContent() {
   const showcaseSlot = useShowcaseSlot();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const selectProduct = useDraft((state) => state.selectProduct);
-  const normalizeSurfaces = useDraft((state) => state.normalizeSurfaces);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -120,11 +119,6 @@ function InteriorContent() {
     [current, currentCategories, selectProduct],
   );
   const { data: roomTypesCatalog, refetch } = roomTypesQuery;
-  useEffect(() => {
-    if (roomTypesCatalog) {
-      normalizeSurfaces(roomTypesCatalog);
-    }
-  }, [normalizeSurfaces, roomTypesCatalog]);
   const retry = useCallback(() => {
     void refetch();
   }, [refetch]);
@@ -152,9 +146,7 @@ function InteriorContent() {
     );
   const size = desktop ? 'desktop' : 'mobile';
   const roomName = nameOf(current);
-  const categories =
-    roomTypes.find((type) => type.code === current.roomTypeCode)?.categories ??
-    [];
+  const categories = currentCategories;
   const activeCategory =
     categories.find((category) => category.id === categoryId) ??
     categories.find((category) => category.productCount > 0) ??
