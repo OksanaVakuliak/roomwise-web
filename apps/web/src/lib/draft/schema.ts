@@ -41,8 +41,6 @@ export const DraftOptionSchema = z.object({
 export const DraftObjectSchema = z.object({
   finishLevel: z.enum(['ROUGH', 'PRE_FINISH']).nullable(),
   totalAreaSqm: nullableAmount,
-  gas: z.boolean(),
-  kitchenType: z.enum(['SEPARATE', 'KITCHEN_LIVING']),
   balcony: z.object({
     present: z.boolean(),
     areaSqm: nullableAmount,
@@ -79,8 +77,6 @@ export function createDefaultDraft(): DraftV1 {
     object: {
       finishLevel: null,
       totalAreaSqm: null,
-      gas: false,
-      kitchenType: 'SEPARATE',
       balcony: { present: false, areaSqm: null, tiles: false },
     },
     rooms: [],
