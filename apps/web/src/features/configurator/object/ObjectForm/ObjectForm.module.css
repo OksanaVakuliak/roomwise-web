@@ -4,8 +4,8 @@
       auto-fit,
       minmax(min(100%, var(--layout-form-column-min-width)), 1fr)
     );
-  align-items: end;
-  gap: var(--space-18) var(--space-24);
+  align-items: start;
+  gap: var(--space-12) var(--space-24);
 }
 
 .balcony {
