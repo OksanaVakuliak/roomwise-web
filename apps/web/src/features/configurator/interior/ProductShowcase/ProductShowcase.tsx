@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo } from 'react';
 import { ErrorState } from '@/components/system';
 import { Button, ImageWithFallback, Skeleton, SpecItem } from '@/components/ui';
 import { useCategoryProducts } from '@/lib/api/catalog';
@@ -144,11 +144,12 @@ export function ProductShowcase({
 
   const notFound =
     query.error instanceof ApiRequestError && query.error.status === 404;
+  const reportUnavailable = useEffectEvent(onUnavailable);
   useEffect(() => {
     if (notFound) {
-      onUnavailable();
+      reportUnavailable();
     }
-  }, [notFound, onUnavailable]);
+  }, [notFound]);
 
   const items = query.data?.items;
   const pricedProducts = pricing?.pricing.products;
