@@ -17,23 +17,25 @@ export function DraftNotices() {
     (state) => state.dismissHeatedFloorReset,
   );
 
-  if (storageAvailable && notice === null && !heatedFloorReset) {
-    return null;
-  }
+  const banners = !storageAvailable || notice === 'draftReset';
 
   return (
-    <div className={styles.root}>
-      {storageAvailable ? null : (
-        <Banner variant="warning">{t('storageUnavailable')}</Banner>
-      )}
-      {notice === 'draftReset' ? (
-        <Banner
-          variant="info"
-          onDismiss={dismissNotice}
-          dismissLabel={tShell('dismiss')}
-        >
-          {t('draftReset')}
-        </Banner>
+    <>
+      {banners ? (
+        <div className={styles.root}>
+          {storageAvailable ? null : (
+            <Banner variant="warning">{t('storageUnavailable')}</Banner>
+          )}
+          {notice === 'draftReset' ? (
+            <Banner
+              variant="info"
+              onDismiss={dismissNotice}
+              dismissLabel={tShell('dismiss')}
+            >
+              {t('draftReset')}
+            </Banner>
+          ) : null}
+        </div>
       ) : null}
       {heatedFloorReset ? (
         <NoticeStack>
@@ -45,6 +47,6 @@ export function DraftNotices() {
           </Toast>
         </NoticeStack>
       ) : null}
-    </div>
+    </>
   );
 }

@@ -17,6 +17,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { vi } from 'vitest';
+import { NoticeProvider } from '@/components/layout';
 import { routing } from '@/i18n/routing';
 import type { Currency } from '@/lib/format';
 import { applyTheme, type ThemeMode } from '@/lib/theme';
@@ -154,7 +155,7 @@ export function renderWithProviders(
                 locale={locale}
                 messages={catalogs[locale]}
               >
-                {children}
+                <NoticeProvider>{children}</NoticeProvider>
               </NextIntlClientProvider>
             </QueryClientProvider>
           </SearchParamsContext.Provider>

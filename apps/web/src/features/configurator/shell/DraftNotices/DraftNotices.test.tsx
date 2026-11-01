@@ -28,7 +28,7 @@ describe('DraftNotices', () => {
   it('renders nothing without notices', async () => {
     const { container } = renderWithProviders(<DraftNotices />);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstElementChild).toBeEmptyDOMElement();
   });
 
   it.each(forEachLocale)(
