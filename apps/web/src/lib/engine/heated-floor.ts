@@ -25,6 +25,16 @@ export function isHeatedFloorAllowed(
   return isOptionAllowedForRoom(option, roomTypeCode);
 }
 
+export function isHeatedFloorOffered(
+  options: readonly PricingOption[],
+  roomTypeCode: RoomTypeCode | null,
+): boolean {
+  return (
+    roomTypeCode !== null &&
+    isHeatedFloorAllowed(findHeatedFloorOption(options), roomTypeCode)
+  );
+}
+
 export const HEATED_FLOOR_INCOMPATIBLE_CODE = 'HEATED_FLOOR_INCOMPATIBLE';
 
 export function hasHeatedFloorWarning(

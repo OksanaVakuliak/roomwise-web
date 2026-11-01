@@ -179,15 +179,15 @@
     "number4": "A4",
     "number5": "A5",
     "step1": "Object",
-    "step2": "Style",
-    "step3": "Interior",
-    "step4": "Engineering",
+    "step2": "Engineering",
+    "step3": "Style",
+    "step4": "Interior",
     "step5": "Estimate"
   },
   "ShowcaseActions": {
     "buttonsTitle": "Button",
     "outline": "Sheet A2",
-    "fill": "Next: A4 engineering",
+    "fill": "Next: A2 engineering",
     "heat": "Delete item",
     "price": "+$89.04",
     "disabled": "Disabled",
@@ -469,7 +469,7 @@
     "engineering": "Engineering",
     "options": "Options",
     "back": "Sheet A2",
-    "next": "Next: A4 engineering",
+    "next": "Next: A4 interior",
     "changeTotal": "Change the total",
     "changeNote": "Changing the total announces it to screen readers; the first render stays silent.",
     "resultRowTitle": "Result row",
@@ -799,7 +799,7 @@
   "HeatedFloorSwitch": {
     "title": "Heated floor",
     "description": "Adds heated floor engineering for this room and adjusts the floor materials",
-    "priced": "Adds heated floor engineering for this room and adjusts the floor materials · {cost}"
+    "priced": "{description} · {cost}"
   },
   "ConfiguratorShell": {
     "guardIncomplete": "Fill in the “{step}” step first",
@@ -831,6 +831,9 @@
       "cancel": "Keep my choice",
       "close": "Close dialog"
     }
+  },
+  "RoomEngineering": {
+    "empty": "No engineering options for this room"
   },
   "EngineeringStep": {
     "loading": "Loading rooms",

@@ -5,7 +5,9 @@ import { clearEstimateCache } from '@/lib/engine/run-estimate';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { resetWarmup } from '@/lib/warmup/warmup';
 import { useDraft } from '@/stores/draft';
+import { usePricingData } from '@/stores/pricing-data';
 import { axe } from '@/test/axe';
+import { makeEngineering } from '@/test/fixtures/catalog';
 import {
   createTestQueryClient,
   forEachLocale,
@@ -27,22 +29,42 @@ import { EngineeringStep } from './EngineeringStep/EngineeringStep';
 
 const SOUNDPROOFING = 'Soundproofing';
 
+type RenderOptions = {
+  engineering?: ReturnType<typeof makeEngineering>;
+  pricing?: false;
+  bare?: boolean;
+};
+
 async function renderEngineering(
   locale: 'en' | 'uk' = 'en',
   draft = makeDraft(),
+  { engineering, pricing, bare }: RenderOptions = {},
 ) {
   setViewport(1024);
   useDraft.setState({ ...draft, revision: 1 });
   const queryClient = createTestQueryClient();
   seedCatalog(queryClient, locale);
   queryClient.setQueryData(['room-types', locale], makeCatalog());
+  if (engineering) {
+    queryClient.setQueryData(['engineering', locale], engineering);
+  }
   let result!: ReturnType<typeof renderWithProviders>;
   await act(async () => {
     result = renderWithProviders(
-      <ConfiguratorShell>
+      bare ? (
         <EngineeringStep />
-      </ConfiguratorShell>,
-      { url: '/configurator/engineering', locale, catalog: false, queryClient },
+      ) : (
+        <ConfiguratorShell>
+          <EngineeringStep />
+        </ConfiguratorShell>
+      ),
+      {
+        url: '/configurator/engineering',
+        locale,
+        catalog: false,
+        queryClient,
+        pricing,
+      },
     );
   });
   return result;
@@ -159,6 +181,56 @@ describe('engineering step rooms', () => {
         name: catalogs.en.HeatedFloorSwitch.title,
       }),
     ).toHaveAccessibleDescription(/\$\d/);
+  });
+
+  it('shows a loading status while the prices are not loaded', async () => {
+    await renderEngineering('en', makeDraft(), { pricing: false, bare: true });
+
+    expect(
+      screen.getByRole('status', { name: catalogs.en.EngineeringStep.loading }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('region')).not.toBeInTheDocument();
+  });
+
+  it('offers a retry when the prices fail to load', async () => {
+    await renderEngineering('en', makeDraft(), { pricing: false, bare: true });
+
+    await act(async () => {
+      usePricingData.setState({ status: 'error' });
+    });
+
+    expect(
+      screen.getByRole('heading', {
+        name: catalogs.en.SystemStates.errorTitle,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: catalogs.en.SystemStates.retry }),
+    ).toBeInTheDocument();
+  });
+
+  it('says so when a room has no engineering to offer', async () => {
+    await renderEngineering('en', makeDraft(), {
+      engineering: makeEngineering({ options: [] }),
+    });
+    const empty = catalogs.en.RoomEngineering.empty;
+
+    expect(sectionOf('Living room').getByText(empty)).toBeInTheDocument();
+    expect(sectionOf('Bedroom').getByText(empty)).toBeInTheDocument();
+    expect(sectionOf('Bathroom').queryByText(empty)).not.toBeInTheDocument();
+    expect(
+      sectionOf('Bathroom').getByRole('switch', {
+        name: catalogs.en.HeatedFloorSwitch.title,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the options list when a room has options', async () => {
+    await renderEngineering();
+
+    expect(
+      screen.queryByText(catalogs.en.RoomEngineering.empty),
+    ).not.toBeInTheDocument();
   });
 
   it.each(forEachLocale)(

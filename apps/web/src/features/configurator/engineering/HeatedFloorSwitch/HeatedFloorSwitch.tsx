@@ -5,10 +5,7 @@ import { useCallback } from 'react';
 import { SwitchRow } from '@/components/ui';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { heatedFloorRoomLine } from '@/lib/engine/card-cost';
-import {
-  findHeatedFloorOption,
-  isHeatedFloorAllowed,
-} from '@/lib/engine/heated-floor';
+import { isHeatedFloorOffered } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../../shell/use-room-pricing';
 
@@ -26,25 +23,21 @@ export function HeatedFloorSwitch({ room, pricing }: HeatedFloorSwitchProps) {
     [clientId, setHeatedFloor],
   );
 
-  const option = pricing
-    ? findHeatedFloorOption(pricing.pricing.options)
-    : null;
   if (
-    !option ||
-    room.roomTypeCode === null ||
-    !isHeatedFloorAllowed(option, room.roomTypeCode)
+    !pricing ||
+    !isHeatedFloorOffered(pricing.pricing.options, room.roomTypeCode)
   ) {
     return null;
   }
 
-  const line = pricing ? heatedFloorRoomLine(pricing.context, clientId) : null;
-  const cost =
-    pricing && line?.status === 'OK' ? pricing.formatLine(line) : undefined;
+  const line = heatedFloorRoomLine(pricing.context, clientId);
+  const cost = line?.status === 'OK' ? pricing.formatLine(line) : undefined;
+  const description = t('description');
 
   return (
     <SwitchRow
       title={t('title')}
-      description={cost ? t('priced', { cost }) : t('description')}
+      description={cost ? t('priced', { description, cost }) : description}
       checked={room.heatedFloor}
       onCheckedChange={handleChange}
     />
