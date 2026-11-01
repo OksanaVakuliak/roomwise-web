@@ -831,6 +831,14 @@
       "close": "Закрити діалог"
     }
   },
+  "EngineeringStep": {
+    "loading": "Завантаження приміщень",
+    "roomFallback": "Приміщення"
+  },
+  "HeatedFloorNote": {
+    "text": "Тепла підлога увімкнена",
+    "link": "Змінити в «Інженерії»"
+  },
   "InteriorStep": {
     "switcherLabel": "Приміщення",
     "loading": "Завантаження приміщень",

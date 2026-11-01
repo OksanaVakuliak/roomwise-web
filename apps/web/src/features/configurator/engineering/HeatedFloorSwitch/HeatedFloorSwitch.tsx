@@ -9,7 +9,7 @@ import {
   isHeatedFloorAllowed,
 } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
-import type { RoomPricing } from '../use-room-pricing';
+import type { RoomPricing } from '../../interior/use-room-pricing';
 
 export type HeatedFloorSwitchProps = {
   room: DraftRoom;

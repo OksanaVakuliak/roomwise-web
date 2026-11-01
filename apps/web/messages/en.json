@@ -831,6 +831,14 @@
       "close": "Close dialog"
     }
   },
+  "EngineeringStep": {
+    "loading": "Loading rooms",
+    "roomFallback": "Room"
+  },
+  "HeatedFloorNote": {
+    "text": "Heated floor is on",
+    "link": "Change in Engineering"
+  },
   "InteriorStep": {
     "switcherLabel": "Rooms",
     "loading": "Loading rooms",

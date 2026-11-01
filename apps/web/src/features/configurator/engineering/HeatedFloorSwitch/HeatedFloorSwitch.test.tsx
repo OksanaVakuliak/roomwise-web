@@ -10,7 +10,7 @@ import {
 } from '@/test/render-with-providers';
 import en from '../../../../../messages/en.json';
 import uk from '../../../../../messages/uk.json';
-import { useRoomPricing } from '../use-room-pricing';
+import { useRoomPricing } from '../../interior/use-room-pricing';
 import { HeatedFloorSwitch } from './HeatedFloorSwitch';
 
 const catalogs = { en, uk };
