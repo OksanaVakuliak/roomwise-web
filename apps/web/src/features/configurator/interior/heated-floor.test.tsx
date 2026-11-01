@@ -258,6 +258,29 @@ describe('heated floor and room options on the interior step', () => {
       },
     );
 
+    it('adds its cost to the room subtotal', async () => {
+      await renderStep(livingUrl);
+      await toggle(SOUNDPROOFING);
+
+      const option = estimateLine(SOUNDPROOFING_LINE)?.amountCents ?? 0;
+      const materials = (
+        runEstimate({
+          draft: currentDraft(),
+          draftRevision: useDraft.getState().revision,
+          pricing,
+          pricingVersion: pricing.version,
+          currency: 'UAH',
+        }).estimate?.lines ?? []
+      )
+        .filter((line) => line.id.startsWith(`MATERIALS:${livingId}:`))
+        .reduce((sum, line) => sum + line.amountCents, 0);
+
+      expect(option).toBeGreaterThan(0);
+      expect(
+        within(roomSection('Living room')).getByRole('heading', { level: 3 }),
+      ).toHaveTextContent(usd(materials + option));
+    });
+
     it('is removed from the chosen items and the estimate by its remove button', async () => {
       await renderStep(livingUrl);
       await toggle(SOUNDPROOFING);

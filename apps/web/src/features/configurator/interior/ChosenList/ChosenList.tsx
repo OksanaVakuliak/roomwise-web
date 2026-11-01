@@ -14,7 +14,7 @@ import {
 import { optionRoomLine } from '@/lib/engine/card-cost';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
-import { useRoomOptions } from '../use-room-options';
+import { useChosenRoomOptions } from '../use-room-options';
 import type { RoomPricing } from '../use-room-pricing';
 import styles from './ChosenList.module.css';
 
@@ -218,11 +218,7 @@ type ChosenOptionsProps = {
 };
 
 function ChosenOptions({ room, roomName, pricing }: ChosenOptionsProps) {
-  const options = useDraft((state) => state.options);
-  const available = useRoomOptions(room);
-  const chosen = available.filter((option) =>
-    (options[option.id]?.roomClientIds ?? []).includes(room.clientId),
-  );
+  const chosen = useChosenRoomOptions(room);
 
   return chosen.map((option) => (
     <ChosenOptionRow
@@ -269,11 +265,16 @@ function ChosenSection({
       active: group.categories.some((item) => item.id === activeCategoryId),
     };
   });
+  const chosenOptions = useChosenRoomOptions(room);
   const lines = pricing
-    ? rows.flatMap(({ category }) => {
-        const line = pricing.materialsLine(room.clientId, category.id);
-        return line?.status === 'OK' ? [line] : [];
-      })
+    ? [
+        ...rows.map(({ category }) =>
+          pricing.materialsLine(room.clientId, category.id),
+        ),
+        ...chosenOptions.map((option) =>
+          optionRoomLine(pricing.context, room.clientId, option.id),
+        ),
+      ].flatMap((line) => (line?.status === 'OK' ? [line] : []))
     : [];
 
   return (
