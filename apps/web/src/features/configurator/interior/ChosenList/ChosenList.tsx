@@ -215,11 +215,15 @@ type ChosenOptionsProps = {
   room: DraftRoom;
   roomName: string;
   pricing: RoomPricing | null;
+  chosen: ReturnType<typeof useChosenRoomOptions>;
 };
 
-function ChosenOptions({ room, roomName, pricing }: ChosenOptionsProps) {
-  const chosen = useChosenRoomOptions(room);
-
+function ChosenOptions({
+  room,
+  roomName,
+  pricing,
+  chosen,
+}: ChosenOptionsProps) {
   return chosen.map((option) => (
     <ChosenOptionRow
       key={option.id}
@@ -303,7 +307,12 @@ function ChosenSection({
             onSelect={onSelect}
           />
         ))}
-        <ChosenOptions room={room} roomName={name} pricing={pricing} />
+        <ChosenOptions
+          room={room}
+          roomName={name}
+          pricing={pricing}
+          chosen={chosenOptions}
+        />
       </ul>
     </section>
   );
