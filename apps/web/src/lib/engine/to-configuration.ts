@@ -8,6 +8,7 @@ import type {
   RoomTypeCode,
 } from '@roomwise/calc-engine';
 import type { DraftRoom, DraftV1 } from '@/lib/draft/schema';
+import { findHeatedFloorOption, isHeatedFloorAllowed } from './heated-floor';
 
 export type ConfigurationMode = 'preview' | 'strict';
 
@@ -89,10 +90,11 @@ function optionsOf(
   rooms: readonly RoomConfiguration[],
 ): OptionSelection[] {
   const roomIds = new Set(rooms.map((room) => room.clientId));
+  const heatedFloorOption = findHeatedFloorOption(pricing.options);
   const result: OptionSelection[] = [];
   for (const option of pricing.options) {
     const chosen = draft.options[option.id];
-    if (!chosen) {
+    if (!chosen || option.id === heatedFloorOption?.id) {
       continue;
     }
     switch (option.unit) {
@@ -115,6 +117,15 @@ function optionsOf(
         break;
       }
     }
+  }
+  const heatedFloorRoomIds = rooms
+    .filter((room) => room.heatedFloor)
+    .map((room) => room.clientId);
+  if (heatedFloorOption && heatedFloorRoomIds.length > 0) {
+    result.push({
+      optionId: heatedFloorOption.id,
+      roomClientIds: heatedFloorRoomIds,
+    });
   }
   return result;
 }
@@ -153,6 +164,7 @@ export function toConfiguration(
     throw new IncompleteDraftError('ROOMS_COUNT');
   }
 
+  const heatedFloorOption = findHeatedFloorOption(pricing.options);
   const rooms: RoomConfiguration[] = [];
   for (const room of draft.rooms) {
     const problem = roomProblem(room, limits);
@@ -169,7 +181,9 @@ export function toConfiguration(
       lengthM: complete.lengthM,
       widthM: complete.widthM,
       heightM: complete.heightM,
-      heatedFloor: false,
+      heatedFloor:
+        complete.heatedFloor &&
+        isHeatedFloorAllowed(heatedFloorOption, complete.roomTypeCode),
       selections: selectionsOf(complete, pricing, options),
     });
   }
