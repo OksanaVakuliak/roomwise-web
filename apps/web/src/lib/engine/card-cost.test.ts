@@ -5,6 +5,7 @@ import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import {
   cardCostContext,
   clearCardCostCache,
+  heatedFloorRoomLine,
   optionRoomLine,
   productCardLine,
 } from './card-cost';
@@ -103,5 +104,56 @@ describe('optionRoomLine', () => {
 
   it('returns null for an unknown option', () => {
     expect(optionRoomLine(context(), living, 'missing')).toBeNull();
+  });
+});
+
+describe('heatedFloorRoomLine', () => {
+  it('matches the heated floor line of the full estimate for a single room', () => {
+    const draft = makeInteriorDraft();
+    const line = heatedFloorRoomLine(context(draft), bath);
+    expect(line?.amountCents).toBe(
+      fullLine(draft, 'ENGINEERING:option:opt-heated-floor')?.amountCents,
+    );
+    expect(line?.amountCents).toBeGreaterThan(0);
+  });
+
+  it('prices the room even when its heated floor is off', () => {
+    const draft = makeInteriorDraft();
+    const off = {
+      ...draft,
+      rooms: draft.rooms.map((room) => ({ ...room, heatedFloor: false })),
+    };
+    expect(heatedFloorRoomLine(context(off), bath)?.amountCents).toBe(
+      heatedFloorRoomLine(context(draft), bath)?.amountCents,
+    );
+  });
+
+  it('ignores the heated floor of other rooms', () => {
+    const draft = makeInteriorDraft();
+    const both = {
+      ...draft,
+      rooms: draft.rooms.map((room) => ({
+        ...room,
+        roomTypeCode: 'BATHROOM' as const,
+        heatedFloor: true,
+      })),
+    };
+    const alone = heatedFloorRoomLine(context(draft), bath);
+    const shared = heatedFloorRoomLine(context(both), bath);
+    expect(shared?.amountCents).toBeLessThan(
+      fullLine(both, 'ENGINEERING:option:opt-heated-floor')?.amountCents ?? 0,
+    );
+    expect(shared?.amountCents).toBeGreaterThan(0);
+    expect(alone?.amountCents).toBeGreaterThan(0);
+  });
+
+  it('returns null for a room type the option does not allow', () => {
+    expect(heatedFloorRoomLine(context(), living)).toBeNull();
+  });
+
+  it('returns the memoized line on a repeated call', () => {
+    expect(heatedFloorRoomLine(context(), bath)).toBe(
+      heatedFloorRoomLine(context(), bath),
+    );
   });
 });

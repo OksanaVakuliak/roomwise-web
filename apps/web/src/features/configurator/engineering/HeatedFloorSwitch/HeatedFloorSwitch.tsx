@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useCallback } from 'react';
 import { SwitchRow } from '@/components/ui';
 import type { DraftRoom } from '@/lib/draft/schema';
+import { heatedFloorRoomLine } from '@/lib/engine/card-cost';
 import {
   findHeatedFloorOption,
   isHeatedFloorAllowed,
@@ -36,10 +37,14 @@ export function HeatedFloorSwitch({ room, pricing }: HeatedFloorSwitchProps) {
     return null;
   }
 
+  const line = pricing ? heatedFloorRoomLine(pricing.context, clientId) : null;
+  const cost =
+    pricing && line?.status === 'OK' ? pricing.formatLine(line) : undefined;
+
   return (
     <SwitchRow
       title={t('title')}
-      description={t('description')}
+      description={cost ? `${t('description')} · ${cost}` : t('description')}
       checked={room.heatedFloor}
       onCheckedChange={handleChange}
     />

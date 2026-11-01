@@ -5,6 +5,7 @@ import {
   type PricingData,
 } from '@roomwise/calc-engine';
 import type { DraftV1 } from '@/lib/draft/schema';
+import { findHeatedFloorOption } from './heated-floor';
 import { toConfiguration } from './to-configuration';
 
 export type CardCostContext = {
@@ -129,6 +130,34 @@ export function optionRoomLine(
   };
   const line = lineOf(reduced, context, `ENGINEERING:option:${optionId}`);
   lines.set(optionId, line);
+  return line;
+}
+
+export function heatedFloorRoomLine(
+  context: CardCostContext,
+  roomClientId: string,
+): EstimateLine | null {
+  const { draft, pricing, pricingVersion, currency, shape } = context;
+  const option = findHeatedFloorOption(pricing.options);
+  if (!option) {
+    return null;
+  }
+  const key = `heated-floor|${pricingVersion}|${currency}|${shape}|${roomClientId}`;
+  const lines = remember(key);
+  if (lines.has(option.id)) {
+    return lines.get(option.id) ?? null;
+  }
+  const reduced: DraftV1 = {
+    ...draft,
+    options: {},
+    rooms: draft.rooms.map((room) => ({
+      ...room,
+      selections: {},
+      heatedFloor: room.clientId === roomClientId,
+    })),
+  };
+  const line = lineOf(reduced, context, `ENGINEERING:option:${option.id}`);
+  lines.set(option.id, line);
   return line;
 }
 
