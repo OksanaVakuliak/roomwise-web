@@ -178,8 +178,41 @@ describe('StyleStep', () => {
 
       await chooseCard('Classic');
 
-      expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1);
+      const pressed = screen.getAllByRole('button', { pressed: true });
+      expect(pressed).toHaveLength(2);
+      for (const button of pressed) {
+        expect(button.closest('li')).toHaveTextContent('Classic');
+      }
       expect(useDraft.getState().styleId).toBe(styleIds.classic);
+    },
+  );
+
+  it.each(forEachLocale)(
+    'chooses a style with its choose button in %s',
+    async (locale) => {
+      await renderStep(unstyledDraft(), locale);
+      const t = createTranslator({
+        locale,
+        messages: catalogs[locale],
+        namespace: 'StyleStep',
+      });
+
+      await act(async () => {
+        fireEvent.click(
+          screen.getByRole('button', {
+            name: t('chooseLabel', { name: 'Classic' }),
+          }),
+        );
+      });
+
+      await waitFor(() =>
+        expect(useDraft.getState().styleId).toBe(styleIds.classic),
+      );
+      expect(
+        screen.getByRole('button', {
+          name: t('chooseLabel', { name: 'Classic' }),
+        }),
+      ).toHaveTextContent(t('picked'));
     },
   );
 

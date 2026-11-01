@@ -257,26 +257,6 @@ describe('RoomList', () => {
     expect(useDraft.getState().rooms).toHaveLength(1);
   });
 
-  it('lets the mismatch action delete the room through the same flow', async () => {
-    const t = translator('en');
-    const mismatched = makeDraftRoom({
-      clientId: 'mismatched',
-      roomTypeCode: 'LIVING_ROOM',
-    });
-    const draft = makeEmptyDraft({ rooms: [mismatched] });
-    await renderList({
-      ...draft,
-      object: { ...draft.object, kitchenType: 'KITCHEN_LIVING' },
-    });
-
-    expect(screen.getByText(t('typeMismatch'))).toBeInTheDocument();
-    fireEvent.click(
-      screen.getByRole('button', { name: t('deleteMismatched') }),
-    );
-
-    expect(useDraft.getState().rooms).toHaveLength(0);
-  });
-
   it('passes field errors to the matching room only', async () => {
     const t = translator('en');
     await renderList(makeEmptyDraft({ rooms: [plain, withMaterial] }), 'en', {

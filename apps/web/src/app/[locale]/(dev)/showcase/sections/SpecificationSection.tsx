@@ -3,6 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useState } from 'react';
 import {
+  Button,
+  Gallery,
   PickedBadge,
   Price,
   SectionHeader,
@@ -14,13 +16,16 @@ import { SizeFrame } from '../DesktopFrame';
 import styles from './SpecificationSection.module.css';
 
 const RATE = { uahPerUsd: 41.5 };
+const ROOM_AREA = 6;
 const SIZES = ['mobile', 'desktop'] as const;
 const ITEMS = [
-  { id: 'oak', position: '1.1', cents: 1420, fit: 'no', tone: 'wood' },
-  { id: 'ash', position: '1.4', cents: 4100, fit: 'no', tone: 'paint' },
-  { id: 'pine', position: '1.2', cents: 1980, fit: 'ok', tone: 'concrete' },
-  { id: 'graphite', position: '1.3', cents: 2250, fit: 'ok', tone: 'line' },
+  { id: 'oak', cents: 1420, fit: 'no', tone: 'wood' },
+  { id: 'ash', cents: 4100, fit: 'no', tone: 'paint' },
+  { id: 'pine', cents: 1980, fit: 'ok', tone: 'concrete' },
+  { id: 'graphite', cents: 2250, fit: 'ok', tone: 'line' },
+  { id: 'walnut', cents: 1190, fit: 'no', tone: 'wood' },
 ] as const;
+const SHOTS = ['front', 'side', 'close'] as const;
 const STYLES = ['scandinavian', 'loft', 'classic'] as const;
 const STYLE_TONES = ['paint', 'concrete', 'wood'] as const;
 
@@ -48,13 +53,16 @@ function SpecRow({ item, size }: { item: Item; size: (typeof SIZES)[number] }) {
   return (
     <SpecItem
       size={size}
-      position={item.position}
       image={<Swatch tone={item.tone} />}
       name={t(`items.${item.id}.name`)}
       brand={t(`items.${item.id}.brand`)}
       dimensions={t(`items.${item.id}.dimensions`)}
+      color={item.id === 'walnut' ? t('items.walnut.color') : undefined}
       fit={item.fit}
       fitLabel={t(item.fit === 'ok' ? 'fitOk' : 'fitNo')}
+      warning={item.id === 'ash' ? t('warning') : undefined}
+      unavailable={item.id === 'walnut'}
+      unavailableLabel={t('unavailable')}
       selected={selected}
       pickedLabel={t('picked')}
       price={
@@ -66,7 +74,24 @@ function SpecRow({ item, size }: { item: Item; size: (typeof SIZES)[number] }) {
         />
       }
       unit={t('perSquare')}
-      onSelect={toggle}
+      roomCost={
+        <Price
+          cents={item.cents * ROOM_AREA}
+          currency={size === 'desktop' ? 'UAH' : 'USD'}
+          locale={locale}
+          rate={RATE}
+        />
+      }
+      roomCostLabel={t('forRoom')}
+      actions={
+        <Button
+          kind={selected ? 'outline' : 'fill'}
+          aria-pressed={selected}
+          onClick={toggle}
+        >
+          {t(selected ? 'chosen' : 'choose')}
+        </Button>
+      }
     />
   );
 }
@@ -113,6 +138,10 @@ export function SpecificationSection() {
   const t = useTranslations('ShowcaseSpecification');
   const locale = useLocale();
   const [style, setStyle] = useState<StyleName>('scandinavian');
+  const imageLabel = useCallback(
+    (index: number, total: number) => t('imageOf', { index, total }),
+    [t],
+  );
 
   return (
     <div className={styles.stack}>
@@ -201,6 +230,19 @@ export function SpecificationSection() {
           </SizeFrame>
         </div>
       ))}
+
+      <h3 className={styles.heading}>{t('gallery')}</h3>
+      <p className={styles.caption}>{t('galleryNote')}</p>
+      <div className={styles.gallery}>
+        <Gallery
+          label={t('galleryLabel')}
+          images={SHOTS.map((shot) => ({
+            src: null,
+            name: t(`shots.${shot}`),
+          }))}
+          thumbnailLabel={imageLabel}
+        />
+      </div>
 
       <h3 className={styles.heading}>{t('styleCard')}</h3>
       <ul className={styles.cards}>

@@ -258,41 +258,6 @@ describe('validateObject', () => {
     });
   });
 
-  describe('kitchen type mismatch', () => {
-    it('blocks without a field message', () => {
-      const result = validateObject(
-        makeDraft({ kitchenType: 'SEPARATE' }, [
-          validRoom({ roomTypeCode: 'KITCHEN_LIVING' }),
-        ]),
-        limits,
-      );
-      expect(result.rooms[roomA]).toBeUndefined();
-      expect(result.firstInvalidId).toBe(roomFieldDomId(roomA, 'roomTypeCode'));
-      expect(isObjectValid(result)).toBe(false);
-    });
-
-    it('blocks the other way around', () => {
-      const result = validateObject(
-        makeDraft({ kitchenType: 'KITCHEN_LIVING' }, [
-          validRoom({ roomTypeCode: 'LIVING_ROOM' }),
-        ]),
-        limits,
-      );
-      expect(result.rooms[roomA]).toBeUndefined();
-      expect(result.firstInvalidId).toBe(roomFieldDomId(roomA, 'roomTypeCode'));
-    });
-
-    it('is valid with a matching room type', () => {
-      const result = validateObject(
-        makeDraft({ kitchenType: 'KITCHEN_LIVING' }, [
-          validRoom({ roomTypeCode: 'KITCHEN_LIVING' }),
-        ]),
-        limits,
-      );
-      expect(isObjectValid(result)).toBe(true);
-    });
-  });
-
   describe('focus order', () => {
     const badBalcony = { present: true, areaSqm: -1, tiles: false };
 

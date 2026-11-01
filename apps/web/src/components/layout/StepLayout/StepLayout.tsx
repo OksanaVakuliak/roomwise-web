@@ -5,6 +5,7 @@ import styles from './StepLayout.module.css';
 
 export type StepLayoutProps = {
   steps: ReactNode;
+  picker?: ReactNode;
   content: ReactNode;
   scene: ReactNode;
   detail?: ReactNode;
@@ -15,6 +16,7 @@ export type StepLayoutProps = {
 
 export function StepLayout({
   steps,
+  picker,
   content,
   scene,
   detail,
@@ -27,7 +29,14 @@ export function StepLayout({
   return (
     <div className={cx(styles.root, className)}>
       <div className={styles.steps}>{steps}</div>
-      <div className={styles.body}>
+      <div
+        className={cx(styles.body, picker !== undefined && styles.withPicker)}
+      >
+        {picker ? (
+          <section className={styles.picker} aria-label={t('picker')}>
+            {picker}
+          </section>
+        ) : null}
         <div className={styles.main}>
           <div className={styles.content}>{content}</div>
           <section className={styles.scene} aria-label={t('scene')}>

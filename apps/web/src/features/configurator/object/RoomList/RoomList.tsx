@@ -13,6 +13,7 @@ import { Button, ConfirmDialog, Icon } from '@/components/ui';
 import { useDefaultMaterials, useRoomTypes } from '@/lib/api/catalog';
 import { needsDeleteConfirm } from '@/lib/draft/rooms';
 import type { RoomCatalog } from '@/lib/draft/style';
+import { focusField } from '@/lib/focus';
 import { useDraft } from '@/stores/draft';
 import { RoomEditor, type RoomTypeOption } from '../RoomEditor/RoomEditor';
 import {
@@ -29,7 +30,6 @@ export type RoomListProps = {
 export function RoomList({ errors = {} }: RoomListProps) {
   const t = useTranslations('ObjectStep.rooms');
   const rooms = useDraft((state) => state.rooms);
-  const kitchenType = useDraft((state) => state.object.kitchenType);
   const addRoom = useDraft((state) => state.addRoom);
   const removeRoom = useDraft((state) => state.removeRoom);
   const roomTypesQuery = useRoomTypes();
@@ -54,9 +54,9 @@ export function RoomList({ errors = {} }: RoomListProps) {
     if (pendingFocus.current === null) {
       return;
     }
-    const target = document.getElementById(pendingFocus.current);
+    const target = pendingFocus.current;
     pendingFocus.current = null;
-    target?.focus();
+    focusField(target);
   });
 
   const handleAdd = useCallback(() => {
@@ -111,7 +111,6 @@ export function RoomList({ errors = {} }: RoomListProps) {
               <RoomEditor
                 room={room}
                 rooms={rooms}
-                kitchenType={kitchenType}
                 roomTypes={roomTypes}
                 catalog={catalog}
                 errors={errors[room.clientId]}

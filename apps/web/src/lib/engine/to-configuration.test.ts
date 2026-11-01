@@ -70,7 +70,7 @@ describe('toConfiguration object fields', () => {
     expect(configuration?.balconyTiles).toBe(tiles);
   });
 
-  it('passes gas and kitchen type as is', () => {
+  it('passes gas and kitchen type from the draft as is', () => {
     const configuration = toConfiguration(
       withObject({ gas: true, kitchenType: 'KITCHEN_LIVING' }),
       pricing,
@@ -97,14 +97,8 @@ describe('toConfiguration currency', () => {
 describe('toConfiguration rooms', () => {
   const valid = makeDraftRoom({ clientId: 'valid' });
 
-  function previewRooms(
-    rooms: DraftV1['rooms'],
-    kitchenType: DraftV1['object']['kitchenType'] = 'SEPARATE',
-  ): string[] {
-    const draft = makeInteriorDraft({
-      object: { ...makeInteriorDraft().object, kitchenType },
-      rooms,
-    });
+  function previewRooms(rooms: DraftV1['rooms']): string[] {
+    const draft = makeInteriorDraft({ rooms });
     return (
       toConfiguration(draft, pricing, preview)?.rooms.map(
         (room) => room.clientId,
@@ -139,19 +133,14 @@ describe('toConfiguration rooms', () => {
     expect(previewRooms(rooms)).toEqual(['valid']);
   });
 
-  it('skips room types not allowed for the kitchen type', () => {
+  it('keeps every room type, including a kitchen next to a kitchen-living room', () => {
     const rooms = [
       makeDraftRoom({ clientId: 'living', roomTypeCode: 'LIVING_ROOM' }),
       makeDraftRoom({ clientId: 'kitchen', roomTypeCode: 'KITCHEN' }),
       makeDraftRoom({ clientId: 'kl', roomTypeCode: 'KITCHEN_LIVING' }),
       makeDraftRoom({ clientId: 'bath', roomTypeCode: 'BATHROOM' }),
     ];
-    expect(previewRooms(rooms, 'SEPARATE')).toEqual([
-      'living',
-      'kitchen',
-      'bath',
-    ]);
-    expect(previewRooms(rooms, 'KITCHEN_LIVING')).toEqual(['kl', 'bath']);
+    expect(previewRooms(rooms)).toEqual(['living', 'kitchen', 'kl', 'bath']);
   });
 
   it('returns a configuration with no rooms in preview', () => {
@@ -344,13 +333,6 @@ describe('toConfiguration strict', () => {
       'room with null dimension',
       makeInteriorDraft({ rooms: [makeDraftRoom({ heightM: null })] }),
       'ROOM_DIMENSIONS',
-    ],
-    [
-      'room type not allowed',
-      makeInteriorDraft({
-        rooms: [makeDraftRoom({ roomTypeCode: 'KITCHEN_LIVING' })],
-      }),
-      'ROOM_TYPE_NOT_ALLOWED',
     ],
     [
       'balcony without area',

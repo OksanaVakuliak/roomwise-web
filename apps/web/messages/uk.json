@@ -280,6 +280,8 @@
     "headerNote": "товщини збільшено",
     "pickedBadge": "Бейдж «обрано»",
     "picked": "обрано",
+    "choose": "Обрати",
+    "chosen": "Обрано",
     "price": "Ціна",
     "priceUsd": "USD",
     "priceUah": "UAH за зразковим курсом",
@@ -313,6 +315,12 @@
         "name": "Плитка «Бетон графіт»",
         "brand": "Kerama Nova, Азовкераміка",
         "dimensions": "600 × 600 × 9, графіт"
+      },
+      "walnut": {
+        "name": "Ламінат «Горіх Токай»",
+        "brand": "Ліс і Ко, Kronowerk",
+        "dimensions": "1285 × 192 × 10",
+        "color": "темний горіх"
       }
     },
     "styleCard": "Картка стилю",
@@ -329,6 +337,18 @@
         "name": "Класичний",
         "description": "тепле дерево, ліпнина"
       }
+    },
+    "forRoom": "для приміщення (6 м²)",
+    "warning": "Не для теплої підлоги, вибір не заблоковано",
+    "unavailable": "тимчасово недоступно",
+    "gallery": "Галерея",
+    "galleryNote": "Стрілки, Home та End перемикають мініатюри.",
+    "galleryLabel": "Фото товару",
+    "imageOf": "зображення {index} з {total}",
+    "shots": {
+      "front": "Загальний вигляд",
+      "side": "Збоку",
+      "close": "Крупним планом"
     }
   },
   "ShowcaseFormFields": {
@@ -674,6 +694,7 @@
   "StepLayout": {
     "steps": "Кроки конфігуратора",
     "scene": "Вигляд кімнати",
+    "picker": "Підбір матеріалів",
     "showcase": "Специфікація",
     "cost": "Кошторис"
   },
@@ -782,6 +803,8 @@
   "StyleStep": {
     "listLabel": "Стилі",
     "picked": "Обрано",
+    "choose": "Обрати",
+    "chooseLabel": "Обрати стиль: {name}",
     "previewOpen": "Збільшити",
     "preview": "Збільшити: {name}",
     "previewClose": "Закрити перегляд",
@@ -803,16 +826,25 @@
       "close": "Закрити діалог"
     }
   },
+  "InteriorStep": {
+    "switcherLabel": "Приміщення",
+    "loading": "Завантаження приміщень",
+    "roomFallback": "Приміщення",
+    "scene": {
+      "cut": "А",
+      "description": "{name} {length} на {width}, висота {height}, лінія розрізу А–А через підлогу"
+    },
+    "unitM": "м",
+    "wallsMobile": "стіни {walls}",
+    "perimeter": "периметр {perimeter}",
+    "closePicker": "Закрити"
+  },
   "ObjectStep": {
     "form": {
       "finishLevel": "Стан здачі",
       "finishRough": "Чорнова",
       "finishPre": "Передчистова",
       "totalArea": "Загальна площа",
-      "gas": "Газ у квартирі",
-      "kitchenType": "Тип кухні",
-      "kitchenSeparate": "Окрема кухня",
-      "kitchenLiving": "Кухня-вітальня",
       "balcony": "Балкон",
       "balconyArea": "Площа балкона",
       "balconyTiles": "Класти плитку на балконі",
@@ -837,9 +869,6 @@
       "deleteMessage": "Обрані для нього матеріали й опції теж буде видалено.",
       "deleteConfirm": "Видалити",
       "deleteCancel": "Залишити",
-      "typeMismatch": "Цей тип приміщення недоступний для обраного типу кухні",
-      "changeType": "Змінити тип",
-      "deleteMismatched": "Видалити",
       "deleteClose": "Закрити вікно"
     },
     "validation": {
@@ -849,6 +878,92 @@
       "roomTypeRequired": "Оберіть тип приміщення",
       "roomsExceedTotal": "Сума площ приміщень перевищує загальну площу на {difference, number} м². Ви можете продовжити."
     },
-    "plan": "План квартири"
+    "plan": "План квартири",
+    "planCount": "{count, plural, one {# приміщення} few {# приміщення} many {# приміщень} other {# приміщення}}",
+    "planEmpty": "Додайте приміщення — тут з'явиться план квартири",
+    "planSummary": {
+      "roomsOfTotal": "Приміщення: {rooms} м² із {total} м²",
+      "roomsOnly": "Приміщення: {rooms} м²"
+    },
+    "planCost": {
+      "base": "Базова вартість: {area} м² × {price} = {amount}",
+      "objectLine": "{name}: {amount}"
+    }
+  },
+  "Specification": {
+    "title": "Вибір матеріалів",
+    "tabsLabel": "Категорії",
+    "emptyTitle": "Для цього приміщення немає товарів",
+    "emptyText": "У цій категорії поки немає з чого обирати.",
+    "dismiss": "Закрити",
+    "categoryGone": "Цієї категорії більше немає. Каталог оновлено.",
+    "finishLabel": "Тип оздоблення"
+  },
+  "ChosenList": {
+    "title": "Обрано",
+    "choose": "оберіть матеріал",
+    "openPicker": "Обрати матеріал",
+    "current": "відкрито",
+    "remove": "Прибрати",
+    "removeLabel": "Прибрати {category} з приміщення {room}",
+    "add": "Додати",
+    "addLabel": "Додати {category} до приміщення {room}"
+  },
+  "ProductShowcase": {
+    "loading": "Завантаження товарів",
+    "sortLabel": "Сортування",
+    "sort": {
+      "server": "Рекомендовані",
+      "asc": "Ціна: від меншої до більшої",
+      "desc": "Ціна: від більшої до меншої"
+    },
+    "unit": {
+      "SQM": "за м²",
+      "LINEAR_M": "за м",
+      "PIECE": "за шт."
+    },
+    "picked": "обрано",
+    "unavailable": "тимчасово недоступно",
+    "forRoom": "для приміщення",
+    "detail": "Детальніше",
+    "detailLabel": "Детальніше: {name}",
+    "choose": "Обрати",
+    "chosen": "Обрано",
+    "chooseLabel": "Обрати: {name}",
+    "excluded": "Не входить у розрахунок — оберіть матеріал, щоб додати",
+    "replaces": "Зараз для {surface} обрано: {name}. Обраний тут матеріал замінить цей вибір"
+  },
+  "ProductDetail": {
+    "title": "Товар",
+    "loading": "Завантаження товару",
+    "close": "Закрити",
+    "gallery": "Фото товару",
+    "thumbnail": "Фото {index} з {total}",
+    "brand": "Бренд",
+    "size": "Розмір",
+    "color": "Колір",
+    "unitPrice": "Ціна",
+    "unit": {
+      "SQM": "за м²",
+      "LINEAR_M": "за м",
+      "PIECE": "за шт."
+    },
+    "quantity": "Кількість для приміщення",
+    "quantityValue": "{quantity, number, ::.##} {unit, select, SQM {м²} LINEAR_M {м} PIECE {шт.} other {}}",
+    "cost": "Вартість для приміщення",
+    "choose": "Обрати",
+    "picked": "Обрано",
+    "gone": "Товар більше недоступний.",
+    "unavailable": "Тимчасово недоступно"
+  },
+  "Surface": {
+    "FLOOR": "Підлога",
+    "WALLS": "Стіни",
+    "CEILING": "Стеля",
+    "for": {
+      "FLOOR": "підлоги",
+      "WALLS": "стін",
+      "CEILING": "стелі"
+    }
   }
 }

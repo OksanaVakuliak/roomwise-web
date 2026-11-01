@@ -1,0 +1,14 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  min-width: 0;
+}
+
+.unbreakable {
+  white-space: nowrap;
+}
+
+.title > div {
+  padding: 0;
+}

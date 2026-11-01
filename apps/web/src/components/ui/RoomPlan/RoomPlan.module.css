@@ -35,6 +35,7 @@
   height: calc(var(--room-width) * var(--plan-scale));
   border: var(--stroke-1-5) solid var(--line);
   background: var(--fill-a);
+  transition: background-color var(--duration-fast) var(--ease-standard);
 }
 
 .current .sketch {

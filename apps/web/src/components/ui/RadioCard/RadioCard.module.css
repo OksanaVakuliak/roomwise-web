@@ -20,10 +20,14 @@
   gap: var(--space-12);
   box-sizing: border-box;
   min-height: var(--size-target);
-  padding: var(--space-10) var(--space-12);
+  padding: var(--space-4) var(--space-12);
   border: var(--stroke-1-5) solid var(--line);
   background: var(--paper);
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 }
 
 .root:hover .face {
@@ -39,6 +43,7 @@
   border: var(--stroke-1-5) solid var(--line);
   border-radius: 100%;
   background: var(--paper);
+  transition: border-color var(--duration-fast) var(--ease-standard);
 }
 
 .mark::after {
@@ -48,6 +53,7 @@
   border-radius: 100%;
   background: var(--heat);
   opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
 }
 
 .input:checked ~ .face {

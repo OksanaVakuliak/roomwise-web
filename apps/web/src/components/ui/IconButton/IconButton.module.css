@@ -9,7 +9,10 @@
   background: transparent;
   color: var(--line);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 }
 
 .root:hover {

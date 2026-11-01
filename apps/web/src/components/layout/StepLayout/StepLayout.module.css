@@ -21,6 +21,7 @@
 }
 
 .content,
+.picker,
 .scene,
 .detail,
 .showcase {
@@ -45,20 +46,39 @@
 }
 
 @media (max-width: 767.98px) {
+  .picker {
+    display: none;
+  }
+
   .aside {
     display: contents;
   }
 
   .showcase {
-    padding: 0 var(--space-16);
+    padding: 0 var(--space-16) var(--space-16);
   }
 }
 
 @media (min-width: 768px) {
   .body {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--layout-aside-width-tablet);
+    grid-template-columns: minmax(0, 1fr) minmax(
+        var(--layout-aside-width-tablet),
+        0.49fr
+      );
     align-items: stretch;
+  }
+
+  .withPicker {
+    grid-template-columns:
+      minmax(var(--layout-picker-min-width), 4.3fr)
+      minmax(0, 4.5fr)
+      minmax(var(--layout-aside-min-width), 4.2fr);
+  }
+
+  .picker {
+    padding: var(--space-16) var(--space-24);
+    border-right: var(--stroke-1-5) solid var(--line);
   }
 
   .main {
@@ -70,7 +90,12 @@
     padding: var(--space-16) var(--space-16) var(--space-16);
   }
 
+  .showcase {
+    padding-bottom: var(--space-16);
+  }
+
   .cost {
+    position: static;
     margin-top: auto;
     max-height: none;
     overflow-y: visible;

@@ -21,7 +21,9 @@
   font-weight: var(--text-pref-weight);
   font-size: var(--text-pref-size);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
 }
 
 .item:first-child {

@@ -9,13 +9,16 @@ import { useDraftHydration } from '@/stores/use-draft-hydration';
 import { useDraftTabSync } from '@/stores/use-draft-tab-sync';
 import { CostPanel } from '../CostPanel/CostPanel';
 import { DraftNotices } from '../DraftNotices/DraftNotices';
+import { PickerSlotContext } from '../PickerSlot/picker-slot-context';
 import { SceneSlotContext } from '../SceneSlot/scene-slot-context';
+import { ShowcaseSlotContext } from '../ShowcaseSlot/showcase-slot-context';
 import { StepGuard } from '../StepGuard/StepGuard';
 import { StepNav } from '../StepNav/StepNav';
 import { StepTape } from '../StepTape/StepTape';
 import { StepValidationProvider } from '../StepValidation/StepValidation';
 import { stepFromPath } from '../step-path';
 import { useStepContext } from '../use-step-context';
+import { useSurfaceNormalization } from '../use-surface-normalization';
 
 export type ConfiguratorShellProps = {
   children: ReactNode;
@@ -33,39 +36,57 @@ function ConfiguratorFrame({
   const ready = hydrated && state.status !== 'loading';
   const context = state.status === 'ready' ? state.context : null;
   const [sceneSlot, setSceneSlot] = useState<HTMLElement | null>(null);
+  const [showcaseSlot, setShowcaseSlot] = useState<HTMLElement | null>(null);
+  const [pickerSlot, setPickerSlot] = useState<HTMLElement | null>(null);
 
   useDraftTabSync();
+  useSurfaceNormalization(hydrated);
 
   return (
     <StepValidationProvider>
       <SceneSlotContext value={sceneSlot}>
-        <StepLayout
-          steps={<StepTape current={step} context={ready ? context : null} />}
-          content={
-            ready ? (
-              <>
-                <DraftNotices />
-                <StepGuard step={step} context={context}>
-                  {children}
-                </StepGuard>
-              </>
-            ) : (
-              <ZoneSkeleton kind="rooms" />
-            )
-          }
-          scene={<div ref={setSceneSlot} />}
-          showcase={ready ? null : <ZoneSkeleton kind="showcase" />}
-          cost={
-            ready ? (
-              <>
-                <CostPanel />
-                <StepNav step={step} context={context} />
-              </>
-            ) : (
-              <ZoneSkeleton kind="estimate" />
-            )
-          }
-        />
+        <ShowcaseSlotContext value={showcaseSlot}>
+          <PickerSlotContext value={pickerSlot}>
+            <StepLayout
+              steps={
+                <StepTape current={step} context={ready ? context : null} />
+              }
+              content={
+                ready ? (
+                  <>
+                    <DraftNotices />
+                    <StepGuard step={step} context={context}>
+                      {children}
+                    </StepGuard>
+                  </>
+                ) : (
+                  <ZoneSkeleton kind="rooms" />
+                )
+              }
+              picker={
+                step === 'interior' ? <div ref={setPickerSlot} /> : undefined
+              }
+              scene={<div ref={setSceneSlot} />}
+              showcase={
+                ready ? (
+                  <div ref={setShowcaseSlot} />
+                ) : (
+                  <ZoneSkeleton kind="showcase" />
+                )
+              }
+              cost={
+                ready ? (
+                  <>
+                    <CostPanel />
+                    <StepNav step={step} context={context} />
+                  </>
+                ) : (
+                  <ZoneSkeleton kind="estimate" />
+                )
+              }
+            />
+          </PickerSlotContext>
+        </ShowcaseSlotContext>
       </SceneSlotContext>
     </StepValidationProvider>
   );

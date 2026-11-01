@@ -37,11 +37,11 @@ async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
   return data;
 }
 
-function useCatalogReady() {
+export function useCatalogReady() {
   return useWarmup(selectWarmupStatus) === 'ready';
 }
 
-function useLang(): Lang {
+export function useLang(): Lang {
   return useLocale() as Lang;
 }
 
@@ -97,17 +97,23 @@ export function useCategoryProducts(categoryId: string | null) {
   });
 }
 
+export function productQuery(productId: string, lang: Lang) {
+  return {
+    queryKey: catalogKeys.product(productId, lang),
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/public/products/{productId}', {
+          params: { path: { productId }, query: { lang } },
+        }),
+      ),
+  };
+}
+
 export function useProduct(productId: string | null) {
   const lang = useLang();
   const ready = useCatalogReady();
   return useQuery({
-    queryKey: catalogKeys.product(productId ?? '', lang),
-    queryFn: () =>
-      unwrap(
-        api.GET('/api/v1/public/products/{productId}', {
-          params: { path: { productId: productId ?? '' }, query: { lang } },
-        }),
-      ),
+    ...productQuery(productId ?? '', lang),
     enabled: ready && productId !== null,
   });
 }

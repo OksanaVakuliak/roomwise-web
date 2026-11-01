@@ -334,3 +334,183 @@ describe('useDraft style actions', () => {
     expect(rooms()).toEqual(before);
   });
 });
+
+describe('useDraft selection actions', () => {
+  const roomTypes = makeRoomTypes();
+  const defaults = makeDefaultMaterials(styleIds.modern);
+  const catalog = { defaultMaterials: defaults, roomTypes };
+  const selection = () =>
+    useDraft.getState().rooms[0]?.selections[categoryIds.floor];
+  let roomId = '';
+
+  beforeEach(() => {
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    roomId = useDraft.getState().addRoom(catalog) ?? '';
+  });
+
+  it('selects a product as manual and replaces the previous one', () => {
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+
+    expect(selection()).toEqual({
+      productId: productIds.tile,
+      disabled: false,
+      source: 'manual',
+    });
+  });
+
+  it('re-enables a disabled category when a product is selected', () => {
+    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+
+    expect(selection()?.disabled).toBe(false);
+  });
+
+  it('disables a category but keeps its product', () => {
+    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+
+    expect(selection()).toEqual({
+      productId: productIds.laminate,
+      disabled: true,
+      source: 'style',
+    });
+  });
+
+  it('restores the product when the category is enabled again', () => {
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft.getState().enableCategory(roomId, categoryIds.floor);
+
+    expect(selection()).toEqual({
+      productId: productIds.tile,
+      disabled: false,
+      source: 'manual',
+    });
+  });
+
+  it('ignores an unknown room but still bumps revision', () => {
+    const before = useDraft.getState().rooms;
+    const revision = useDraft.getState().revision;
+
+    useDraft
+      .getState()
+      .selectProduct('missing', categoryIds.floor, productIds.tile);
+    useDraft.getState().disableCategory('missing', categoryIds.floor);
+    useDraft.getState().enableCategory('missing', categoryIds.floor);
+
+    expect(useDraft.getState().rooms).toEqual(before);
+    expect(useDraft.getState().revision).toBe(revision + 3);
+  });
+
+  it('increments revision on every action', () => {
+    const revision = useDraft.getState().revision;
+
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft.getState().enableCategory(roomId, categoryIds.floor);
+
+    expect(useDraft.getState().revision).toBe(revision + 3);
+  });
+});
+
+describe('useDraft one finish per surface', () => {
+  const wallpaperId = 'cat-wallpaper';
+  const base = makeRoomTypes();
+  const wallpaper = {
+    ...base.items[0].categories[1],
+    id: wallpaperId,
+    name: 'Wallpaper',
+  };
+  const roomTypes = {
+    items: base.items.map((type) => {
+      const [floor, walls, ceiling] = type.categories;
+      return { ...type, categories: [floor, walls, wallpaper, ceiling] };
+    }),
+  };
+  const defaults = makeDefaultMaterials(styleIds.modern);
+  const withWallpaper = {
+    ...defaults,
+    items: [
+      ...defaults.items,
+      ...(['LIVING_ROOM', 'BEDROOM'] as const).map((roomTypeCode) => ({
+        roomTypeCode,
+        categoryId: wallpaperId,
+        productId: productIds.paintPremium,
+      })),
+    ],
+  };
+  const catalog = { defaultMaterials: withWallpaper, roomTypes };
+  const selections = () => useDraft.getState().rooms[0]?.selections ?? {};
+  let roomId = '';
+
+  beforeEach(() => {
+    useDraft.getState().selectStyle(withWallpaper, roomTypes);
+    roomId = useDraft.getState().addRoom(catalog) ?? '';
+  });
+
+  it('applies a style with only the first finish of a surface enabled', () => {
+    expect(selections()[categoryIds.walls]?.disabled).toBe(false);
+    expect(selections()[wallpaperId]).toEqual({
+      productId: productIds.paintPremium,
+      disabled: true,
+      source: 'style',
+    });
+  });
+
+  it('disables the sibling when a product is selected', () => {
+    useDraft
+      .getState()
+      .selectProduct(roomId, wallpaperId, productIds.paintPremium, [
+        categoryIds.walls,
+      ]);
+
+    expect(selections()[wallpaperId]?.disabled).toBe(false);
+    expect(selections()[categoryIds.walls]).toMatchObject({
+      productId: productIds.paint,
+      disabled: true,
+    });
+  });
+
+  it('disables the sibling when a category is enabled again', () => {
+    useDraft
+      .getState()
+      .enableCategory(roomId, wallpaperId, [categoryIds.walls]);
+
+    expect(selections()[wallpaperId]?.disabled).toBe(false);
+    expect(selections()[categoryIds.walls]?.disabled).toBe(true);
+  });
+
+  it('normalises a stored draft with two finishes on one surface', () => {
+    useDraft.setState({
+      rooms: useDraft.getState().rooms.map((room) => ({
+        ...room,
+        selections: Object.fromEntries(
+          Object.entries(room.selections).map(([id, selection]) => [
+            id,
+            { ...selection, disabled: false },
+          ]),
+        ),
+      })),
+    });
+
+    useDraft.getState().normalizeSurfaces(roomTypes);
+
+    expect(selections()[categoryIds.walls]?.disabled).toBe(false);
+    expect(selections()[wallpaperId]?.disabled).toBe(true);
+  });
+
+  it('leaves the revision alone when nothing needs normalising', () => {
+    const revision = useDraft.getState().revision;
+
+    useDraft.getState().normalizeSurfaces(roomTypes);
+
+    expect(useDraft.getState().revision).toBe(revision);
+  });
+});

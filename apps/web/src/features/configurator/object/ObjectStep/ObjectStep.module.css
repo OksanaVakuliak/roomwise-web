@@ -21,17 +21,3 @@
   outline: var(--focus-ring-width) solid var(--line);
   outline-offset: var(--focus-ring-offset);
 }
-
-.plans {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--space-16);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.plan {
-  min-width: 0;
-}

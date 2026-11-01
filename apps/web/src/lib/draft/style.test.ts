@@ -189,6 +189,69 @@ describe('retypeSelections', () => {
     });
   });
 
+  it('keeps a surface on when its style winner changes with the type', () => {
+    const tileWalls = 'category-tile-walls';
+    const wallpaper = 'category-wallpaper';
+    const base = roomTypes.items[0].categories;
+    const walls = base.find((category) => category.id === categoryIds.walls);
+    if (!walls) {
+      throw new Error('walls category missing');
+    }
+    const types = {
+      items: roomTypes.items.map((type) => {
+        if (type.code === 'BATHROOM') {
+          return {
+            ...type,
+            categories: [{ ...walls, id: tileWalls }, ...base],
+          };
+        }
+        if (type.code === 'KITCHEN') {
+          return {
+            ...type,
+            categories: [...base, { ...walls, id: wallpaper }],
+          };
+        }
+        return type;
+      }),
+    };
+    const styleDefaults = {
+      ...defaults,
+      items: [
+        ...defaults.items,
+        {
+          roomTypeCode: 'BATHROOM' as const,
+          categoryId: tileWalls,
+          productId: productIds.tile,
+        },
+        {
+          roomTypeCode: 'KITCHEN' as const,
+          categoryId: wallpaper,
+          productId: productIds.paintPremium,
+        },
+      ],
+    };
+    const bathroom = materialsForRoom('BATHROOM', styleDefaults, types);
+
+    const next = retypeSelections(bathroom, 'KITCHEN', styleDefaults, types);
+
+    expect(next[categoryIds.walls]?.disabled).toBe(false);
+    expect(next[wallpaper]?.disabled).toBe(true);
+  });
+
+  it('keeps a removed surface off after a type change', () => {
+    const next = retypeSelections(
+      {
+        [categoryIds.walls]: { ...fromStyle(productIds.paint), disabled: true },
+      },
+      'KITCHEN',
+      defaults,
+      roomTypes,
+    );
+
+    expect(next[categoryIds.walls]?.disabled).toBe(true);
+    expect(next[categoryIds.floor]?.disabled).toBe(false);
+  });
+
   it('keeps style materials of shared categories without a style', () => {
     expect(
       retypeSelections(

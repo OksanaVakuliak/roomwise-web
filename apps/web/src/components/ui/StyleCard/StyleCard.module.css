@@ -1,5 +1,7 @@
 .root {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   width: 100%;
   min-height: var(--size-target);
   padding: var(--space-8);
@@ -8,6 +10,9 @@
   color: var(--line);
   text-align: left;
   cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
 }
 
 .on {

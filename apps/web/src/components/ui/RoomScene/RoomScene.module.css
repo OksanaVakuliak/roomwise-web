@@ -78,3 +78,8 @@
   color: var(--heat);
   font-size: var(--text-cutmark-size);
 }
+
+.shade {
+  fill: var(--paint-2);
+  opacity: 0.3;
+}

@@ -1,7 +1,6 @@
 import type {
   Configuration,
   Currency,
-  KitchenType,
   OptionSelection,
   PricingData,
   Range,
@@ -24,7 +23,6 @@ export type IncompleteReason =
   | 'BALCONY_AREA'
   | 'ROOMS_COUNT'
   | 'ROOM_TYPE'
-  | 'ROOM_TYPE_NOT_ALLOWED'
   | 'ROOM_DIMENSIONS'
   | 'STYLE';
 
@@ -40,18 +38,6 @@ export class IncompleteDraftError extends Error {
   }
 }
 
-const ROOM_TYPES_BY_KITCHEN: Record<KitchenType, readonly RoomTypeCode[]> = {
-  SEPARATE: ['LIVING_ROOM', 'BEDROOM', 'KITCHEN', 'BATHROOM'],
-  KITCHEN_LIVING: ['BEDROOM', 'KITCHEN_LIVING', 'BATHROOM'],
-};
-
-export function isRoomTypeAllowed(
-  kitchenType: KitchenType,
-  roomTypeCode: RoomTypeCode,
-): boolean {
-  return ROOM_TYPES_BY_KITCHEN[kitchenType].includes(roomTypeCode);
-}
-
 function inRange(value: number | null, range: Range): value is number {
   return value !== null && value >= range.min && value <= range.max;
 }
@@ -65,14 +51,10 @@ type CompleteRoom = DraftRoom & {
 
 function roomProblem(
   room: DraftRoom,
-  kitchenType: KitchenType,
   limits: PricingData['limits'],
 ): IncompleteReason | null {
   if (room.roomTypeCode === null) {
     return 'ROOM_TYPE';
-  }
-  if (!isRoomTypeAllowed(kitchenType, room.roomTypeCode)) {
-    return 'ROOM_TYPE_NOT_ALLOWED';
   }
   const valid =
     inRange(room.lengthM, limits.roomSideM) &&
@@ -173,7 +155,7 @@ export function toConfiguration(
 
   const rooms: RoomConfiguration[] = [];
   for (const room of draft.rooms) {
-    const problem = roomProblem(room, object.kitchenType, limits);
+    const problem = roomProblem(room, limits);
     if (problem !== null) {
       if (strict) {
         throw new IncompleteDraftError(problem, room.clientId);

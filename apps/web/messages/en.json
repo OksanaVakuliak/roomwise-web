@@ -280,6 +280,8 @@
     "headerNote": "thicknesses enlarged",
     "pickedBadge": "Picked badge",
     "picked": "picked",
+    "choose": "Choose",
+    "chosen": "Selected",
     "price": "Price",
     "priceUsd": "USD",
     "priceUah": "UAH at the sample rate",
@@ -313,6 +315,12 @@
         "name": "Tile “Graphite Concrete”",
         "brand": "Kerama Nova, Azov Ceramics",
         "dimensions": "600 × 600 × 9, graphite"
+      },
+      "walnut": {
+        "name": "Laminate “Tokay Walnut”",
+        "brand": "Forest & Co, Kronowerk",
+        "dimensions": "1285 × 192 × 10",
+        "color": "dark walnut"
       }
     },
     "styleCard": "Style card",
@@ -329,6 +337,18 @@
         "name": "Classic",
         "description": "warm wood, mouldings"
       }
+    },
+    "forRoom": "for the room (6 m²)",
+    "warning": "Not for heated floor, selection stays available",
+    "unavailable": "temporarily unavailable",
+    "gallery": "Gallery",
+    "galleryNote": "Arrow keys, Home and End move between thumbnails.",
+    "galleryLabel": "Product photos",
+    "imageOf": "image {index} of {total}",
+    "shots": {
+      "front": "Front view",
+      "side": "Side view",
+      "close": "Close-up"
     }
   },
   "ShowcaseFormFields": {
@@ -674,6 +694,7 @@
   "StepLayout": {
     "steps": "Configurator steps",
     "scene": "Room view",
+    "picker": "Material picker",
     "showcase": "Specification",
     "cost": "Estimate"
   },
@@ -782,6 +803,8 @@
   "StyleStep": {
     "listLabel": "Styles",
     "picked": "Selected",
+    "choose": "Choose",
+    "chooseLabel": "Choose the {name} style",
     "previewOpen": "Zoom in",
     "preview": "Zoom in on {name}",
     "previewClose": "Close preview",
@@ -803,16 +826,25 @@
       "close": "Close dialog"
     }
   },
+  "InteriorStep": {
+    "switcherLabel": "Rooms",
+    "loading": "Loading rooms",
+    "roomFallback": "Room",
+    "scene": {
+      "cut": "A",
+      "description": "{name} {length} by {width}, height {height}, section line A–A through the floor"
+    },
+    "unitM": "m",
+    "wallsMobile": "walls {walls}",
+    "perimeter": "perimeter {perimeter}",
+    "closePicker": "Close"
+  },
   "ObjectStep": {
     "form": {
       "finishLevel": "Finish level",
       "finishRough": "Rough",
       "finishPre": "Pre-finish",
       "totalArea": "Total area",
-      "gas": "Gas in the apartment",
-      "kitchenType": "Kitchen type",
-      "kitchenSeparate": "Separate kitchen",
-      "kitchenLiving": "Kitchen-living room",
       "balcony": "Balcony",
       "balconyArea": "Balcony area",
       "balconyTiles": "Tile the balcony floor",
@@ -837,9 +869,6 @@
       "deleteMessage": "The materials and options chosen for this room will be removed too.",
       "deleteConfirm": "Delete",
       "deleteCancel": "Keep",
-      "typeMismatch": "This room type is not available with the selected kitchen type",
-      "changeType": "Change type",
-      "deleteMismatched": "Delete",
       "deleteClose": "Close dialog"
     },
     "validation": {
@@ -849,6 +878,92 @@
       "roomTypeRequired": "Choose the room type",
       "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue."
     },
-    "plan": "Plan of the apartment"
+    "plan": "Plan of the apartment",
+    "planCount": "{count, plural, one {# room} other {# rooms}}",
+    "planEmpty": "Add a room and the apartment plan will appear here",
+    "planSummary": {
+      "roomsOfTotal": "Rooms: {rooms} m² of {total} m²",
+      "roomsOnly": "Rooms: {rooms} m²"
+    },
+    "planCost": {
+      "base": "Base cost: {area} m² × {price} = {amount}",
+      "objectLine": "{name}: {amount}"
+    }
+  },
+  "Specification": {
+    "title": "Choose materials",
+    "tabsLabel": "Categories",
+    "emptyTitle": "No products for this room",
+    "emptyText": "This category has nothing to choose from yet.",
+    "dismiss": "Dismiss",
+    "categoryGone": "This category is no longer available. The catalog has been refreshed.",
+    "finishLabel": "Finish type"
+  },
+  "ChosenList": {
+    "title": "Chosen",
+    "choose": "choose a material",
+    "openPicker": "Choose a material",
+    "current": "open",
+    "remove": "Remove",
+    "removeLabel": "Remove {category} from {room}",
+    "add": "Add",
+    "addLabel": "Add {category} to {room}"
+  },
+  "ProductShowcase": {
+    "loading": "Loading products",
+    "sortLabel": "Sort by",
+    "sort": {
+      "server": "Recommended",
+      "asc": "Price: low to high",
+      "desc": "Price: high to low"
+    },
+    "unit": {
+      "SQM": "per m²",
+      "LINEAR_M": "per m",
+      "PIECE": "per piece"
+    },
+    "picked": "picked",
+    "unavailable": "temporarily unavailable",
+    "forRoom": "for the room",
+    "detail": "Details",
+    "detailLabel": "Details: {name}",
+    "choose": "Choose",
+    "chosen": "Selected",
+    "chooseLabel": "Choose: {name}",
+    "excluded": "Not in the estimate — choose a material to add it",
+    "replaces": "Currently chosen for {surface}: {name}. The material you pick here will replace it"
+  },
+  "ProductDetail": {
+    "title": "Product",
+    "loading": "Loading product",
+    "close": "Close",
+    "gallery": "Product photos",
+    "thumbnail": "Photo {index} of {total}",
+    "brand": "Brand",
+    "size": "Size",
+    "color": "Color",
+    "unitPrice": "Price",
+    "unit": {
+      "SQM": "per m²",
+      "LINEAR_M": "per m",
+      "PIECE": "per piece"
+    },
+    "quantity": "Quantity for the room",
+    "quantityValue": "{quantity, number, ::.##} {unit, select, SQM {m²} LINEAR_M {m} PIECE {pcs} other {}}",
+    "cost": "Cost for the room",
+    "choose": "Choose",
+    "picked": "Chosen",
+    "gone": "This product is no longer available.",
+    "unavailable": "Temporarily unavailable"
+  },
+  "Surface": {
+    "FLOOR": "Floor",
+    "WALLS": "Walls",
+    "CEILING": "Ceiling",
+    "for": {
+      "FLOOR": "the floor",
+      "WALLS": "the walls",
+      "CEILING": "the ceiling"
+    }
   }
 }

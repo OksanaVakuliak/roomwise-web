@@ -24,20 +24,13 @@ export type ObjectFormProps = {
 };
 
 type FinishLevel = NonNullable<DraftV1['object']['finishLevel']>;
-type KitchenType = DraftV1['object']['kitchenType'];
 
 const FINISH_LEVELS: readonly FinishLevel[] = ['ROUGH', 'PRE_FINISH'];
-const KITCHEN_TYPES: readonly KitchenType[] = ['SEPARATE', 'KITCHEN_LIVING'];
 
 const FINISH_LABEL = {
   ROUGH: 'finishRough',
   PRE_FINISH: 'finishPre',
 } as const satisfies Record<FinishLevel, string>;
-
-const KITCHEN_LABEL = {
-  SEPARATE: 'kitchenSeparate',
-  KITCHEN_LIVING: 'kitchenLiving',
-} as const satisfies Record<KitchenType, string>;
 
 export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
   const t = useTranslations('ObjectStep.form');
@@ -53,21 +46,12 @@ export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
       setObject({ finishLevel: event.target.value as FinishLevel }),
     [setObject],
   );
-  const changeKitchen = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) =>
-      setObject({ kitchenType: event.target.value as KitchenType }),
-    [setObject],
-  );
   const changeTotal = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       setTotalText(event.target.value);
       setObject({ totalAreaSqm: parseDecimal(event.target.value) ?? null });
     },
     [setObject, setTotalText],
-  );
-  const changeGas = useCallback(
-    (gas: boolean) => setObject({ gas }),
-    [setObject],
   );
   const changePresent = useCallback(
     (present: boolean) => setObject({ balcony: { ...balcony, present } }),
@@ -116,26 +100,6 @@ export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
         required
         value={totalText}
         onChange={changeTotal}
-      />
-
-      <RadioCardGroup label={t('kitchenType')} error={errors.kitchenType}>
-        {KITCHEN_TYPES.map((type, index) => (
-          <RadioCard
-            key={type}
-            id={index === 0 ? objectFieldDomId('kitchenType') : undefined}
-            name="object-kitchenType"
-            value={type}
-            label={t(KITCHEN_LABEL[type])}
-            checked={object.kitchenType === type}
-            onChange={changeKitchen}
-          />
-        ))}
-      </RadioCardGroup>
-
-      <SwitchRow
-        title={t('gas')}
-        checked={object.gas}
-        onCheckedChange={changeGas}
       />
 
       <div className={styles.balcony}>
