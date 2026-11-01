@@ -11,7 +11,10 @@ import {
   groupCategories,
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
+import { optionRoomLine } from '@/lib/engine/card-cost';
+import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
+import { useChosenRoomOptions } from '../use-room-options';
 import type { RoomPricing } from '../use-room-pricing';
 import styles from './ChosenList.module.css';
 
@@ -71,6 +74,7 @@ function ChosenRow({
     (item) => item.id === productId,
   );
   const line = pricing?.materialsLine(clientId, category.id);
+  const warned = hasHeatedFloorWarning(line);
   const sum =
     pricing && line?.status === 'OK' ? pricing.formatLine(line) : null;
   const select = useCallback(
@@ -136,6 +140,9 @@ function ChosenRow({
           <span className={cx(styles.name, productId === null && styles.muted)}>
             {productId === null ? t('choose') : product?.name}
           </span>
+          {warned ? (
+            <span className={styles.warning}>{t('heatedFloorWarning')}</span>
+          ) : null}
         </span>
         {shown && sum ? (
           <span className={`${styles.sum} num`}>{sum}</span>
@@ -153,6 +160,80 @@ function ChosenRow({
       )}
     </li>
   );
+}
+
+type ChosenOptionRowProps = {
+  room: DraftRoom;
+  roomName: string;
+  pricing: RoomPricing | null;
+  optionId: string;
+  name: string;
+};
+
+function ChosenOptionRow({
+  room,
+  roomName,
+  pricing,
+  optionId,
+  name,
+}: ChosenOptionRowProps) {
+  const t = useTranslations('ChosenList');
+  const toggle = useDraft((state) => state.toggleRoomOption);
+  const { clientId } = room;
+  const remove = useCallback(
+    () => toggle(optionId, clientId),
+    [clientId, optionId, toggle],
+  );
+  const line = pricing
+    ? optionRoomLine(pricing.context, clientId, optionId)
+    : null;
+  const sum =
+    pricing && line?.status === 'OK' ? pricing.formatLine(line) : null;
+
+  return (
+    <li className={cx(styles.item, styles.option)}>
+      <span className={styles.row}>
+        <span className={styles.body}>
+          <span className={styles.category}>{t('option')}</span>
+          <span className={styles.name}>{name}</span>
+        </span>
+        {sum ? <span className={`${styles.sum} num`}>{sum}</span> : null}
+      </span>
+      <Button
+        kind="outline"
+        className={styles.action}
+        aria-label={t('removeLabel', { category: name, room: roomName })}
+        onClick={remove}
+      >
+        {t('remove')}
+      </Button>
+    </li>
+  );
+}
+
+type ChosenOptionsProps = {
+  room: DraftRoom;
+  roomName: string;
+  pricing: RoomPricing | null;
+  chosen: ReturnType<typeof useChosenRoomOptions>;
+};
+
+function ChosenOptions({
+  room,
+  roomName,
+  pricing,
+  chosen,
+}: ChosenOptionsProps) {
+  return chosen.map((option) => (
+    <ChosenOptionRow
+      key={option.id}
+      room={room}
+      roomName={roomName}
+      pricing={pricing}
+      optionId={option.id}
+      name={option.name}
+    />
+  ));
 }
 
 type ChosenSectionProps = {
@@ -188,11 +269,16 @@ function ChosenSection({
       active: group.categories.some((item) => item.id === activeCategoryId),
     };
   });
+  const chosenOptions = useChosenRoomOptions(room);
   const lines = pricing
-    ? rows.flatMap(({ category }) => {
-        const line = pricing.materialsLine(room.clientId, category.id);
-        return line?.status === 'OK' ? [line] : [];
-      })
+    ? [
+        ...rows.map(({ category }) =>
+          pricing.materialsLine(room.clientId, category.id),
+        ),
+        ...chosenOptions.map((option) =>
+          optionRoomLine(pricing.context, room.clientId, option.id),
+        ),
+      ].flatMap((line) => (line?.status === 'OK' ? [line] : []))
     : [];
 
   return (
@@ -221,6 +307,12 @@ function ChosenSection({
             onSelect={onSelect}
           />
         ))}
+        <ChosenOptions
+          room={room}
+          roomName={name}
+          pricing={pricing}
+          chosen={chosenOptions}
+        />
       </ul>
     </section>
   );

@@ -36,7 +36,7 @@ describe('UpdateNotice', () => {
   it('renders nothing before an update', () => {
     stubServiceWorker(workerAt(PAGE_VERSION));
     const { container } = renderWithProviders(<UpdateNotice />);
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstElementChild).toBeEmptyDOMElement();
   });
 
   it('announces a worker from a different build', async () => {
@@ -63,26 +63,26 @@ describe('UpdateNotice', () => {
     const change = stubServiceWorker(workerAt(PAGE_VERSION));
     const { container } = renderWithProviders(<UpdateNotice />);
     act(() => change());
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstElementChild).toBeEmptyDOMElement();
   });
 
   it('stays quiet on the first install of the same build', () => {
     const change = stubServiceWorker(null);
     const { container } = renderWithProviders(<UpdateNotice />);
     act(() => change(workerAt(PAGE_VERSION)));
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstElementChild).toBeEmptyDOMElement();
   });
 
   it('stays quiet when the worker carries no version', () => {
     const change = stubServiceWorker(null);
     const { container } = renderWithProviders(<UpdateNotice />);
     act(() => change({ scriptURL: 'https://roomwise.app/serwist/sw.js' }));
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstElementChild).toBeEmptyDOMElement();
   });
 
   it('does nothing without service worker support', () => {
     const { container } = renderWithProviders(<UpdateNotice />);
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstElementChild).toBeEmptyDOMElement();
   });
 
   it('reloads the page from the action', async () => {
@@ -104,6 +104,6 @@ describe('UpdateNotice', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Dismiss' }));
 
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstElementChild).toBeEmptyDOMElement();
   });
 });

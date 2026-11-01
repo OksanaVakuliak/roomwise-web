@@ -2,219 +2,40 @@ import { act, fireEvent, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '@/lib/api/client';
 import { clearCardCostCache } from '@/lib/engine/card-cost';
-import { clearEstimateCache, runEstimate } from '@/lib/engine/run-estimate';
-import { moneyMinor } from '@/lib/format';
+import { clearEstimateCache } from '@/lib/engine/run-estimate';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { resetWarmup, useWarmup } from '@/lib/warmup/warmup';
 import { useDraft } from '@/stores/draft';
 import { axe } from '@/test/axe';
-import {
-  categoryIds,
-  makeCategoryProducts,
-  makeRoomTypes,
-  productIds,
-  type RoomTypesResponse,
-} from '@/test/fixtures/catalog';
-import {
-  type DraftV1,
-  makeDraftRoom,
-  makeInteriorDraft,
-} from '@/test/fixtures/draft';
-import { makePricingData } from '@/test/fixtures/pricing-data';
-import {
-  createTestQueryClient,
-  forEachLocale,
-  renderWithProviders,
-  seedCatalog,
-} from '@/test/render-with-providers';
-import { setViewport } from '@/test/viewports';
+import { categoryIds, productIds } from '@/test/fixtures/catalog';
+import { makeInteriorDraft } from '@/test/fixtures/draft';
+import { forEachLocale } from '@/test/render-with-providers';
 import en from '../../../../messages/en.json';
-import uk from '../../../../messages/uk.json';
-import { ConfiguratorShell } from '../shell/ConfiguratorShell/ConfiguratorShell';
-import { InteriorStep } from './InteriorStep/InteriorStep';
+import {
+  bathroomId,
+  bedroomId,
+  cardNamed,
+  catalogs,
+  categoryRows,
+  chooseButton,
+  costRow,
+  currentDraft,
+  FLOOR_NAMES,
+  kitchenLivingId,
+  livingId,
+  makeKitchenLivingDraft,
+  noLandmarkRule,
+  panelOf,
+  productCards,
+  renderStep,
+  roomSection,
+  rowButton,
+  showcase,
+  usd,
+  wallpaperId,
+} from './interior-step.helpers';
 
 vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
-
-const noLandmarkRule = { rules: { region: { enabled: false } } };
-const catalogs = { en, uk };
-const pricing = makePricingData();
-
-const livingId = '00000000-0000-4000-8000-000000000301';
-const bathroomId = '00000000-0000-4000-8000-000000000302';
-const bedroomId = '00000000-0000-4000-8000-000000000303';
-const kitchenLivingId = '00000000-0000-4000-8000-000000000304';
-
-const FLOOR_NAMES = [
-  'Oak Natural Laminate',
-  'Stone Grey Porcelain Tile',
-  'Walnut Premium Laminate',
-];
-
-function styleSelection(productId: string) {
-  return { productId, disabled: false, source: 'style' as const };
-}
-
-function makeDraft(): DraftV1 {
-  const base = makeInteriorDraft();
-  return {
-    ...base,
-    rooms: [
-      ...base.rooms,
-      makeDraftRoom({
-        clientId: bedroomId,
-        roomTypeCode: 'BEDROOM',
-        lengthM: 4,
-        widthM: 3,
-        selections: {
-          [categoryIds.floor]: styleSelection(productIds.laminate),
-          [categoryIds.walls]: styleSelection(productIds.paint),
-        },
-      }),
-    ],
-  };
-}
-
-function makeKitchenLivingDraft(): DraftV1 {
-  const base = makeInteriorDraft();
-  return {
-    ...base,
-    rooms: [
-      makeDraftRoom({
-        clientId: kitchenLivingId,
-        roomTypeCode: 'KITCHEN_LIVING',
-        lengthM: 6,
-        widthM: 4,
-        selections: {
-          [categoryIds.walls]: styleSelection(productIds.paint),
-        },
-      }),
-      base.rooms[1],
-    ],
-  };
-}
-
-const wallpaperId = 'cat-wallpaper';
-
-function makeCatalog(withWallpaper = false): RoomTypesResponse {
-  const base = makeRoomTypes();
-  const [floor, walls, ceiling] = base.items[0].categories;
-  const wallpaper = { ...walls, id: wallpaperId, name: 'Wallpaper' };
-  return {
-    items: base.items.map((type) => {
-      if (withWallpaper && type.code === 'LIVING_ROOM') {
-        return { ...type, categories: [floor, walls, wallpaper, ceiling] };
-      }
-      if (type.code === 'KITCHEN_LIVING') {
-        return { ...type, categories: [walls, floor] };
-      }
-      if (type.code === 'BEDROOM') {
-        return {
-          ...type,
-          categories: [floor, walls, { ...ceiling, productCount: 0 }],
-        };
-      }
-      return type;
-    }),
-  };
-}
-
-type StepOptions = NonNullable<Parameters<typeof renderWithProviders>[1]> & {
-  viewport?: number;
-  draft?: DraftV1;
-  withWallpaper?: boolean;
-};
-
-async function renderStep(url: string, options: StepOptions = {}) {
-  const {
-    viewport = 1024,
-    draft = makeDraft(),
-    withWallpaper = false,
-    ...rest
-  } = options;
-  setViewport(viewport);
-  useDraft.setState({ ...draft, revision: 1 });
-  const locale = rest.locale ?? 'en';
-  const queryClient = rest.queryClient ?? createTestQueryClient();
-  seedCatalog(queryClient, locale);
-  queryClient.setQueryData(['room-types', locale], makeCatalog(withWallpaper));
-  queryClient.setQueryData(
-    ['products', wallpaperId, locale],
-    makeCategoryProducts(categoryIds.walls),
-  );
-  let result!: ReturnType<typeof renderWithProviders>;
-  await act(async () => {
-    result = renderWithProviders(
-      <ConfiguratorShell>
-        <InteriorStep />
-      </ConfiguratorShell>,
-      { url, ...rest, catalog: false, queryClient },
-    );
-  });
-  return result;
-}
-
-function roomSection(name: string) {
-  return screen.getByRole('region', { name: new RegExp(name) });
-}
-
-function categoryRows(name = 'Living room') {
-  return within(within(roomSection(name)).getByRole('list')).getAllByRole(
-    'listitem',
-  );
-}
-
-function rowButton(row: HTMLElement) {
-  return within(row).getAllByRole('button')[0];
-}
-
-function productCards(root: HTMLElement) {
-  return within(root).getAllByRole('listitem');
-}
-
-function showcase(name: string) {
-  return screen.getByRole('list', { name });
-}
-
-function cardNamed(root: HTMLElement, name: string) {
-  const found = productCards(root).find((card) =>
-    card.textContent?.includes(name),
-  );
-  if (!found) {
-    throw new Error(`No card named ${name}`);
-  }
-  return found;
-}
-
-function chooseButton(root: HTMLElement, name: string) {
-  return within(cardNamed(root, name)).getByRole('button', {
-    name: `Choose: ${name}`,
-  });
-}
-
-function currentDraft(): DraftV1 {
-  const { rooms, options, object, styleId, step, furthestStep, lastSaved } =
-    useDraft.getState();
-  return { rooms, options, object, styleId, step, furthestStep, lastSaved };
-}
-
-function panelOf(draft: DraftV1) {
-  return runEstimate({
-    draft,
-    draftRevision: 1,
-    pricing,
-    pricingVersion: pricing.version,
-    currency: 'UAH',
-  }).panel;
-}
-
-function usd(cents: number | undefined) {
-  return moneyMinor(cents ?? 0, 'USD', 'en');
-}
-
-function costRow(label: string) {
-  const term = screen.getByText(label, { selector: 'dt' });
-  return within(term.parentElement as HTMLElement).getByRole('definition');
-}
 
 describe('InteriorStep integration', () => {
   beforeEach(() => {
@@ -400,7 +221,9 @@ describe('InteriorStep integration', () => {
       `/configurator/interior?room=${livingId}&category=${categoryIds.ceiling}`,
     );
     const before = panelOf(currentDraft());
-    expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('switch', { name: en.HeatedFloorSwitch.title }),
+    ).not.toBeInTheDocument();
 
     await act(async () => {
       fireEvent.click(

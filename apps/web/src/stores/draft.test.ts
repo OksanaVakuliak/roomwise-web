@@ -8,6 +8,7 @@ import {
   productIds,
   styleIds,
 } from '@/test/fixtures/catalog';
+import { makePricingData } from '@/test/fixtures/pricing-data';
 import { DRAFT_STORAGE_KEY, useDraft } from './draft';
 
 const stored = () => {
@@ -29,6 +30,7 @@ beforeEach(() => {
     revision: 0,
     storageAvailable: true,
     notice: null,
+    heatedFloorReset: false,
   });
 });
 
@@ -554,5 +556,208 @@ describe('useDraft one finish per surface', () => {
     useDraft.getState().normalizeSurfaces(roomTypes);
 
     expect(useDraft.getState().revision).toBe(revision);
+  });
+
+  const heated = (id: string) =>
+    useDraft.getState().rooms.find((room) => room.clientId === id)?.heatedFloor;
+
+  it('turns the heated floor on and off for one room and bumps the revision', () => {
+    const first = useDraft.getState().addRoom() as string;
+    const second = useDraft.getState().addRoom() as string;
+    const revision = useDraft.getState().revision;
+
+    useDraft.getState().setHeatedFloor(first, true);
+
+    expect([heated(first), heated(second)]).toEqual([true, false]);
+    expect(useDraft.getState().revision).toBe(revision + 1);
+
+    useDraft.getState().setHeatedFloor(first, false);
+    useDraft.getState().setHeatedFloor(second, true);
+
+    expect([heated(first), heated(second)]).toEqual([false, true]);
+  });
+
+  describe('toggleRoomOption', () => {
+    it('adds and removes rooms and drops the option with the last room', () => {
+      const first = useDraft.getState().addRoom() as string;
+      const second = useDraft.getState().addRoom() as string;
+      const revision = useDraft.getState().revision;
+
+      useDraft.getState().toggleRoomOption('opt-soundproofing', first);
+      useDraft.getState().toggleRoomOption('opt-soundproofing', second);
+
+      expect(useDraft.getState().options['opt-soundproofing']).toEqual({
+        roomClientIds: [first, second],
+      });
+      expect(useDraft.getState().revision).toBe(revision + 2);
+
+      useDraft.getState().toggleRoomOption('opt-soundproofing', first);
+      expect(useDraft.getState().options['opt-soundproofing']).toEqual({
+        roomClientIds: [second],
+      });
+
+      useDraft.getState().toggleRoomOption('opt-soundproofing', second);
+      expect(useDraft.getState().options).toEqual({});
+    });
+
+    it('leaves other options untouched', () => {
+      const id = useDraft.getState().addRoom() as string;
+      useDraft.setState({ options: { 'opt-ac': { quantity: 2 } } });
+
+      useDraft.getState().toggleRoomOption('opt-soundproofing', id);
+
+      expect(useDraft.getState().options).toEqual({
+        'opt-ac': { quantity: 2 },
+        'opt-soundproofing': { roomClientIds: [id] },
+      });
+    });
+  });
+
+  describe('heated floor on room type change', () => {
+    const pricingOptions = makePricingData().options;
+
+    const heatedRoom = () => {
+      const id = useDraft.getState().addRoom() as string;
+      useDraft.getState().updateRoom(id, { roomTypeCode: 'BATHROOM' });
+      useDraft.getState().setHeatedFloor(id, true);
+      return id;
+    };
+
+    it('turns the floor off and raises a notice when the new type is not allowed', () => {
+      const id = heatedRoom();
+
+      useDraft
+        .getState()
+        .updateRoom(id, { roomTypeCode: 'BEDROOM' }, undefined, pricingOptions);
+
+      expect(heated(id)).toBe(false);
+      expect(useDraft.getState().heatedFloorReset).toBe(true);
+    });
+
+    it('keeps the floor when the new type is allowed', () => {
+      const id = heatedRoom();
+
+      useDraft
+        .getState()
+        .updateRoom(id, { roomTypeCode: 'KITCHEN' }, undefined, pricingOptions);
+
+      expect(heated(id)).toBe(true);
+      expect(useDraft.getState().heatedFloorReset).toBe(false);
+    });
+
+    it('keeps the floor when the option is unknown or the type is untouched', () => {
+      const id = heatedRoom();
+
+      useDraft.getState().updateRoom(id, { roomTypeCode: 'BEDROOM' });
+      expect(heated(id)).toBe(true);
+
+      useDraft
+        .getState()
+        .updateRoom(id, { lengthM: 4 }, undefined, pricingOptions);
+      expect(heated(id)).toBe(true);
+      expect(useDraft.getState().heatedFloorReset).toBe(false);
+    });
+
+    it('clears the notice on reset, room removal and turning the floor on', () => {
+      const raise = () => {
+        const id = heatedRoom();
+        useDraft
+          .getState()
+          .updateRoom(
+            id,
+            { roomTypeCode: 'BEDROOM' },
+            undefined,
+            pricingOptions,
+          );
+        expect(useDraft.getState().heatedFloorReset).toBe(true);
+        return id;
+      };
+
+      useDraft.getState().reset();
+      expect(useDraft.getState().heatedFloorReset).toBe(false);
+
+      const removed = raise();
+      useDraft.getState().removeRoom(removed);
+      expect(useDraft.getState().heatedFloorReset).toBe(false);
+
+      useDraft.getState().reset();
+      const again = raise();
+      useDraft.getState().setHeatedFloor(again, true);
+      expect(useDraft.getState().heatedFloorReset).toBe(false);
+    });
+
+    it('dismisses the heated floor notice', () => {
+      const id = heatedRoom();
+      useDraft
+        .getState()
+        .updateRoom(id, { roomTypeCode: 'BEDROOM' }, undefined, pricingOptions);
+
+      useDraft.getState().dismissHeatedFloorReset();
+
+      expect(useDraft.getState().heatedFloorReset).toBe(false);
+    });
+  });
+
+  describe('room options on room type change', () => {
+    const pricingOptions = makePricingData().options;
+    const acId = 'opt-ac';
+
+    const roomWithAc = (type: 'BEDROOM' | 'BATHROOM') => {
+      const id = useDraft.getState().addRoom() as string;
+      useDraft.getState().updateRoom(id, { roomTypeCode: type });
+      useDraft.getState().toggleRoomOption(acId, id);
+      return id;
+    };
+
+    it('drops the room from an option the new type does not allow', () => {
+      const first = roomWithAc('BEDROOM');
+      const second = roomWithAc('BEDROOM');
+
+      useDraft
+        .getState()
+        .updateRoom(
+          first,
+          { roomTypeCode: 'BATHROOM' },
+          undefined,
+          pricingOptions,
+        );
+
+      expect(useDraft.getState().options[acId]?.roomClientIds).toEqual([
+        second,
+      ]);
+    });
+
+    it('removes the option entry when no rooms are left', () => {
+      const id = roomWithAc('BEDROOM');
+
+      useDraft
+        .getState()
+        .updateRoom(
+          id,
+          { roomTypeCode: 'BATHROOM' },
+          undefined,
+          pricingOptions,
+        );
+
+      expect(useDraft.getState().options).toEqual({});
+    });
+
+    it('keeps the room when the new type is allowed', () => {
+      const id = roomWithAc('BEDROOM');
+
+      useDraft
+        .getState()
+        .updateRoom(id, { roomTypeCode: 'KITCHEN' }, undefined, pricingOptions);
+
+      expect(useDraft.getState().options[acId]?.roomClientIds).toEqual([id]);
+    });
+
+    it('keeps options when no pricing options are given', () => {
+      const id = roomWithAc('BEDROOM');
+
+      useDraft.getState().updateRoom(id, { roomTypeCode: 'BATHROOM' });
+
+      expect(useDraft.getState().options[acId]?.roomClientIds).toEqual([id]);
+    });
   });
 });

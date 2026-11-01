@@ -20,10 +20,12 @@ import {
   groupCategories,
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
+import { HeatedFloorSwitch } from '../HeatedFloorSwitch/HeatedFloorSwitch';
 import {
   ProductShowcase,
   type SortOrder,
 } from '../ProductShowcase/ProductShowcase';
+import { RoomOptions } from '../RoomOptions/RoomOptions';
 import type { RoomPricing } from '../use-room-pricing';
 import styles from './Specification.module.css';
 
@@ -185,6 +187,9 @@ export function Specification({
             selected
             className={styles.panel}
           >
+            {surfaceKey === 'FLOOR' ? (
+              <HeatedFloorSwitch room={room} pricing={pricing} />
+            ) : null}
             {activeGroup.categories.length > 1 ? (
               <SegmentedControl
                 label={t('finishLabel')}
@@ -221,6 +226,7 @@ export function Specification({
           </TabPanel>
         </>
       ) : null}
+      <RoomOptions room={room} pricing={pricing} />
     </section>
   );
 }

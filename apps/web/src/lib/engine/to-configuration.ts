@@ -8,6 +8,8 @@ import type {
   RoomTypeCode,
 } from '@roomwise/calc-engine';
 import type { DraftRoom, DraftV1 } from '@/lib/draft/schema';
+import { findHeatedFloorOption, isHeatedFloorAllowed } from './heated-floor';
+import { isOptionAllowedForRoom } from './room-options';
 
 export type ConfigurationMode = 'preview' | 'strict';
 
@@ -87,12 +89,15 @@ function optionsOf(
   draft: DraftV1,
   pricing: PricingData,
   rooms: readonly RoomConfiguration[],
+  heatedFloorOption: PricingData['options'][number] | undefined,
 ): OptionSelection[] {
-  const roomIds = new Set(rooms.map((room) => room.clientId));
+  const roomTypes = new Map(
+    rooms.map((room) => [room.clientId, room.roomTypeCode]),
+  );
   const result: OptionSelection[] = [];
   for (const option of pricing.options) {
     const chosen = draft.options[option.id];
-    if (!chosen) {
+    if (!chosen || option.id === heatedFloorOption?.id) {
       continue;
     }
     switch (option.unit) {
@@ -106,15 +111,28 @@ function optionsOf(
         break;
       case 'ROOM':
       case 'ROOM_SQM': {
-        const roomClientIds = (chosen.roomClientIds ?? []).filter((id) =>
-          roomIds.has(id),
-        );
+        const roomClientIds = (chosen.roomClientIds ?? []).filter((id) => {
+          const roomTypeCode = roomTypes.get(id);
+          return (
+            roomTypeCode !== undefined &&
+            isOptionAllowedForRoom(option, roomTypeCode)
+          );
+        });
         if (roomClientIds.length > 0) {
           result.push({ optionId: option.id, roomClientIds });
         }
         break;
       }
     }
+  }
+  const heatedFloorRoomIds = rooms
+    .filter((room) => room.heatedFloor)
+    .map((room) => room.clientId);
+  if (heatedFloorOption && heatedFloorRoomIds.length > 0) {
+    result.push({
+      optionId: heatedFloorOption.id,
+      roomClientIds: heatedFloorRoomIds,
+    });
   }
   return result;
 }
@@ -153,6 +171,7 @@ export function toConfiguration(
     throw new IncompleteDraftError('ROOMS_COUNT');
   }
 
+  const heatedFloorOption = findHeatedFloorOption(pricing.options);
   const rooms: RoomConfiguration[] = [];
   for (const room of draft.rooms) {
     const problem = roomProblem(room, limits);
@@ -169,7 +188,9 @@ export function toConfiguration(
       lengthM: complete.lengthM,
       widthM: complete.widthM,
       heightM: complete.heightM,
-      heatedFloor: false,
+      heatedFloor:
+        complete.heatedFloor &&
+        isHeatedFloorAllowed(heatedFloorOption, complete.roomTypeCode),
       selections: selectionsOf(complete, pricing, options),
     });
   }
@@ -184,7 +205,7 @@ export function toConfiguration(
     balconyAreaSqm: object.balcony.present ? (object.balcony.areaSqm ?? 0) : 0,
     balconyTiles: object.balcony.present && object.balcony.tiles,
     rooms,
-    options: optionsOf(draft, pricing, rooms),
+    options: optionsOf(draft, pricing, rooms, heatedFloorOption),
     currency:
       options.currency === 'UAH' && pricing.exchangeRate !== null
         ? 'UAH'

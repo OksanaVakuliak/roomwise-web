@@ -9,6 +9,7 @@ import {
   AppHeader,
   ExchangeRateNotice,
   MAIN_ID,
+  NoticeProvider,
   NoticeStack,
   SkipLink,
 } from '@/components/layout';
@@ -80,18 +81,20 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
         >
           <NextIntlClientProvider>
             <QueryProvider>
-              <WarmupStarter />
-              <PricingDataSync />
-              <SkipLink />
-              <AppHeader />
-              <main id={MAIN_ID} tabIndex={-1}>
-                {children}
-              </main>
-              <AppFooter />
-              <NoticeStack>
-                <ExchangeRateNotice />
-                <UpdateNotice />
-              </NoticeStack>
+              <NoticeProvider>
+                <WarmupStarter />
+                <PricingDataSync />
+                <SkipLink />
+                <AppHeader />
+                <main id={MAIN_ID} tabIndex={-1}>
+                  {children}
+                </main>
+                <AppFooter />
+                <NoticeStack>
+                  <ExchangeRateNotice />
+                  <UpdateNotice />
+                </NoticeStack>
+              </NoticeProvider>
             </QueryProvider>
           </NextIntlClientProvider>
         </SerwistProvider>

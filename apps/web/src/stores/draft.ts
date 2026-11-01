@@ -1,3 +1,4 @@
+import type { PricingData, RoomTypeCode } from '@roomwise/calc-engine';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
@@ -34,7 +35,37 @@ import {
   retypeSelections,
 } from '@/lib/draft/style';
 import { normalizeDraft } from '@/lib/draft/surfaces';
+import {
+  findHeatedFloorOption,
+  isHeatedFloorAllowed,
+} from '@/lib/engine/heated-floor';
+import { isOptionAllowedForRoom } from '@/lib/engine/room-options';
 import { createSafeStorage } from './safe-storage';
+
+function dropDisallowedRoomOptions(
+  options: DraftV1['options'],
+  clientId: string,
+  roomTypeCode: RoomTypeCode | null,
+  pricingOptions: readonly PricingData['options'][number][],
+): DraftV1['options'] {
+  const result: DraftV1['options'] = {};
+  for (const [id, chosen] of Object.entries(options)) {
+    const option = pricingOptions.find((item) => item.id === id);
+    const stale =
+      option !== undefined &&
+      (roomTypeCode === null || !isOptionAllowedForRoom(option, roomTypeCode));
+    const ids = chosen.roomClientIds;
+    if (!stale || !ids?.includes(clientId)) {
+      result[id] = chosen;
+      continue;
+    }
+    const left = ids.filter((item) => item !== clientId);
+    if (left.length > 0) {
+      result[id] = { ...chosen, roomClientIds: left };
+    }
+  }
+  return result;
+}
 
 export const DRAFT_STORAGE_KEY = 'roomwise-draft';
 
@@ -44,6 +75,7 @@ type DraftState = DraftV1 & {
   revision: number;
   storageAvailable: boolean;
   notice: DraftNotice | null;
+  heatedFloorReset: boolean;
   setStep: (step: StepId) => void;
   setObject: (patch: Partial<DraftV1['object']>) => void;
   selectStyle: (
@@ -58,7 +90,10 @@ type DraftState = DraftV1 & {
       Pick<DraftRoom, 'roomTypeCode' | 'lengthM' | 'widthM' | 'heightM'>
     >,
     catalog?: RoomCatalog,
+    pricingOptions?: readonly PricingData['options'][number][],
   ) => void;
+  setHeatedFloor: (clientId: string, on: boolean) => void;
+  toggleRoomOption: (optionId: string, clientId: string) => void;
   renameRoom: (clientId: string, name: string) => void;
   removeRoom: (clientId: string) => void;
   selectProduct: (
@@ -76,6 +111,7 @@ type DraftState = DraftV1 & {
   normalizeSurfaces: (roomTypes: RoomTypesCatalog) => void;
   reset: () => void;
   dismissNotice: () => void;
+  dismissHeatedFloorReset: () => void;
 };
 
 let pendingNotice: DraftNotice | null = null;
@@ -105,6 +141,7 @@ export const useDraft = create<DraftState>()(
       revision: 0,
       storageAvailable: true,
       notice: null,
+      heatedFloorReset: false,
       setStep: (step) =>
         set((state) => ({
           step,
@@ -147,13 +184,39 @@ export const useDraft = create<DraftState>()(
         set((state) => ({ ...next, revision: state.revision + 1 }));
         return room.clientId;
       },
-      updateRoom: (clientId, patch, catalog) =>
-        set((state) => ({
-          rooms: state.rooms.map((room) => {
+      updateRoom: (clientId, patch, catalog, pricingOptions) =>
+        set((state) => {
+          const heatedFloorOption =
+            pricingOptions && findHeatedFloorOption(pricingOptions);
+          let heatedFloorReset = false;
+          let options = state.options;
+          const rooms = state.rooms.map((room) => {
             if (room.clientId !== clientId) {
               return room;
             }
-            const next = { ...room, ...patch };
+            let next = { ...room, ...patch };
+            if (
+              room.heatedFloor &&
+              heatedFloorOption !== undefined &&
+              patch.roomTypeCode !== undefined &&
+              (patch.roomTypeCode === null ||
+                !isHeatedFloorAllowed(heatedFloorOption, patch.roomTypeCode))
+            ) {
+              next = { ...next, heatedFloor: false };
+              heatedFloorReset = true;
+            }
+            if (
+              pricingOptions &&
+              patch.roomTypeCode !== undefined &&
+              patch.roomTypeCode !== room.roomTypeCode
+            ) {
+              options = dropDisallowedRoomOptions(
+                options,
+                clientId,
+                patch.roomTypeCode,
+                pricingOptions,
+              );
+            }
             if (
               !catalog ||
               patch.roomTypeCode === undefined ||
@@ -170,9 +233,40 @@ export const useDraft = create<DraftState>()(
                 catalog.roomTypes,
               ),
             };
-          }),
+          });
+          return {
+            rooms,
+            options,
+            heatedFloorReset: heatedFloorReset || state.heatedFloorReset,
+            revision: state.revision + 1,
+          };
+        }),
+      setHeatedFloor: (clientId, on) =>
+        set((state) => ({
+          rooms: state.rooms.map((room) =>
+            room.clientId === clientId ? { ...room, heatedFloor: on } : room,
+          ),
+          heatedFloorReset: on ? false : state.heatedFloorReset,
           revision: state.revision + 1,
         })),
+      toggleRoomOption: (optionId, clientId) =>
+        set((state) => {
+          const { [optionId]: current, ...others } = state.options;
+          const ids = current?.roomClientIds ?? [];
+          const next = ids.includes(clientId)
+            ? ids.filter((id) => id !== clientId)
+            : [...ids, clientId];
+          return {
+            options:
+              next.length === 0
+                ? others
+                : {
+                    ...others,
+                    [optionId]: { ...current, roomClientIds: next },
+                  },
+            revision: state.revision + 1,
+          };
+        }),
       renameRoom: (clientId, name) =>
         set((state) => ({
           ...renameDraftRoom(pickDraft(state), clientId, name),
@@ -181,6 +275,7 @@ export const useDraft = create<DraftState>()(
       removeRoom: (clientId) =>
         set((state) => ({
           ...removeDraftRoom(pickDraft(state), clientId),
+          heatedFloorReset: false,
           revision: state.revision + 1,
         })),
       selectProduct: (roomClientId, categoryId, productId, siblingIds) =>
@@ -219,9 +314,11 @@ export const useDraft = create<DraftState>()(
       reset: () =>
         set((state) => ({
           ...createDefaultDraft(),
+          heatedFloorReset: false,
           revision: state.revision + 1,
         })),
       dismissNotice: () => set({ notice: null }),
+      dismissHeatedFloorReset: () => set({ heatedFloorReset: false }),
     }),
     {
       name: DRAFT_STORAGE_KEY,

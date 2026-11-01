@@ -149,9 +149,50 @@ describe('toConfiguration rooms', () => {
     expect(toConfiguration(draft, pricing, preview)?.rooms).toEqual([]);
   });
 
-  it('never enables heated floor', () => {
+  it('enables heated floor for allowed room types', () => {
+    const draft = makeInteriorDraft({
+      rooms: [
+        makeDraftRoom({
+          clientId: 'bath',
+          roomTypeCode: 'BATHROOM',
+          heatedFloor: true,
+        }),
+        makeDraftRoom({ clientId: 'living', heatedFloor: false }),
+      ],
+    });
+    const configuration = toConfiguration(draft, pricing, preview);
+    expect(configuration?.rooms.map((room) => room.heatedFloor)).toEqual([
+      true,
+      false,
+    ]);
+    expect(configuration?.options).toEqual([
+      { optionId: 'opt-heated-floor', roomClientIds: ['bath'] },
+    ]);
+  });
+
+  it('ignores the flag for room types the option does not allow', () => {
+    const draft = makeInteriorDraft({
+      rooms: [
+        makeDraftRoom({
+          clientId: 'bed',
+          roomTypeCode: 'BEDROOM',
+          heatedFloor: true,
+        }),
+      ],
+    });
+    const configuration = toConfiguration(draft, pricing, preview);
+    expect(configuration?.rooms[0]?.heatedFloor).toBe(false);
+    expect(configuration?.options).toEqual([]);
+  });
+
+  it('adds no heated floor option when no room has it on', () => {
     const configuration = toConfiguration(
-      makeInteriorDraft(),
+      makeInteriorDraft({
+        rooms: [
+          makeDraftRoom({ clientId: 'a' }),
+          makeDraftRoom({ clientId: 'b', roomTypeCode: 'BATHROOM' }),
+        ],
+      }),
       pricing,
       preview,
     );
@@ -159,7 +200,44 @@ describe('toConfiguration rooms', () => {
       false,
       false,
     ]);
-    expect(configuration?.options.map((option) => option.optionId)).toEqual([]);
+    expect(configuration?.options).toEqual([]);
+  });
+
+  it('keeps heated floor off when pricing has no such option', () => {
+    const withoutOption = makePricingData({
+      options: pricing.options.filter(
+        (option) => option.code !== 'HEATED_FLOOR',
+      ),
+    });
+    const draft = makeInteriorDraft({
+      rooms: [
+        makeDraftRoom({
+          clientId: 'bath',
+          roomTypeCode: 'BATHROOM',
+          heatedFloor: true,
+        }),
+      ],
+    });
+    const configuration = toConfiguration(draft, withoutOption, preview);
+    expect(configuration?.rooms[0]?.heatedFloor).toBe(false);
+    expect(configuration?.options).toEqual([]);
+  });
+
+  it('lets room flags win over a manual heated floor option entry', () => {
+    const draft = makeInteriorDraft({
+      rooms: [
+        makeDraftRoom({
+          clientId: 'bath',
+          roomTypeCode: 'BATHROOM',
+          heatedFloor: true,
+        }),
+        makeDraftRoom({ clientId: 'kit', roomTypeCode: 'KITCHEN' }),
+      ],
+      options: { 'opt-heated-floor': { roomClientIds: ['kit'] } },
+    });
+    expect(toConfiguration(draft, pricing, preview)?.options).toEqual([
+      { optionId: 'opt-heated-floor', roomClientIds: ['bath'] },
+    ]);
   });
 
   it('copies dimensions', () => {
@@ -274,12 +352,6 @@ describe('toConfiguration options', () => {
     ]);
   });
 
-  it('maps ROOM_SQM options', () => {
-    expect(optionsOf({ 'opt-heated-floor': { roomClientIds: ['a'] } })).toEqual(
-      [{ optionId: 'opt-heated-floor', roomClientIds: ['a'] }],
-    );
-  });
-
   it('drops unknown options, missing rooms and empty lists', () => {
     expect(
       optionsOf({
@@ -300,6 +372,24 @@ describe('toConfiguration options', () => {
     });
     expect(toConfiguration(draft, pricing, preview)?.options).toEqual([
       { optionId: 'opt-smart-switches', roomClientIds: ['a'] },
+    ]);
+  });
+
+  it('drops rooms whose type the option does not allow', () => {
+    const narrowed = {
+      ...pricing,
+      options: pricing.options.map((option) =>
+        option.id === 'opt-soundproofing'
+          ? { ...option, roomTypeCodes: ['BEDROOM' as const] }
+          : option,
+      ),
+    };
+    const draft = makeInteriorDraft({
+      rooms,
+      options: { 'opt-soundproofing': { roomClientIds: ['a', 'b'] } },
+    });
+    expect(toConfiguration(draft, narrowed, preview)?.options).toEqual([
+      { optionId: 'opt-soundproofing', roomClientIds: ['b'] },
     ]);
   });
 

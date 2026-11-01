@@ -1,0 +1,5 @@
+.warning {
+  display: block;
+  font-weight: var(--text-button-default-weight);
+  color: var(--heat);
+}

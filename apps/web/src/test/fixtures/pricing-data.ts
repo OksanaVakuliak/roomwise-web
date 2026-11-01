@@ -219,6 +219,17 @@ const reference = {
       available: true,
     },
     {
+      id: 'opt-soundproofing',
+      code: null,
+      kind: 'ENGINEERING',
+      priceCents: 15000,
+      unit: 'ROOM',
+      roomTypeCodes: [],
+      minQuantity: null,
+      maxQuantity: null,
+      available: true,
+    },
+    {
       id: 'opt-design',
       code: null,
       kind: 'ADDITIONAL',
