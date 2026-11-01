@@ -100,6 +100,20 @@ export function retypeSelections(
     defaultMaterials === null
       ? {}
       : materialsForRoom(roomTypeCode, defaultMaterials, roomTypes);
+  const surfaceOf = new Map(
+    roomTypes.items.flatMap((type) =>
+      type.categories.map((category) => [category.id, category.surface]),
+    ),
+  );
+  const surfaceWasOff = (surface: string) => {
+    const onSurface = Object.entries(previous).filter(
+      ([categoryId]) => surfaceOf.get(categoryId) === surface,
+    );
+    return (
+      onSurface.length > 0 &&
+      onSurface.every(([, selection]) => selection.disabled)
+    );
+  };
   const merged = Object.fromEntries(
     categoryIdsOf(roomTypeCode, roomTypes).flatMap((categoryId) => {
       const before = previous[categoryId];
@@ -108,12 +122,12 @@ export function retypeSelections(
         return [[categoryId, before]];
       }
       if (styled) {
-        return [
-          [
-            categoryId,
-            { ...styled, disabled: before?.disabled ?? styled.disabled },
-          ],
-        ];
+        const surface = surfaceOf.get(categoryId) ?? 'NONE';
+        const disabled =
+          surface === 'NONE'
+            ? (before?.disabled ?? styled.disabled)
+            : surfaceWasOff(surface) || styled.disabled;
+        return [[categoryId, { ...styled, disabled }]];
       }
       return [];
     }),
