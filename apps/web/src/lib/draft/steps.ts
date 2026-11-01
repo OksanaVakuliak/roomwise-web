@@ -8,9 +8,9 @@ import {
 
 export const STEP_ORDER = [
   'object',
+  'engineering',
   'style',
   'interior',
-  'engineering',
   'result',
 ] as const satisfies readonly StepId[];
 

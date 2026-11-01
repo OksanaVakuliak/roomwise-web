@@ -15,17 +15,17 @@
         "text": "Rooms, sizes and the base work."
       },
       "style": {
-        "code": "A2",
+        "code": "A3",
         "name": "Style",
         "text": "The look of the whole apartment."
       },
       "interior": {
-        "code": "A3",
+        "code": "A4",
         "name": "Interior",
         "text": "Finishes and fixtures for each room."
       },
       "engineering": {
-        "code": "A4",
+        "code": "A2",
         "name": "Engineering",
         "text": "Electrics, plumbing and heating."
       },
@@ -741,9 +741,9 @@
     "toggleLabel": "Show breakdown",
     "steps": {
       "1": "Object",
-      "2": "Style",
-      "3": "Interior",
-      "4": "Engineering",
+      "2": "Engineering",
+      "3": "Style",
+      "4": "Interior",
       "5": "Estimate"
     }
   },

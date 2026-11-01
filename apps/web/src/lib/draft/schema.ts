@@ -10,9 +10,9 @@ const nullableAmount = amount.nullable();
 
 export const StepIdSchema = z.enum([
   'object',
+  'engineering',
   'style',
   'interior',
-  'engineering',
   'result',
 ]);
 

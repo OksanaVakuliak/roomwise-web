@@ -211,8 +211,8 @@ describe('ObjectStep', () => {
 
       clickNext(locale);
 
-      expect(location().pathname).toBe(`/${locale}/configurator/style`);
-      expect(useDraft.getState().step).toBe('style');
+      expect(location().pathname).toBe(`/${locale}/configurator/engineering`);
+      expect(useDraft.getState().step).toBe('engineering');
     },
   );
 

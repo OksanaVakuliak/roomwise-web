@@ -82,18 +82,21 @@ describe('ConfiguratorShell', () => {
     ).toBeInTheDocument();
     expect(
       within(tape).getByRole('button', {
-        name: `A3 ${t.steps[3]} ${t.state.now}`,
+        name: `A4 ${t.steps[4]} ${t.state.now}`,
       }),
     ).toHaveAttribute('aria-current', 'step');
     expect(
       within(tape).getByRole('button', {
-        name: `A4 ${t.steps[4]} ${t.state.later}`,
+        name: `A5 ${t.steps[5]} ${t.state.later}`,
       }),
     ).not.toHaveAttribute('aria-disabled');
   });
 
   it('marks an unavailable step aria-disabled and does not navigate', async () => {
-    const { location } = await renderShell('interior', interior());
+    const { location } = await renderShell(
+      'interior',
+      makeInteriorDraft({ furthestStep: 'style' }),
+    );
     const result = screen.getByRole('button', {
       name: `A5 ${en.Configurator.steps[5]} ${en.Configurator.state.later}`,
     });
@@ -109,7 +112,7 @@ describe('ConfiguratorShell', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: `A2 ${en.Configurator.steps[2]} ${en.Configurator.state.done}`,
+        name: `A3 ${en.Configurator.steps[3]} ${en.Configurator.state.done}`,
       }),
     );
 
@@ -213,9 +216,9 @@ describe('ConfiguratorShell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: en.Configurator.next }));
 
-    expect(location().pathname).toBe('/en/configurator/engineering');
-    expect(useDraft.getState().step).toBe('engineering');
-    expect(useDraft.getState().furthestStep).toBe('engineering');
+    expect(location().pathname).toBe('/en/configurator/result');
+    expect(useDraft.getState().step).toBe('result');
+    expect(useDraft.getState().furthestStep).toBe('result');
   });
 
   it('does not go forward from an incomplete step', async () => {
@@ -260,6 +263,9 @@ describe('ConfiguratorShell', () => {
 
   it('goes back to the previous step and from the first step to home', async () => {
     const { location } = await renderShell('style', interior());
+
+    fireEvent.click(screen.getByRole('button', { name: en.Configurator.back }));
+    expect(location().pathname).toBe('/en/configurator/engineering');
 
     fireEvent.click(screen.getByRole('button', { name: en.Configurator.back }));
     expect(location().pathname).toBe('/en/configurator/object');
