@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { type ChangeEvent, useCallback, useId, useState } from 'react';
+import { type ChangeEvent, useCallback, useId, useMemo, useState } from 'react';
 import {
   Banner,
   EmptyState,
@@ -24,6 +24,7 @@ import {
   ProductShowcase,
   type SortOrder,
 } from '../ProductShowcase/ProductShowcase';
+import type { RoomPricing } from '../use-room-pricing';
 import styles from './Specification.module.css';
 
 const SORT_ORDERS: readonly SortOrder[] = ['server', 'asc', 'desc'];
@@ -37,6 +38,7 @@ export type SpecificationCategory = {
 
 export type SpecificationProps = {
   room: DraftRoom;
+  pricing: RoomPricing | null;
   categories: readonly SpecificationCategory[];
   activeCategoryId: string | null;
   size: 'mobile' | 'desktop';
@@ -48,6 +50,7 @@ export type SpecificationProps = {
 
 export function Specification({
   room,
+  pricing,
   categories,
   activeCategoryId,
   size,
@@ -96,10 +99,15 @@ export function Specification({
   const active = categories.find(
     (category) => category.id === activeCategoryId,
   );
-  const groups = groupCategories(
-    categories.filter(
-      (category) => category.productCount > 0 || category.id === active?.id,
-    ),
+  const activeId = active?.id;
+  const groups = useMemo(
+    () =>
+      groupCategories(
+        categories.filter(
+          (category) => category.productCount > 0 || category.id === activeId,
+        ),
+      ),
+    [categories, activeId],
   );
   const activeGroup = groups.find((group) =>
     group.categories.some((category) => category.id === active?.id),
@@ -198,6 +206,7 @@ export function Specification({
               <>
                 <ProductShowcase
                   room={room}
+                  pricing={pricing}
                   category={{ id: active.id, name: active.name }}
                   siblingIds={surfaceSiblings(categories, active.id)}
                   replaces={replaces}

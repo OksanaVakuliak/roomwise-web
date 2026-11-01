@@ -14,7 +14,6 @@ export type SceneSurface = {
 export type SceneSurfaces = {
   floor?: SceneSurface;
   walls?: SceneSurface;
-  ceiling?: SceneSurface;
 };
 
 export type RoomSceneProps = {

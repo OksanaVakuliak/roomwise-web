@@ -3,15 +3,16 @@
 import type { EstimateLine, PricingData } from '@roomwise/calc-engine';
 import { type Locale, useLocale } from 'next-intl';
 import { useMemo } from 'react';
-import type { CardCostContext } from '@/lib/engine/card-cost';
+import { type CardCostContext, cardCostContext } from '@/lib/engine/card-cost';
 import { runEstimate } from '@/lib/engine/run-estimate';
-import { type ExchangeRate, moneyMinor, unitPrice } from '@/lib/format';
+import { displayMoney, type ExchangeRate, unitPrice } from '@/lib/format';
 import { useDraft, useDraftValue } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
 import { useDisplayCurrency } from '@/stores/use-display-currency';
 
 export type RoomPricing = {
   pricing: PricingData;
+  productsById: ReadonlyMap<string, PricingData['products'][number]>;
   context: CardCostContext;
   rate: ExchangeRate | undefined;
   materialsLine: (
@@ -45,25 +46,24 @@ export function useRoomPricing(): RoomPricing | null {
     return new Map((estimate?.lines ?? []).map((line) => [line.id, line]));
   }, [draft, revision, pricing, version]);
 
+  const productsById = useMemo(
+    () => new Map((pricing?.products ?? []).map((item) => [item.id, item])),
+    [pricing],
+  );
+
   return useMemo(() => {
     if (pricing === null || version === null || lines === null) {
       return null;
     }
     return {
       pricing,
-      context: {
-        draft,
-        pricing,
-        pricingVersion: version,
-        currency: 'UAH',
-      },
+      context: cardCostContext(draft, pricing, version, 'UAH'),
+      productsById,
       rate,
       materialsLine: (roomClientId, categoryId) =>
         lines.get(`MATERIALS:${roomClientId}:${categoryId}`) ?? null,
       formatLine: (line) =>
-        currency === 'UAH' && line.amountUahKopecks !== null
-          ? moneyMinor(line.amountUahKopecks, 'UAH', locale)
-          : moneyMinor(line.amountCents, 'USD', locale),
+        displayMoney(line.amountCents, line.amountUahKopecks, currency, locale),
       formatTotal: (total) => {
         const cents = total.reduce((sum, line) => sum + line.amountCents, 0);
         const kopecks = total.reduce<number | null>(
@@ -73,11 +73,9 @@ export function useRoomPricing(): RoomPricing | null {
               : sum + line.amountUahKopecks,
           0,
         );
-        return currency === 'UAH' && kopecks !== null
-          ? moneyMinor(kopecks, 'UAH', locale)
-          : moneyMinor(cents, 'USD', locale);
+        return displayMoney(cents, kopecks, currency, locale);
       },
       formatUnitPrice: (cents) => unitPrice(cents, currency, locale, rate),
     };
-  }, [pricing, version, lines, draft, currency, rate, locale]);
+  }, [pricing, version, lines, draft, productsById, currency, rate, locale]);
 }

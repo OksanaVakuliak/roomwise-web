@@ -10,17 +10,20 @@ import { productIds } from '@/test/fixtures/catalog';
 import { makeInteriorDraft } from '@/test/fixtures/draft';
 import { renderWithProviders } from '@/test/render-with-providers';
 import en from '../../../../../messages/en.json';
+import { useRoomPricing } from '../use-room-pricing';
 import { ProductDetail } from './ProductDetail';
 
 vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
 
 function Harness() {
   const room = useDraft((state) => state.rooms[0]);
+  const pricing = useRoomPricing();
   return (
     <ProductDetail
       productId={productIds.tile}
       categoryId="cat-floor"
       room={room}
+      pricing={pricing}
       onChoose={vi.fn()}
       onClose={vi.fn()}
     />

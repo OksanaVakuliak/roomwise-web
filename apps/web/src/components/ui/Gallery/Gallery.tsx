@@ -25,6 +25,16 @@ export type GalleryProps = {
   className?: string;
 };
 
+function uniqueKeys(images: readonly GalleryImage[]): string[] {
+  const seen = new Map<string, number>();
+  return images.map((image) => {
+    const base = `${image.src ?? ''}|${image.name}`;
+    const count = seen.get(base) ?? 0;
+    seen.set(base, count + 1);
+    return `${base}|${count}`;
+  });
+}
+
 export function Gallery({
   label,
   images,
@@ -37,6 +47,7 @@ export function Gallery({
   const thumbsRef = useRef<HTMLDivElement>(null);
   const active = Math.min(Math.max(requested, 0), images.length - 1);
   const current = images[active];
+  const keys = uniqueKeys(images);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -83,7 +94,7 @@ export function Gallery({
         <div ref={thumbsRef} className={styles.thumbs}>
           {images.map((image, index) => (
             <button
-              key={`${image.src}${image.name}`}
+              key={keys[index]}
               type="button"
               className={cx(styles.thumb, index === active && styles.on)}
               aria-label={thumbnailLabel(index + 1, images.length)}

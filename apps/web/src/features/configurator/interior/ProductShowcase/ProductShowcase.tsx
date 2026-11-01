@@ -9,7 +9,7 @@ import { ApiRequestError } from '@/lib/api/request-error';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { productCardLine } from '@/lib/engine/card-cost';
 import { useDraft } from '@/stores/draft';
-import { type RoomPricing, useRoomPricing } from '../use-room-pricing';
+import type { RoomPricing } from '../use-room-pricing';
 import styles from './ProductShowcase.module.css';
 
 type ProductCardData = NonNullable<
@@ -25,6 +25,7 @@ export type ProductShowcaseCategory = {
 
 export type ProductShowcaseProps = {
   room: DraftRoom;
+  pricing: RoomPricing | null;
   category: ProductShowcaseCategory;
   siblingIds?: readonly string[];
   replaces?: { surface: string; name: string };
@@ -57,9 +58,7 @@ function ProductCard({
   onOpenDetail,
 }: ProductCardProps) {
   const t = useTranslations('ProductShowcase');
-  const priced = pricing.pricing.products.find(
-    (item) => item.id === product.id,
-  );
+  const priced = pricing.productsById.get(product.id);
   const unavailable = priced === undefined || !priced.available;
   const line = unavailable
     ? null
@@ -127,6 +126,7 @@ function ProductCard({
 
 export function ProductShowcase({
   room,
+  pricing,
   category,
   siblingIds,
   replaces,
@@ -138,7 +138,6 @@ export function ProductShowcase({
 }: ProductShowcaseProps) {
   const t = useTranslations('ProductShowcase');
   const query = useCategoryProducts(category.id);
-  const pricing = useRoomPricing();
   const selectProduct = useDraft((state) => state.selectProduct);
   const { refetch } = query;
 
@@ -152,7 +151,7 @@ export function ProductShowcase({
   }, [notFound]);
 
   const items = query.data?.items;
-  const pricedProducts = pricing?.pricing.products;
+  const productsById = pricing?.productsById;
   const sorted = useMemo(() => {
     if (!items) {
       return null;
@@ -160,14 +159,11 @@ export function ProductShowcase({
     if (order === 'server') {
       return items;
     }
-    const prices = new Map(
-      (pricedProducts ?? []).map((item) => [item.id, item.priceCents]),
-    );
     const priceOf = (product: ProductCardData) =>
-      prices.get(product.id) ?? product.priceCents;
+      productsById?.get(product.id)?.priceCents ?? product.priceCents;
     const direction = order === 'asc' ? 1 : -1;
     return [...items].sort((a, b) => direction * (priceOf(a) - priceOf(b)));
-  }, [items, order, pricedProducts]);
+  }, [items, order, productsById]);
 
   const retry = useCallback(() => {
     void refetch();

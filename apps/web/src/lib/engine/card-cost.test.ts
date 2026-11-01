@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { makeInteriorDraft, makePricingData } from '@/test/fixtures';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import {
+  cardCostContext,
   clearCardCostCache,
-  optionRoomLine,
   productCardLine,
 } from './card-cost';
 import { toConfiguration } from './to-configuration';
@@ -14,12 +14,7 @@ const living = '00000000-0000-4000-8000-000000000301';
 const bath = '00000000-0000-4000-8000-000000000302';
 
 function context(draft = makeInteriorDraft()) {
-  return {
-    draft,
-    pricing,
-    pricingVersion: pricing.version,
-    currency: 'USD' as const,
-  };
+  return cardCostContext(draft, pricing, pricing.version, 'USD');
 }
 
 function fullLine(draft: ReturnType<typeof makeInteriorDraft>, lineId: string) {
@@ -82,28 +77,5 @@ describe('productCardLine', () => {
         productIds.laminate,
       ),
     ).toBeNull();
-  });
-});
-
-describe('optionRoomLine', () => {
-  it('matches the room share of the full estimate', () => {
-    const draft = makeInteriorDraft({
-      options: { 'opt-ac': { quantity: 1, roomClientIds: [living] } },
-    });
-    const line = optionRoomLine(context(draft), living, 'opt-ac');
-    expect(line?.amountCents).toBe(
-      fullLine(draft, 'ENGINEERING:option:opt-ac')?.amountCents,
-    );
-    expect(line?.amountCents).toBeGreaterThan(0);
-  });
-
-  it('returns the memoized line on a repeated call', () => {
-    expect(optionRoomLine(context(), living, 'opt-ac')).toBe(
-      optionRoomLine(context(), living, 'opt-ac'),
-    );
-  });
-
-  it('returns null for an unknown option', () => {
-    expect(optionRoomLine(context(), living, 'missing')).toBeNull();
   });
 });

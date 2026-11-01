@@ -84,10 +84,7 @@ describe('RoomScene', () => {
       fallbackColor: '#aa0000',
     };
     const { container } = renderWithProviders(
-      <RoomScene
-        {...props}
-        surfaces={{ floor: surface, walls: surface, ceiling: surface }}
-      />,
+      <RoomScene {...props} surfaces={{ floor: surface, walls: surface }} />,
     );
     const patterns = container.querySelectorAll('pattern');
     expect(patterns).toHaveLength(3);

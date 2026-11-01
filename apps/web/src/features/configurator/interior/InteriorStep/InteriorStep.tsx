@@ -12,7 +12,7 @@ import { roomDisplayName, roomMetrics } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { surfaceSiblings } from '@/lib/draft/surfaces';
 import { area, dimension } from '@/lib/format';
-import { useMediaQuery } from '@/lib/media';
+import { useIsDesktop } from '@/lib/media';
 import { useDraft } from '@/stores/draft';
 import { usePickerSlot } from '../../shell/PickerSlot/picker-slot-context';
 import { useSceneSlot } from '../../shell/SceneSlot/scene-slot-context';
@@ -22,10 +22,9 @@ import { ProductDetail } from '../ProductDetail/ProductDetail';
 import { RoomPlans } from '../RoomPlans/RoomPlans';
 import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
 import { Specification } from '../Specification/Specification';
+import { useRoomPricing } from '../use-room-pricing';
 import { useRoomSurfaces } from '../use-room-surfaces';
 import styles from './InteriorStep.module.css';
-
-const DESKTOP_QUERY = '(min-width: 768px)';
 
 function InteriorContent() {
   const t = useTranslations('InteriorStep');
@@ -40,7 +39,7 @@ function InteriorContent() {
   const sceneSlot = useSceneSlot();
   const pickerSlot = usePickerSlot();
   const showcaseSlot = useShowcaseSlot();
-  const desktop = useMediaQuery(DESKTOP_QUERY);
+  const desktop = useIsDesktop();
   const selectProduct = useDraft((state) => state.selectProduct);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -51,6 +50,7 @@ function InteriorContent() {
     rooms.find((room) => room.clientId === requestedRoom) ?? rooms[0] ?? null;
   const needsRedirect = current !== null && current.clientId !== requestedRoom;
   const surfaces = useRoomSurfaces(current);
+  const pricing = useRoomPricing();
 
   const navigate = useCallback(
     (changes: Record<string, string | null>, mode: 'push' | 'replace') => {
@@ -230,6 +230,7 @@ function InteriorContent() {
         productId={detailId}
         categoryId={activeCategory?.id ?? null}
         room={current}
+        pricing={pricing}
         onChoose={chooseFromDetail}
         onClose={closeDetail}
       />
@@ -238,6 +239,7 @@ function InteriorContent() {
         ? createPortal(
             <Specification
               room={current}
+              pricing={pricing}
               categories={categories}
               activeCategoryId={activeCategory?.id ?? null}
               size={size}
@@ -256,6 +258,7 @@ function InteriorContent() {
         >
           <Specification
             room={current}
+            pricing={pricing}
             categories={categories}
             activeCategoryId={activeCategory?.id ?? null}
             size={size}
@@ -270,6 +273,7 @@ function InteriorContent() {
         ? createPortal(
             <ChosenList
               groups={groups}
+              pricing={pricing}
               currentRoomId={current.clientId}
               activeCategoryId={activeCategory?.id ?? null}
               size={size}
