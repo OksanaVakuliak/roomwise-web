@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { axe } from '@/test/axe';
 import { Gallery, type GalleryProps } from './Gallery';
 
@@ -88,5 +88,23 @@ describe('Gallery', () => {
   it('has no axe violations', async () => {
     const { container } = render(<Gallery {...props} />);
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('renders a thumbnail per image without duplicate keys', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(
+      <Gallery
+        {...props}
+        images={[
+          { src: null, name: 'One' },
+          { src: null, name: 'One' },
+          { src: '/a.jpg', name: 'Two' },
+          { src: '/a.jpg', name: 'Two' },
+        ]}
+      />,
+    );
+    expect(thumbs()).toHaveLength(4);
+    expect(error).not.toHaveBeenCalled();
+    error.mockRestore();
   });
 });
