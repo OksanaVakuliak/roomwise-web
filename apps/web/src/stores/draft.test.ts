@@ -658,6 +658,34 @@ describe('useDraft one finish per surface', () => {
       expect(useDraft.getState().heatedFloorReset).toBe(false);
     });
 
+    it('clears the notice on reset, room removal and turning the floor on', () => {
+      const raise = () => {
+        const id = heatedRoom();
+        useDraft
+          .getState()
+          .updateRoom(
+            id,
+            { roomTypeCode: 'BEDROOM' },
+            undefined,
+            pricingOptions,
+          );
+        expect(useDraft.getState().heatedFloorReset).toBe(true);
+        return id;
+      };
+
+      useDraft.getState().reset();
+      expect(useDraft.getState().heatedFloorReset).toBe(false);
+
+      const removed = raise();
+      useDraft.getState().removeRoom(removed);
+      expect(useDraft.getState().heatedFloorReset).toBe(false);
+
+      useDraft.getState().reset();
+      const again = raise();
+      useDraft.getState().setHeatedFloor(again, true);
+      expect(useDraft.getState().heatedFloorReset).toBe(false);
+    });
+
     it('dismisses the heated floor notice', () => {
       const id = heatedRoom();
       useDraft

@@ -246,6 +246,7 @@ export const useDraft = create<DraftState>()(
           rooms: state.rooms.map((room) =>
             room.clientId === clientId ? { ...room, heatedFloor: on } : room,
           ),
+          heatedFloorReset: on ? false : state.heatedFloorReset,
           revision: state.revision + 1,
         })),
       toggleRoomOption: (optionId, clientId) =>
@@ -274,6 +275,7 @@ export const useDraft = create<DraftState>()(
       removeRoom: (clientId) =>
         set((state) => ({
           ...removeDraftRoom(pickDraft(state), clientId),
+          heatedFloorReset: false,
           revision: state.revision + 1,
         })),
       selectProduct: (roomClientId, categoryId, productId, siblingIds) =>
@@ -312,6 +314,7 @@ export const useDraft = create<DraftState>()(
       reset: () =>
         set((state) => ({
           ...createDefaultDraft(),
+          heatedFloorReset: false,
           revision: state.revision + 1,
         })),
       dismissNotice: () => set({ notice: null }),
