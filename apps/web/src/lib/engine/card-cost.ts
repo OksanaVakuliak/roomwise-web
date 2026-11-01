@@ -12,6 +12,7 @@ export type CardCostContext = {
   pricing: PricingData;
   pricingVersion: string;
   currency: Currency;
+  shape: string;
 };
 
 const CACHE_SIZE = 64;
@@ -31,6 +32,15 @@ function shapeOf(draft: DraftV1): string {
       ],
     ),
   ]);
+}
+
+export function cardCostContext(
+  draft: DraftV1,
+  pricing: PricingData,
+  pricingVersion: string,
+  currency: Currency,
+): CardCostContext {
+  return { draft, pricing, pricingVersion, currency, shape: shapeOf(draft) };
 }
 
 function remember(key: string): Map<string, EstimateLine | null> {
@@ -73,8 +83,8 @@ export function productCardLine(
   categoryId: string,
   productId: string,
 ): EstimateLine | null {
-  const { draft, pricingVersion, currency } = context;
-  const key = `product|${pricingVersion}|${currency}|${shapeOf(draft)}|${roomClientId}|${categoryId}`;
+  const { draft, pricingVersion, currency, shape } = context;
+  const key = `product|${pricingVersion}|${currency}|${shape}|${roomClientId}|${categoryId}`;
   const lines = remember(key);
   if (lines.has(productId)) {
     return lines.get(productId) ?? null;

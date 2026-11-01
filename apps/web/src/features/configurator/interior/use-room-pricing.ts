@@ -3,7 +3,7 @@
 import type { EstimateLine, PricingData } from '@roomwise/calc-engine';
 import { type Locale, useLocale } from 'next-intl';
 import { useMemo } from 'react';
-import type { CardCostContext } from '@/lib/engine/card-cost';
+import { type CardCostContext, cardCostContext } from '@/lib/engine/card-cost';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import { type ExchangeRate, moneyMinor, unitPrice } from '@/lib/format';
 import { useDraft, useDraftValue } from '@/stores/draft';
@@ -12,6 +12,7 @@ import { useDisplayCurrency } from '@/stores/use-display-currency';
 
 export type RoomPricing = {
   pricing: PricingData;
+  productsById: ReadonlyMap<string, PricingData['products'][number]>;
   context: CardCostContext;
   rate: ExchangeRate | undefined;
   materialsLine: (
@@ -45,18 +46,19 @@ export function useRoomPricing(): RoomPricing | null {
     return new Map((estimate?.lines ?? []).map((line) => [line.id, line]));
   }, [draft, revision, pricing, version]);
 
+  const productsById = useMemo(
+    () => new Map((pricing?.products ?? []).map((item) => [item.id, item])),
+    [pricing],
+  );
+
   return useMemo(() => {
     if (pricing === null || version === null || lines === null) {
       return null;
     }
     return {
       pricing,
-      context: {
-        draft,
-        pricing,
-        pricingVersion: version,
-        currency: 'UAH',
-      },
+      context: cardCostContext(draft, pricing, version, 'UAH'),
+      productsById,
       rate,
       materialsLine: (roomClientId, categoryId) =>
         lines.get(`MATERIALS:${roomClientId}:${categoryId}`) ?? null,
@@ -79,5 +81,5 @@ export function useRoomPricing(): RoomPricing | null {
       },
       formatUnitPrice: (cents) => unitPrice(cents, currency, locale, rate),
     };
-  }, [pricing, version, lines, draft, currency, rate, locale]);
+  }, [pricing, version, lines, draft, productsById, currency, rate, locale]);
 }

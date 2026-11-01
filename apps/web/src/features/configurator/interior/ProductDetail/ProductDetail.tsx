@@ -71,9 +71,7 @@ export function ProductDetail({
   } else if (!product || pricing === null || resolvedCategory === null) {
     body = <BodySkeleton label={t('loading')} />;
   } else {
-    const priced = pricing.pricing.products.find(
-      (item) => item.id === product.id,
-    );
+    const priced = pricing.productsById.get(product.id);
     const unavailable = priced === undefined || !priced.available;
     const line = unavailable
       ? null

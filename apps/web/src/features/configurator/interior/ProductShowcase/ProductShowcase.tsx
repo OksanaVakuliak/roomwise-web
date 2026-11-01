@@ -58,9 +58,7 @@ function ProductCard({
   onOpenDetail,
 }: ProductCardProps) {
   const t = useTranslations('ProductShowcase');
-  const priced = pricing.pricing.products.find(
-    (item) => item.id === product.id,
-  );
+  const priced = pricing.productsById.get(product.id);
   const unavailable = priced === undefined || !priced.available;
   const line = unavailable
     ? null
@@ -153,7 +151,7 @@ export function ProductShowcase({
   }, [notFound]);
 
   const items = query.data?.items;
-  const pricedProducts = pricing?.pricing.products;
+  const productsById = pricing?.productsById;
   const sorted = useMemo(() => {
     if (!items) {
       return null;
@@ -161,14 +159,11 @@ export function ProductShowcase({
     if (order === 'server') {
       return items;
     }
-    const prices = new Map(
-      (pricedProducts ?? []).map((item) => [item.id, item.priceCents]),
-    );
     const priceOf = (product: ProductCardData) =>
-      prices.get(product.id) ?? product.priceCents;
+      productsById?.get(product.id)?.priceCents ?? product.priceCents;
     const direction = order === 'asc' ? 1 : -1;
     return [...items].sort((a, b) => direction * (priceOf(a) - priceOf(b)));
-  }, [items, order, pricedProducts]);
+  }, [items, order, productsById]);
 
   const retry = useCallback(() => {
     void refetch();

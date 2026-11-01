@@ -2,7 +2,11 @@ import { estimate } from '@roomwise/calc-engine';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { makeInteriorDraft, makePricingData } from '@/test/fixtures';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
-import { clearCardCostCache, productCardLine } from './card-cost';
+import {
+  cardCostContext,
+  clearCardCostCache,
+  productCardLine,
+} from './card-cost';
 import { toConfiguration } from './to-configuration';
 
 const pricing = makePricingData();
@@ -10,12 +14,7 @@ const living = '00000000-0000-4000-8000-000000000301';
 const bath = '00000000-0000-4000-8000-000000000302';
 
 function context(draft = makeInteriorDraft()) {
-  return {
-    draft,
-    pricing,
-    pricingVersion: pricing.version,
-    currency: 'USD' as const,
-  };
+  return cardCostContext(draft, pricing, pricing.version, 'USD');
 }
 
 function fullLine(draft: ReturnType<typeof makeInteriorDraft>, lineId: string) {
