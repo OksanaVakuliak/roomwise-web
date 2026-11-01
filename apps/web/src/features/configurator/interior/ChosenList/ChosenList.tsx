@@ -191,7 +191,7 @@ function ChosenOptionRow({
     pricing && line?.status === 'OK' ? pricing.formatLine(line) : null;
 
   return (
-    <li className={styles.item}>
+    <li className={cx(styles.item, styles.option)}>
       <span className={styles.row}>
         <span className={styles.body}>
           <span className={styles.category}>{t('option')}</span>
