@@ -69,6 +69,17 @@ describe('toConfiguration object fields', () => {
     expect(configuration?.balconyAreaSqm).toBe(areaSqm);
     expect(configuration?.balconyTiles).toBe(tiles);
   });
+
+  it('leaves gas and kitchen type of a legacy draft out', () => {
+    const draft = withObject({});
+    const legacy = {
+      ...draft,
+      object: { ...draft.object, gas: true, kitchenType: 'KITCHEN_LIVING' },
+    } as DraftV1;
+    const configuration = toConfiguration(legacy, pricing, preview);
+    expect(configuration).not.toHaveProperty('gas');
+    expect(configuration).not.toHaveProperty('kitchenType');
+  });
 });
 
 describe('toConfiguration currency', () => {
