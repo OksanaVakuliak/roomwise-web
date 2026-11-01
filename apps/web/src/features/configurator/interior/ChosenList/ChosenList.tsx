@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useCallback, useId } from 'react';
 import { Button, ImageWithFallback, SectionHeader } from '@/components/ui';
-import { useCategoryProducts, useEngineering } from '@/lib/api/catalog';
+import { useCategoryProducts } from '@/lib/api/catalog';
 import { cx } from '@/lib/cx';
 import type { DraftRoom } from '@/lib/draft/schema';
 import {
@@ -14,6 +14,7 @@ import {
 import { optionRoomLine } from '@/lib/engine/card-cost';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
+import { useRoomOptions } from '../use-room-options';
 import type { RoomPricing } from '../use-room-pricing';
 import styles from './ChosenList.module.css';
 
@@ -218,12 +219,9 @@ type ChosenOptionsProps = {
 
 function ChosenOptions({ room, roomName, pricing }: ChosenOptionsProps) {
   const options = useDraft((state) => state.options);
-  const engineering = useEngineering();
-  const chosen = (engineering.data?.options ?? []).filter(
-    (option) =>
-      option.kind === 'ENGINEERING' &&
-      option.perRoom &&
-      (options[option.id]?.roomClientIds ?? []).includes(room.clientId),
+  const available = useRoomOptions(room);
+  const chosen = available.filter((option) =>
+    (options[option.id]?.roomClientIds ?? []).includes(room.clientId),
   );
 
   return chosen.map((option) => (

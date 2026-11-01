@@ -3,11 +3,10 @@
 import { useTranslations } from 'next-intl';
 import { useCallback, useId } from 'react';
 import { SectionHeader, SwitchRow } from '@/components/ui';
-import { useEngineering } from '@/lib/api/catalog';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { optionRoomLine } from '@/lib/engine/card-cost';
-import { HEATED_FLOOR_CODE } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
+import { useRoomOptions } from '../use-room-options';
 import type { RoomPricing } from '../use-room-pricing';
 import styles from './RoomOptions.module.css';
 
@@ -53,17 +52,7 @@ function OptionRow({ room, pricing, optionId, name }: OptionRowProps) {
 export function RoomOptions({ room, pricing }: RoomOptionsProps) {
   const t = useTranslations('RoomOptions');
   const headingId = useId();
-  const engineering = useEngineering();
-
-  const options = (engineering.data?.options ?? []).filter(
-    (option) =>
-      option.kind === 'ENGINEERING' &&
-      option.perRoom &&
-      option.code !== HEATED_FLOOR_CODE &&
-      room.roomTypeCode !== null &&
-      (option.roomTypeCodes.length === 0 ||
-        option.roomTypeCodes.includes(room.roomTypeCode)),
-  );
+  const options = useRoomOptions(room);
 
   if (options.length === 0) {
     return null;

@@ -3,10 +3,11 @@ import type {
   PricingData,
   RoomTypeCode,
 } from '@roomwise/calc-engine';
+import { HEATED_FLOOR_CODE, isOptionAllowedForRoom } from './room-options';
 
 type PricingOption = PricingData['options'][number];
 
-export const HEATED_FLOOR_CODE = 'HEATED_FLOOR';
+export { HEATED_FLOOR_CODE };
 
 export function findHeatedFloorOption(
   options: readonly PricingOption[],
@@ -21,10 +22,7 @@ export function isHeatedFloorAllowed(
   if (!option) {
     return false;
   }
-  return (
-    option.roomTypeCodes.length === 0 ||
-    option.roomTypeCodes.includes(roomTypeCode)
-  );
+  return isOptionAllowedForRoom(option, roomTypeCode);
 }
 
 export const HEATED_FLOOR_INCOMPATIBLE_CODE = 'HEATED_FLOOR_INCOMPATIBLE';
