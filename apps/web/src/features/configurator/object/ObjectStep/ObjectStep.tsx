@@ -6,7 +6,7 @@ import { createPortal, flushSync } from 'react-dom';
 import { Banner, Icon } from '@/components/ui';
 import { useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName } from '@/lib/draft/rooms';
-import { useMediaQuery } from '@/lib/media';
+import { useIsDesktop } from '@/lib/media';
 import { useDraft } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
 import { useShowcaseSlot } from '../../shell/ShowcaseSlot/showcase-slot-context';
@@ -21,8 +21,6 @@ import {
   validateObject,
 } from './validate-object';
 
-const DESKTOP_QUERY = '(min-width: 768px)';
-
 export function ObjectStep() {
   const t = useTranslations('ObjectStep');
   const object = useDraft((state) => state.object);
@@ -30,7 +28,7 @@ export function ObjectStep() {
   const limits = usePricingData((state) => state.data?.limits ?? null);
   const roomTypes = useRoomTypes().data?.items;
   const showcaseSlot = useShowcaseSlot();
-  const desktop = useMediaQuery(DESKTOP_QUERY);
+  const desktop = useIsDesktop();
   const [attempted, setAttempted] = useState(false);
 
   const validation = useMemo(

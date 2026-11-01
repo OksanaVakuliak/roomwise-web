@@ -2,6 +2,8 @@
 
 import { useCallback, useSyncExternalStore } from 'react';
 
+const DESKTOP_QUERY = '(min-width: 768px)';
+
 export function useMediaQuery(query: string): boolean {
   const subscribe = useCallback(
     (notify: () => void) => {
@@ -22,4 +24,8 @@ export function useMediaQuery(query: string): boolean {
   );
 
   return useSyncExternalStore(subscribe, read, () => false);
+}
+
+export function useIsDesktop(): boolean {
+  return useMediaQuery(DESKTOP_QUERY);
 }
