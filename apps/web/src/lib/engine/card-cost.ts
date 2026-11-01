@@ -14,12 +14,13 @@ export type CardCostContext = {
   pricingVersion: string;
   currency: Currency;
   shape: string;
+  layoutShape: string;
 };
 
 const CACHE_SIZE = 64;
 const cache = new Map<string, Map<string, EstimateLine | null>>();
 
-function shapeOf(draft: DraftV1): string {
+function shapeOf(draft: DraftV1, withHeatedFloor: boolean): string {
   return JSON.stringify([
     draft.object,
     draft.rooms.map(
@@ -29,7 +30,7 @@ function shapeOf(draft: DraftV1): string {
         lengthM,
         widthM,
         heightM,
-        heatedFloor,
+        withHeatedFloor && heatedFloor,
       ],
     ),
   ]);
@@ -41,7 +42,14 @@ export function cardCostContext(
   pricingVersion: string,
   currency: Currency,
 ): CardCostContext {
-  return { draft, pricing, pricingVersion, currency, shape: shapeOf(draft) };
+  return {
+    draft,
+    pricing,
+    pricingVersion,
+    currency,
+    shape: shapeOf(draft, true),
+    layoutShape: shapeOf(draft, false),
+  };
 }
 
 function remember(key: string): Map<string, EstimateLine | null> {
@@ -112,53 +120,68 @@ export function productCardLine(
   return line;
 }
 
+function engineeringLine(
+  context: CardCostContext,
+  keyPrefix: string,
+  shape: string,
+  roomClientId: string,
+  optionId: string,
+  reduce: (draft: DraftV1) => DraftV1,
+): EstimateLine | null {
+  const { draft, pricingVersion, currency } = context;
+  const key = `${keyPrefix}|${pricingVersion}|${currency}|${shape}|${roomClientId}`;
+  const lines = remember(key);
+  if (lines.has(optionId)) {
+    return lines.get(optionId) ?? null;
+  }
+  const line = lineOf(reduce(draft), context, `ENGINEERING:option:${optionId}`);
+  lines.set(optionId, line);
+  return line;
+}
+
 export function optionRoomLine(
   context: CardCostContext,
   roomClientId: string,
   optionId: string,
 ): EstimateLine | null {
-  const { draft, pricingVersion, currency, shape } = context;
-  const key = `option|${pricingVersion}|${currency}|${shape}|${roomClientId}`;
-  const lines = remember(key);
-  if (lines.has(optionId)) {
-    return lines.get(optionId) ?? null;
-  }
-  const reduced: DraftV1 = {
-    ...draft,
-    options: { [optionId]: { quantity: 1, roomClientIds: [roomClientId] } },
-    rooms: draft.rooms.map((room) => ({ ...room, selections: {} })),
-  };
-  const line = lineOf(reduced, context, `ENGINEERING:option:${optionId}`);
-  lines.set(optionId, line);
-  return line;
+  return engineeringLine(
+    context,
+    'option',
+    context.shape,
+    roomClientId,
+    optionId,
+    (draft) => ({
+      ...draft,
+      options: { [optionId]: { quantity: 1, roomClientIds: [roomClientId] } },
+      rooms: draft.rooms.map((room) => ({ ...room, selections: {} })),
+    }),
+  );
 }
 
 export function heatedFloorRoomLine(
   context: CardCostContext,
   roomClientId: string,
 ): EstimateLine | null {
-  const { draft, pricing, pricingVersion, currency, shape } = context;
-  const option = findHeatedFloorOption(pricing.options);
+  const option = findHeatedFloorOption(context.pricing.options);
   if (!option) {
     return null;
   }
-  const key = `heated-floor|${pricingVersion}|${currency}|${shape}|${roomClientId}`;
-  const lines = remember(key);
-  if (lines.has(option.id)) {
-    return lines.get(option.id) ?? null;
-  }
-  const reduced: DraftV1 = {
-    ...draft,
-    options: {},
-    rooms: draft.rooms.map((room) => ({
-      ...room,
-      selections: {},
-      heatedFloor: room.clientId === roomClientId,
-    })),
-  };
-  const line = lineOf(reduced, context, `ENGINEERING:option:${option.id}`);
-  lines.set(option.id, line);
-  return line;
+  return engineeringLine(
+    context,
+    'heated-floor',
+    context.layoutShape,
+    roomClientId,
+    option.id,
+    (draft) => ({
+      ...draft,
+      options: {},
+      rooms: draft.rooms.map((room) => ({
+        ...room,
+        selections: {},
+        heatedFloor: room.clientId === roomClientId,
+      })),
+    }),
+  );
 }
 
 export function clearCardCostCache(): void {
