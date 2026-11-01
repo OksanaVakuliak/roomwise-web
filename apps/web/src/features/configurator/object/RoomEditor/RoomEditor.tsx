@@ -11,7 +11,6 @@ import {
 } from '@/lib/draft/rooms';
 import { type DraftRoom, ROOM_NAME_MAX } from '@/lib/draft/schema';
 import type { RoomCatalog } from '@/lib/draft/style';
-import { findHeatedFloorOption } from '@/lib/engine/heated-floor';
 import { parseDecimal, useDecimalText } from '@/lib/form';
 import { useDraft } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
@@ -117,7 +116,7 @@ export function RoomEditor({
         clientId,
         { roomTypeCode: event.target.value as RoomTypeCode },
         catalog,
-        pricingOptions && findHeatedFloorOption(pricingOptions),
+        pricingOptions,
       ),
     [updateRoom, clientId, catalog, pricingOptions],
   );

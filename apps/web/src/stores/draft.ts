@@ -1,4 +1,4 @@
-import type { PricingData } from '@roomwise/calc-engine';
+import type { PricingData, RoomTypeCode } from '@roomwise/calc-engine';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
@@ -35,8 +35,37 @@ import {
   retypeSelections,
 } from '@/lib/draft/style';
 import { normalizeDraft } from '@/lib/draft/surfaces';
-import { isHeatedFloorAllowed } from '@/lib/engine/heated-floor';
+import {
+  findHeatedFloorOption,
+  isHeatedFloorAllowed,
+} from '@/lib/engine/heated-floor';
+import { isOptionAllowedForRoom } from '@/lib/engine/room-options';
 import { createSafeStorage } from './safe-storage';
+
+function dropDisallowedRoomOptions(
+  options: DraftV1['options'],
+  clientId: string,
+  roomTypeCode: RoomTypeCode | null,
+  pricingOptions: readonly PricingData['options'][number][],
+): DraftV1['options'] {
+  const result: DraftV1['options'] = {};
+  for (const [id, chosen] of Object.entries(options)) {
+    const option = pricingOptions.find((item) => item.id === id);
+    const stale =
+      option !== undefined &&
+      (roomTypeCode === null || !isOptionAllowedForRoom(option, roomTypeCode));
+    const ids = chosen.roomClientIds;
+    if (!stale || !ids?.includes(clientId)) {
+      result[id] = chosen;
+      continue;
+    }
+    const left = ids.filter((item) => item !== clientId);
+    if (left.length > 0) {
+      result[id] = { ...chosen, roomClientIds: left };
+    }
+  }
+  return result;
+}
 
 export const DRAFT_STORAGE_KEY = 'roomwise-draft';
 
@@ -61,7 +90,7 @@ type DraftState = DraftV1 & {
       Pick<DraftRoom, 'roomTypeCode' | 'lengthM' | 'widthM' | 'heightM'>
     >,
     catalog?: RoomCatalog,
-    heatedFloorOption?: PricingData['options'][number],
+    pricingOptions?: readonly PricingData['options'][number][],
   ) => void;
   setHeatedFloor: (clientId: string, on: boolean) => void;
   toggleRoomOption: (optionId: string, clientId: string) => void;
@@ -155,9 +184,12 @@ export const useDraft = create<DraftState>()(
         set((state) => ({ ...next, revision: state.revision + 1 }));
         return room.clientId;
       },
-      updateRoom: (clientId, patch, catalog, heatedFloorOption) =>
+      updateRoom: (clientId, patch, catalog, pricingOptions) =>
         set((state) => {
+          const heatedFloorOption =
+            pricingOptions && findHeatedFloorOption(pricingOptions);
           let heatedFloorReset = false;
+          let options = state.options;
           const rooms = state.rooms.map((room) => {
             if (room.clientId !== clientId) {
               return room;
@@ -172,6 +204,18 @@ export const useDraft = create<DraftState>()(
             ) {
               next = { ...next, heatedFloor: false };
               heatedFloorReset = true;
+            }
+            if (
+              pricingOptions &&
+              patch.roomTypeCode !== undefined &&
+              patch.roomTypeCode !== room.roomTypeCode
+            ) {
+              options = dropDisallowedRoomOptions(
+                options,
+                clientId,
+                patch.roomTypeCode,
+                pricingOptions,
+              );
             }
             if (
               !catalog ||
@@ -192,6 +236,7 @@ export const useDraft = create<DraftState>()(
           });
           return {
             rooms,
+            options,
             heatedFloorReset: heatedFloorReset || state.heatedFloorReset,
             revision: state.revision + 1,
           };

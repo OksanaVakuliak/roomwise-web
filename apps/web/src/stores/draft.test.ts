@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDefaultDraft } from '@/lib/draft/schema';
-import { findHeatedFloorOption } from '@/lib/engine/heated-floor';
 import { breakStorage, resetThemeDom } from '@/lib/theme/test-utils';
 import {
   categoryIds,
@@ -615,7 +614,7 @@ describe('useDraft one finish per surface', () => {
   });
 
   describe('heated floor on room type change', () => {
-    const option = findHeatedFloorOption(makePricingData().options);
+    const pricingOptions = makePricingData().options;
 
     const heatedRoom = () => {
       const id = useDraft.getState().addRoom() as string;
@@ -629,7 +628,7 @@ describe('useDraft one finish per surface', () => {
 
       useDraft
         .getState()
-        .updateRoom(id, { roomTypeCode: 'BEDROOM' }, undefined, option);
+        .updateRoom(id, { roomTypeCode: 'BEDROOM' }, undefined, pricingOptions);
 
       expect(heated(id)).toBe(false);
       expect(useDraft.getState().heatedFloorReset).toBe(true);
@@ -640,7 +639,7 @@ describe('useDraft one finish per surface', () => {
 
       useDraft
         .getState()
-        .updateRoom(id, { roomTypeCode: 'KITCHEN' }, undefined, option);
+        .updateRoom(id, { roomTypeCode: 'KITCHEN' }, undefined, pricingOptions);
 
       expect(heated(id)).toBe(true);
       expect(useDraft.getState().heatedFloorReset).toBe(false);
@@ -652,7 +651,9 @@ describe('useDraft one finish per surface', () => {
       useDraft.getState().updateRoom(id, { roomTypeCode: 'BEDROOM' });
       expect(heated(id)).toBe(true);
 
-      useDraft.getState().updateRoom(id, { lengthM: 4 }, undefined, option);
+      useDraft
+        .getState()
+        .updateRoom(id, { lengthM: 4 }, undefined, pricingOptions);
       expect(heated(id)).toBe(true);
       expect(useDraft.getState().heatedFloorReset).toBe(false);
     });
@@ -661,11 +662,74 @@ describe('useDraft one finish per surface', () => {
       const id = heatedRoom();
       useDraft
         .getState()
-        .updateRoom(id, { roomTypeCode: 'BEDROOM' }, undefined, option);
+        .updateRoom(id, { roomTypeCode: 'BEDROOM' }, undefined, pricingOptions);
 
       useDraft.getState().dismissHeatedFloorReset();
 
       expect(useDraft.getState().heatedFloorReset).toBe(false);
+    });
+  });
+
+  describe('room options on room type change', () => {
+    const pricingOptions = makePricingData().options;
+    const acId = 'opt-ac';
+
+    const roomWithAc = (type: 'BEDROOM' | 'BATHROOM') => {
+      const id = useDraft.getState().addRoom() as string;
+      useDraft.getState().updateRoom(id, { roomTypeCode: type });
+      useDraft.getState().toggleRoomOption(acId, id);
+      return id;
+    };
+
+    it('drops the room from an option the new type does not allow', () => {
+      const first = roomWithAc('BEDROOM');
+      const second = roomWithAc('BEDROOM');
+
+      useDraft
+        .getState()
+        .updateRoom(
+          first,
+          { roomTypeCode: 'BATHROOM' },
+          undefined,
+          pricingOptions,
+        );
+
+      expect(useDraft.getState().options[acId]?.roomClientIds).toEqual([
+        second,
+      ]);
+    });
+
+    it('removes the option entry when no rooms are left', () => {
+      const id = roomWithAc('BEDROOM');
+
+      useDraft
+        .getState()
+        .updateRoom(
+          id,
+          { roomTypeCode: 'BATHROOM' },
+          undefined,
+          pricingOptions,
+        );
+
+      expect(useDraft.getState().options).toEqual({});
+    });
+
+    it('keeps the room when the new type is allowed', () => {
+      const id = roomWithAc('BEDROOM');
+
+      useDraft
+        .getState()
+        .updateRoom(id, { roomTypeCode: 'KITCHEN' }, undefined, pricingOptions);
+
+      expect(useDraft.getState().options[acId]?.roomClientIds).toEqual([id]);
+    });
+
+    it('keeps options when no pricing options are given', () => {
+      const id = roomWithAc('BEDROOM');
+
+      useDraft.getState().updateRoom(id, { roomTypeCode: 'BATHROOM' });
+
+      expect(useDraft.getState().options[acId]?.roomClientIds).toEqual([id]);
     });
   });
 });

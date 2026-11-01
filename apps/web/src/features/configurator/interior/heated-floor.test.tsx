@@ -2,7 +2,6 @@ import { act, fireEvent, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '@/lib/api/client';
 import { clearCardCostCache } from '@/lib/engine/card-cost';
-import { findHeatedFloorOption } from '@/lib/engine/heated-floor';
 import { clearEstimateCache, runEstimate } from '@/lib/engine/run-estimate';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { resetWarmup } from '@/lib/warmup/warmup';
@@ -209,7 +208,6 @@ describe('heated floor and room options on the interior step', () => {
           locale,
           draft: heatedDraft(productIds.tile),
         });
-        const option = findHeatedFloorOption(pricing.options);
 
         act(() => {
           useDraft
@@ -218,7 +216,7 @@ describe('heated floor and room options on the interior step', () => {
               bathroomId,
               { roomTypeCode: 'BEDROOM' },
               undefined,
-              option,
+              pricing.options,
             );
         });
 
