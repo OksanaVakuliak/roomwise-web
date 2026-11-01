@@ -578,6 +578,42 @@ describe('useDraft one finish per surface', () => {
     expect([heated(first), heated(second)]).toEqual([false, true]);
   });
 
+  describe('toggleRoomOption', () => {
+    it('adds and removes rooms and drops the option with the last room', () => {
+      const first = useDraft.getState().addRoom() as string;
+      const second = useDraft.getState().addRoom() as string;
+      const revision = useDraft.getState().revision;
+
+      useDraft.getState().toggleRoomOption('opt-soundproofing', first);
+      useDraft.getState().toggleRoomOption('opt-soundproofing', second);
+
+      expect(useDraft.getState().options['opt-soundproofing']).toEqual({
+        roomClientIds: [first, second],
+      });
+      expect(useDraft.getState().revision).toBe(revision + 2);
+
+      useDraft.getState().toggleRoomOption('opt-soundproofing', first);
+      expect(useDraft.getState().options['opt-soundproofing']).toEqual({
+        roomClientIds: [second],
+      });
+
+      useDraft.getState().toggleRoomOption('opt-soundproofing', second);
+      expect(useDraft.getState().options).toEqual({});
+    });
+
+    it('leaves other options untouched', () => {
+      const id = useDraft.getState().addRoom() as string;
+      useDraft.setState({ options: { 'opt-ac': { quantity: 2 } } });
+
+      useDraft.getState().toggleRoomOption('opt-soundproofing', id);
+
+      expect(useDraft.getState().options).toEqual({
+        'opt-ac': { quantity: 2 },
+        'opt-soundproofing': { roomClientIds: [id] },
+      });
+    });
+  });
+
   describe('heated floor on room type change', () => {
     const option = findHeatedFloorOption(makePricingData().options);
 

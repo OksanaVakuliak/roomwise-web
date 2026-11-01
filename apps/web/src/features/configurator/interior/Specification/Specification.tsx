@@ -25,6 +25,7 @@ import {
   ProductShowcase,
   type SortOrder,
 } from '../ProductShowcase/ProductShowcase';
+import { RoomOptions } from '../RoomOptions/RoomOptions';
 import type { RoomPricing } from '../use-room-pricing';
 import styles from './Specification.module.css';
 
@@ -225,6 +226,7 @@ export function Specification({
           </TabPanel>
         </>
       ) : null}
+      <RoomOptions room={room} pricing={pricing} />
     </section>
   );
 }

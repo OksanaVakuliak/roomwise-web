@@ -5,6 +5,7 @@ import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import {
   cardCostContext,
   clearCardCostCache,
+  optionRoomLine,
   productCardLine,
 } from './card-cost';
 import { toConfiguration } from './to-configuration';
@@ -77,5 +78,30 @@ describe('productCardLine', () => {
         productIds.laminate,
       ),
     ).toBeNull();
+  });
+});
+
+describe('optionRoomLine', () => {
+  it('matches the room share of the full estimate', () => {
+    const draft = makeInteriorDraft({
+      options: {
+        'opt-soundproofing': { quantity: 1, roomClientIds: [living] },
+      },
+    });
+    const line = optionRoomLine(context(draft), living, 'opt-soundproofing');
+    expect(line?.amountCents).toBe(
+      fullLine(draft, 'ENGINEERING:option:opt-soundproofing')?.amountCents,
+    );
+    expect(line?.amountCents).toBeGreaterThan(0);
+  });
+
+  it('returns the memoized line on a repeated call', () => {
+    expect(optionRoomLine(context(), living, 'opt-soundproofing')).toBe(
+      optionRoomLine(context(), living, 'opt-soundproofing'),
+    );
+  });
+
+  it('returns null for an unknown option', () => {
+    expect(optionRoomLine(context(), living, 'missing')).toBeNull();
   });
 });

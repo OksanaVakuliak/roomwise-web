@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useCallback, useId } from 'react';
 import { Button, ImageWithFallback, SectionHeader } from '@/components/ui';
-import { useCategoryProducts } from '@/lib/api/catalog';
+import { useCategoryProducts, useEngineering } from '@/lib/api/catalog';
 import { cx } from '@/lib/cx';
 import type { DraftRoom } from '@/lib/draft/schema';
 import {
@@ -11,6 +11,7 @@ import {
   groupCategories,
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
+import { optionRoomLine } from '@/lib/engine/card-cost';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../use-room-pricing';
@@ -160,6 +161,83 @@ function ChosenRow({
   );
 }
 
+type ChosenOptionRowProps = {
+  room: DraftRoom;
+  roomName: string;
+  pricing: RoomPricing | null;
+  optionId: string;
+  name: string;
+};
+
+function ChosenOptionRow({
+  room,
+  roomName,
+  pricing,
+  optionId,
+  name,
+}: ChosenOptionRowProps) {
+  const t = useTranslations('ChosenList');
+  const toggle = useDraft((state) => state.toggleRoomOption);
+  const { clientId } = room;
+  const remove = useCallback(
+    () => toggle(optionId, clientId),
+    [clientId, optionId, toggle],
+  );
+  const line = pricing
+    ? optionRoomLine(pricing.context, clientId, optionId)
+    : null;
+  const sum =
+    pricing && line?.status === 'OK' ? pricing.formatLine(line) : null;
+
+  return (
+    <li className={styles.item}>
+      <span className={styles.row}>
+        <span className={styles.body}>
+          <span className={styles.category}>{t('option')}</span>
+          <span className={styles.name}>{name}</span>
+        </span>
+        {sum ? <span className={`${styles.sum} num`}>{sum}</span> : null}
+      </span>
+      <Button
+        kind="outline"
+        className={styles.action}
+        aria-label={t('removeLabel', { category: name, room: roomName })}
+        onClick={remove}
+      >
+        {t('remove')}
+      </Button>
+    </li>
+  );
+}
+
+type ChosenOptionsProps = {
+  room: DraftRoom;
+  roomName: string;
+  pricing: RoomPricing | null;
+};
+
+function ChosenOptions({ room, roomName, pricing }: ChosenOptionsProps) {
+  const options = useDraft((state) => state.options);
+  const engineering = useEngineering();
+  const chosen = (engineering.data?.options ?? []).filter(
+    (option) =>
+      option.kind === 'ENGINEERING' &&
+      option.perRoom &&
+      (options[option.id]?.roomClientIds ?? []).includes(room.clientId),
+  );
+
+  return chosen.map((option) => (
+    <ChosenOptionRow
+      key={option.id}
+      room={room}
+      roomName={roomName}
+      pricing={pricing}
+      optionId={option.id}
+      name={option.name}
+    />
+  ));
+}
+
 type ChosenSectionProps = {
   group: ChosenListGroup;
   pricing: RoomPricing | null;
@@ -226,6 +304,7 @@ function ChosenSection({
             onSelect={onSelect}
           />
         ))}
+        <ChosenOptions room={room} roomName={name} pricing={pricing} />
       </ul>
     </section>
   );

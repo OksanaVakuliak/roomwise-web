@@ -913,7 +913,11 @@
     "remove": "Прибрати",
     "removeLabel": "Прибрати {category} з приміщення {room}",
     "add": "Додати",
-    "addLabel": "Додати {category} до приміщення {room}"
+    "addLabel": "Додати {category} до приміщення {room}",
+    "option": "Інженерія"
+  },
+  "RoomOptions": {
+    "title": "Інженерія для цього приміщення"
   },
   "ProductShowcase": {
     "loading": "Завантаження товарів",

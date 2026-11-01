@@ -400,7 +400,9 @@ describe('InteriorStep integration', () => {
       `/configurator/interior?room=${livingId}&category=${categoryIds.ceiling}`,
     );
     const before = panelOf(currentDraft());
-    expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('switch', { name: en.HeatedFloorSwitch.title }),
+    ).not.toBeInTheDocument();
 
     await act(async () => {
       fireEvent.click(
@@ -839,7 +841,9 @@ describe('InteriorStep integration', () => {
         `/configurator/interior?room=${bedroomId}&category=${categoryIds.floor}`,
       );
 
-      expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('switch', { name: en.HeatedFloorSwitch.title }),
+      ).not.toBeInTheDocument();
     });
   });
 });
