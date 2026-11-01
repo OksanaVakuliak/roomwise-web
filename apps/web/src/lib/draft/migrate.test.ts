@@ -5,7 +5,7 @@ import {
   makeFullRoomsDraft,
   makeInteriorDraft,
 } from '@/test/fixtures/draft';
-import { migrate, salvage } from './migrate';
+import { DRAFT_VERSION, migrate, salvage } from './migrate';
 import { createDefaultDraft, DraftV1Schema } from './schema';
 
 describe('DraftV1Schema', () => {
@@ -46,8 +46,24 @@ describe('DraftV1Schema', () => {
 });
 
 describe('migrate', () => {
-  it('returns a valid v1 state unchanged', () => {
+  it('returns a current state unchanged', () => {
     const draft = makeInteriorDraft();
+    expect(migrate(draft, DRAFT_VERSION)).toEqual({ draft });
+  });
+
+  it('keeps the interior step reachable for a v1 draft past it', () => {
+    const draft = makeEmptyDraft({
+      step: 'engineering',
+      furthestStep: 'engineering',
+    });
+    expect(migrate(draft, 1).draft).toEqual({
+      ...draft,
+      furthestStep: 'interior',
+    });
+  });
+
+  it('leaves an earlier furthest step of a v1 draft as it is', () => {
+    const draft = makeEmptyDraft({ step: 'style', furthestStep: 'style' });
     expect(migrate(draft, 1)).toEqual({ draft });
   });
 

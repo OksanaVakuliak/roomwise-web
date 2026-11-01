@@ -40,7 +40,7 @@ describe('useDraft', () => {
 
     expect(stored()).toEqual({
       state: { ...createDefaultDraft(), step: 'style', furthestStep: 'style' },
-      version: 1,
+      version: 2,
     });
   });
 
