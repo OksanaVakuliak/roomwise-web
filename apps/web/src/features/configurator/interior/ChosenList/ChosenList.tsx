@@ -11,6 +11,7 @@ import {
   groupCategories,
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
+import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../use-room-pricing';
 import styles from './ChosenList.module.css';
@@ -71,6 +72,7 @@ function ChosenRow({
     (item) => item.id === productId,
   );
   const line = pricing?.materialsLine(clientId, category.id);
+  const warned = hasHeatedFloorWarning(line);
   const sum =
     pricing && line?.status === 'OK' ? pricing.formatLine(line) : null;
   const select = useCallback(
@@ -136,6 +138,9 @@ function ChosenRow({
           <span className={cx(styles.name, productId === null && styles.muted)}>
             {productId === null ? t('choose') : product?.name}
           </span>
+          {warned ? (
+            <span className={styles.warning}>{t('heatedFloorWarning')}</span>
+          ) : null}
         </span>
         {shown && sum ? (
           <span className={`${styles.sum} num`}>{sum}</span>

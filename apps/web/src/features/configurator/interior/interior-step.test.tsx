@@ -763,4 +763,83 @@ describe('InteriorStep integration', () => {
     },
     30_000,
   );
+
+  describe('heated floor', () => {
+    const heatedDraft = (productId: string) => {
+      const base = makeInteriorDraft();
+      return {
+        ...base,
+        rooms: [
+          base.rooms[0],
+          {
+            ...base.rooms[1],
+            heatedFloor: true,
+            selections: {
+              ...base.rooms[1].selections,
+              [categoryIds.floor]: styleSelection(productId),
+            },
+          },
+        ],
+      };
+    };
+    const bathroomUrl = `/configurator/interior?room=${bathroomId}&category=${categoryIds.floor}`;
+
+    it('warns about an unfit floor on the card, in the category and in the cost panel without blocking the choice', async () => {
+      await renderStep(bathroomUrl, {
+        draft: heatedDraft(productIds.laminate),
+      });
+
+      expect(
+        cardNamed(showcase('Flooring'), 'Oak Natural Laminate'),
+      ).toHaveTextContent(en.ProductShowcase.heatedFloorWarning);
+      expect(
+        cardNamed(showcase('Flooring'), 'Stone Grey Porcelain Tile'),
+      ).not.toHaveTextContent(en.ProductShowcase.heatedFloorWarning);
+      expect(categoryRows('Bathroom')[0]).toHaveTextContent(
+        en.ChosenList.heatedFloorWarning,
+      );
+      expect(
+        screen.getByText(en.Estimate.warning.HEATED_FLOOR_INCOMPATIBLE),
+      ).toBeInTheDocument();
+      expect(
+        chooseButton(showcase('Flooring'), 'Oak Natural Laminate'),
+      ).toBeEnabled();
+    });
+
+    it('shows no warning for a compatible floor', async () => {
+      await renderStep(bathroomUrl, { draft: heatedDraft(productIds.tile) });
+
+      expect(categoryRows('Bathroom')[0]).not.toHaveTextContent(
+        en.ChosenList.heatedFloorWarning,
+      );
+      expect(
+        screen.queryByText(en.Estimate.warning.HEATED_FLOOR_INCOMPATIBLE),
+      ).not.toBeInTheDocument();
+    });
+
+    it('offers the switch only for rooms that allow it and recalculates on toggle', async () => {
+      await renderStep(bathroomUrl, { draft: heatedDraft(productIds.tile) });
+      const toggle = screen.getByRole('switch', {
+        name: en.HeatedFloorSwitch.title,
+      });
+      expect(toggle).toBeChecked();
+
+      await act(async () => {
+        fireEvent.click(toggle);
+      });
+
+      expect(currentDraft().rooms[1].heatedFloor).toBe(false);
+      expect(
+        screen.getByRole('switch', { name: en.HeatedFloorSwitch.title }),
+      ).not.toBeChecked();
+    });
+
+    it('hides the switch in a bedroom', async () => {
+      await renderStep(
+        `/configurator/interior?room=${bedroomId}&category=${categoryIds.floor}`,
+      );
+
+      expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+    });
+  });
 });

@@ -8,7 +8,7 @@ import { resetWarmup, useWarmup } from '@/lib/warmup/warmup';
 import { useDraft } from '@/stores/draft';
 import { axe } from '@/test/axe';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
-import { makeInteriorDraft } from '@/test/fixtures/draft';
+import { type DraftV1, makeInteriorDraft } from '@/test/fixtures/draft';
 import {
   createTestQueryClient,
   forEachLocale,
@@ -49,8 +49,9 @@ function Harness({
 
 async function renderShowcase(
   options: Parameters<typeof renderWithProviders>[1] = {},
+  draft: DraftV1 = makeInteriorDraft(),
 ) {
-  useDraft.setState({ ...makeInteriorDraft(), revision: 1 });
+  useDraft.setState({ ...draft, revision: 1 });
   const onUnavailable = vi.fn();
   const onChosen = vi.fn();
   const onOpenDetail = vi.fn();
@@ -116,6 +117,37 @@ describe('ProductShowcase', () => {
       'aria-pressed',
       'false',
     );
+  });
+
+  it('warns on cards of products unfit for the heated floor without blocking them', async () => {
+    const base = makeInteriorDraft();
+    const bathroom = { ...base.rooms[1], heatedFloor: true };
+    const { slot, onChosen } = await renderShowcase(
+      {},
+      {
+        ...base,
+        rooms: [bathroom],
+      },
+    );
+
+    expect(cardNamed(slot, 'Oak Natural Laminate')).toHaveTextContent(
+      en.ProductShowcase.heatedFloorWarning,
+    );
+    expect(cardNamed(slot, 'Stone Grey Porcelain Tile')).not.toHaveTextContent(
+      en.ProductShowcase.heatedFloorWarning,
+    );
+
+    await act(async () => {
+      fireEvent.click(chooseButton(slot, 'Oak Natural Laminate'));
+    });
+
+    expect(onChosen).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows no heated floor warning when the room has none', async () => {
+    const { slot } = await renderShowcase();
+
+    expect(slot).not.toHaveTextContent(en.ProductShowcase.heatedFloorWarning);
   });
 
   it('selects a product with one click and reports it', async () => {

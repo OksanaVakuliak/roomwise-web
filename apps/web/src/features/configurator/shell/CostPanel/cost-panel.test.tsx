@@ -86,6 +86,40 @@ describe('CostPanel', () => {
     expect(total?.usdCents).toBe(sum);
   });
 
+  it.each(forEachLocale)(
+    'shows the heated floor warning in %s only for an unfit floor',
+    (locale) => {
+      const base = makeInteriorDraft();
+      const bathroom = base.rooms[1];
+      const unfit = {
+        ...base,
+        rooms: [
+          {
+            ...bathroom,
+            heatedFloor: true,
+            selections: {
+              ...bathroom.selections,
+              'cat-floor': {
+                productId: 'p-laminate',
+                disabled: false,
+                source: 'manual' as const,
+              },
+            },
+          },
+        ],
+      };
+      const message =
+        catalogs[locale].Estimate.warning.HEATED_FLOOR_INCOMPATIBLE;
+
+      const { unmount } = renderPanel(unfit, locale);
+      expect(screen.getByText(message)).toBeInTheDocument();
+      unmount();
+
+      renderPanel(base, locale);
+      expect(screen.queryByText(message)).not.toBeInTheDocument();
+    },
+  );
+
   it.each(forEachLocale)('shows UAH amounts in %s', (locale) => {
     const draft = makeInteriorDraft();
     const panel = figures(draft);

@@ -113,6 +113,12 @@
   color: var(--line-2);
 }
 
+.warning {
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-caption-default-size);
+  color: var(--heat);
+}
+
 .sum {
   font-size: var(--text-body-s-size);
   white-space: nowrap;

@@ -1,4 +1,8 @@
-import type { PricingData, RoomTypeCode } from '@roomwise/calc-engine';
+import type {
+  EstimateLine,
+  PricingData,
+  RoomTypeCode,
+} from '@roomwise/calc-engine';
 
 type PricingOption = PricingData['options'][number];
 
@@ -20,5 +24,17 @@ export function isHeatedFloorAllowed(
   return (
     option.roomTypeCodes.length === 0 ||
     option.roomTypeCodes.includes(roomTypeCode)
+  );
+}
+
+export const HEATED_FLOOR_INCOMPATIBLE_CODE = 'HEATED_FLOOR_INCOMPATIBLE';
+
+export function hasHeatedFloorWarning(
+  line: Pick<EstimateLine, 'warnings'> | null | undefined,
+): boolean {
+  return (
+    line?.warnings.some(
+      (warning) => warning.code === HEATED_FLOOR_INCOMPATIBLE_CODE,
+    ) ?? false
   );
 }

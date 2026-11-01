@@ -906,6 +906,7 @@
   },
   "ChosenList": {
     "title": "Chosen",
+    "heatedFloorWarning": "Not for heated floor",
     "choose": "choose a material",
     "openPicker": "Choose a material",
     "current": "open",
@@ -916,6 +917,7 @@
   },
   "ProductShowcase": {
     "loading": "Loading products",
+    "heatedFloorWarning": "Not for heated floor, you can still choose it",
     "sortLabel": "Sort by",
     "sort": {
       "server": "Recommended",

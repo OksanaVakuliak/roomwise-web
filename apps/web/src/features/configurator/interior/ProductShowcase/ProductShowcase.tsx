@@ -8,6 +8,7 @@ import { useCategoryProducts } from '@/lib/api/catalog';
 import { ApiRequestError } from '@/lib/api/request-error';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { productCardLine } from '@/lib/engine/card-cost';
+import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../use-room-pricing';
 import styles from './ProductShowcase.module.css';
@@ -97,6 +98,9 @@ function ProductCard({
         unit={t(`unit.${product.unit}`)}
         roomCost={cost}
         roomCostLabel={cost ? t('forRoom') : undefined}
+        warning={
+          hasHeatedFloorWarning(line) ? t('heatedFloorWarning') : undefined
+        }
         actions={
           <>
             <Button

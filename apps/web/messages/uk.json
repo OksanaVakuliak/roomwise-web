@@ -906,6 +906,7 @@
   },
   "ChosenList": {
     "title": "Обрано",
+    "heatedFloorWarning": "Не для теплої підлоги",
     "choose": "оберіть матеріал",
     "openPicker": "Обрати матеріал",
     "current": "відкрито",
@@ -916,6 +917,7 @@
   },
   "ProductShowcase": {
     "loading": "Завантаження товарів",
+    "heatedFloorWarning": "Не для теплої підлоги, але його все одно можна обрати",
     "sortLabel": "Сортування",
     "sort": {
       "server": "Рекомендовані",

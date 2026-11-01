@@ -4,17 +4,20 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ExchangeRateNote } from '@/components/layout';
 import { ErrorState, ZoneSkeleton } from '@/components/system';
 import { EstimateStamp } from '@/components/ui';
+import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import type { Money } from '@/lib/engine/sections';
 import { moneyMinor } from '@/lib/format';
 import { useDraft, useDraftValue } from '@/stores/draft';
 import { checkPricingData, usePricingData } from '@/stores/pricing-data';
 import { useDisplayCurrency } from '@/stores/use-display-currency';
+import styles from './CostPanel.module.css';
 
 const EMPTY_VALUE = '—';
 
 export function CostPanel() {
   const t = useTranslations('CostPanel');
+  const tWarning = useTranslations('Estimate.warning');
   const tConfigurator = useTranslations('Configurator');
   const locale = useLocale();
   const draft = useDraftValue();
@@ -38,7 +41,7 @@ export function CostPanel() {
     return <ZoneSkeleton kind="estimate" />;
   }
 
-  const { panel } = runEstimate({
+  const { panel, estimate } = runEstimate({
     draft,
     draftRevision: revision,
     pricing,
@@ -67,12 +70,24 @@ export function CostPanel() {
   const share = (value: Money | null) =>
     sum > 0 && value ? (value.usdCents / sum) * 100 : 0;
   const total = format(panel.total);
+  const heatedFloorWarning = hasHeatedFloorWarning(estimate);
 
   return (
     <EstimateStamp
       totalLabel={tConfigurator('totalLabel')}
       total={total}
-      note={inUah ? <ExchangeRateNote /> : undefined}
+      note={
+        inUah || heatedFloorWarning ? (
+          <>
+            {inUah ? <ExchangeRateNote /> : null}
+            {heatedFloorWarning ? (
+              <span className={styles.warning}>
+                {tWarning('HEATED_FLOOR_INCOMPATIBLE')}
+              </span>
+            ) : null}
+          </>
+        ) : undefined
+      }
       barLabel={tConfigurator('barLabel', {
         base: Math.round(share(panel.base)),
         materials: Math.round(share(panel.materials)),
