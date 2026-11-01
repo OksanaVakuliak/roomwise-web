@@ -8,7 +8,7 @@ import {
   findHeatedFloorOption,
   isHeatedFloorAllowed,
 } from '@/lib/engine/heated-floor';
-import type { RoomPricing } from '../use-room-pricing';
+import type { RoomPricing } from '../../shell/use-room-pricing';
 import styles from './HeatedFloorNote.module.css';
 
 export type HeatedFloorNoteProps = {

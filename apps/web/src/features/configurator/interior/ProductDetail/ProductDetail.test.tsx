@@ -10,7 +10,7 @@ import { productIds } from '@/test/fixtures/catalog';
 import { makeInteriorDraft } from '@/test/fixtures/draft';
 import { renderWithProviders } from '@/test/render-with-providers';
 import en from '../../../../../messages/en.json';
-import { useRoomPricing } from '../use-room-pricing';
+import { useRoomPricing } from '../../shell/use-room-pricing';
 import { ProductDetail } from './ProductDetail';
 
 vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));

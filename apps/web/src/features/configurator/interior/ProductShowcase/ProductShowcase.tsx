@@ -10,7 +10,7 @@ import type { DraftRoom } from '@/lib/draft/schema';
 import { productCardLine } from '@/lib/engine/card-cost';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
-import type { RoomPricing } from '../use-room-pricing';
+import type { RoomPricing } from '../../shell/use-room-pricing';
 import styles from './ProductShowcase.module.css';
 
 type ProductCardData = NonNullable<

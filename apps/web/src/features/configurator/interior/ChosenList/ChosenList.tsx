@@ -14,8 +14,8 @@ import {
 import { optionRoomLine } from '@/lib/engine/card-cost';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
-import { useChosenRoomOptions } from '../../engineering/use-room-options';
-import type { RoomPricing } from '../use-room-pricing';
+import { useChosenRoomOptions } from '../../shell/use-room-options';
+import type { RoomPricing } from '../../shell/use-room-pricing';
 import styles from './ChosenList.module.css';
 
 export type ChosenListCategory = {

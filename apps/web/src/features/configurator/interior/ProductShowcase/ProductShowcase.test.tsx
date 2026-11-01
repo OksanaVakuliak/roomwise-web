@@ -15,7 +15,7 @@ import {
   renderWithProviders,
 } from '@/test/render-with-providers';
 import en from '../../../../../messages/en.json';
-import { useRoomPricing } from '../use-room-pricing';
+import { useRoomPricing } from '../../shell/use-room-pricing';
 import { ProductShowcase } from './ProductShowcase';
 
 vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));

@@ -3,7 +3,7 @@
 import { useId } from 'react';
 import { SectionHeader } from '@/components/ui';
 import type { DraftRoom } from '@/lib/draft/schema';
-import type { RoomPricing } from '../../interior/use-room-pricing';
+import type { RoomPricing } from '../../shell/use-room-pricing';
 import { HeatedFloorSwitch } from '../HeatedFloorSwitch/HeatedFloorSwitch';
 import { RoomOptions } from '../RoomOptions/RoomOptions';
 import styles from './RoomEngineering.module.css';

@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui';
 import { useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName } from '@/lib/draft/rooms';
 import { useDraft } from '@/stores/draft';
-import { useRoomPricing } from '../../interior/use-room-pricing';
+import { useRoomPricing } from '../../shell/use-room-pricing';
 import { RoomEngineering } from '../RoomEngineering/RoomEngineering';
 import styles from './EngineeringStep.module.css';
 

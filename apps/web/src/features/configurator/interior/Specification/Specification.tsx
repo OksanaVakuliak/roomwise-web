@@ -20,12 +20,12 @@ import {
   groupCategories,
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
+import type { RoomPricing } from '../../shell/use-room-pricing';
 import { HeatedFloorNote } from '../HeatedFloorNote/HeatedFloorNote';
 import {
   ProductShowcase,
   type SortOrder,
 } from '../ProductShowcase/ProductShowcase';
-import type { RoomPricing } from '../use-room-pricing';
 import styles from './Specification.module.css';
 
 const SORT_ORDERS: readonly SortOrder[] = ['server', 'asc', 'desc'];

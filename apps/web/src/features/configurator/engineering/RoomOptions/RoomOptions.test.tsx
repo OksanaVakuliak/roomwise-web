@@ -12,7 +12,7 @@ import {
 } from '@/test/render-with-providers';
 import en from '../../../../../messages/en.json';
 import uk from '../../../../../messages/uk.json';
-import { useRoomPricing } from '../../interior/use-room-pricing';
+import { useRoomPricing } from '../../shell/use-room-pricing';
 import { RoomOptions } from './RoomOptions';
 
 const catalogs = { en, uk };

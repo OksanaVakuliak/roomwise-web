@@ -6,8 +6,8 @@ import { SectionHeader, SwitchRow } from '@/components/ui';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { optionRoomLine } from '@/lib/engine/card-cost';
 import { useDraft } from '@/stores/draft';
-import type { RoomPricing } from '../../interior/use-room-pricing';
-import { useRoomOptions } from '../use-room-options';
+import { useRoomOptions } from '../../shell/use-room-options';
+import type { RoomPricing } from '../../shell/use-room-pricing';
 import styles from './RoomOptions.module.css';
 
 export type RoomOptionsProps = {
