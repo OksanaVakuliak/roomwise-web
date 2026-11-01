@@ -24,6 +24,7 @@ import {
   ProductShowcase,
   type SortOrder,
 } from '../ProductShowcase/ProductShowcase';
+import type { RoomPricing } from '../use-room-pricing';
 import styles from './Specification.module.css';
 
 const SORT_ORDERS: readonly SortOrder[] = ['server', 'asc', 'desc'];
@@ -37,6 +38,7 @@ export type SpecificationCategory = {
 
 export type SpecificationProps = {
   room: DraftRoom;
+  pricing: RoomPricing | null;
   categories: readonly SpecificationCategory[];
   activeCategoryId: string | null;
   size: 'mobile' | 'desktop';
@@ -48,6 +50,7 @@ export type SpecificationProps = {
 
 export function Specification({
   room,
+  pricing,
   categories,
   activeCategoryId,
   size,
@@ -198,6 +201,7 @@ export function Specification({
               <>
                 <ProductShowcase
                   room={room}
+                  pricing={pricing}
                   category={{ id: active.id, name: active.name }}
                   siblingIds={surfaceSiblings(categories, active.id)}
                   replaces={replaces}

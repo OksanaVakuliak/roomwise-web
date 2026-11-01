@@ -22,6 +22,7 @@ import { ProductDetail } from '../ProductDetail/ProductDetail';
 import { RoomPlans } from '../RoomPlans/RoomPlans';
 import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
 import { Specification } from '../Specification/Specification';
+import { useRoomPricing } from '../use-room-pricing';
 import { useRoomSurfaces } from '../use-room-surfaces';
 import styles from './InteriorStep.module.css';
 
@@ -51,6 +52,7 @@ function InteriorContent() {
     rooms.find((room) => room.clientId === requestedRoom) ?? rooms[0] ?? null;
   const needsRedirect = current !== null && current.clientId !== requestedRoom;
   const surfaces = useRoomSurfaces(current);
+  const pricing = useRoomPricing();
 
   const navigate = useCallback(
     (changes: Record<string, string | null>, mode: 'push' | 'replace') => {
@@ -230,6 +232,7 @@ function InteriorContent() {
         productId={detailId}
         categoryId={activeCategory?.id ?? null}
         room={current}
+        pricing={pricing}
         onChoose={chooseFromDetail}
         onClose={closeDetail}
       />
@@ -238,6 +241,7 @@ function InteriorContent() {
         ? createPortal(
             <Specification
               room={current}
+              pricing={pricing}
               categories={categories}
               activeCategoryId={activeCategory?.id ?? null}
               size={size}
@@ -256,6 +260,7 @@ function InteriorContent() {
         >
           <Specification
             room={current}
+            pricing={pricing}
             categories={categories}
             activeCategoryId={activeCategory?.id ?? null}
             size={size}
@@ -270,6 +275,7 @@ function InteriorContent() {
         ? createPortal(
             <ChosenList
               groups={groups}
+              pricing={pricing}
               currentRoomId={current.clientId}
               activeCategoryId={activeCategory?.id ?? null}
               size={size}

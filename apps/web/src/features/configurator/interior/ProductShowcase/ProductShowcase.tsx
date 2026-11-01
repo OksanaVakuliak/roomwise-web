@@ -9,7 +9,7 @@ import { ApiRequestError } from '@/lib/api/request-error';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { productCardLine } from '@/lib/engine/card-cost';
 import { useDraft } from '@/stores/draft';
-import { type RoomPricing, useRoomPricing } from '../use-room-pricing';
+import type { RoomPricing } from '../use-room-pricing';
 import styles from './ProductShowcase.module.css';
 
 type ProductCardData = NonNullable<
@@ -25,6 +25,7 @@ export type ProductShowcaseCategory = {
 
 export type ProductShowcaseProps = {
   room: DraftRoom;
+  pricing: RoomPricing | null;
   category: ProductShowcaseCategory;
   siblingIds?: readonly string[];
   replaces?: { surface: string; name: string };
@@ -127,6 +128,7 @@ function ProductCard({
 
 export function ProductShowcase({
   room,
+  pricing,
   category,
   siblingIds,
   replaces,
@@ -138,7 +140,6 @@ export function ProductShowcase({
 }: ProductShowcaseProps) {
   const t = useTranslations('ProductShowcase');
   const query = useCategoryProducts(category.id);
-  const pricing = useRoomPricing();
   const selectProduct = useDraft((state) => state.selectProduct);
   const { refetch } = query;
 

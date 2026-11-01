@@ -12,7 +12,7 @@ import {
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
 import { useDraft } from '@/stores/draft';
-import { type RoomPricing, useRoomPricing } from '../use-room-pricing';
+import type { RoomPricing } from '../use-room-pricing';
 import styles from './ChosenList.module.css';
 
 export type ChosenListCategory = {
@@ -30,6 +30,7 @@ export type ChosenListGroup = {
 
 export type ChosenListProps = {
   groups: readonly ChosenListGroup[];
+  pricing: RoomPricing | null;
   currentRoomId: string;
   activeCategoryId: string | null;
   size: 'mobile' | 'desktop';
@@ -156,6 +157,7 @@ function ChosenRow({
 
 type ChosenSectionProps = {
   group: ChosenListGroup;
+  pricing: RoomPricing | null;
   current: boolean;
   activeCategoryId: string | null;
   onSelect: (roomClientId: string, categoryId: string) => void;
@@ -163,13 +165,13 @@ type ChosenSectionProps = {
 
 function ChosenSection({
   group,
+  pricing,
   current,
   activeCategoryId,
   onSelect,
 }: ChosenSectionProps) {
   const t = useTranslations('ChosenList');
   const headingId = useId();
-  const pricing = useRoomPricing();
   const { room, name, categories } = group;
   const listed = categories.filter((category) => category.productCount > 0);
   const rows = groupCategories(listed).map((group) => {
@@ -226,6 +228,7 @@ function ChosenSection({
 
 export function ChosenList({
   groups,
+  pricing,
   currentRoomId,
   activeCategoryId,
   size,
@@ -241,6 +244,7 @@ export function ChosenList({
         <ChosenSection
           key={group.room.clientId}
           group={group}
+          pricing={pricing}
           current={group.room.clientId === currentRoomId}
           activeCategoryId={activeCategoryId}
           onSelect={onSelect}

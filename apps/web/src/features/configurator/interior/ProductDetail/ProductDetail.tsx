@@ -15,13 +15,14 @@ import { useProduct } from '@/lib/api/catalog';
 import { ApiRequestError } from '@/lib/api/request-error';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { productCardLine } from '@/lib/engine/card-cost';
-import { useRoomPricing } from '../use-room-pricing';
+import type { RoomPricing } from '../use-room-pricing';
 import styles from './ProductDetail.module.css';
 
 export type ProductDetailProps = {
   productId: string | null;
   categoryId: string | null;
   room: DraftRoom;
+  pricing: RoomPricing | null;
   onChoose: (productId: string, categoryId: string) => void;
   onClose: () => void;
 };
@@ -38,12 +39,12 @@ export function ProductDetail({
   productId,
   categoryId,
   room,
+  pricing,
   onChoose,
   onClose,
 }: ProductDetailProps) {
   const t = useTranslations('ProductDetail');
   const query = useProduct(productId);
-  const pricing = useRoomPricing();
   const { refetch } = query;
   const retry = useCallback(() => {
     void refetch();
