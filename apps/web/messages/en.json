@@ -793,7 +793,12 @@
   },
   "DraftNotices": {
     "storageUnavailable": "Your browser blocks storage, so the draft won’t be saved. It will be lost when you close or reload the page.",
-    "draftReset": "We couldn’t restore your saved draft, so you’re starting from scratch."
+    "draftReset": "We couldn’t restore your saved draft, so you’re starting from scratch.",
+    "heatedFloorReset": "Heated floor was turned off: it isn’t available for this room type."
+  },
+  "HeatedFloorSwitch": {
+    "title": "Heated floor",
+    "description": "Adds heated floor engineering for this room and adjusts the floor materials"
   },
   "ConfiguratorShell": {
     "guardIncomplete": "Fill in the “{step}” step first",

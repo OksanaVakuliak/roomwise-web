@@ -11,8 +11,10 @@ import {
 } from '@/lib/draft/rooms';
 import { type DraftRoom, ROOM_NAME_MAX } from '@/lib/draft/schema';
 import type { RoomCatalog } from '@/lib/draft/style';
+import { findHeatedFloorOption } from '@/lib/engine/heated-floor';
 import { parseDecimal, useDecimalText } from '@/lib/form';
 import { useDraft } from '@/stores/draft';
+import { usePricingData } from '@/stores/pricing-data';
 import styles from './RoomEditor.module.css';
 import {
   type RoomFieldErrors,
@@ -86,6 +88,7 @@ export function RoomEditor({
   const format = useFormatter();
   const updateRoom = useDraft((state) => state.updateRoom);
   const renameRoom = useDraft((state) => state.renameRoom);
+  const pricingOptions = usePricingData((state) => state.data?.options);
   const [nameText, setNameText] = useState(room.name ?? '');
   if (normalizeRoomName(nameText) !== (room.name ?? '')) {
     setNameText(room.name ?? '');
@@ -114,8 +117,9 @@ export function RoomEditor({
         clientId,
         { roomTypeCode: event.target.value as RoomTypeCode },
         catalog,
+        pricingOptions && findHeatedFloorOption(pricingOptions),
       ),
-    [updateRoom, clientId, catalog],
+    [updateRoom, clientId, catalog, pricingOptions],
   );
   const handleNameChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {

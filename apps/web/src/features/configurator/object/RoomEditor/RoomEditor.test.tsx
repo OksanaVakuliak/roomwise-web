@@ -115,6 +115,25 @@ describe('RoomEditor', () => {
     });
   });
 
+  it('turns the heated floor off when the type no longer allows it', async () => {
+    const t = translator('en');
+    await renderEditor({
+      room: makeDraftRoom({ roomTypeCode: 'BATHROOM', heatedFloor: true }),
+    });
+
+    fireEvent.change(screen.getByRole('combobox', { name: t('type') }), {
+      target: { value: 'KITCHEN' },
+    });
+    expect(useDraft.getState().rooms[0]?.heatedFloor).toBe(true);
+    expect(useDraft.getState().heatedFloorReset).toBe(false);
+
+    fireEvent.change(screen.getByRole('combobox', { name: t('type') }), {
+      target: { value: 'BEDROOM' },
+    });
+    expect(useDraft.getState().rooms[0]?.heatedFloor).toBe(false);
+    expect(useDraft.getState().heatedFloorReset).toBe(true);
+  });
+
   it('clears a dimension when the field is emptied', async () => {
     const t = translator('en');
     await renderEditor({

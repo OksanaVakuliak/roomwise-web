@@ -20,6 +20,7 @@ import {
   groupCategories,
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
+import { HeatedFloorSwitch } from '../HeatedFloorSwitch/HeatedFloorSwitch';
 import {
   ProductShowcase,
   type SortOrder,
@@ -185,6 +186,9 @@ export function Specification({
             selected
             className={styles.panel}
           >
+            {surfaceKey === 'FLOOR' ? (
+              <HeatedFloorSwitch room={room} pricing={pricing} />
+            ) : null}
             {activeGroup.categories.length > 1 ? (
               <SegmentedControl
                 label={t('finishLabel')}
