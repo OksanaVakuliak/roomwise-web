@@ -335,6 +335,7 @@ export function makeEngineering(
     options: [
       {
         id: 'opt-ac',
+        code: null,
         kind: 'ENGINEERING',
         name: 'Air conditioner',
         description: 'Wall-mounted unit with installation.',
@@ -348,6 +349,7 @@ export function makeEngineering(
       },
       {
         id: 'opt-heated-floor',
+        code: 'HEATED_FLOOR',
         kind: 'ENGINEERING',
         name: 'Heated floor',
         description: 'Electric heating mat under the floor covering.',
@@ -361,6 +363,7 @@ export function makeEngineering(
       },
       {
         id: 'opt-design',
+        code: null,
         kind: 'ADDITIONAL',
         name: 'Design project',
         description: 'Full interior design project with drawings.',
@@ -374,6 +377,7 @@ export function makeEngineering(
       },
       {
         id: 'opt-smart-switches',
+        code: null,
         kind: 'ADDITIONAL',
         name: 'Smart switches',
         description: 'Wi-Fi switches for every selected room.',

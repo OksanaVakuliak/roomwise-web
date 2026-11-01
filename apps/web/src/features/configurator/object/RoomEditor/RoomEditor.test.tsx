@@ -151,6 +151,21 @@ describe('RoomEditor', () => {
     expect(useDraft.getState().rooms[0].lengthM).toBeNull();
   });
 
+  it('offers every room type', async () => {
+    const t = translator('en');
+    await renderEditor();
+
+    const options = screen
+      .getAllByRole('option')
+      .map((option) => option.getAttribute('value'));
+    expect(options).toEqual(
+      expect.arrayContaining(roomTypes.map((type) => type.code)),
+    );
+    expect(screen.getByRole('combobox', { name: t('type') })).toHaveValue(
+      'BEDROOM',
+    );
+  });
+
   it('marks fields from the errors prop invalid and describes them', async () => {
     const t = translator('en');
     await renderEditor({ errors: { heightM: 'Enter a value' } });

@@ -70,14 +70,15 @@ describe('toConfiguration object fields', () => {
     expect(configuration?.balconyTiles).toBe(tiles);
   });
 
-  it('passes gas and kitchen type from the draft as is', () => {
-    const configuration = toConfiguration(
-      withObject({ gas: true, kitchenType: 'KITCHEN_LIVING' }),
-      pricing,
-      preview,
-    );
-    expect(configuration?.gas).toBe(true);
-    expect(configuration?.kitchenType).toBe('KITCHEN_LIVING');
+  it('leaves gas and kitchen type of a legacy draft out', () => {
+    const draft = withObject({});
+    const legacy = {
+      ...draft,
+      object: { ...draft.object, gas: true, kitchenType: 'KITCHEN_LIVING' },
+    } as DraftV1;
+    const configuration = toConfiguration(legacy, pricing, preview);
+    expect(configuration).not.toHaveProperty('gas');
+    expect(configuration).not.toHaveProperty('kitchenType');
   });
 });
 
@@ -133,7 +134,7 @@ describe('toConfiguration rooms', () => {
     expect(previewRooms(rooms)).toEqual(['valid']);
   });
 
-  it('keeps every room type, including a kitchen next to a kitchen-living room', () => {
+  it('keeps every room type together', () => {
     const rooms = [
       makeDraftRoom({ clientId: 'living', roomTypeCode: 'LIVING_ROOM' }),
       makeDraftRoom({ clientId: 'kitchen', roomTypeCode: 'KITCHEN' }),

@@ -198,6 +198,7 @@ const reference = {
   options: [
     {
       id: 'opt-ac',
+      code: null,
       kind: 'ENGINEERING',
       priceCents: 45000,
       unit: 'PIECE',
@@ -208,6 +209,7 @@ const reference = {
     },
     {
       id: 'opt-heated-floor',
+      code: 'HEATED_FLOOR',
       kind: 'ENGINEERING',
       priceCents: 8500,
       unit: 'ROOM_SQM',
@@ -218,6 +220,7 @@ const reference = {
     },
     {
       id: 'opt-design',
+      code: null,
       kind: 'ADDITIONAL',
       priceCents: 120000,
       unit: 'PROJECT',
@@ -228,6 +231,7 @@ const reference = {
     },
     {
       id: 'opt-smart-switches',
+      code: null,
       kind: 'ADDITIONAL',
       priceCents: 20000,
       unit: 'ROOM',

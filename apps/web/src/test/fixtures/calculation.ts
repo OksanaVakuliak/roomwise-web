@@ -224,8 +224,6 @@ export function makeVersionView(
       totalAreaSqm: 62,
       balconyAreaSqm: 4,
       balconyTiles: true,
-      gas: false,
-      kitchenType: 'SEPARATE',
       rooms: [
         {
           clientId: calculationIds.livingRoom,
@@ -271,6 +269,7 @@ export function makeVersionView(
         heightM: 2.7,
         heatedFloor: false,
         name: 'Living room',
+        roomTypeName: 'Living room',
       },
       {
         clientId: calculationIds.bathroom,
@@ -280,6 +279,7 @@ export function makeVersionView(
         heightM: 2.5,
         heatedFloor: true,
         name: 'Bathroom',
+        roomTypeName: 'Bathroom',
       },
     ],
     lines,

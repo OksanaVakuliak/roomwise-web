@@ -28,8 +28,6 @@ export function makeEmptyDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
     object: {
       finishLevel: null,
       totalAreaSqm: null,
-      gas: false,
-      kitchenType: 'SEPARATE',
       balcony: { present: false, areaSqm: null, tiles: false },
     },
     rooms: [],
@@ -51,8 +49,6 @@ export function makeInteriorDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
     object: {
       finishLevel: 'PRE_FINISH',
       totalAreaSqm: 62,
-      gas: false,
-      kitchenType: 'SEPARATE',
       balcony: { present: true, areaSqm: 4, tiles: true },
     },
     rooms: [
@@ -88,8 +84,6 @@ export function makeFullRoomsDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
     object: {
       finishLevel: 'ROUGH',
       totalAreaSqm: 200,
-      gas: true,
-      kitchenType: 'SEPARATE',
       balcony: { present: false, areaSqm: null, tiles: false },
     },
     rooms: Array.from({ length: 15 }, (_, index) =>

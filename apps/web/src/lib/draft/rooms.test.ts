@@ -54,6 +54,12 @@ describe('createRoom and addRoom', () => {
     });
   });
 
+  it('starts with the living room type', () => {
+    expect(createRoom(makeEmptyDraft(), 'new').roomTypeCode).toBe(
+      'LIVING_ROOM',
+    );
+  });
+
   it('takes the height from the previous room', () => {
     const draft = makeEmptyDraft({
       rooms: [

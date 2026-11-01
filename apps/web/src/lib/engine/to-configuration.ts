@@ -183,8 +183,6 @@ export function toConfiguration(
     totalAreaSqm: object.totalAreaSqm,
     balconyAreaSqm: object.balcony.present ? (object.balcony.areaSqm ?? 0) : 0,
     balconyTiles: object.balcony.present && object.balcony.tiles,
-    gas: object.gas,
-    kitchenType: object.kitchenType,
     rooms,
     options: optionsOf(draft, pricing, rooms),
     currency:

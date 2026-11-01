@@ -70,9 +70,7 @@ describe('ObjectForm', () => {
 
     fireEvent.click(screen.getByRole('radio', { name: t('finishPre') }));
 
-    expect(useDraft.getState().object).toMatchObject({
-      finishLevel: 'PRE_FINISH',
-    });
+    expect(useDraft.getState().object.finishLevel).toBe('PRE_FINISH');
   });
 
   it('writes the total area as a number and an empty field as null', async () => {

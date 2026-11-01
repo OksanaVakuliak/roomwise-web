@@ -22,6 +22,7 @@ export function makeLeadCreated(
     leadNumber: 1042,
     calculation: { publicId: 'k3m9x2q7', versionNumber: 3 },
     expiredAtSubmission: false,
+    priceDifference: null,
     ...overrides,
   };
 }
