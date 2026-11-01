@@ -2,11 +2,7 @@ import { estimate } from '@roomwise/calc-engine';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { makeInteriorDraft, makePricingData } from '@/test/fixtures';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
-import {
-  clearCardCostCache,
-  optionRoomLine,
-  productCardLine,
-} from './card-cost';
+import { clearCardCostCache, productCardLine } from './card-cost';
 import { toConfiguration } from './to-configuration';
 
 const pricing = makePricingData();
@@ -82,28 +78,5 @@ describe('productCardLine', () => {
         productIds.laminate,
       ),
     ).toBeNull();
-  });
-});
-
-describe('optionRoomLine', () => {
-  it('matches the room share of the full estimate', () => {
-    const draft = makeInteriorDraft({
-      options: { 'opt-ac': { quantity: 1, roomClientIds: [living] } },
-    });
-    const line = optionRoomLine(context(draft), living, 'opt-ac');
-    expect(line?.amountCents).toBe(
-      fullLine(draft, 'ENGINEERING:option:opt-ac')?.amountCents,
-    );
-    expect(line?.amountCents).toBeGreaterThan(0);
-  });
-
-  it('returns the memoized line on a repeated call', () => {
-    expect(optionRoomLine(context(), living, 'opt-ac')).toBe(
-      optionRoomLine(context(), living, 'opt-ac'),
-    );
-  });
-
-  it('returns null for an unknown option', () => {
-    expect(optionRoomLine(context(), living, 'missing')).toBeNull();
   });
 });

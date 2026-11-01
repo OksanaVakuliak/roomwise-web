@@ -101,27 +101,6 @@ export function productCardLine(
   return line;
 }
 
-export function optionRoomLine(
-  context: CardCostContext,
-  roomClientId: string,
-  optionId: string,
-): EstimateLine | null {
-  const { draft, pricingVersion, currency } = context;
-  const key = `option|${pricingVersion}|${currency}|${shapeOf(draft)}|${roomClientId}`;
-  const lines = remember(key);
-  if (lines.has(optionId)) {
-    return lines.get(optionId) ?? null;
-  }
-  const reduced: DraftV1 = {
-    ...draft,
-    options: { [optionId]: { quantity: 1, roomClientIds: [roomClientId] } },
-    rooms: draft.rooms.map((room) => ({ ...room, selections: {} })),
-  };
-  const line = lineOf(reduced, context, `ENGINEERING:option:${optionId}`);
-  lines.set(optionId, line);
-  return line;
-}
-
 export function clearCardCostCache(): void {
   cache.clear();
 }
