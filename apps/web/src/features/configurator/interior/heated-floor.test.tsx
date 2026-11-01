@@ -16,7 +16,6 @@ import {
   catalogs,
   categoryRows,
   chooseButton,
-  costRow,
   currentDraft,
   livingId,
   panelOf,
@@ -81,63 +80,44 @@ describe('heated floor and room options on the interior step', () => {
     vi.mocked(api.GET).mockReset();
   });
 
-  describe('switch', () => {
+  describe('note', () => {
     it.each(forEachLocale)(
-      'is offered for a room type the option allows in %s',
+      'replaces the switch with a link to the engineering step in %s',
       async (locale) => {
         await renderStep(bathroomUrl, {
           locale,
-          draft: heatedDraft(productIds.tile, false),
+          draft: heatedDraft(productIds.tile),
         });
+        const text = catalogs[locale].HeatedFloorNote;
 
-        expect(
-          screen.getByRole('switch', {
-            name: catalogs[locale].HeatedFloorSwitch.title,
-          }),
-        ).not.toBeChecked();
+        expect(screen.getByText(text.text)).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: text.link })).toHaveAttribute(
+          'href',
+          expect.stringContaining('/configurator/engineering'),
+        );
+        expect(screen.queryByRole('switch')).not.toBeInTheDocument();
       },
     );
+
+    it('is not shown while the heated floor is off', async () => {
+      await renderStep(bathroomUrl, {
+        draft: heatedDraft(productIds.tile, false),
+      });
+
+      expect(
+        screen.queryByText(catalogs.en.HeatedFloorNote.text),
+      ).not.toBeInTheDocument();
+    });
 
     it.each([
       ['bedroom', bedroomUrl],
       ['living room', livingUrl],
-    ])('is not offered in a %s', async (_name, url) => {
+    ])('is not shown in a %s', async (_name, url) => {
       await renderStep(url);
 
       expect(
-        screen.queryByRole('switch', {
-          name: catalogs.en.HeatedFloorSwitch.title,
-        }),
+        screen.queryByText(catalogs.en.HeatedFloorNote.text),
       ).not.toBeInTheDocument();
-    });
-
-    it('recalculates and adds the heated floor line to engineering when turned on', async () => {
-      await renderStep(bathroomUrl, {
-        draft: heatedDraft(productIds.tile, false),
-      });
-      const before = panelOf(currentDraft());
-      expect(estimateLine(HEATED_FLOOR_LINE)).toBeUndefined();
-
-      await toggle(catalogs.en.HeatedFloorSwitch.title);
-
-      expect(currentDraft().rooms[1].heatedFloor).toBe(true);
-      expect(estimateLine(HEATED_FLOOR_LINE)?.amountCents).toBeGreaterThan(0);
-      const after = panelOf(currentDraft());
-      expect(after.engineering?.usdCents).toBeGreaterThan(
-        before.engineering?.usdCents ?? 0,
-      );
-      expect(costRow(catalogs.en.CostPanel.engineering)).toHaveTextContent(
-        usd(after.engineering?.usdCents),
-      );
-    });
-
-    it('removes the heated floor line again when turned off', async () => {
-      await renderStep(bathroomUrl, { draft: heatedDraft(productIds.tile) });
-      expect(estimateLine(HEATED_FLOOR_LINE)).toBeDefined();
-
-      await toggle(catalogs.en.HeatedFloorSwitch.title);
-
-      expect(estimateLine(HEATED_FLOOR_LINE)).toBeUndefined();
     });
   });
 
@@ -239,11 +219,10 @@ describe('heated floor and room options on the interior step', () => {
         const before = panelOf(currentDraft());
         expect(estimateLine(SOUNDPROOFING_LINE)).toBeUndefined();
 
-        await toggle(SOUNDPROOFING);
-
-        expect(currentDraft().options['opt-soundproofing']).toEqual({
-          roomClientIds: [livingId],
+        act(() => {
+          useDraft.getState().toggleRoomOption('opt-soundproofing', livingId);
         });
+
         const section = within(roomSection('Living room'));
         expect(section.getByText(SOUNDPROOFING)).toBeInTheDocument();
         expect(
@@ -260,7 +239,9 @@ describe('heated floor and room options on the interior step', () => {
 
     it('adds its cost to the room subtotal', async () => {
       await renderStep(livingUrl);
-      await toggle(SOUNDPROOFING);
+      act(() => {
+        useDraft.getState().toggleRoomOption('opt-soundproofing', livingId);
+      });
 
       const option = estimateLine(SOUNDPROOFING_LINE)?.amountCents ?? 0;
       const materials = (
@@ -283,7 +264,9 @@ describe('heated floor and room options on the interior step', () => {
 
     it('is removed from the chosen items and the estimate by its remove button', async () => {
       await renderStep(livingUrl);
-      await toggle(SOUNDPROOFING);
+      act(() => {
+        useDraft.getState().toggleRoomOption('opt-soundproofing', livingId);
+      });
 
       await act(async () => {
         fireEvent.click(
@@ -292,18 +275,15 @@ describe('heated floor and room options on the interior step', () => {
       });
 
       expect(currentDraft().options).toEqual({});
-      expect(
-        screen.getByRole('switch', { name: SOUNDPROOFING }),
-      ).not.toBeChecked();
       expect(estimateLine(SOUNDPROOFING_LINE)).toBeUndefined();
     });
 
-    it('is offered in a room type the option does not restrict', async () => {
+    it('is not offered on the interior step', async () => {
       await renderStep(bedroomUrl);
 
       expect(
-        screen.getByRole('switch', { name: SOUNDPROOFING }),
-      ).toBeInTheDocument();
+        screen.queryByRole('switch', { name: SOUNDPROOFING }),
+      ).not.toBeInTheDocument();
     });
   });
 });

@@ -24,7 +24,7 @@ describe('useDraftTabSync', () => {
       DRAFT_STORAGE_KEY,
       JSON.stringify({
         state: { ...createDefaultDraft(), step: 'interior' },
-        version: 1,
+        version: 2,
       }),
     );
 

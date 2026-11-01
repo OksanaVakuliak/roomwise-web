@@ -1,3 +1,4 @@
+export * from './engineering/EngineeringStep/EngineeringStep';
 export * from './interior/InteriorStep/InteriorStep';
 export * from './object/ObjectStep/ObjectStep';
 export * from './shell/ConfiguratorShell/ConfiguratorShell';

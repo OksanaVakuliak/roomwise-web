@@ -1,0 +1,21 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.empty {
+  margin: 0;
+  color: var(--line-2);
+  font-family: var(--text-body-s-family);
+  font-weight: var(--text-body-s-weight);
+  font-size: var(--text-body-s-size);
+}

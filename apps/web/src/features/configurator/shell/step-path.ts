@@ -8,16 +8,16 @@ export function stepFromPath(pathname: string): StepId | null {
 
 export const STEP_LABEL_KEYS = {
   object: 'steps.1',
-  style: 'steps.2',
-  interior: 'steps.3',
-  engineering: 'steps.4',
+  engineering: 'steps.2',
+  style: 'steps.3',
+  interior: 'steps.4',
   result: 'steps.5',
 } as const satisfies Record<StepId, string>;
 
 export const STEP_NUMBERS = {
   object: 'A1',
-  style: 'A2',
-  interior: 'A3',
-  engineering: 'A4',
+  engineering: 'A2',
+  style: 'A3',
+  interior: 'A4',
   result: 'A5',
 } as const satisfies Record<StepId, string>;

@@ -7,18 +7,23 @@ import {
   StepIdSchema,
 } from './schema';
 
-export const DRAFT_VERSION = 1;
+export const DRAFT_VERSION = 2;
 
 export type DraftMigration = {
   draft: DraftV1;
   notice?: 'draftReset';
 };
 
-const transitions: Record<number, (state: unknown) => unknown> = {};
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
+
+const transitions: Record<number, (state: unknown) => unknown> = {
+  1: (state) =>
+    isRecord(state) && state.furthestStep === 'engineering'
+      ? { ...state, furthestStep: 'interior' }
+      : state,
+};
 
 export function salvage(state: unknown): DraftV1 | null {
   if (!isRecord(state)) {

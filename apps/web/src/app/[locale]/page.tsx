@@ -11,9 +11,9 @@ import styles from './page.module.css';
 
 const STEPS = [
   'object',
+  'engineering',
   'style',
   'interior',
-  'engineering',
   'estimate',
 ] as const;
 

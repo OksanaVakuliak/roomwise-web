@@ -29,9 +29,9 @@ describe('step order', () => {
   it('is fixed', () => {
     expect(STEP_ORDER).toEqual([
       'object',
+      'engineering',
       'style',
       'interior',
-      'engineering',
       'result',
     ]);
   });
@@ -192,9 +192,25 @@ describe('canOpen', () => {
   it('allows one step past the furthest one', () => {
     expect(openSteps(makeInteriorDraft({ furthestStep: 'style' }))).toEqual([
       'object',
+      'engineering',
       'style',
       'interior',
     ]);
+  });
+
+  it('opens object, engineering, style and interior at furthest interior', () => {
+    expect(openSteps(makeInteriorDraft({ furthestStep: 'interior' }))).toEqual([
+      'object',
+      'engineering',
+      'style',
+      'interior',
+      'result',
+    ]);
+  });
+
+  it('opens engineering before style is chosen', () => {
+    const draft = makeInteriorDraft({ furthestStep: 'object', styleId: null });
+    expect(openSteps(draft)).toEqual(['object', 'engineering']);
   });
 
   it('opens everything once the furthest step is the last', () => {
@@ -210,7 +226,7 @@ describe('canOpen', () => {
 
   it('closes steps after style when the style is missing', () => {
     const draft = makeInteriorDraft({ furthestStep: 'result', styleId: null });
-    expect(openSteps(draft)).toEqual(['object', 'style']);
+    expect(openSteps(draft)).toEqual(['object', 'engineering', 'style']);
   });
 });
 
@@ -220,13 +236,13 @@ describe('stepState', () => {
 
   it('marks the current step as now', () => {
     const draft = makeInteriorDraft({ step: 'style', furthestStep: 'style' });
-    expect(states(draft)[1]).toBe('now');
+    expect(states(draft)[2]).toBe('now');
   });
 
   it('marks passed complete steps as done and the rest as later', () => {
     const draft = makeInteriorDraft({
-      step: 'interior',
-      furthestStep: 'engineering',
+      step: 'style',
+      furthestStep: 'interior',
     });
     expect(states(draft)).toEqual(['done', 'done', 'now', 'later', 'later']);
   });
@@ -234,17 +250,19 @@ describe('stepState', () => {
   it('does not mark an incomplete passed step as done', () => {
     const draft = makeInteriorDraft({
       step: 'object',
-      furthestStep: 'engineering',
+      furthestStep: 'interior',
       styleId: null,
     });
-    expect(states(draft)).toEqual(['now', 'later', 'done', 'later', 'later']);
+    expect(states(draft)).toEqual(['now', 'done', 'later', 'later', 'later']);
   });
 });
 
 describe('nextStep', () => {
   it('follows the order and ends at result', () => {
-    expect(nextStep('object')).toBe('style');
-    expect(nextStep('engineering')).toBe('result');
+    expect(nextStep('object')).toBe('engineering');
+    expect(nextStep('engineering')).toBe('style');
+    expect(nextStep('style')).toBe('interior');
+    expect(nextStep('interior')).toBe('result');
     expect(nextStep('result')).toBeNull();
   });
 });

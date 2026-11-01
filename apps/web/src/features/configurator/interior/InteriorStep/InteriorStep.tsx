@@ -17,12 +17,12 @@ import { useDraft } from '@/stores/draft';
 import { usePickerSlot } from '../../shell/PickerSlot/picker-slot-context';
 import { useSceneSlot } from '../../shell/SceneSlot/scene-slot-context';
 import { useShowcaseSlot } from '../../shell/ShowcaseSlot/showcase-slot-context';
+import { useRoomPricing } from '../../shell/use-room-pricing';
 import { ChosenList } from '../ChosenList/ChosenList';
 import { ProductDetail } from '../ProductDetail/ProductDetail';
 import { RoomPlans } from '../RoomPlans/RoomPlans';
 import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
 import { Specification } from '../Specification/Specification';
-import { useRoomPricing } from '../use-room-pricing';
 import { useRoomSurfaces } from '../use-room-surfaces';
 import styles from './InteriorStep.module.css';
 

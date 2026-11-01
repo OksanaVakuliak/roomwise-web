@@ -1,13 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useId } from 'react';
+import { useCallback } from 'react';
 import { SectionHeader, SwitchRow } from '@/components/ui';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { optionRoomLine } from '@/lib/engine/card-cost';
 import { useDraft } from '@/stores/draft';
-import { useRoomOptions } from '../use-room-options';
-import type { RoomPricing } from '../use-room-pricing';
+import { useRoomOptions } from '../../shell/use-room-options';
+import type { RoomPricing } from '../../shell/use-room-pricing';
 import styles from './RoomOptions.module.css';
 
 export type RoomOptionsProps = {
@@ -51,7 +51,6 @@ function OptionRow({ room, pricing, optionId, name }: OptionRowProps) {
 
 export function RoomOptions({ room, pricing }: RoomOptionsProps) {
   const t = useTranslations('RoomOptions');
-  const headingId = useId();
   const options = useRoomOptions(room);
 
   if (options.length === 0) {
@@ -59,13 +58,8 @@ export function RoomOptions({ room, pricing }: RoomOptionsProps) {
   }
 
   return (
-    <section className={styles.root} aria-labelledby={headingId}>
-      <SectionHeader
-        id={headingId}
-        level={3}
-        size="mobile"
-        title={t('title')}
-      />
+    <div className={styles.root}>
+      <SectionHeader level={3} size="mobile" title={t('title')} />
       <ul className={styles.list}>
         {options.map((option) => (
           <OptionRow
@@ -77,6 +71,6 @@ export function RoomOptions({ room, pricing }: RoomOptionsProps) {
           />
         ))}
       </ul>
-    </section>
+    </div>
   );
 }

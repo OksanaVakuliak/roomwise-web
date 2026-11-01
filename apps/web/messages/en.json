@@ -15,17 +15,17 @@
         "text": "Rooms, sizes and the base work."
       },
       "style": {
-        "code": "A2",
+        "code": "A3",
         "name": "Style",
         "text": "The look of the whole apartment."
       },
       "interior": {
-        "code": "A3",
+        "code": "A4",
         "name": "Interior",
         "text": "Finishes and fixtures for each room."
       },
       "engineering": {
-        "code": "A4",
+        "code": "A2",
         "name": "Engineering",
         "text": "Electrics, plumbing and heating."
       },
@@ -179,15 +179,15 @@
     "number4": "A4",
     "number5": "A5",
     "step1": "Object",
-    "step2": "Style",
-    "step3": "Interior",
-    "step4": "Engineering",
+    "step2": "Engineering",
+    "step3": "Style",
+    "step4": "Interior",
     "step5": "Estimate"
   },
   "ShowcaseActions": {
     "buttonsTitle": "Button",
     "outline": "Sheet A2",
-    "fill": "Next: A4 engineering",
+    "fill": "Next: A2 engineering",
     "heat": "Delete item",
     "price": "+$89.04",
     "disabled": "Disabled",
@@ -469,7 +469,7 @@
     "engineering": "Engineering",
     "options": "Options",
     "back": "Sheet A2",
-    "next": "Next: A4 engineering",
+    "next": "Next: A4 interior",
     "changeTotal": "Change the total",
     "changeNote": "Changing the total announces it to screen readers; the first render stays silent.",
     "resultRowTitle": "Result row",
@@ -741,9 +741,9 @@
     "toggleLabel": "Show breakdown",
     "steps": {
       "1": "Object",
-      "2": "Style",
-      "3": "Interior",
-      "4": "Engineering",
+      "2": "Engineering",
+      "3": "Style",
+      "4": "Interior",
       "5": "Estimate"
     }
   },
@@ -798,7 +798,8 @@
   },
   "HeatedFloorSwitch": {
     "title": "Heated floor",
-    "description": "Adds heated floor engineering for this room and adjusts the floor materials"
+    "description": "Adds heated floor engineering for this room and adjusts the floor materials",
+    "priced": "{description} · {cost}"
   },
   "ConfiguratorShell": {
     "guardIncomplete": "Fill in the “{step}” step first",
@@ -830,6 +831,17 @@
       "cancel": "Keep my choice",
       "close": "Close dialog"
     }
+  },
+  "RoomEngineering": {
+    "empty": "No engineering options for this room"
+  },
+  "EngineeringStep": {
+    "loading": "Loading rooms",
+    "roomFallback": "Room"
+  },
+  "HeatedFloorNote": {
+    "text": "Heated floor is on",
+    "link": "Change in Engineering"
   },
   "InteriorStep": {
     "switcherLabel": "Rooms",
