@@ -5,7 +5,7 @@ import { type Locale, useLocale } from 'next-intl';
 import { useMemo } from 'react';
 import { type CardCostContext, cardCostContext } from '@/lib/engine/card-cost';
 import { runEstimate } from '@/lib/engine/run-estimate';
-import { type ExchangeRate, moneyMinor, unitPrice } from '@/lib/format';
+import { displayMoney, type ExchangeRate, unitPrice } from '@/lib/format';
 import { useDraft, useDraftValue } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
 import { useDisplayCurrency } from '@/stores/use-display-currency';
@@ -63,9 +63,7 @@ export function useRoomPricing(): RoomPricing | null {
       materialsLine: (roomClientId, categoryId) =>
         lines.get(`MATERIALS:${roomClientId}:${categoryId}`) ?? null,
       formatLine: (line) =>
-        currency === 'UAH' && line.amountUahKopecks !== null
-          ? moneyMinor(line.amountUahKopecks, 'UAH', locale)
-          : moneyMinor(line.amountCents, 'USD', locale),
+        displayMoney(line.amountCents, line.amountUahKopecks, currency, locale),
       formatTotal: (total) => {
         const cents = total.reduce((sum, line) => sum + line.amountCents, 0);
         const kopecks = total.reduce<number | null>(
@@ -75,9 +73,7 @@ export function useRoomPricing(): RoomPricing | null {
               : sum + line.amountUahKopecks,
           0,
         );
-        return currency === 'UAH' && kopecks !== null
-          ? moneyMinor(kopecks, 'UAH', locale)
-          : moneyMinor(cents, 'USD', locale);
+        return displayMoney(cents, kopecks, currency, locale);
       },
       formatUnitPrice: (cents) => unitPrice(cents, currency, locale, rate),
     };

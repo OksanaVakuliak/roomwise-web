@@ -38,6 +38,17 @@ export function moneyMinor(
   return currency === 'USD' ? `${sign}$${value}` : `${sign}${value}${NBSP}₴`;
 }
 
+export function displayMoney(
+  cents: number,
+  kopecks: number | null,
+  currency: Currency,
+  locale: Locale,
+): string {
+  return currency === 'UAH' && kopecks !== null
+    ? moneyMinor(kopecks, 'UAH', locale)
+    : moneyMinor(cents, 'USD', locale);
+}
+
 export function unitPrice(
   cents: number,
   currency: Currency,

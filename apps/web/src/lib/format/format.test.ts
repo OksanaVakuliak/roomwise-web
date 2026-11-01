@@ -4,6 +4,7 @@ import {
   area,
   currencies,
   dimension,
+  displayMoney,
   money,
   moneyMinor,
   percent,
@@ -165,6 +166,23 @@ describe('unitPrice', () => {
   it('throws for UAH without a rate', () => {
     expect(() => unitPrice(100, 'UAH', 'en')).toThrow(
       'UAH requires an exchange rate',
+    );
+  });
+});
+
+describe('displayMoney', () => {
+  it('uses kopecks in UAH and cents otherwise', () => {
+    expect(displayMoney(1000, 40000, 'UAH', 'en')).toBe(
+      moneyMinor(40000, 'UAH', 'en'),
+    );
+    expect(displayMoney(1000, 40000, 'USD', 'en')).toBe(
+      moneyMinor(1000, 'USD', 'en'),
+    );
+  });
+
+  it('falls back to USD when kopecks are missing', () => {
+    expect(displayMoney(1000, null, 'UAH', 'en')).toBe(
+      moneyMinor(1000, 'USD', 'en'),
     );
   });
 });

@@ -1,11 +1,12 @@
 'use client';
 
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { useCallback, useId } from 'react';
+import { useCallback, useId, useMemo } from 'react';
 import { EmptyState, RoomPlan, SectionHeader } from '@/components/ui';
+import { useLang } from '@/lib/api/catalog';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import { focusField } from '@/lib/focus';
-import { moneyMinor, unitPrice } from '@/lib/format';
+import { displayMoney, unitPrice } from '@/lib/format';
 import { useDraft, useDraftValue } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
 import { useDisplayCurrency } from '@/stores/use-display-currency';
@@ -54,74 +55,91 @@ function useCostLines() {
   const t = useTranslations('ObjectStep.planCost');
   const format = useFormatter();
   const locale = useLocale();
+  const lang = useLang();
   const draft = useDraftValue();
   const revision = useDraft((state) => state.revision);
   const pricing = usePricingData((state) => state.data);
   const version = usePricingData((state) => state.version);
   const { currency, rate } = useDisplayCurrency();
 
-  if (pricing === null || version === null) {
-    return [];
-  }
-  const { estimate, blockedLineIds } = runEstimate({
-    draft,
-    draftRevision: revision,
+  return useMemo(() => {
+    if (pricing === null || version === null) {
+      return [];
+    }
+    const { estimate, blockedLineIds } = runEstimate({
+      draft,
+      draftRevision: revision,
+      pricing,
+      pricingVersion: version,
+      currency: 'UAH',
+    });
+    if (estimate === null) {
+      return [];
+    }
+
+    const lines: string[] = [];
+    const base = estimate.lines.find(
+      (line) =>
+        line.section === 'BASE' &&
+        line.status === 'OK' &&
+        !blockedLineIds.has(line.id),
+    );
+    if (base && base.quantity !== null && base.unitPriceCents !== null) {
+      const price =
+        currency === 'UAH' && rate
+          ? unitPrice(base.unitPriceCents, 'UAH', locale, rate)
+          : unitPrice(base.unitPriceCents, 'USD', locale);
+      lines.push(
+        t('base', {
+          area: format.number(base.quantity),
+          price,
+          amount: displayMoney(
+            base.amountCents,
+            base.amountUahKopecks,
+            currency,
+            locale,
+          ),
+        }),
+      );
+    }
+    for (const line of estimate.lines) {
+      if (
+        line.section !== 'OBJECT' ||
+        line.status !== 'OK' ||
+        line.amountCents <= 0 ||
+        blockedLineIds.has(line.id)
+      ) {
+        continue;
+      }
+      const rule = pricing.rules.find((item) => item.id === line.ruleId);
+      if (!rule) {
+        continue;
+      }
+      lines.push(
+        t('objectLine', {
+          name: rule.name[lang],
+          amount: displayMoney(
+            line.amountCents,
+            line.amountUahKopecks,
+            currency,
+            locale,
+          ),
+        }),
+      );
+    }
+    return lines;
+  }, [
     pricing,
-    pricingVersion: version,
-    currency: 'UAH',
-  });
-  if (estimate === null) {
-    return [];
-  }
-
-  const inUah = currency === 'UAH';
-  const amount = (cents: number, kopecks: number | null): string =>
-    inUah && kopecks !== null
-      ? moneyMinor(kopecks, 'UAH', locale)
-      : moneyMinor(cents, 'USD', locale);
-
-  const lines: string[] = [];
-  const base = estimate.lines.find(
-    (line) =>
-      line.section === 'BASE' &&
-      line.status === 'OK' &&
-      !blockedLineIds.has(line.id),
-  );
-  if (base && base.quantity !== null && base.unitPriceCents !== null) {
-    const price =
-      inUah && rate
-        ? unitPrice(base.unitPriceCents, 'UAH', locale, rate)
-        : unitPrice(base.unitPriceCents, 'USD', locale);
-    lines.push(
-      t('base', {
-        area: format.number(base.quantity),
-        price,
-        amount: amount(base.amountCents, base.amountUahKopecks),
-      }),
-    );
-  }
-  const lang = locale === 'uk' ? 'uk' : 'en';
-  for (const line of estimate.lines) {
-    if (
-      line.section !== 'OBJECT' ||
-      line.status !== 'OK' ||
-      line.amountCents <= 0 ||
-      blockedLineIds.has(line.id)
-    ) {
-      continue;
-    }
-    const rule = pricing.rules.find((item) => item.id === line.ruleId);
-    if (!rule) {
-      continue;
-    }
-    lines.push(
-      t('objectLine', {
-        name: rule.name[lang],
-        amount: amount(line.amountCents, line.amountUahKopecks),
-      }),
-    );
-  }
-  return lines;
+    version,
+    draft,
+    revision,
+    currency,
+    rate,
+    locale,
+    lang,
+    t,
+    format,
+  ]);
 }
 
 export function ApartmentPlan({ rooms, size }: ApartmentPlanProps) {
