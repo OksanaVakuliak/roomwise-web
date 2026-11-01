@@ -197,3 +197,37 @@ describe('runEstimate surface exclusivity', () => {
     expect(after).not.toContain(categoryIds.walls);
   });
 });
+
+describe('runEstimate room options open to every room type', () => {
+  it('prices a ROOM option with empty roomTypeCodes without a room type warning', () => {
+    const base = makePricingData();
+    const openPricing = makePricingData({
+      options: base.options.map((option) =>
+        option.id === 'opt-smart-switches'
+          ? { ...option, roomTypeCodes: [] }
+          : option,
+      ),
+    });
+    const draft = makeInteriorDraft();
+    const roomIds = draft.rooms.map((room) => room.clientId);
+    const result = runEstimate({
+      draft: {
+        ...draft,
+        options: { 'opt-smart-switches': { roomClientIds: roomIds } },
+      },
+      draftRevision: 1,
+      pricing: openPricing,
+      pricingVersion: openPricing.version,
+      currency: 'USD',
+    });
+    const line = result.estimate?.lines.find(
+      (candidate) => candidate.optionId === 'opt-smart-switches',
+    );
+    expect(line).toBeDefined();
+    expect(line?.amountCents).toBeGreaterThan(0);
+    expect(
+      result.estimate?.warnings.map((warning) => warning.code),
+    ).not.toContain('OPTION_ROOM_TYPE_NOT_ALLOWED');
+    expect(result.violations).toEqual([]);
+  });
+});
