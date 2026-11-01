@@ -798,7 +798,8 @@
   },
   "HeatedFloorSwitch": {
     "title": "Heated floor",
-    "description": "Adds heated floor engineering for this room and adjusts the floor materials"
+    "description": "Adds heated floor engineering for this room and adjusts the floor materials",
+    "priced": "Adds heated floor engineering for this room and adjusts the floor materials · {cost}"
   },
   "ConfiguratorShell": {
     "guardIncomplete": "Fill in the “{step}” step first",

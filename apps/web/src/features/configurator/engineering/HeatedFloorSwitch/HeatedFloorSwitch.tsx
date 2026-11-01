@@ -44,7 +44,7 @@ export function HeatedFloorSwitch({ room, pricing }: HeatedFloorSwitchProps) {
   return (
     <SwitchRow
       title={t('title')}
-      description={cost ? `${t('description')} · ${cost}` : t('description')}
+      description={cost ? t('priced', { cost }) : t('description')}
       checked={room.heatedFloor}
       onCheckedChange={handleChange}
     />
