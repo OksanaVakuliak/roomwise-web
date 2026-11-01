@@ -88,9 +88,9 @@ function optionsOf(
   draft: DraftV1,
   pricing: PricingData,
   rooms: readonly RoomConfiguration[],
+  heatedFloorOption: PricingData['options'][number] | undefined,
 ): OptionSelection[] {
   const roomIds = new Set(rooms.map((room) => room.clientId));
-  const heatedFloorOption = findHeatedFloorOption(pricing.options);
   const result: OptionSelection[] = [];
   for (const option of pricing.options) {
     const chosen = draft.options[option.id];
@@ -198,7 +198,7 @@ export function toConfiguration(
     balconyAreaSqm: object.balcony.present ? (object.balcony.areaSqm ?? 0) : 0,
     balconyTiles: object.balcony.present && object.balcony.tiles,
     rooms,
-    options: optionsOf(draft, pricing, rooms),
+    options: optionsOf(draft, pricing, rooms, heatedFloorOption),
     currency:
       options.currency === 'UAH' && pricing.exchangeRate !== null
         ? 'UAH'
