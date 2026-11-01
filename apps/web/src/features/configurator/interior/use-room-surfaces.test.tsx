@@ -65,6 +65,12 @@ function renderProbe(room: DraftRoom, extraFloorCategory = false) {
     ['product', productIds.tile, 'en'],
     makeProductDetails(productIds.tile, { surface: surface('#00aa00') }),
   );
+  queryClient.setQueryData(
+    ['product', productIds.ceilingPaint, 'en'],
+    makeProductDetails(productIds.ceilingPaint, {
+      surface: surface('#0000aa'),
+    }),
+  );
   renderWithProviders(<Probe room={room} />, { queryClient, catalog: false });
   return JSON.parse(screen.getByTestId('out').textContent ?? '{}');
 }
@@ -122,5 +128,17 @@ describe('useRoomSurfaces', () => {
       true,
     );
     expect(result.floor.fallbackColor).toBe('#00aa00');
+  });
+
+  it('does not pick a ceiling product', () => {
+    const result = renderProbe(
+      makeDraftRoom({
+        selections: {
+          [categoryIds.floor]: selection(productIds.laminate),
+          [categoryIds.ceiling]: selection(productIds.ceilingPaint),
+        },
+      }),
+    );
+    expect(Object.keys(result)).toEqual(['floor']);
   });
 });

@@ -14,7 +14,6 @@ import type { DraftRoom } from '@/lib/draft/schema';
 const SURFACE_KEYS = {
   FLOOR: 'floor',
   WALLS: 'walls',
-  CEILING: 'ceiling',
 } as const;
 
 type SurfaceKey = (typeof SURFACE_KEYS)[keyof typeof SURFACE_KEYS];
@@ -31,7 +30,7 @@ export function useRoomSurfaces(room: DraftRoom | null): SceneSurfaces {
     const result: { key: SurfaceKey; productId: string }[] = [];
     const taken = new Set<SurfaceKey>();
     for (const category of roomType?.categories ?? []) {
-      if (category.surface === 'NONE') {
+      if (category.surface === 'NONE' || category.surface === 'CEILING') {
         continue;
       }
       const key = SURFACE_KEYS[category.surface];
