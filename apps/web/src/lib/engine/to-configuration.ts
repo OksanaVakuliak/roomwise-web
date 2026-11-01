@@ -9,6 +9,7 @@ import type {
 } from '@roomwise/calc-engine';
 import type { DraftRoom, DraftV1 } from '@/lib/draft/schema';
 import { findHeatedFloorOption, isHeatedFloorAllowed } from './heated-floor';
+import { isOptionAllowedForRoom } from './room-options';
 
 export type ConfigurationMode = 'preview' | 'strict';
 
@@ -90,7 +91,9 @@ function optionsOf(
   rooms: readonly RoomConfiguration[],
   heatedFloorOption: PricingData['options'][number] | undefined,
 ): OptionSelection[] {
-  const roomIds = new Set(rooms.map((room) => room.clientId));
+  const roomTypes = new Map(
+    rooms.map((room) => [room.clientId, room.roomTypeCode]),
+  );
   const result: OptionSelection[] = [];
   for (const option of pricing.options) {
     const chosen = draft.options[option.id];
@@ -108,9 +111,13 @@ function optionsOf(
         break;
       case 'ROOM':
       case 'ROOM_SQM': {
-        const roomClientIds = (chosen.roomClientIds ?? []).filter((id) =>
-          roomIds.has(id),
-        );
+        const roomClientIds = (chosen.roomClientIds ?? []).filter((id) => {
+          const roomTypeCode = roomTypes.get(id);
+          return (
+            roomTypeCode !== undefined &&
+            isOptionAllowedForRoom(option, roomTypeCode)
+          );
+        });
         if (roomClientIds.length > 0) {
           result.push({ optionId: option.id, roomClientIds });
         }

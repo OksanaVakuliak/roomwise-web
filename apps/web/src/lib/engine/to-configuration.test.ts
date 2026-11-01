@@ -375,6 +375,24 @@ describe('toConfiguration options', () => {
     ]);
   });
 
+  it('drops rooms whose type the option does not allow', () => {
+    const narrowed = {
+      ...pricing,
+      options: pricing.options.map((option) =>
+        option.id === 'opt-soundproofing'
+          ? { ...option, roomTypeCodes: ['BEDROOM' as const] }
+          : option,
+      ),
+    };
+    const draft = makeInteriorDraft({
+      rooms,
+      options: { 'opt-soundproofing': { roomClientIds: ['a', 'b'] } },
+    });
+    expect(toConfiguration(draft, narrowed, preview)?.options).toEqual([
+      { optionId: 'opt-soundproofing', roomClientIds: ['b'] },
+    ]);
+  });
+
   it('omits a piece option without quantity', () => {
     expect(optionsOf({ 'opt-ac': {} })).toEqual([]);
   });
