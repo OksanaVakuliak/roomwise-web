@@ -1,0 +1,9 @@
+.root {
+  display: block;
+}
+
+.action {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-6);
+}

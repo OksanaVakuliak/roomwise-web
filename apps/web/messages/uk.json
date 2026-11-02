@@ -624,7 +624,8 @@
     "unit": {
       "m": "м",
       "sqm": "м²",
-      "pcs": "шт."
+      "pcs": "шт.",
+      "room": "кімн."
     }
   },
   "CostPanel": {
@@ -987,6 +988,42 @@
       "FLOOR": "підлоги",
       "WALLS": "стін",
       "CEILING": "стелі"
+    }
+  },
+  "EstimateBreakdown": {
+    "sections": {
+      "base": "Базовий ремонт",
+      "object": "Роботи на рівні об'єкта",
+      "materials": "Матеріали",
+      "engineering": "Інженерія",
+      "additional": "Додатково"
+    },
+    "fallback": {
+      "base": "Базовий ремонт",
+      "product": "Матеріал",
+      "option": "Опція",
+      "packageItem": "Позиція пакета",
+      "rule": "Вид робіт",
+      "unknown": "Позиція"
+    },
+    "disabled": "Виключено",
+    "included": "Включено",
+    "notesLabel": "Примітки",
+    "warning": "Попередження",
+    "error": "Помилка"
+  },
+  "ResultStep": {
+    "loading": "Завантаження кошторису",
+    "preliminary": "Кошторис попередній і не є офертою. Остаточну ціну назвемо на об'єкті після замірів.",
+    "totalLabel": "Загальна вартість",
+    "change": "Змінити",
+    "changeObject": "Змінити об'єкт",
+    "changeStyle": "Змінити стиль",
+    "roomFallback": "Приміщення",
+    "object": {
+      "title": "Об'єкт і стиль",
+      "rooms": "Приміщень",
+      "style": "Стиль"
     }
   }
 }

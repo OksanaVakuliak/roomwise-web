@@ -41,7 +41,7 @@ const EMPTY_PANEL: CostPanelView = {
   total: null,
 };
 
-function sumMoney(parts: readonly Money[]): Money {
+export function sumMoney(parts: readonly Money[]): Money {
   let usdCents = 0;
   let uahKopecks: number | null = 0;
   for (const part of parts) {

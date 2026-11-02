@@ -624,7 +624,8 @@
     "unit": {
       "m": "m",
       "sqm": "m²",
-      "pcs": "pcs"
+      "pcs": "pcs",
+      "room": "rm"
     }
   },
   "CostPanel": {
@@ -987,6 +988,42 @@
       "FLOOR": "the floor",
       "WALLS": "the walls",
       "CEILING": "the ceiling"
+    }
+  },
+  "EstimateBreakdown": {
+    "sections": {
+      "base": "Base renovation",
+      "object": "Object-level work",
+      "materials": "Materials",
+      "engineering": "Engineering",
+      "additional": "Additional"
+    },
+    "fallback": {
+      "base": "Base renovation",
+      "product": "Material",
+      "option": "Option",
+      "packageItem": "Package item",
+      "rule": "Work item",
+      "unknown": "Item"
+    },
+    "disabled": "Excluded",
+    "included": "Included",
+    "notesLabel": "Notes",
+    "warning": "Warning",
+    "error": "Error"
+  },
+  "ResultStep": {
+    "loading": "Loading the estimate",
+    "preliminary": "This estimate is preliminary and is not an offer. The final price is confirmed on site after measuring.",
+    "totalLabel": "Estimate total",
+    "change": "Change",
+    "changeObject": "Change object",
+    "changeStyle": "Change style",
+    "roomFallback": "Room",
+    "object": {
+      "title": "Object and style",
+      "rooms": "Rooms",
+      "style": "Style"
     }
   }
 }

@@ -48,6 +48,7 @@ function ConfiguratorFrame({
         <ShowcaseSlotContext value={showcaseSlot}>
           <PickerSlotContext value={pickerSlot}>
             <StepLayout
+              single={step === 'result'}
               steps={
                 <StepTape current={step} context={ready ? context : null} />
               }
@@ -77,7 +78,7 @@ function ConfiguratorFrame({
               cost={
                 ready ? (
                   <>
-                    <CostPanel />
+                    {step === 'result' ? null : <CostPanel />}
                     <StepNav step={step} context={context} />
                   </>
                 ) : (

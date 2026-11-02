@@ -1,8 +1,14 @@
+import { ResultStep } from '@/features/configurator';
 import { type StepPageProps, stepMetadata } from '../step-metadata';
 import { StepPage } from '../step-page';
 
 export const generateMetadata = stepMetadata('result');
 
 export default function ResultPage(props: StepPageProps) {
-  return <StepPage step="result" {...props} />;
+  return (
+    <>
+      <StepPage step="result" {...props} />
+      <ResultStep />
+    </>
+  );
 }
