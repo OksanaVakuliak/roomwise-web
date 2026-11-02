@@ -8,6 +8,7 @@ import {
   productIds,
   styleIds,
 } from '@/test/fixtures/catalog';
+import { makeDraftRoom } from '@/test/fixtures/draft';
 import { makePricingData } from '@/test/fixtures/pricing-data';
 import { DRAFT_STORAGE_KEY, useDraft } from './draft';
 
@@ -31,6 +32,7 @@ beforeEach(() => {
     storageAvailable: true,
     notice: null,
     heatedFloorReset: false,
+    replacements: [],
   });
 });
 
@@ -811,5 +813,113 @@ describe('useDraft one finish per surface', () => {
 
       expect(useDraft.getState().options[acId]?.roomClientIds).toEqual([id]);
     });
+  });
+});
+
+describe('useDraft reconcileCatalog', () => {
+  const roomTypes = makeRoomTypes();
+  const defaultMaterials = makeDefaultMaterials(styleIds.modern);
+  const roomId = '00000000-0000-4000-8000-000000000301';
+
+  const staleDraft = () => {
+    const pricingData = makePricingData();
+    useDraft.setState({
+      ...createDefaultDraft(),
+      styleId: styleIds.modern,
+      rooms: [
+        makeDraftRoom({
+          clientId: roomId,
+          selections: {
+            [categoryIds.floor]: {
+              productId: 'p-gone',
+              disabled: false,
+              source: 'manual',
+            },
+          },
+        }),
+      ],
+    });
+    return {
+      pricingData,
+      roomTypes,
+      defaultMaterials,
+      styleIds: [styleIds.modern],
+    };
+  };
+
+  it('applies the reconciled draft, records replacements and bumps the revision', () => {
+    const catalog = staleDraft();
+    const revision = useDraft.getState().revision;
+
+    useDraft.getState().reconcileCatalog(catalog);
+
+    const state = useDraft.getState();
+    expect(state.rooms[0]?.selections[categoryIds.floor]?.productId).not.toBe(
+      'p-gone',
+    );
+    expect(state.replacements).toEqual([
+      expect.objectContaining({
+        roomClientId: roomId,
+        categoryId: categoryIds.floor,
+        fromProductId: 'p-gone',
+      }),
+    ]);
+    expect(state.revision).toBe(revision + 1);
+  });
+
+  it('keeps the revision and replacements when nothing changes', () => {
+    const catalog = staleDraft();
+    useDraft.getState().reconcileCatalog(catalog);
+    const revision = useDraft.getState().revision;
+
+    useDraft.getState().reconcileCatalog(catalog);
+
+    expect(useDraft.getState().revision).toBe(revision);
+    expect(useDraft.getState().replacements).toHaveLength(1);
+  });
+
+  it('keeps the newest replacement for the same room and category', () => {
+    const catalog = staleDraft();
+    useDraft.setState({
+      replacements: [
+        {
+          roomClientId: roomId,
+          categoryId: categoryIds.floor,
+          fromProductId: 'p-older',
+          toProductId: null,
+        },
+        {
+          roomClientId: roomId,
+          categoryId: categoryIds.walls,
+          fromProductId: 'p-other',
+          toProductId: null,
+        },
+      ],
+    });
+
+    useDraft.getState().reconcileCatalog(catalog);
+
+    const { replacements } = useDraft.getState();
+    expect(replacements).toHaveLength(2);
+    expect(
+      replacements.find((item) => item.categoryId === categoryIds.floor)
+        ?.fromProductId,
+    ).toBe('p-gone');
+  });
+
+  it('clears replacements on dismiss and on reset', () => {
+    useDraft.getState().reconcileCatalog(staleDraft());
+    useDraft.getState().dismissReplacements();
+    expect(useDraft.getState().replacements).toEqual([]);
+
+    useDraft.getState().reconcileCatalog(staleDraft());
+    useDraft.getState().reset();
+    expect(useDraft.getState().replacements).toEqual([]);
+  });
+
+  it('does not persist replacements', () => {
+    useDraft.getState().reconcileCatalog(staleDraft());
+
+    expect(stored()?.state).not.toHaveProperty('replacements');
   });
 });
