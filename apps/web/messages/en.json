@@ -837,6 +837,8 @@
     "empty": "No engineering options for this room"
   },
   "EngineeringStep": {
+    "apartmentTitle": "Engineering for the apartment",
+    "additionalTitle": "Additional services",
     "loading": "Loading rooms",
     "roomFallback": "Room"
   },
@@ -1013,6 +1015,7 @@
     "error": "Error"
   },
   "ResultStep": {
+    "additionalTitle": "Additional services",
     "loading": "Loading the estimate",
     "preliminary": "This estimate is preliminary and is not an offer. The final price is confirmed on site after measuring.",
     "totalLabel": "Estimate total",
@@ -1025,5 +1028,30 @@
       "rooms": "Rooms",
       "style": "Style"
     }
+  },
+  "PackageList": {
+    "title": "Base engineering package",
+    "included": "Included in the base cost",
+    "price": {
+      "PIECE": "{price} per piece",
+      "PROJECT": "{price} per project",
+      "ROOM": "{price} per room",
+      "ROOM_SQM": "{price} per m²"
+    }
+  },
+  "OptionList": {
+    "priced": "{description} · {cost}",
+    "price": {
+      "PIECE": "{price} per piece",
+      "PROJECT": "{price} per project",
+      "ROOM": "{price} per room",
+      "ROOM_SQM": "{price} per m²"
+    },
+    "unavailable": "No longer available",
+    "quantity": "Quantity: {name}",
+    "decrement": "Decrease quantity: {name}",
+    "increment": "Increase quantity: {name}",
+    "quantityRange": "Allowed from {min} to {max}",
+    "quantityMin": "At least {min}"
   }
 }

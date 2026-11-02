@@ -94,6 +94,8 @@ type DraftState = DraftV1 & {
   ) => void;
   setHeatedFloor: (clientId: string, on: boolean) => void;
   toggleRoomOption: (optionId: string, clientId: string) => void;
+  toggleOption: (optionId: string, on: boolean, quantity?: number) => void;
+  setOptionQuantity: (optionId: string, quantity: number) => void;
   renameRoom: (clientId: string, name: string) => void;
   removeRoom: (clientId: string) => void;
   selectProduct: (
@@ -267,6 +269,27 @@ export const useDraft = create<DraftState>()(
             revision: state.revision + 1,
           };
         }),
+      toggleOption: (optionId, on, quantity) =>
+        set((state) => {
+          const { [optionId]: _removed, ...others } = state.options;
+          return {
+            options: on
+              ? {
+                  ...others,
+                  [optionId]: quantity === undefined ? {} : { quantity },
+                }
+              : others,
+            revision: state.revision + 1,
+          };
+        }),
+      setOptionQuantity: (optionId, quantity) =>
+        set((state) => ({
+          options: {
+            ...state.options,
+            [optionId]: { ...state.options[optionId], quantity },
+          },
+          revision: state.revision + 1,
+        })),
       renameRoom: (clientId, name) =>
         set((state) => ({
           ...renameDraftRoom(pickDraft(state), clientId, name),

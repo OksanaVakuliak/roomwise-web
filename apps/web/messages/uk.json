@@ -837,6 +837,8 @@
     "empty": "Для цього приміщення інженерних опцій немає"
   },
   "EngineeringStep": {
+    "apartmentTitle": "Інженерія для квартири",
+    "additionalTitle": "Додаткові послуги",
     "loading": "Завантаження приміщень",
     "roomFallback": "Приміщення"
   },
@@ -1013,6 +1015,7 @@
     "error": "Помилка"
   },
   "ResultStep": {
+    "additionalTitle": "Додаткові послуги",
     "loading": "Завантаження кошторису",
     "preliminary": "Кошторис попередній і не є офертою. Остаточну ціну назвемо на об'єкті після замірів.",
     "totalLabel": "Загальна вартість",
@@ -1025,5 +1028,30 @@
       "rooms": "Приміщень",
       "style": "Стиль"
     }
+  },
+  "PackageList": {
+    "title": "Базовий інженерний пакет",
+    "included": "Входить у базову вартість",
+    "price": {
+      "PIECE": "{price} за штуку",
+      "PROJECT": "{price} за проєкт",
+      "ROOM": "{price} за приміщення",
+      "ROOM_SQM": "{price} за м²"
+    }
+  },
+  "OptionList": {
+    "priced": "{description} · {cost}",
+    "price": {
+      "PIECE": "{price} за штуку",
+      "PROJECT": "{price} за проєкт",
+      "ROOM": "{price} за приміщення",
+      "ROOM_SQM": "{price} за м²"
+    },
+    "unavailable": "Більше недоступно",
+    "quantity": "Кількість: {name}",
+    "decrement": "Зменшити кількість: {name}",
+    "increment": "Збільшити кількість: {name}",
+    "quantityRange": "Допустимо від {min} до {max}",
+    "quantityMin": "Не менше {min}"
   }
 }

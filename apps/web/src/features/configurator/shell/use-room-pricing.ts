@@ -19,6 +19,7 @@ export type RoomPricing = {
     roomClientId: string,
     categoryId: string,
   ) => EstimateLine | null;
+  line: (lineId: string) => EstimateLine | null;
   formatLine: (line: EstimateLine) => string;
   formatTotal: (lines: readonly EstimateLine[]) => string;
   formatUnitPrice: (cents: number) => string;
@@ -62,6 +63,7 @@ export function useRoomPricing(): RoomPricing | null {
       rate,
       materialsLine: (roomClientId, categoryId) =>
         lines.get(`MATERIALS:${roomClientId}:${categoryId}`) ?? null,
+      line: (lineId) => lines.get(lineId) ?? null,
       formatLine: (line) =>
         displayMoney(line.amountCents, line.amountUahKopecks, currency, locale),
       formatTotal: (total) => {

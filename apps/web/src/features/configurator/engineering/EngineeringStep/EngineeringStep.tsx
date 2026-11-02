@@ -4,11 +4,16 @@ import { useTranslations } from 'next-intl';
 import { useCallback } from 'react';
 import { ErrorState } from '@/components/system';
 import { Skeleton } from '@/components/ui';
-import { useRoomTypes } from '@/lib/api/catalog';
+import { useEngineering, useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName } from '@/lib/draft/rooms';
 import { useDraft } from '@/stores/draft';
 import { checkPricingData, usePricingData } from '@/stores/pricing-data';
+import { useStepValidation } from '../../shell/StepValidation/step-validation-context';
 import { useRoomPricing } from '../../shell/use-room-pricing';
+import { apartmentOptions } from '../apartment-options';
+import { OptionList } from '../OptionList/OptionList';
+import { firstInvalidQuantityId } from '../option-quantity';
+import { PackageList } from '../PackageList/PackageList';
 import { RoomEngineering } from '../RoomEngineering/RoomEngineering';
 import styles from './EngineeringStep.module.css';
 
@@ -16,14 +21,30 @@ export function EngineeringStep() {
   const t = useTranslations('EngineeringStep');
   const rooms = useDraft((state) => state.rooms);
   const roomTypesQuery = useRoomTypes();
+  const engineeringQuery = useEngineering();
   const pricing = useRoomPricing();
   const pricingFailed = usePricingData((state) => state.status === 'error');
   const { refetch } = roomTypesQuery;
+  const { refetch: refetchEngineering } = engineeringQuery;
   const retry = useCallback(() => {
     void refetch();
-  }, [refetch]);
+    void refetchEngineering();
+  }, [refetch, refetchEngineering]);
 
-  if (roomTypesQuery.isError) {
+  useStepValidation(() => {
+    const pricingOptions = usePricingData.getState().data?.options;
+    if (!pricingOptions) {
+      return null;
+    }
+    const chosen = useDraft.getState().options;
+    const texts = engineeringQuery.data?.options;
+    const rendered = (['ENGINEERING', 'ADDITIONAL'] as const).flatMap((kind) =>
+      apartmentOptions(texts, pricingOptions, kind, chosen),
+    );
+    return firstInvalidQuantityId(rendered, chosen);
+  });
+
+  if (roomTypesQuery.isError || engineeringQuery.isError) {
     return <ErrorState headingLevel={2} onRetry={retry} />;
   }
 
@@ -33,7 +54,7 @@ export function EngineeringStep() {
 
   const roomTypes = roomTypesQuery.data?.items;
 
-  if (!roomTypes || !pricing) {
+  if (!roomTypes || !engineeringQuery.data || !pricing) {
     return (
       <div className={styles.root} role="status" aria-label={t('loading')}>
         <Skeleton variant="block" />
@@ -43,6 +64,12 @@ export function EngineeringStep() {
 
   return (
     <div className={styles.root}>
+      <PackageList pricing={pricing} />
+      <OptionList
+        kind="ENGINEERING"
+        title={t('apartmentTitle')}
+        pricing={pricing}
+      />
       {rooms.map((room) => (
         <RoomEngineering
           key={room.clientId}
@@ -56,6 +83,11 @@ export function EngineeringStep() {
           pricing={pricing}
         />
       ))}
+      <OptionList
+        kind="ADDITIONAL"
+        title={t('additionalTitle')}
+        pricing={pricing}
+      />
     </div>
   );
 }

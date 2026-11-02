@@ -393,8 +393,10 @@ describe('toConfiguration options', () => {
     ]);
   });
 
-  it('omits a piece option without quantity', () => {
-    expect(optionsOf({ 'opt-ac': {} })).toEqual([]);
+  it('sends a piece option without quantity at its minimum', () => {
+    expect(optionsOf({ 'opt-ac': {} })).toEqual([
+      { optionId: 'opt-ac', quantity: 1 },
+    ]);
   });
 });
 
