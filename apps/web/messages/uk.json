@@ -988,5 +988,26 @@
       "WALLS": "стін",
       "CEILING": "стелі"
     }
+  },
+  "EstimateBreakdown": {
+    "sections": {
+      "base": "Базовий ремонт",
+      "object": "Роботи на рівні об'єкта",
+      "materials": "Матеріали",
+      "engineering": "Інженерія",
+      "additional": "Додатково"
+    },
+    "fallback": {
+      "base": "Базовий ремонт",
+      "product": "Матеріал",
+      "option": "Опція",
+      "packageItem": "Позиція пакета",
+      "rule": "Вид робіт",
+      "unknown": "Позиція"
+    },
+    "disabled": "Виключено",
+    "notesLabel": "Примітки",
+    "warning": "Попередження",
+    "error": "Помилка"
   }
 }

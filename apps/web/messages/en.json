@@ -988,5 +988,26 @@
       "WALLS": "the walls",
       "CEILING": "the ceiling"
     }
+  },
+  "EstimateBreakdown": {
+    "sections": {
+      "base": "Base renovation",
+      "object": "Object-level work",
+      "materials": "Materials",
+      "engineering": "Engineering",
+      "additional": "Additional"
+    },
+    "fallback": {
+      "base": "Base renovation",
+      "product": "Material",
+      "option": "Option",
+      "packageItem": "Package item",
+      "rule": "Work item",
+      "unknown": "Item"
+    },
+    "disabled": "Excluded",
+    "notesLabel": "Notes",
+    "warning": "Warning",
+    "error": "Error"
   }
 }
