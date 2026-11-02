@@ -34,9 +34,7 @@ export function StepLayout({
         <div className={styles.steps}>{steps}</div>
         <div className={styles.single}>
           <div className={styles.content}>{content}</div>
-          <section className={styles.cost} aria-label={t('cost')}>
-            {cost}
-          </section>
+          <div className={styles.cost}>{cost}</div>
         </div>
       </div>
     );

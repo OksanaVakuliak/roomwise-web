@@ -91,9 +91,10 @@ describe('StepLayout', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Title' })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Estimate' })).toContainElement(
-      screen.getByRole('button', { name: 'Back' }),
-    );
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('region', { name: 'Estimate' }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('region', { name: 'Room view' }),
     ).not.toBeInTheDocument();
