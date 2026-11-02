@@ -47,6 +47,7 @@
 }
 
 .bars {
+  --bar-value-width: var(--bar-value-width-wide);
   padding: var(--space-10) var(--space-12) var(--space-12);
 }
 

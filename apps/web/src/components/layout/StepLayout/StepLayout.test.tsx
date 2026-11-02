@@ -78,6 +78,30 @@ describe('StepLayout', () => {
     }
   });
 
+  it('keeps only the content and the cost zone in a single column', () => {
+    renderWithProviders(
+      <StepLayout
+        single
+        steps={<nav aria-label="Steps">steps</nav>}
+        content={<h1>Title</h1>}
+        scene={<ZoneStub kind="scene" />}
+        showcase={<ZoneStub kind="showcase" />}
+        cost={<button type="button">Back</button>}
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Title' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Estimate' })).toContainElement(
+      screen.getByRole('button', { name: 'Back' }),
+    );
+    expect(
+      screen.queryByRole('region', { name: 'Room view' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('region', { name: 'Specification' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('expands the cost breakdown', () => {
     renderWithProviders(layout());
     const toggle = screen.getByRole('button', { name: 'Show breakdown' });

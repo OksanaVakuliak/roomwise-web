@@ -11,6 +11,7 @@ export type StepLayoutProps = {
   detail?: ReactNode;
   showcase: ReactNode;
   cost: ReactNode;
+  single?: boolean;
   className?: string;
 };
 
@@ -22,9 +23,24 @@ export function StepLayout({
   detail,
   showcase,
   cost,
+  single = false,
   className,
 }: StepLayoutProps) {
   const t = useTranslations('StepLayout');
+
+  if (single) {
+    return (
+      <div className={cx(styles.root, className)}>
+        <div className={styles.steps}>{steps}</div>
+        <div className={styles.single}>
+          <div className={styles.content}>{content}</div>
+          <section className={styles.cost} aria-label={t('cost')}>
+            {cost}
+          </section>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cx(styles.root, className)}>

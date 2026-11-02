@@ -188,15 +188,14 @@ describe('result step', () => {
     },
   );
 
-  it('matches the total of the cost panel', async () => {
+  it('shows the engine total once, without the cost panel', async () => {
     const draft = withOptions(makeDraft());
     const { estimate } = estimateOf(draft);
     await renderResult({ draft, shell: true });
 
     const total = moneyMinor(estimate.totals.usdCents, 'USD', 'en');
-    expect(screen.getAllByText(total, { exact: false }).length).toBeGreaterThan(
-      1,
-    );
+    expect(screen.getAllByText(total, { exact: false })).toHaveLength(1);
+    expect(screen.queryByText('Total on the drawing')).not.toBeInTheDocument();
   });
 
   it.each([
