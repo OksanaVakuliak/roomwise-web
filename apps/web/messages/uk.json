@@ -730,6 +730,12 @@
     "options": "Опції",
     "back": "Назад",
     "next": "Далі",
+    "startOver": "Почати заново",
+    "startOverTitle": "Почати заново?",
+    "startOverDescription": "Поточну чернетку буде видалено: приміщення, стиль, матеріали й опції. Цю дію не можна скасувати.",
+    "startOverConfirm": "Почати заново",
+    "startOverCancel": "Скасувати",
+    "startOverClose": "Закрити вікно",
     "tapeLabel": "Кроки конфігуратора",
     "state": {
       "done": "виконано",

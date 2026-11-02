@@ -730,6 +730,12 @@
     "options": "Options",
     "back": "Back",
     "next": "Next",
+    "startOver": "Start over",
+    "startOverTitle": "Start over?",
+    "startOverDescription": "The current draft will be deleted: rooms, style, materials and options. This cannot be undone.",
+    "startOverConfirm": "Start over",
+    "startOverCancel": "Cancel",
+    "startOverClose": "Close dialog",
     "tapeLabel": "Configurator steps",
     "state": {
       "done": "done",
