@@ -76,6 +76,11 @@ export function makeKitchenLivingDraft(): DraftV1 {
         lengthM: 6,
         widthM: 4,
         selections: {
+          [categoryIds.floor]: {
+            productId: null,
+            disabled: false,
+            source: 'style',
+          },
           [categoryIds.walls]: styleSelection(productIds.paint),
         },
       }),

@@ -190,9 +190,8 @@ describe('result step', () => {
   );
 
   it('shows the engine total once, without the cost panel', async () => {
-    const draft = withOptions(makeDraft());
-    const { estimate } = estimateOf(draft);
-    await renderResult({ draft, shell: true });
+    await renderResult({ draft: withOptions(makeDraft()), shell: true });
+    const { estimate } = estimateOf(useDraft.getState());
 
     const total = moneyMinor(estimate.totals.usdCents, 'USD', 'en');
     expect(screen.getAllByText(total, { exact: false })).toHaveLength(1);
