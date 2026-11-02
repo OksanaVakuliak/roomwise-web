@@ -613,6 +613,58 @@ describe('useDraft one finish per surface', () => {
     });
   });
 
+  describe('toggleOption and setOptionQuantity', () => {
+    beforeEach(() => {
+      useDraft.setState({ ...createDefaultDraft(), revision: 0 });
+    });
+
+    it('turns a project option on and off', () => {
+      useDraft.getState().toggleOption('opt-project', true);
+      expect(useDraft.getState().options).toEqual({ 'opt-project': {} });
+      expect(useDraft.getState().revision).toBe(1);
+
+      useDraft.getState().toggleOption('opt-project', false);
+      expect(useDraft.getState().options).toEqual({});
+      expect(useDraft.getState().revision).toBe(2);
+    });
+
+    it('turns a piece option on with its initial quantity', () => {
+      useDraft.getState().toggleOption('opt-piece', true, 3);
+      expect(useDraft.getState().options).toEqual({
+        'opt-piece': { quantity: 3 },
+      });
+    });
+
+    it('sets and replaces the quantity, creating the entry when missing', () => {
+      useDraft.getState().setOptionQuantity('opt-piece', 2);
+      expect(useDraft.getState().options['opt-piece']).toEqual({ quantity: 2 });
+
+      useDraft.getState().setOptionQuantity('opt-piece', 99);
+      expect(useDraft.getState().options['opt-piece']).toEqual({
+        quantity: 99,
+      });
+      expect(useDraft.getState().revision).toBe(2);
+    });
+
+    it('leaves other options untouched', () => {
+      useDraft.setState({
+        options: {
+          'opt-room': { roomClientIds: ['a'] },
+          'opt-piece': { quantity: 1 },
+        },
+      });
+
+      useDraft.getState().toggleOption('opt-project', true);
+      useDraft.getState().setOptionQuantity('opt-piece', 4);
+      useDraft.getState().toggleOption('opt-project', false);
+
+      expect(useDraft.getState().options).toEqual({
+        'opt-room': { roomClientIds: ['a'] },
+        'opt-piece': { quantity: 4 },
+      });
+    });
+  });
+
   describe('heated floor on room type change', () => {
     const pricingOptions = makePricingData().options;
 
