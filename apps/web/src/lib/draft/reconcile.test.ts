@@ -209,6 +209,73 @@ describe('reconcile', () => {
     expect(selections['cat-wallpaper']?.disabled).toBe(true);
   });
 
+  it('adds a new category disabled when its surface was fully turned off', () => {
+    const extended = {
+      items: makeRoomTypes().items.map((type) => ({
+        ...type,
+        categories: [
+          ...type.categories,
+          {
+            id: 'cat-underlay',
+            name: 'Underlay',
+            surface: 'FLOOR' as const,
+            wastePercent: 5,
+            productCount: 1,
+          },
+        ],
+      })),
+    };
+    const draft = draftWith({
+      ...validSelections,
+      [categoryIds.floor]: style(productIds.laminate, true),
+    });
+
+    const result = reconcile(draft, makeCatalog({ roomTypes: extended }));
+
+    expect(result.draft.rooms[0]?.selections['cat-underlay']?.disabled).toBe(
+      true,
+    );
+  });
+
+  it('does not use style materials once the style was removed', () => {
+    const draft = draftWith({
+      ...validSelections,
+      [categoryIds.floor]: manual(productIds.laminatePremium),
+    });
+    draft.styleId = 'removed';
+
+    const result = reconcile(
+      draft,
+      makeCatalog({
+        pricingData: withUnavailable(productIds.laminatePremium),
+      }),
+    );
+
+    expect(result.draft.styleId).toBeNull();
+    expect(
+      result.draft.rooms[0]?.selections[categoryIds.floor]?.productId,
+    ).toBe(null);
+    expect(result.replacements[0]?.toProductId).toBeNull();
+  });
+
+  it('ignores default materials of a different style', () => {
+    const draft = draftWith({
+      ...validSelections,
+      [categoryIds.floor]: manual(productIds.laminatePremium),
+    });
+    draft.styleId = styleIds.classic;
+
+    const result = reconcile(
+      draft,
+      makeCatalog({
+        pricingData: withUnavailable(productIds.laminatePremium),
+        defaultMaterials: makeDefaultMaterials(styleIds.modern),
+      }),
+    );
+
+    expect(result.replacements[0]?.toProductId).toBeNull();
+  });
+
   it('removes options missing from pricing data or unavailable', () => {
     const pricingData = makePricingData();
     const options = pricingData.options.map((option) =>

@@ -372,6 +372,7 @@ export const useDraft = create<DraftState>()(
       reset: () =>
         set((state) => ({
           ...createDefaultDraft(),
+          notice: null,
           heatedFloorReset: false,
           replacements: [],
           revision: state.revision + 1,

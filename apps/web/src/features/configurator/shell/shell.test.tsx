@@ -336,6 +336,26 @@ describe('ConfiguratorShell', () => {
     expect(location().pathname).toBe('/en/configurator/object');
   });
 
+  it('clears leftover notices when Start over is confirmed', async () => {
+    await renderShell('result', makeInteriorDraft({ furthestStep: 'result' }));
+    act(() => {
+      useDraft.setState({ notice: 'draftReset' });
+      usePricingData.setState({ priceUpdate: { from: 'v1', to: 'v2' } });
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.Configurator.startOver }),
+    );
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: en.Configurator.startOverConfirm,
+      }),
+    );
+
+    expect(useDraft.getState().notice).toBeNull();
+    expect(usePricingData.getState().priceUpdate).toBeNull();
+  });
+
   it.each(forEachViewport)(
     'keeps steps, content, scene, showcase and cost in reading order at %i px',
     async (width) => {

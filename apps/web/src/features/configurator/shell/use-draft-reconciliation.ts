@@ -17,8 +17,14 @@ export function useDraftReconciliation(hydrated: boolean): void {
   const materials = useDefaultMaterials(styleId);
   const reconcileCatalog = useDraft((state) => state.reconcileCatalog);
 
+  const styleRemoved =
+    styleId !== null &&
+    styles !== undefined &&
+    !styles.items.some((style) => style.id === styleId);
   const materialsSettled =
-    styleId === null || materials.isSuccess || materials.isError;
+    styleId === null ||
+    materials.isSuccess ||
+    (materials.isError && styleRemoved);
   const defaultMaterials = materials.isSuccess ? materials.data : null;
 
   useEffect(() => {

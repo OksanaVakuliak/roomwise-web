@@ -20,6 +20,20 @@ export function categoriesOfRoomType(
   );
 }
 
+export function surfaceWasOff(
+  selections: Selections,
+  surfaceOf: ReadonlyMap<string, string>,
+  surface: string,
+): boolean {
+  const onSurface = Object.entries(selections).filter(
+    ([categoryId]) => surfaceOf.get(categoryId) === surface,
+  );
+  return (
+    onSurface.length > 0 &&
+    onSurface.every(([, selection]) => selection.disabled)
+  );
+}
+
 function groupBySurface(
   categories: readonly SurfaceCategory[],
 ): SurfaceCategory[][] {

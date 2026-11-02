@@ -75,6 +75,29 @@ describe('useDraft', () => {
     expect(useDraft.getState().revision).toBe(2);
   });
 
+  it('clears leftover notices on reset', () => {
+    useDraft.setState({
+      notice: 'draftReset',
+      heatedFloorReset: true,
+      replacements: [
+        {
+          roomClientId: 'r',
+          categoryId: 'c',
+          fromProductId: 'a',
+          toProductId: null,
+        },
+      ],
+    });
+
+    useDraft.getState().reset();
+
+    expect(useDraft.getState()).toMatchObject({
+      notice: null,
+      heatedFloorReset: false,
+      replacements: [],
+    });
+  });
+
   it('dismisses the notice without touching the draft revision', () => {
     useDraft.setState({ notice: 'draftReset' });
     useDraft.getState().dismissNotice();

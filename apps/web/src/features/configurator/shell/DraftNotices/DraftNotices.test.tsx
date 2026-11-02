@@ -66,7 +66,23 @@ describe('DraftNotices', () => {
       const messages = catalogs[locale];
       const roomId = '00000000-0000-4000-8000-000000000301';
       useDraft.setState({
-        rooms: [makeDraftRoom({ clientId: roomId })],
+        rooms: [
+          makeDraftRoom({
+            clientId: roomId,
+            selections: {
+              [categoryIds.floor]: {
+                productId: productIds.laminate,
+                disabled: false,
+                source: 'style',
+              },
+              [categoryIds.walls]: {
+                productId: null,
+                disabled: false,
+                source: 'style',
+              },
+            },
+          }),
+        ],
         replacements: [
           {
             roomClientId: roomId,
@@ -106,6 +122,91 @@ describe('DraftNotices', () => {
     },
   );
 
+  it('hides replacement entries whose room is gone or whose product was changed', async () => {
+    const roomId = '00000000-0000-4000-8000-000000000301';
+    useDraft.setState({
+      rooms: [
+        makeDraftRoom({
+          clientId: roomId,
+          selections: {
+            [categoryIds.floor]: {
+              productId: productIds.laminate,
+              disabled: false,
+              source: 'style',
+            },
+            [categoryIds.walls]: {
+              productId: productIds.paint,
+              disabled: false,
+              source: 'style',
+            },
+          },
+        }),
+      ],
+      replacements: [
+        {
+          roomClientId: roomId,
+          categoryId: categoryIds.floor,
+          fromProductId: 'gone',
+          toProductId: productIds.laminate,
+        },
+        {
+          roomClientId: roomId,
+          categoryId: categoryIds.walls,
+          fromProductId: 'gone-2',
+          toProductId: productIds.paint,
+        },
+      ],
+    });
+    renderWithProviders(<DraftNotices />);
+    expect(await screen.findAllByRole('listitem')).toHaveLength(2);
+
+    act(() => {
+      useDraft
+        .getState()
+        .selectProduct(roomId, categoryIds.walls, productIds.laminatePremium);
+    });
+    expect(await screen.findAllByRole('listitem')).toHaveLength(1);
+
+    act(() => {
+      useDraft.getState().removeRoom(roomId);
+    });
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(en.DraftNotices.replacementsTitle),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders the replacement without a product name while it is unknown', async () => {
+    const roomId = '00000000-0000-4000-8000-000000000301';
+    useDraft.setState({
+      rooms: [
+        makeDraftRoom({
+          clientId: roomId,
+          selections: {
+            [categoryIds.floor]: {
+              productId: 'missing-product',
+              disabled: false,
+              source: 'style',
+            },
+          },
+        }),
+      ],
+      replacements: [
+        {
+          roomClientId: roomId,
+          categoryId: categoryIds.floor,
+          fromProductId: 'gone',
+          toProductId: 'missing-product',
+        },
+      ],
+    });
+    renderWithProviders(<DraftNotices />);
+
+    const item = await screen.findByRole('listitem');
+    expect(item.textContent).not.toContain('“');
+    expect(item.textContent).toContain('replaced with the style material');
+  });
+
   it.each(forEachLocale)(
     'announces updated prices with the total and acknowledges in %s',
     async (locale) => {
@@ -137,8 +238,21 @@ describe('DraftNotices', () => {
     },
   );
 
+  it('shows no price toast for an empty draft', async () => {
+    const { container } = renderWithProviders(<DraftNotices />);
+    act(() => {
+      usePricingData.setState({ priceUpdate: { from: 'v1', to: 'v2' } });
+    });
+
+    expect(container.firstElementChild).toBeEmptyDOMElement();
+    expect(
+      screen.queryByText(en.DraftNotices.pricesUpdated),
+    ).not.toBeInTheDocument();
+  });
+
   it('omits the amount when the total is unknown', async () => {
-    renderWithProviders(<DraftNotices />);
+    useDraft.setState({ ...makeInteriorDraft() });
+    renderWithProviders(<DraftNotices />, { pricing: false });
     act(() => {
       usePricingData.setState({ priceUpdate: { from: 'v1', to: 'v2' } });
     });

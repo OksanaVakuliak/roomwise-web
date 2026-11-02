@@ -5,6 +5,7 @@ import {
   activateFirstPerSurface,
   categoriesOfRoomType,
   normalizeSelections,
+  surfaceWasOff,
 } from './surfaces';
 
 type Schemas = components['schemas'];
@@ -105,15 +106,6 @@ export function retypeSelections(
       type.categories.map((category) => [category.id, category.surface]),
     ),
   );
-  const surfaceWasOff = (surface: string) => {
-    const onSurface = Object.entries(previous).filter(
-      ([categoryId]) => surfaceOf.get(categoryId) === surface,
-    );
-    return (
-      onSurface.length > 0 &&
-      onSurface.every(([, selection]) => selection.disabled)
-    );
-  };
   const merged = Object.fromEntries(
     categoryIdsOf(roomTypeCode, roomTypes).flatMap((categoryId) => {
       const before = previous[categoryId];
@@ -126,7 +118,7 @@ export function retypeSelections(
         const disabled =
           surface === 'NONE'
             ? (before?.disabled ?? styled.disabled)
-            : surfaceWasOff(surface) || styled.disabled;
+            : surfaceWasOff(previous, surfaceOf, surface) || styled.disabled;
         return [[categoryId, { ...styled, disabled }]];
       }
       return [];

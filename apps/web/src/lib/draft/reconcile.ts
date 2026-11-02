@@ -1,7 +1,11 @@
 import type { PricingData } from '@roomwise/calc-engine';
 import type { DraftOption, DraftRoom, DraftSelection, DraftV1 } from './schema';
 import type { DefaultMaterials, RoomTypesCatalog } from './style';
-import { categoriesOfRoomType, normalizeSelections } from './surfaces';
+import {
+  categoriesOfRoomType,
+  normalizeSelections,
+  surfaceWasOff,
+} from './surfaces';
 
 export type ReconcileCatalog = {
   pricingData: PricingData;
@@ -60,15 +64,21 @@ function reconcileRoom(
   }
   const replacements: Replacement[] = [];
   const selections: Selections = {};
+  const surfaceOf = new Map(
+    categories.map((category) => [category.id, category.surface]),
+  );
   for (const { id } of categories) {
     const current = room.selections[id];
     if (!current) {
       if (!styled) {
         continue;
       }
+      const surface = surfaceOf.get(id) ?? 'NONE';
       selections[id] = {
         productId: styleProductId(room, id, catalog, available),
-        disabled: false,
+        disabled:
+          surface !== 'NONE' &&
+          surfaceWasOff(room.selections, surfaceOf, surface),
         source: 'style',
       };
     } else if (current.productId === null || available.has(current.productId)) {
@@ -141,8 +151,15 @@ export function reconcile(
     draft.styleId !== null && !catalog.styleIds.includes(draft.styleId)
       ? null
       : draft.styleId;
+  const scoped: ReconcileCatalog = {
+    ...catalog,
+    defaultMaterials:
+      styleId !== null && catalog.defaultMaterials?.styleId === styleId
+        ? catalog.defaultMaterials
+        : null,
+  };
   const results = draft.rooms.map((room) =>
-    reconcileRoom(room, catalog, available, styleId !== null),
+    reconcileRoom(room, scoped, available, styleId !== null),
   );
   const rooms = results.every(
     (result, index) => result.room === draft.rooms[index],

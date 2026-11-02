@@ -15,6 +15,7 @@ import {
 } from '@/lib/draft/steps';
 import { focusField } from '@/lib/focus';
 import { useDraft } from '@/stores/draft';
+import { usePricingData } from '@/stores/pricing-data';
 import { useRunStepValidation } from '../StepValidation/step-validation-context';
 import styles from './StepNav.module.css';
 
@@ -58,6 +59,7 @@ export function StepNav({ step, context }: StepNavProps) {
   const startOver = useCallback(() => {
     setConfirmOpen(false);
     useDraft.getState().reset();
+    usePricingData.getState().acknowledgePriceUpdate();
     router.push(STEP_PATHS.object);
   }, [router]);
 

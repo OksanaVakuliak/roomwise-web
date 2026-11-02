@@ -6,6 +6,7 @@ import { Banner, Toast } from '@/components/ui';
 import { useProduct, useRoomTypes } from '@/lib/api/catalog';
 import type { Replacement } from '@/lib/draft/reconcile';
 import { roomDisplayName } from '@/lib/draft/rooms';
+import type { DraftRoom } from '@/lib/draft/schema';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import { moneyMinor } from '@/lib/format';
 import { useDraft, useDraftValue } from '@/stores/draft';
@@ -34,11 +35,13 @@ function ReplacementItem({ replacement }: { replacement: Replacement }) {
   }
   return (
     <li>
-      {t('replacedWithStyle', {
-        room: roomName,
-        category,
-        product: product?.name ?? '',
-      })}
+      {product?.name
+        ? t('replacedWithStyle', {
+            room: roomName,
+            category,
+            product: product.name,
+          })
+        : t('replacedWithStyleUnnamed', { room: roomName, category })}
     </li>
   );
 }
@@ -78,6 +81,20 @@ function PricesUpdatedToast({ onDismiss }: { onDismiss: () => void }) {
   );
 }
 
+function isStillReplaced(
+  replacement: Replacement,
+  rooms: readonly DraftRoom[],
+): boolean {
+  const selection = rooms.find(
+    (room) => room.clientId === replacement.roomClientId,
+  )?.selections[replacement.categoryId];
+  return (
+    selection !== undefined &&
+    !selection.disabled &&
+    selection.productId === replacement.toProductId
+  );
+}
+
 export function DraftNotices() {
   const t = useTranslations('DraftNotices');
   const tShell = useTranslations('ConfiguratorShell');
@@ -88,17 +105,22 @@ export function DraftNotices() {
   const dismissHeatedFloorReset = useDraft(
     (state) => state.dismissHeatedFloorReset,
   );
-  const replacements = useDraft((state) => state.replacements);
+  const rooms = useDraft((state) => state.rooms);
+  const storedReplacements = useDraft((state) => state.replacements);
   const dismissReplacements = useDraft((state) => state.dismissReplacements);
   const priceUpdate = usePricingData((state) => state.priceUpdate);
   const acknowledgePriceUpdate = usePricingData(
     (state) => state.acknowledgePriceUpdate,
   );
 
+  const replacements = storedReplacements.filter((replacement) =>
+    isStillReplaced(replacement, rooms),
+  );
   const hasReplacements = replacements.length > 0;
+  const showPriceUpdate = priceUpdate !== null && rooms.length > 0;
   const banners =
     !storageAvailable || notice === 'draftReset' || hasReplacements;
-  const toasts = heatedFloorReset || priceUpdate !== null;
+  const toasts = heatedFloorReset || showPriceUpdate;
 
   return (
     <>
@@ -145,7 +167,7 @@ export function DraftNotices() {
               {t('heatedFloorReset')}
             </Toast>
           ) : null}
-          {priceUpdate !== null ? (
+          {showPriceUpdate ? (
             <PricesUpdatedToast onDismiss={acknowledgePriceUpdate} />
           ) : null}
         </NoticeStack>
