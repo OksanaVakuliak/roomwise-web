@@ -132,7 +132,7 @@ export function ResultStep() {
     return <ResultLoading />;
   }
 
-  const { estimate, panel, blockedLineIds } = runEstimate({
+  const { configuration, estimate, panel, blockedLineIds } = runEstimate({
     draft,
     draftRevision: revision,
     pricing,
@@ -140,7 +140,7 @@ export function ResultStep() {
     currency: 'UAH',
   });
 
-  if (estimate === null) {
+  if (configuration === null || estimate === null) {
     return <ResultLoading />;
   }
 
@@ -150,10 +150,10 @@ export function ResultStep() {
     rooms,
     catalog,
     blockedLineIds,
-    optionRoomIds: optionRoomIds(draft, pricing),
+    optionRoomIds: optionRoomIds(configuration, pricing),
   });
 
-  const inUah = currency === 'UAH' && panel.total?.uahKopecks != null;
+  const inUah = currency === 'UAH';
   const rateMissing = preferred === 'UAH' && !inUah;
   const format = (value: Money | null): string => {
     if (value === null) {

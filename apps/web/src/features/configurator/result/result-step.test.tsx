@@ -397,6 +397,30 @@ describe('result step', () => {
     expect(screen.queryByText(/NBU rate/)).not.toBeInTheDocument();
   });
 
+  it('keeps hryvnias when an option breaks the limits', async () => {
+    const base = withOptions(makeDraft());
+    const draft = {
+      ...base,
+      options: { ...base.options, 'opt-ac': { quantity: 50 } },
+    };
+    const { panel } = estimateOf(draft);
+    expect(panel.total).toBeNull();
+    await renderResult({ draft, currency: 'UAH' });
+
+    expect(
+      screen.queryByText(catalogs.en.ExchangeRate.unavailable),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(/NBU rate/)).toBeInTheDocument();
+    const totalBlock = screen.getByText(/NBU rate/).closest('section');
+    if (!totalBlock || panel.base?.uahKopecks == null) {
+      throw new Error('total block and base kopecks expected');
+    }
+    expectText(totalBlock, moneyMinor(panel.base.uahKopecks, 'UAH', 'en'));
+    expect(totalBlock.textContent).not.toContain(
+      moneyMinor(panel.base.usdCents, 'USD', 'en'),
+    );
+  });
+
   it('marks a disabled category as excluded', async () => {
     const base = makeDraft();
     const draft = {

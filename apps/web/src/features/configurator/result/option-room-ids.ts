@@ -1,44 +1,29 @@
-import type { PricingData } from '@roomwise/calc-engine';
-import type { DraftRoom, DraftV1 } from '@/lib/draft/schema';
-
-function allowedRoomIds(
-  option: PricingData['options'][number] | undefined,
-  rooms: readonly DraftRoom[],
-): string[] {
-  return rooms
-    .filter(
-      (room) =>
-        option === undefined ||
-        option.roomTypeCodes.length === 0 ||
-        (room.roomTypeCode !== null &&
-          option.roomTypeCodes.includes(room.roomTypeCode)),
-    )
-    .map((room) => room.clientId);
-}
+import type { Configuration, PricingData } from '@roomwise/calc-engine';
+import { isOptionAllowedForRoom } from '@/lib/engine/room-options';
 
 export function optionRoomIds(
-  draft: DraftV1,
+  configuration: Configuration,
   pricing: PricingData,
 ): ReadonlyMap<string, readonly string[]> {
   const options = new Map(pricing.options.map((option) => [option.id, option]));
-  const result = new Map<string, readonly string[]>();
-  for (const [optionId, choice] of Object.entries(draft.options)) {
-    const ids = new Set(choice.roomClientIds);
-    const rooms = draft.rooms.filter((room) => ids.has(room.clientId));
-    if (rooms.length > 0) {
-      result.set(optionId, allowedRoomIds(options.get(optionId), rooms));
-    }
-  }
-  const heatedFloor = pricing.options.find(
-    (option) => option.code === 'HEATED_FLOOR',
+  const roomTypes = new Map(
+    configuration.rooms.map((room) => [room.clientId, room.roomTypeCode]),
   );
-  if (heatedFloor) {
+  const result = new Map<string, readonly string[]>();
+  for (const selection of configuration.options) {
+    const option = options.get(selection.optionId);
+    if (option === undefined || selection.roomClientIds === undefined) {
+      continue;
+    }
     result.set(
-      heatedFloor.id,
-      allowedRoomIds(
-        heatedFloor,
-        draft.rooms.filter((room) => room.heatedFloor),
-      ),
+      selection.optionId,
+      selection.roomClientIds.filter((id) => {
+        const roomTypeCode = roomTypes.get(id);
+        return (
+          roomTypeCode !== undefined &&
+          isOptionAllowedForRoom(option, roomTypeCode)
+        );
+      }),
     );
   }
   return result;
