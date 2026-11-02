@@ -837,6 +837,7 @@
     "empty": "Для цього приміщення інженерних опцій немає"
   },
   "EngineeringStep": {
+    "apartmentTitle": "Інженерія для квартири",
     "loading": "Завантаження приміщень",
     "roomFallback": "Приміщення"
   },
@@ -1025,5 +1026,21 @@
       "rooms": "Приміщень",
       "style": "Стиль"
     }
+  },
+  "PackageList": {
+    "title": "Базовий інженерний пакет",
+    "included": "Входить у базову вартість"
+  },
+  "OptionList": {
+    "priced": "{description} · {cost}",
+    "price": {
+      "PIECE": "{price} за штуку",
+      "PROJECT": "{price} за проєкт"
+    },
+    "quantity": "Кількість: {name}",
+    "decrement": "Зменшити кількість: {name}",
+    "increment": "Збільшити кількість: {name}",
+    "quantityRange": "Допустимо від {min} до {max}",
+    "quantityMin": "Не менше {min}"
   }
 }

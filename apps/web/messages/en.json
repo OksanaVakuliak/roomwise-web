@@ -837,6 +837,7 @@
     "empty": "No engineering options for this room"
   },
   "EngineeringStep": {
+    "apartmentTitle": "Engineering for the apartment",
     "loading": "Loading rooms",
     "roomFallback": "Room"
   },
@@ -1025,5 +1026,21 @@
       "rooms": "Rooms",
       "style": "Style"
     }
+  },
+  "PackageList": {
+    "title": "Base engineering package",
+    "included": "Included in the base cost"
+  },
+  "OptionList": {
+    "priced": "{description} · {cost}",
+    "price": {
+      "PIECE": "{price} per piece",
+      "PROJECT": "{price} per project"
+    },
+    "quantity": "Quantity: {name}",
+    "decrement": "Decrease quantity: {name}",
+    "increment": "Increase quantity: {name}",
+    "quantityRange": "Allowed from {min} to {max}",
+    "quantityMin": "At least {min}"
   }
 }
