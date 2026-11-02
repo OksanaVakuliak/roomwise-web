@@ -27,6 +27,8 @@ import { useDraft, useDraftValue } from '@/stores/draft';
 import { usePreferences } from '@/stores/preferences';
 import { checkPricingData, usePricingData } from '@/stores/pricing-data';
 import { useDisplayCurrency } from '@/stores/use-display-currency';
+import { OptionList } from '../../engineering/OptionList/OptionList';
+import { useRoomPricing } from '../../shell/use-room-pricing';
 import { optionRoomIds } from '../option-room-ids';
 import { useEstimateCatalog } from '../use-estimate-catalog';
 import styles from './ResultStep.module.css';
@@ -113,6 +115,7 @@ export function ResultStep() {
   const preferred = usePreferences((state) => state.currency);
   const { currency, rate } = useDisplayCurrency();
   const catalogState = useEstimateCatalog();
+  const roomPricing = useRoomPricing();
   const changeAction = useChangeAction(
     catalogState.status === 'ready' ? catalogState.rooms : NO_ROOMS,
   );
@@ -253,6 +256,13 @@ export function ResultStep() {
         rate={rate}
         renderAction={changeAction}
       />
+      {roomPricing ? (
+        <OptionList
+          kind="ADDITIONAL"
+          title={t('additionalTitle')}
+          pricing={roomPricing}
+        />
+      ) : null}
       <SectionBlock
         id={`${totalId}-object`}
         level={2}

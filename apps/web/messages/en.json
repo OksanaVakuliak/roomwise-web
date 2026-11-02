@@ -838,6 +838,7 @@
   },
   "EngineeringStep": {
     "apartmentTitle": "Engineering for the apartment",
+    "additionalTitle": "Additional services",
     "loading": "Loading rooms",
     "roomFallback": "Room"
   },
@@ -1014,6 +1015,7 @@
     "error": "Error"
   },
   "ResultStep": {
+    "additionalTitle": "Additional services",
     "loading": "Loading the estimate",
     "preliminary": "This estimate is preliminary and is not an offer. The final price is confirmed on site after measuring.",
     "totalLabel": "Estimate total",

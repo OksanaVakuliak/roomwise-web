@@ -1,4 +1,4 @@
-import { act, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { clearCardCostCache } from '@/lib/engine/card-cost';
 import { clearEstimateCache, runEstimate } from '@/lib/engine/run-estimate';
@@ -23,6 +23,7 @@ import { setViewport } from '@/test/viewports';
 import {
   bathroomId,
   catalogs,
+  currentDraft,
   livingId,
   makeCatalog,
   makeDraft,
@@ -497,6 +498,23 @@ describe('result step', () => {
     expect(
       screen.getByRole('button', { name: catalogs.en.SystemStates.retry }),
     ).toBeInTheDocument();
+  });
+
+  it('toggles an additional option and updates the total', async () => {
+    const draft = makeDraft();
+    await renderResult({ draft });
+    const section = within(sectionOf(catalogs.en.ResultStep.additionalTitle));
+    const toggle = section.getByRole('switch', { name: 'Design project' });
+    const before = totalHeading().textContent;
+
+    expect(toggle).not.toBeChecked();
+    await act(async () => {
+      fireEvent.click(toggle);
+    });
+
+    expect(currentDraft().options['opt-design']).toEqual({});
+    expect(toggle).toBeChecked();
+    expect(totalHeading().textContent).not.toBe(before);
   });
 
   it.each(forEachLocale)(

@@ -76,6 +76,11 @@ export function EngineeringStep() {
           pricing={pricing}
         />
       ))}
+      <OptionList
+        kind="ADDITIONAL"
+        title={t('additionalTitle')}
+        pricing={pricing}
+      />
     </div>
   );
 }
