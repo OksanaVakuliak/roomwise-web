@@ -10,6 +10,7 @@ import { useDraft } from '@/stores/draft';
 import { checkPricingData, usePricingData } from '@/stores/pricing-data';
 import { useStepValidation } from '../../shell/StepValidation/step-validation-context';
 import { useRoomPricing } from '../../shell/use-room-pricing';
+import { apartmentOptions } from '../apartment-options';
 import { OptionList } from '../OptionList/OptionList';
 import { firstInvalidQuantityId } from '../option-quantity';
 import { PackageList } from '../PackageList/PackageList';
@@ -31,10 +32,16 @@ export function EngineeringStep() {
   }, [refetch, refetchEngineering]);
 
   useStepValidation(() => {
-    const options = usePricingData.getState().data?.options;
-    return options
-      ? firstInvalidQuantityId(options, useDraft.getState().options)
-      : null;
+    const pricingOptions = usePricingData.getState().data?.options;
+    if (!pricingOptions) {
+      return null;
+    }
+    const chosen = useDraft.getState().options;
+    const texts = engineeringQuery.data?.options;
+    const rendered = (['ENGINEERING', 'ADDITIONAL'] as const).flatMap((kind) =>
+      apartmentOptions(texts, pricingOptions, kind, chosen),
+    );
+    return firstInvalidQuantityId(rendered, chosen);
   });
 
   if (roomTypesQuery.isError || engineeringQuery.isError) {

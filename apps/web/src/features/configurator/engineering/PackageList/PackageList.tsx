@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
 import { SectionHeader } from '@/components/ui';
 import { useEngineering } from '@/lib/api/catalog';
 import type { RoomPricing } from '../../shell/use-room-pricing';
@@ -14,8 +14,13 @@ export type PackageListProps = {
 export function PackageList({ pricing }: PackageListProps) {
   const t = useTranslations('PackageList');
   const headingId = useId();
-  const items = useEngineering().data?.packageItems ?? [];
-  const priced = new Map(pricing.pricing.packageItems.map((i) => [i.id, i]));
+  const packageItems = useEngineering().data?.packageItems;
+  const pricedItems = pricing.pricing.packageItems;
+  const items = useMemo(() => packageItems ?? [], [packageItems]);
+  const priced = useMemo(
+    () => new Map(pricedItems.map((i) => [i.id, i])),
+    [pricedItems],
+  );
 
   if (items.length === 0) {
     return null;
@@ -38,7 +43,11 @@ export function PackageList({ pricing }: PackageListProps) {
             : line && line.status === 'OK'
               ? pricing.formatLine(line)
               : price.priceCents !== null
-                ? pricing.formatUnitPrice(price.priceCents)
+                ? price.unit
+                  ? t(`price.${price.unit}`, {
+                      price: pricing.formatUnitPrice(price.priceCents),
+                    })
+                  : pricing.formatUnitPrice(price.priceCents)
                 : null;
           return (
             <li key={item.id} className={styles.item}>

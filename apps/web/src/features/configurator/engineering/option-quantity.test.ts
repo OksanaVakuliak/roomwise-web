@@ -27,6 +27,7 @@ describe('isQuantityValid', () => {
     [1, false],
     [6, false],
     [undefined, true],
+    [2.5, false],
   ])('checks %s', (quantity, expected) => {
     expect(isQuantityValid(quantity, bounds)).toBe(expected);
   });

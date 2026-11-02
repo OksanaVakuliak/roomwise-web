@@ -102,9 +102,10 @@ function optionsOf(
     }
     switch (option.unit) {
       case 'PIECE':
-        if (chosen.quantity !== undefined) {
-          result.push({ optionId: option.id, quantity: chosen.quantity });
-        }
+        result.push({
+          optionId: option.id,
+          quantity: chosen.quantity ?? option.minQuantity ?? 1,
+        });
         break;
       case 'PROJECT':
         result.push({ optionId: option.id });

@@ -1031,14 +1031,23 @@
   },
   "PackageList": {
     "title": "Базовий інженерний пакет",
-    "included": "Входить у базову вартість"
+    "included": "Входить у базову вартість",
+    "price": {
+      "PIECE": "{price} за штуку",
+      "PROJECT": "{price} за проєкт",
+      "ROOM": "{price} за приміщення",
+      "ROOM_SQM": "{price} за м²"
+    }
   },
   "OptionList": {
     "priced": "{description} · {cost}",
     "price": {
       "PIECE": "{price} за штуку",
-      "PROJECT": "{price} за проєкт"
+      "PROJECT": "{price} за проєкт",
+      "ROOM": "{price} за приміщення",
+      "ROOM_SQM": "{price} за м²"
     },
+    "unavailable": "Більше недоступно",
     "quantity": "Кількість: {name}",
     "decrement": "Зменшити кількість: {name}",
     "increment": "Збільшити кількість: {name}",

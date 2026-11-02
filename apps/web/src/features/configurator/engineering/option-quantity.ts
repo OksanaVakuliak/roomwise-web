@@ -1,4 +1,5 @@
 import type { PricingData } from '@roomwise/calc-engine';
+import type { ApartmentOption } from './apartment-options';
 
 type PricedOption = PricingData['options'][number];
 
@@ -23,18 +24,22 @@ export function isQuantityValid(
 ) {
   const value = quantity ?? bounds.min;
   return (
-    value >= bounds.min && (bounds.max === undefined || value <= bounds.max)
+    Number.isInteger(value) &&
+    value >= bounds.min &&
+    (bounds.max === undefined || value <= bounds.max)
   );
 }
 
 export function firstInvalidQuantityId(
-  options: readonly PricedOption[],
+  options: readonly Pick<
+    ApartmentOption,
+    'id' | 'unit' | 'minQuantity' | 'maxQuantity'
+  >[],
   chosen: Readonly<Record<string, { quantity?: number }>>,
 ): string | null {
   const invalid = options.find(
     (option) =>
       option.unit === 'PIECE' &&
-      option.available !== false &&
       chosen[option.id] !== undefined &&
       !isQuantityValid(chosen[option.id]?.quantity, quantityBounds(option)),
   );

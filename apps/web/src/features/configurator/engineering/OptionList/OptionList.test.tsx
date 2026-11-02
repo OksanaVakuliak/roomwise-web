@@ -5,6 +5,7 @@ import { clearEstimateCache } from '@/lib/engine/run-estimate';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { useDraft } from '@/stores/draft';
 import { makeInteriorDraft } from '@/test/fixtures/draft';
+import { makePricingData } from '@/test/fixtures/pricing-data';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { useRoomPricing } from '../../shell/use-room-pricing';
 import { OptionList } from './OptionList';
@@ -16,9 +17,12 @@ function Harness({ kind }: { kind: 'ENGINEERING' | 'ADDITIONAL' }) {
   ) : null;
 }
 
-async function renderList(kind: 'ENGINEERING' | 'ADDITIONAL' = 'ENGINEERING') {
+async function renderList(
+  kind: 'ENGINEERING' | 'ADDITIONAL' = 'ENGINEERING',
+  pricing = makePricingData(),
+) {
   await act(async () => {
-    renderWithProviders(<Harness kind={kind} />);
+    renderWithProviders(<Harness kind={kind} />, { pricing });
   });
 }
 
@@ -71,5 +75,39 @@ describe('OptionList', () => {
     await renderList();
 
     expect(screen.getByText('Allowed from 1 to 10')).toBeInTheDocument();
+  });
+
+  it('rounds a typed fractional quantity', async () => {
+    useDraft.setState({ options: { 'opt-ac': { quantity: 2 } } });
+    await renderList();
+
+    await act(async () => {
+      fireEvent.change(screen.getByRole('spinbutton'), {
+        target: { value: '2.5' },
+      });
+    });
+
+    expect(
+      Number.isInteger(useDraft.getState().options['opt-ac']?.quantity),
+    ).toBe(true);
+  });
+
+  it('keeps a chosen option that became unavailable and lets it be turned off', async () => {
+    useDraft.setState({ options: { 'opt-ac': { quantity: 2 } } });
+    const pricing = makePricingData();
+    await renderList('ENGINEERING', {
+      ...pricing,
+      options: pricing.options.map((o) =>
+        o.id === 'opt-ac' ? { ...o, available: false } : o,
+      ),
+    });
+
+    const toggle = screen.getByRole('switch', { name: 'Air conditioner' });
+    expect(screen.getByText(/No longer available/)).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(toggle);
+    });
+    expect(useDraft.getState().options).toEqual({});
   });
 });

@@ -1,11 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useId } from 'react';
+import { useCallback, useId, useMemo } from 'react';
 import { SectionHeader, Stepper, SwitchRow } from '@/components/ui';
 import { useEngineering } from '@/lib/api/catalog';
 import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../../shell/use-room-pricing';
+import { type ApartmentOption, apartmentOptions } from '../apartment-options';
 import {
   isQuantityValid,
   optionQuantityId,
@@ -24,15 +25,7 @@ export type OptionListProps = {
 type OptionItemProps = {
   kind: OptionKind;
   pricing: RoomPricing;
-  option: {
-    id: string;
-    name: string;
-    description: string;
-    priceCents: number;
-    unit: string;
-    minQuantity: number | null;
-    maxQuantity: number | null;
-  };
+  option: ApartmentOption;
 };
 
 function OptionItem({ kind, pricing, option }: OptionItemProps) {
@@ -52,19 +45,22 @@ function OptionItem({ kind, pricing, option }: OptionItemProps) {
     [bounds.min, option.id, piece, toggleOption],
   );
   const handleQuantity = useCallback(
-    (value: number) => setOptionQuantity(option.id, value),
+    (value: number) => setOptionQuantity(option.id, Math.round(value)),
     [option.id, setOptionQuantity],
   );
 
-  const line = on ? pricing.line(`${kind}:option:${option.id}`) : null;
-  const cost =
-    line && line.status === 'OK'
-      ? pricing.formatLine(line)
-      : t(`price.${piece ? 'PIECE' : 'PROJECT'}`, {
-          price: pricing.formatUnitPrice(option.priceCents),
-        });
   const quantity = chosen?.quantity ?? bounds.min;
-  const error = isQuantityValid(quantity, bounds)
+  const valid = isQuantityValid(quantity, bounds);
+  const line = on && valid ? pricing.line(`${kind}:option:${option.id}`) : null;
+  const cost =
+    option.available === false
+      ? t('unavailable')
+      : line && line.status === 'OK'
+        ? pricing.formatLine(line)
+        : t(`price.${piece ? 'PIECE' : 'PROJECT'}`, {
+            price: pricing.formatUnitPrice(option.priceCents),
+          });
+  const error = valid
     ? undefined
     : bounds.max === undefined
       ? t('quantityMin', { min: bounds.min })
@@ -98,31 +94,12 @@ function OptionItem({ kind, pricing, option }: OptionItemProps) {
 export function OptionList({ kind, title, pricing }: OptionListProps) {
   const headingId = useId();
   const texts = useEngineering().data?.options;
-  const priced = new Map(pricing.pricing.options.map((o) => [o.id, o]));
-
-  const options = (texts ?? []).flatMap((text) => {
-    const price = priced.get(text.id);
-    if (
-      !price ||
-      text.kind !== kind ||
-      text.perRoom ||
-      text.code === 'HEATED_FLOOR' ||
-      price.available === false
-    ) {
-      return [];
-    }
-    return [
-      {
-        id: text.id,
-        name: text.name,
-        description: text.description,
-        priceCents: price.priceCents,
-        unit: price.unit,
-        minQuantity: price.minQuantity,
-        maxQuantity: price.maxQuantity,
-      },
-    ];
-  });
+  const chosen = useDraft((state) => state.options);
+  const pricingOptions = pricing.pricing.options;
+  const options = useMemo(
+    () => apartmentOptions(texts, pricingOptions, kind, chosen),
+    [texts, pricingOptions, kind, chosen],
+  );
 
   if (options.length === 0) {
     return null;

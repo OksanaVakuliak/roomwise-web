@@ -1031,14 +1031,23 @@
   },
   "PackageList": {
     "title": "Base engineering package",
-    "included": "Included in the base cost"
+    "included": "Included in the base cost",
+    "price": {
+      "PIECE": "{price} per piece",
+      "PROJECT": "{price} per project",
+      "ROOM": "{price} per room",
+      "ROOM_SQM": "{price} per m²"
+    }
   },
   "OptionList": {
     "priced": "{description} · {cost}",
     "price": {
       "PIECE": "{price} per piece",
-      "PROJECT": "{price} per project"
+      "PROJECT": "{price} per project",
+      "ROOM": "{price} per room",
+      "ROOM_SQM": "{price} per m²"
     },
+    "unavailable": "No longer available",
     "quantity": "Quantity: {name}",
     "decrement": "Decrease quantity: {name}",
     "increment": "Increase quantity: {name}",
