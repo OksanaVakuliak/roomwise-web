@@ -1,0 +1,66 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-22);
+  min-width: 0;
+}
+
+.preliminary {
+  margin: 0;
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-default-size);
+  line-height: var(--text-body-default-line);
+  color: var(--line-2);
+}
+
+.total {
+  border: var(--stroke-2) solid var(--line);
+  background: var(--sheet);
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-8) var(--space-12);
+  padding: var(--space-10) var(--space-12);
+  background: var(--line);
+  color: var(--sheet);
+}
+
+.totalValue {
+  margin: 0;
+  font-family: var(--text-number-l-family);
+  font-weight: var(--text-number-l-weight);
+  font-size: var(--text-number-l-size);
+  line-height: var(--text-number-l-line);
+  white-space: nowrap;
+}
+
+.rate {
+  margin: 0;
+  font-family: var(--text-caption-default-family);
+  font-size: var(--text-caption-default-size);
+  line-height: var(--text-caption-default-line);
+  text-align: right;
+}
+
+.bars {
+  padding: var(--space-10) var(--space-12) var(--space-12);
+}
+
+.warning {
+  margin: 0;
+  padding: 0 var(--space-12) var(--space-12);
+  font-family: var(--text-caption-default-family);
+  font-size: var(--text-caption-default-size);
+  font-weight: var(--text-button-default-weight);
+  color: var(--heat);
+}
+
+.actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-6) var(--space-16);
+}

@@ -18,11 +18,12 @@ export type LineRowProps = {
   rate?: ExchangeRate;
 };
 
-const UNIT_KEYS: Record<string, 'sqm' | 'm' | 'pcs'> = {
+const UNIT_KEYS: Record<string, 'sqm' | 'm' | 'pcs' | 'room'> = {
   SQM: 'sqm',
   ROOM_SQM: 'sqm',
   LINEAR_M: 'm',
   PIECE: 'pcs',
+  ROOM: 'room',
 };
 
 export function LineRow({
@@ -37,7 +38,8 @@ export function LineRow({
   const format = useFormatter();
   const unitKey = line.unit === null ? undefined : UNIT_KEYS[line.unit];
 
-  const title = line.title ?? t(`fallback.${line.kind}`);
+  const title =
+    (line.disabled ? line.category : line.title) ?? t(`fallback.${line.kind}`);
   const price =
     line.unitPriceCents === null
       ? null
@@ -48,8 +50,15 @@ export function LineRow({
     line.quantity !== null && unitKey !== undefined && !line.disabled
       ? `${format.number(line.quantity, { maximumFractionDigits: 2 })} ${tEstimate(`unit.${unitKey}`)}${price === null ? '' : ` × ${price}`}`
       : null;
-  const note = [line.brand, line.category, quantity]
-    .filter((part): part is string => part !== null)
+  const included = line.status === 'INCLUDED' && !line.disabled;
+  const note = [
+    line.roomNames.join(', '),
+    line.brand,
+    line.disabled ? null : line.category,
+    quantity,
+    included ? tEstimate('status.INCLUDED') : null,
+  ]
+    .filter((part): part is string => part !== null && part !== '')
     .join(' · ');
 
   let value: string;
@@ -64,6 +73,8 @@ export function LineRow({
     );
   } else if (line.status === 'OK') {
     value = '—';
+  } else if (included) {
+    value = t('included');
   } else {
     value = tEstimate(`status.${line.status}`);
   }

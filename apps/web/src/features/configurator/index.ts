@@ -1,6 +1,7 @@
 export * from './engineering/EngineeringStep/EngineeringStep';
 export * from './interior/InteriorStep/InteriorStep';
 export * from './object/ObjectStep/ObjectStep';
+export * from './result/ResultStep/ResultStep';
 export * from './shell/ConfiguratorShell/ConfiguratorShell';
 export * from './shell/CostPanel/CostPanel';
 export * from './shell/SceneSlot/scene-slot-context';

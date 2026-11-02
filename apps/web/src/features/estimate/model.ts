@@ -31,6 +31,7 @@ export type EstimateLineModel = {
   categoryId: string | null;
   category: string | null;
   roomClientId: string | null;
+  roomNames: readonly string[];
   quantity: number | null;
   unit: string | null;
   unitPriceCents: number | null;
@@ -90,6 +91,7 @@ export type BuildEstimateModelInput = {
   rooms: readonly EstimateRoomInput[];
   catalog: EstimateCatalog;
   blockedLineIds?: ReadonlySet<string>;
+  optionRoomIds?: ReadonlyMap<string, readonly string[]>;
 };
 
 export function toEstimateRooms(
@@ -165,6 +167,7 @@ function toLineModel(
   line: LineView,
   catalog: EstimateCatalog,
   disabled: boolean,
+  roomNames: readonly string[] = [],
 ): EstimateLineModel {
   const kind = kindOf(line);
   const product =
@@ -182,6 +185,7 @@ function toLineModel(
         ? null
         : (catalog.category(line.categoryId) ?? null),
     roomClientId: line.roomClientId,
+    roomNames,
     quantity: line.quantity,
     unit: line.unit,
     unitPriceCents: line.unitPriceCents,
@@ -208,6 +212,7 @@ function disabledLine(
     categoryId,
     category: catalog.category(categoryId) ?? null,
     roomClientId: room.clientId,
+    roomNames: [],
     quantity: null,
     unit: null,
     unitPriceCents: null,
@@ -222,8 +227,21 @@ function disabledLine(
 function toLineModels(
   lines: readonly LineView[],
   catalog: EstimateCatalog,
+  roomNames: ReadonlyMap<string, string>,
+  optionRoomIds: ReadonlyMap<string, readonly string[]>,
 ): EstimateLineModel[] {
-  return lines.map((line) => toLineModel(line, catalog, false));
+  return lines.map((line) => {
+    const ids =
+      line.roomClientId !== null
+        ? [line.roomClientId]
+        : (optionRoomIds.get(line.optionId ?? '') ?? []);
+    return toLineModel(
+      line,
+      catalog,
+      false,
+      ids.flatMap((id) => roomNames.get(id) ?? []),
+    );
+  });
 }
 
 function roomModelOf(
@@ -265,6 +283,7 @@ export function buildEstimateModel({
   rooms,
   catalog,
   blockedLineIds,
+  optionRoomIds = new Map(),
 }: BuildEstimateModelInput): EstimateModel {
   const grouped = groupLines(
     estimate,
@@ -272,6 +291,7 @@ export function buildEstimateModel({
     blockedLineIds,
   );
   const inputs = new Map(rooms.map((room) => [room.clientId, room]));
+  const roomNames = new Map(rooms.map((room) => [room.clientId, room.name]));
   const rawByRoom = new Map(
     grouped.materials.map((room) => [room.roomClientId, room.lines]),
   );
@@ -296,13 +316,27 @@ export function buildEstimateModel({
   const baseLines = toLineModels(
     grouped.base.filter((line) => line.section === 'BASE'),
     catalog,
+    roomNames,
+    optionRoomIds,
   );
   const objectLines = toLineModels(
     grouped.base.filter((line) => line.section === 'OBJECT'),
     catalog,
+    roomNames,
+    optionRoomIds,
   );
-  const engineering = toLineModels(grouped.engineering, catalog);
-  const additional = toLineModels(grouped.additional, catalog);
+  const engineering = toLineModels(
+    grouped.engineering,
+    catalog,
+    roomNames,
+    optionRoomIds,
+  );
+  const additional = toLineModels(
+    grouped.additional,
+    catalog,
+    roomNames,
+    optionRoomIds,
+  );
 
   return {
     base: {
