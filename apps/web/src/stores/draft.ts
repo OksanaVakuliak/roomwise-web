@@ -120,6 +120,7 @@ type DraftState = DraftV1 & {
   reconcileCatalog: (catalog: ReconcileCatalog) => void;
   dismissReplacements: () => void;
   setLastSaved: (lastSaved: DraftV1['lastSaved']) => void;
+  replaceDraft: (draft: DraftV1) => void;
   reset: () => void;
   dismissNotice: () => void;
   dismissHeatedFloorReset: () => void;
@@ -371,6 +372,14 @@ export const useDraft = create<DraftState>()(
       },
       dismissReplacements: () => set({ replacements: [] }),
       setLastSaved: (lastSaved) => set({ lastSaved }),
+      replaceDraft: (draft) =>
+        set((state) => ({
+          ...draft,
+          notice: null,
+          heatedFloorReset: false,
+          replacements: [],
+          revision: state.revision + 1,
+        })),
       reset: () =>
         set((state) => ({
           ...createDefaultDraft(),

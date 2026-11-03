@@ -5,6 +5,7 @@ import {
   currencies,
   dimension,
   displayMoney,
+  localDate,
   money,
   moneyMinor,
   percent,
@@ -122,6 +123,19 @@ describe('rate formatting', () => {
   it('formats the rate date per locale without a timezone shift', () => {
     expect(rateDate('2026-10-01', 'en')).toBe('1 Oct 2026');
     expect(rateDate('2026-10-01', 'uk')).toBe('01.10.2026');
+  });
+});
+
+describe('localDate', () => {
+  it('formats a timestamp in the viewer time zone', () => {
+    const late = '2026-11-03T23:07:00Z';
+    const day = new Date(late);
+    const expected = [
+      String(day.getDate()).padStart(2, '0'),
+      String(day.getMonth() + 1).padStart(2, '0'),
+      day.getFullYear(),
+    ].join('.');
+    expect(localDate(late, 'uk')).toBe(expected);
   });
 });
 

@@ -4,6 +4,7 @@ export {
   dimension,
   displayMoney,
   type ExchangeRate,
+  localDate,
   money,
   moneyMinor,
   percent,

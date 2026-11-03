@@ -108,13 +108,22 @@ export function rateValue(uahPerUsd: number, locale: Locale): string {
   }).format(uahPerUsd);
 }
 
+function dateOptions(locale: Locale): Intl.DateTimeFormatOptions {
+  return locale === 'uk'
+    ? { day: '2-digit', month: '2-digit', year: 'numeric' }
+    : { day: 'numeric', month: 'short', year: 'numeric' };
+}
+
 export function rateDate(date: string, locale: Locale): string {
-  const options: Intl.DateTimeFormatOptions =
-    locale === 'uk'
-      ? { day: '2-digit', month: '2-digit', year: 'numeric' }
-      : { day: 'numeric', month: 'short', year: 'numeric' };
   return new Intl.DateTimeFormat(rateLocales[locale], {
-    ...options,
+    ...dateOptions(locale),
     timeZone: 'UTC',
   }).format(new Date(date));
+}
+
+export function localDate(date: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(
+    rateLocales[locale],
+    dateOptions(locale),
+  ).format(new Date(date));
 }

@@ -1073,7 +1073,54 @@
     "label": "Link to the estimate",
     "copy": "Copy",
     "copied": "Link copied",
-    "fallback": "Copying failed. Press Ctrl+C to copy the selected link."
+    "fallback": "Copying failed. Press Ctrl+C to copy the selected link.",
+    "open": "Open the estimate"
+  },
+  "CalculationPage": {
+    "title": "Saved estimate. Roomwise",
+    "heading": "Saved estimate",
+    "loading": "Loading the estimate",
+    "preliminary": "This estimate is preliminary and is not an offer. Amounts are shown as they were on the day it was saved.",
+    "totalLabel": "Estimate total",
+    "style": "Style",
+    "saved": "Saved",
+    "validUntil": "Valid until",
+    "rate": "Exchange rate",
+    "noRate": "This estimate was saved without a hryvnia rate, so amounts are shown in US dollars.",
+    "notFound": {
+      "title": "Estimate not found",
+      "text": "The link may be mistyped or the estimate no longer exists. You can start a new calculation.",
+      "action": "Start calculation"
+    },
+    "expiredBadge": "Expired",
+    "recalculate": {
+      "changed": "Prices have changed since this estimate was saved. Recalculate to see the current total.",
+      "increased": "Prices have changed since this estimate was saved. At current prices the total is {diff} higher.",
+      "decreased": "Prices have changed since this estimate was saved. At current prices the total is {diff} lower.",
+      "expired": "This estimate has expired. Recalculate it at current prices to get an up-to-date version.",
+      "action": "Recalculate",
+      "pending": "Recalculating the estimate",
+      "failed": "Could not recalculate the estimate. Try again.",
+      "rateLimited": "{seconds, plural, one {You can recalculate again in # second.} other {You can recalculate again in # seconds.}}"
+    },
+    "newer": {
+      "text": "A newer version of this estimate exists.",
+      "link": "Open version {number}"
+    },
+    "versions": {
+      "title": "Versions",
+      "item": "Version {number}"
+    },
+    "edit": {
+      "action": "Edit",
+      "title": "Replace the current draft?",
+      "message": "Your current draft in the configurator will be replaced with this estimate. This cannot be undone.",
+      "confirm": "Replace and edit",
+      "cancel": "Keep my draft",
+      "close": "Close dialog",
+      "pending": "Working…",
+      "failed": "Could not load current prices. Your draft was not changed. Try again."
+    }
   },
   "PackageList": {
     "title": "Base engineering package",
