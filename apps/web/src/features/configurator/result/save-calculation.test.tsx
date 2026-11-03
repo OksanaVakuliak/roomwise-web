@@ -1,5 +1,6 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { catalogRoots } from '@/lib/api/catalog';
 import { api } from '@/lib/api/client';
 import { clearCardCostCache } from '@/lib/engine/card-cost';
 import { clearEstimateCache, runEstimate } from '@/lib/engine/run-estimate';
@@ -183,7 +184,7 @@ describe('save calculation', () => {
       screen.getByRole('heading', { level: 2, name: /\d/ }).textContent,
     ).toContain(moneyMinor(saved, 'USD', 'en').replace(/\s/g, ' '));
     expect(
-      screen.getByText(/The total has changed by \$125/),
+      screen.getByText(/The total has increased by \$125/),
     ).toBeInTheDocument();
     expect(checkPricingData).toHaveBeenCalledTimes(2);
     expect(captureMessage).not.toHaveBeenCalled();
@@ -197,7 +198,7 @@ describe('save calculation', () => {
     await save();
 
     expect(
-      screen.getByText(/The total has changed by \$7/),
+      screen.getByText(/The total has increased by \$7/),
     ).toBeInTheDocument();
     expect(captureMessage).toHaveBeenCalledExactlyOnceWith(
       'estimate-discrepancy',
@@ -294,7 +295,9 @@ describe('save calculation', () => {
       screen.getByText(/materials or services have changed/),
     ).toBeVisible();
     expect(checkPricingData).toHaveBeenCalledTimes(2);
-    expect(invalidate).toHaveBeenCalled();
+    for (const root of Object.values(catalogRoots)) {
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: [root] });
+    }
   });
 
   it('clears the style on STYLE_NOT_FOUND', async () => {
@@ -337,5 +340,100 @@ describe('save calculation', () => {
     expect(screen.getByText(/save again in 30 seconds/)).toBeVisible();
     expect(saveButton()).toBeDisabled();
     expect(post).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-enables the button once retryAfterSeconds have passed', async () => {
+    post.mockResolvedValue(
+      failure(429, 'RATE_LIMITED', { retryAfterSeconds: 3 }),
+    );
+    vi.useFakeTimers();
+    try {
+      await renderResult();
+      await save();
+      expect(saveButton()).toBeDisabled();
+
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(screen.getByText(/save again in 2 seconds/)).toBeVisible();
+
+      await act(async () => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(saveButton()).toBeEnabled();
+      expect(screen.queryByText(/save again in/)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('builds the request from the draft as it is after the pricing check', async () => {
+    await renderResult();
+    let finishCheck!: () => void;
+    vi.mocked(checkPricingData).mockReturnValueOnce(
+      new Promise<void>((done) => (finishCheck = done)),
+    );
+    post.mockImplementation(async (_url, options) =>
+      created(snapshot(options.body.clientTotalUsdCents)),
+    );
+
+    await act(async () => {
+      fireEvent.click(saveButton());
+    });
+    await act(async () => {
+      useDraft.setState((state) => ({
+        revision: state.revision + 1,
+        rooms: state.rooms.map((room, index) =>
+          index === 0 ? { ...room, lengthM: (room.lengthM ?? 0) + 1 } : room,
+        ),
+      }));
+    });
+    const edited = clientTotal();
+    await act(async () => finishCheck());
+
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post.mock.calls[0][1].body.clientTotalUsdCents).toBe(edited);
+    expect(screen.getByLabelText('Link to the estimate')).toBeVisible();
+  });
+
+  it('drops a failure notice once the draft changes', async () => {
+    await renderResult();
+    post.mockResolvedValue(failure(500, 'INTERNAL'));
+
+    await save();
+    expect(screen.getByText(/Could not save the estimate/)).toBeVisible();
+    await act(async () => {
+      useDraft.setState((state) => ({ revision: state.revision + 1 }));
+    });
+
+    expect(screen.queryByText(/Could not save the estimate/)).toBeNull();
+  });
+
+  it('shows no banner when the price difference is zero', async () => {
+    await renderResult();
+    const total = clientTotal();
+    post.mockResolvedValue(
+      created(snapshot(total, { diffCents: 0, savedTotalUsdCents: total })),
+    );
+
+    await save();
+
+    expect(screen.getByText('Estimate saved')).toBeInTheDocument();
+    expect(screen.queryByText(/The total has/)).toBeNull();
+    expect(captureMessage).not.toHaveBeenCalled();
+  });
+
+  it('words a decrease as a decrease', async () => {
+    await renderResult();
+    const saved = clientTotal() - 12500;
+    post.mockResolvedValue(
+      created(
+        snapshot(saved, { diffCents: -12500, savedTotalUsdCents: saved }),
+      ),
+    );
+
+    await save();
+
+    expect(screen.getByText(/The total has decreased by \$125/)).toBeVisible();
   });
 });

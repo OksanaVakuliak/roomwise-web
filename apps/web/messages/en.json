@@ -1054,7 +1054,8 @@
     "saving": "Saving the estimate",
     "warming": "Waking the server, this can take a minute",
     "rateLimited": "{seconds, plural, one {You can save again in # second.} other {You can save again in # seconds.}}",
-    "totalUpdated": "The total has changed by {diff}. The amounts above are the saved ones.",
+    "totalIncreased": "The total has increased by {diff}. The amounts above are the saved ones.",
+    "totalDecreased": "The total has decreased by {diff}. The amounts above are the saved ones.",
     "failure": {
       "incomplete": "Some values are missing or outside the allowed range, so the estimate cannot be saved yet.",
       "incompleteLink": "Check the object",

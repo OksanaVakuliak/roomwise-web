@@ -3,12 +3,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type SavedCalculation, saveCalculation } from '@/lib/api/calculations';
-import { catalogKeys, useLang } from '@/lib/api/catalog';
+import { catalogRoots, useLang } from '@/lib/api/catalog';
 import { createActionKey } from '@/lib/api/idempotency';
 import { ApiRequestError } from '@/lib/api/request-error';
 import { createWriteGate, RateLimitedError } from '@/lib/api/write';
 import { captureException, captureMessage } from '@/lib/monitoring/client';
-import { useDraft, useDraftValue } from '@/stores/draft';
+import { pickDraft, useDraft } from '@/stores/draft';
 import { checkPricingData, usePricingData } from '@/stores/pricing-data';
 import { buildSaveRequest } from '../build-save-request';
 
@@ -24,7 +24,7 @@ export type SaveState =
   | { kind: 'idle' }
   | { kind: 'pending' }
   | { kind: 'limited'; seconds: number }
-  | { kind: 'failed'; reason: FailureReason }
+  | { kind: 'failed'; reason: FailureReason; revision: number }
   | {
       kind: 'saved';
       saved: SavedCalculation;
@@ -39,7 +39,6 @@ export function useSaveCalculation(
 ) {
   const lang = useLang();
   const queryClient = useQueryClient();
-  const draft = useDraftValue();
   const revision = useDraft((state) => state.revision);
   const setLastSaved = useDraft((state) => state.setLastSaved);
   const clearStyle = useDraft((state) => state.clearStyle);
@@ -47,34 +46,27 @@ export function useSaveCalculation(
   const actionKey = useRef(createActionKey());
   const busy = useRef(false);
   const [state, setState] = useState<SaveState>({ kind: 'idle' });
-  const limitedSeconds = state.kind === 'limited' ? state.seconds : 0;
+  const limited = state.kind === 'limited';
 
   useEffect(() => {
-    if (limitedSeconds === 0) {
+    if (!limited) {
       return;
     }
-    const timer = setTimeout(() => {
+    const timer = setInterval(() => {
       const seconds = gate.blockedForSeconds();
       setState(seconds > 0 ? { kind: 'limited', seconds } : { kind: 'idle' });
     }, SECOND_MS);
-    return () => clearTimeout(timer);
-  }, [limitedSeconds, gate]);
+    return () => clearInterval(timer);
+  }, [limited, gate]);
 
   const refreshCatalog = useCallback(() => {
-    const { styleId } = useDraft.getState();
-    void queryClient.invalidateQueries({ queryKey: catalogKeys.styles(lang) });
-    void queryClient.invalidateQueries({
-      queryKey: catalogKeys.roomTypes(lang),
-    });
-    if (styleId !== null) {
-      void queryClient.invalidateQueries({
-        queryKey: catalogKeys.defaultMaterials(styleId),
-      });
+    for (const root of Object.values(catalogRoots)) {
+      void queryClient.invalidateQueries({ queryKey: [root] });
     }
-  }, [queryClient, lang]);
+  }, [queryClient]);
 
   const fail = useCallback(
-    (error: unknown): SaveState => {
+    (error: unknown, revision: number): SaveState => {
       if (error instanceof RateLimitedError) {
         return { kind: 'limited', seconds: error.retryAfterSeconds };
       }
@@ -83,27 +75,27 @@ export function useSaveCalculation(
       switch (code) {
         case 'VALIDATION_FAILED':
           captureException(error);
-          return { kind: 'failed', reason: 'validation' };
+          return { kind: 'failed', reason: 'validation', revision };
         case 'INPUT_OUT_OF_BOUNDS':
           void checkPricingData();
-          return { kind: 'failed', reason: 'outOfBounds' };
+          return { kind: 'failed', reason: 'outOfBounds', revision };
         case 'UNKNOWN_REFERENCE':
           void checkPricingData();
           refreshCatalog();
-          return { kind: 'failed', reason: 'unknownReference' };
+          return { kind: 'failed', reason: 'unknownReference', revision };
         case 'STYLE_NOT_FOUND':
           clearStyle();
-          return { kind: 'failed', reason: 'styleMissing' };
+          return { kind: 'failed', reason: 'styleMissing', revision };
         case 'IDEMPOTENCY_KEY_REUSED':
         case 'IDEMPOTENCY_KEY_REQUIRED':
           actionKey.current = createActionKey();
           captureException(error);
-          return { kind: 'failed', reason: 'generic' };
+          return { kind: 'failed', reason: 'generic', revision };
         case 'network':
-          return { kind: 'failed', reason: 'generic' };
+          return { kind: 'failed', reason: 'generic', revision };
         default:
           captureException(error);
-          return { kind: 'failed', reason: 'generic' };
+          return { kind: 'failed', reason: 'generic', revision };
       }
     },
     [clearStyle, refreshCatalog],
@@ -115,14 +107,20 @@ export function useSaveCalculation(
     }
     busy.current = true;
     setState({ kind: 'pending' });
+    let requestRevision = useDraft.getState().revision;
     try {
       await checkPricingData();
+      const latest = useDraft.getState();
+      requestRevision = latest.revision;
       const { data: pricing } = usePricingData.getState();
-      const request = pricing ? buildSaveRequest(draft, pricing) : null;
+      const request = pricing
+        ? buildSaveRequest(pickDraft(latest), pricing)
+        : null;
       if (request === null) {
         setState({
           kind: 'failed',
           reason: pricing ? 'incomplete' : 'generic',
+          revision: requestRevision,
         });
         return;
       }
@@ -133,8 +131,10 @@ export function useSaveCalculation(
         idempotencyKey: actionKey.current.keyFor(body),
       });
       const { version, priceDifference } = saved;
-      let diffCents = priceDifference?.diffCents ?? null;
+      let diffCents: number | null = null;
       if (priceDifference) {
+        diffCents =
+          priceDifference.diffCents === 0 ? null : priceDifference.diffCents;
         void checkPricingData();
       } else if (version.totals.usdCents !== body.clientTotalUsdCents) {
         diffCents = version.totals.usdCents - body.clientTotalUsdCents;
@@ -155,16 +155,17 @@ export function useSaveCalculation(
         configurationHash: hash,
       });
       onSaved(version.totals);
-      setState({ kind: 'saved', saved, diffCents, revision });
+      setState({ kind: 'saved', saved, diffCents, revision: requestRevision });
     } catch (error) {
-      setState(fail(error));
+      setState(fail(error, requestRevision));
     } finally {
       busy.current = false;
     }
-  }, [draft, revision, gate, lang, onSaved, setLastSaved, fail]);
+  }, [gate, lang, onSaved, setLastSaved, fail]);
 
   const current =
-    state.kind === 'saved' && state.revision !== revision
+    (state.kind === 'saved' || state.kind === 'failed') &&
+    state.revision !== revision
       ? { kind: 'idle' as const }
       : state;
 

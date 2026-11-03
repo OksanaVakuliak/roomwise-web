@@ -129,7 +129,7 @@ let pendingNotice: DraftNotice | null = null;
 
 const DRAFT_KEYS = Object.keys(DraftV1Schema.shape) as (keyof DraftV1)[];
 
-function pickDraft(state: DraftV1): DraftV1 {
+export function pickDraft(state: DraftV1): DraftV1 {
   return Object.fromEntries(
     DRAFT_KEYS.map((key) => [key, state[key]]),
   ) as DraftV1;

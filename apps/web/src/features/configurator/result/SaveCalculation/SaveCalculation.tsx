@@ -5,8 +5,9 @@ import { ErrorState } from '@/components/system';
 import { Banner, Button, Link } from '@/components/ui';
 import { STEP_PATHS } from '@/config/routes';
 import type { SavedCalculation } from '@/lib/api/calculations';
-import { moneyMinor } from '@/lib/format';
+import { money } from '@/lib/format';
 import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
+import { useDisplayCurrency } from '@/stores/use-display-currency';
 import { SavedLink } from '../SavedLink/SavedLink';
 import styles from './SaveCalculation.module.css';
 import {
@@ -80,6 +81,7 @@ function Feedback({
 }) {
   const t = useTranslations('SaveCalculation');
   const locale = useLocale();
+  const { currency, rate } = useDisplayCurrency();
 
   switch (state.kind) {
     case 'limited':
@@ -103,8 +105,8 @@ function Feedback({
           />
           {state.diffCents === null ? null : (
             <Banner variant="info">
-              {t('totalUpdated', {
-                diff: moneyMinor(Math.abs(state.diffCents), 'USD', locale),
+              {t(state.diffCents > 0 ? 'totalIncreased' : 'totalDecreased', {
+                diff: money(Math.abs(state.diffCents), currency, locale, rate),
               })}
             </Banner>
           )}
