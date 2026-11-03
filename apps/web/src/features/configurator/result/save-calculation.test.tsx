@@ -119,6 +119,9 @@ describe('save calculation', () => {
     const link = `${window.location.origin}/en/calculations/${publicId}/v/3`;
     expect(screen.getByLabelText('Link to the estimate')).toHaveValue(link);
     expect(screen.getByText('Estimate saved')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Open the estimate' }),
+    ).toHaveAttribute('href', `/en/calculations/${publicId}/v/3`);
     fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(link));
     expect(await screen.findByText('Link copied')).toBeInTheDocument();
@@ -168,6 +171,9 @@ describe('save calculation', () => {
     expect(screen.getByLabelText('Посилання на розрахунок')).toHaveValue(
       `${window.location.origin}/uk/calculations/${publicId}/v/3`,
     );
+    expect(
+      screen.getByRole('link', { name: 'Відкрити розрахунок' }),
+    ).toHaveAttribute('href', `/uk/calculations/${publicId}/v/3`);
     expect(checkPricingData).toHaveBeenCalled();
   });
 

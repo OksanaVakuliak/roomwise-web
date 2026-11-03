@@ -1073,7 +1073,8 @@
     "label": "Link to the estimate",
     "copy": "Copy",
     "copied": "Link copied",
-    "fallback": "Copying failed. Press Ctrl+C to copy the selected link."
+    "fallback": "Copying failed. Press Ctrl+C to copy the selected link.",
+    "open": "Open the estimate"
   },
   "CalculationPage": {
     "title": "Saved estimate. Roomwise",
