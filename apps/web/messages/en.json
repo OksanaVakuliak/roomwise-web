@@ -1090,6 +1090,33 @@
       "title": "Estimate not found",
       "text": "The link may be mistyped or the estimate no longer exists. You can start a new calculation.",
       "action": "Start calculation"
+    },
+    "expiredBadge": "Expired",
+    "recalculate": {
+      "changed": "Prices have changed since this estimate was saved. Recalculate to see the current total.",
+      "increased": "Prices have changed since this estimate was saved. At current prices the total is {diff} higher.",
+      "decreased": "Prices have changed since this estimate was saved. At current prices the total is {diff} lower.",
+      "expired": "This estimate has expired. Recalculate it at current prices to get an up-to-date version.",
+      "action": "Recalculate",
+      "pending": "Recalculating the estimate",
+      "failed": "Could not recalculate the estimate. Try again.",
+      "rateLimited": "{seconds, plural, one {You can recalculate again in # second.} other {You can recalculate again in # seconds.}}"
+    },
+    "newer": {
+      "text": "A newer version of this estimate exists.",
+      "link": "Open version {number}"
+    },
+    "versions": {
+      "title": "Versions",
+      "item": "Version {number}"
+    },
+    "edit": {
+      "action": "Edit",
+      "title": "Replace the current draft?",
+      "message": "Your current draft in the configurator will be replaced with this estimate. This cannot be undone.",
+      "confirm": "Replace and edit",
+      "cancel": "Keep my draft",
+      "close": "Close dialog"
     }
   },
   "PackageList": {

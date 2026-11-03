@@ -3,7 +3,7 @@ import { hasLocale, useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { use } from 'react';
 import { PageTitle } from '@/components/ui';
-import { CalculationScreen } from '@/features/calculation';
+import { SavedCalculation } from '@/features/calculation';
 import { routing } from '@/i18n/routing';
 import {
   type CalculationPageProps,
@@ -26,7 +26,7 @@ export default function CalculationRoute({ params }: CalculationPageProps) {
   return (
     <>
       <PageTitle>{t('heading')}</PageTitle>
-      <CalculationScreen publicId={publicId} />
+      <SavedCalculation publicId={publicId} />
     </>
   );
 }
