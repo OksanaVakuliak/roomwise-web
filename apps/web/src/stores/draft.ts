@@ -119,6 +119,7 @@ type DraftState = DraftV1 & {
   normalizeSurfaces: (roomTypes: RoomTypesCatalog) => void;
   reconcileCatalog: (catalog: ReconcileCatalog) => void;
   dismissReplacements: () => void;
+  setLastSaved: (lastSaved: DraftV1['lastSaved']) => void;
   reset: () => void;
   dismissNotice: () => void;
   dismissHeatedFloorReset: () => void;
@@ -128,7 +129,7 @@ let pendingNotice: DraftNotice | null = null;
 
 const DRAFT_KEYS = Object.keys(DraftV1Schema.shape) as (keyof DraftV1)[];
 
-function pickDraft(state: DraftV1): DraftV1 {
+export function pickDraft(state: DraftV1): DraftV1 {
   return Object.fromEntries(
     DRAFT_KEYS.map((key) => [key, state[key]]),
   ) as DraftV1;
@@ -369,6 +370,7 @@ export const useDraft = create<DraftState>()(
         }));
       },
       dismissReplacements: () => set({ replacements: [] }),
+      setLastSaved: (lastSaved) => set({ lastSaved }),
       reset: () =>
         set((state) => ({
           ...createDefaultDraft(),

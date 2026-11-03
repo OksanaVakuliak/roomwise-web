@@ -1,7 +1,7 @@
 'use client';
 
 import { type Locale, useLocale, useTranslations } from 'next-intl';
-import { type ReactNode, useCallback, useId } from 'react';
+import { type ReactNode, useCallback, useId, useState } from 'react';
 import { ExchangeRateNote } from '@/components/layout';
 import { ErrorState } from '@/components/system';
 import {
@@ -19,6 +19,7 @@ import {
   type EstimateRoomInput,
   SectionBlock,
 } from '@/features/estimate';
+import type { VersionView } from '@/lib/api/calculations';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import type { Money } from '@/lib/engine/sections';
@@ -30,11 +31,15 @@ import { useDisplayCurrency } from '@/stores/use-display-currency';
 import { OptionList } from '../../engineering/OptionList/OptionList';
 import { useRoomPricing } from '../../shell/use-room-pricing';
 import { optionRoomIds } from '../option-room-ids';
+import { SaveCalculation } from '../SaveCalculation/SaveCalculation';
+import { snapshotPanel } from '../snapshot-panel';
 import { useEstimateCatalog } from '../use-estimate-catalog';
 import styles from './ResultStep.module.css';
 
 const EMPTY_VALUE = '—';
 const NO_ROOMS: readonly EstimateRoomInput[] = [];
+
+type Snapshot = { revision: number; totals: VersionView['totals'] };
 
 type ChangeLinkProps = { href: string; label: ReactNode };
 
@@ -116,6 +121,12 @@ export function ResultStep() {
   const { currency, rate } = useDisplayCurrency();
   const catalogState = useEstimateCatalog();
   const roomPricing = useRoomPricing();
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const handleSaved = useCallback(
+    (totals: Snapshot['totals'], savedRevision: number) =>
+      setSnapshot({ revision: savedRevision, totals }),
+    [],
+  );
   const changeAction = useChangeAction(
     catalogState.status === 'ready' ? catalogState.rooms : NO_ROOMS,
   );
@@ -135,7 +146,12 @@ export function ResultStep() {
     return <ResultLoading />;
   }
 
-  const { configuration, estimate, panel, blockedLineIds } = runEstimate({
+  const {
+    configuration,
+    estimate,
+    panel: estimatedPanel,
+    blockedLineIds,
+  } = runEstimate({
     draft,
     draftRevision: revision,
     pricing,
@@ -147,6 +163,10 @@ export function ResultStep() {
     return <ResultLoading />;
   }
 
+  const panel =
+    snapshot?.revision === revision
+      ? snapshotPanel(snapshot.totals)
+      : estimatedPanel;
   const { catalog, rooms, styleName } = catalogState;
   const model = buildEstimateModel({
     estimate,
@@ -276,6 +296,7 @@ export function ResultStep() {
       >
         <KeyValueGrid items={objectItems} />
       </SectionBlock>
+      <SaveCalculation onSaved={handleSaved} />
     </div>
   );
 }

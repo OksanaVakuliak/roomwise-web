@@ -9,3 +9,6 @@ export const STEP_PATHS = {
   engineering: `${CONFIGURATOR_PATH}/engineering`,
   result: `${CONFIGURATOR_PATH}/result`,
 } as const satisfies Record<StepId, string>;
+
+export const calculationPath = (publicId: string, versionNumber: number) =>
+  `/calculations/${publicId}/v/${versionNumber}`;

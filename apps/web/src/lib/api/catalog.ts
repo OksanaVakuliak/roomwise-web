@@ -4,9 +4,13 @@ import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
 import { api } from './client';
 import { ApiRequestError } from './request-error';
 
-type Lang = 'en' | 'uk';
+export type Lang = 'en' | 'uk';
 
-type Result<T> = { data?: T; error?: unknown; response: { status: number } };
+export type Result<T> = {
+  data?: T;
+  error?: unknown;
+  response: { status: number };
+};
 
 export const catalogRoots = {
   styles: 'styles',
@@ -29,7 +33,7 @@ export const catalogKeys = {
     [catalogRoots.defaultMaterials, styleId] as const,
 };
 
-async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
+export async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
   const { data, error, response } = await request;
   if (data === undefined) {
     throw new ApiRequestError(response.status, error);

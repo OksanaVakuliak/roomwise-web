@@ -37,6 +37,20 @@ beforeEach(() => {
 });
 
 describe('useDraft', () => {
+  it('stores the last saved calculation and persists it', () => {
+    const lastSaved = {
+      publicId: 'k3m9x2q7',
+      versionNumber: 2,
+      configurationHash: 'abc123',
+    };
+
+    useDraft.getState().setLastSaved(lastSaved);
+
+    expect(useDraft.getState().lastSaved).toEqual(lastSaved);
+    expect(useDraft.getState().revision).toBe(0);
+    expect(stored().state.lastSaved).toEqual(lastSaved);
+  });
+
   it('persists only the draft', () => {
     useDraft.getState().setStep('style');
 

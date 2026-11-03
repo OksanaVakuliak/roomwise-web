@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { type ReactNode, useId } from 'react';
 import {
   Checkbox,
+  CopyField,
   FileField,
   NumberField,
   RadioCard,
@@ -186,6 +187,19 @@ function FieldsDemo({ size }: { size: 'mobile' | 'desktop' }) {
             />
           </Cell>
         ))}
+      </Row>
+
+      <Row size={size} title={t('copyTitle')}>
+        <Cell state="default">
+          <CopyField
+            label={t('copyLabel')}
+            hint={t('copyHint')}
+            value={t('copyValue')}
+            copyLabel={t('copyButton')}
+            copiedLabel={t('copied')}
+            fallbackLabel={t('copyFallback')}
+          />
+        </Cell>
       </Row>
     </>
   );
