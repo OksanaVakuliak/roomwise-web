@@ -7,6 +7,7 @@ import {
   type EstimateRoomInput,
 } from '@/features/estimate';
 import type { VersionView } from '@/lib/api/calculations';
+import { roomOrdinal } from '@/lib/draft/rooms';
 
 type Line = VersionView['lines'][number];
 
@@ -71,16 +72,13 @@ export function snapshotRooms(version: VersionView): EstimateRoomInput[] {
   const customNames = new Map(
     version.configuration.rooms.map((room) => [room.clientId, room.name]),
   );
-  const counts = new Map<string, number>();
-  return version.rooms.map((room) => {
-    const ordinal = (counts.get(room.roomTypeCode) ?? 0) + 1;
-    counts.set(room.roomTypeCode, ordinal);
-    return {
-      clientId: room.clientId,
-      name: customNames.get(room.clientId) ?? `${room.roomTypeName} ${ordinal}`,
-      disabledCategoryIds: [],
-    };
-  });
+  return version.rooms.map((room) => ({
+    clientId: room.clientId,
+    name:
+      customNames.get(room.clientId) ??
+      `${room.roomTypeName} ${roomOrdinal(version.rooms, room.clientId) ?? 1}`,
+    disabledCategoryIds: [],
+  }));
 }
 
 function unavailableLineIds(version: VersionView): ReadonlySet<string> {

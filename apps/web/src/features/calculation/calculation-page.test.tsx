@@ -5,11 +5,18 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { calculationKeys } from '@/lib/api/calculations';
 import { api } from '@/lib/api/client';
 import { moneyMinor, rateDate } from '@/lib/format';
 import { resetWarmup, useWarmup } from '@/lib/warmup';
 import { useDraft } from '@/stores/draft';
+import { useExchangeRate } from '@/stores/exchange-rate';
+import {
+  checkPricingData,
+  resetPricingData,
+  seedPricingData,
+} from '@/stores/pricing-data';
 import { axe } from '@/test/axe';
 import {
   calculationIds,
@@ -19,6 +26,7 @@ import {
   makeVersionView,
 } from '@/test/fixtures';
 import { makeFullRoomsDraft } from '@/test/fixtures/draft';
+import { makePricingData } from '@/test/fixtures/pricing-data';
 import {
   createTestQueryClient,
   forEachLocale,
@@ -44,8 +52,8 @@ const { publicId } = calculationIds;
 
 const ok = (data: unknown) => ({ data, response: { status: 200 } });
 const created = (data: unknown) => ({ data, response: { status: 201 } });
-const failure = (status: number, code: string) => ({
-  error: { error: { code } },
+const failure = (status: number, code: string, params?: object) => ({
+  error: { error: { code, params } },
   response: { status },
 });
 
@@ -80,6 +88,12 @@ async function renderSaved(
   locale: 'en' | 'uk' = 'en',
   versionNumber?: string,
   id: string = publicId,
+  options: {
+    queryClient?: ReturnType<typeof createTestQueryClient>;
+    preferences?: NonNullable<
+      Parameters<typeof renderWithProviders>[1]
+    >['preferences'];
+  } = {},
 ) {
   let result!: ReturnType<typeof renderWithProviders>;
   await act(async () => {
@@ -87,7 +101,8 @@ async function renderSaved(
       <SavedCalculation publicId={id} versionNumber={versionNumber} />,
       {
         locale,
-        queryClient: createTestQueryClient(),
+        queryClient: options.queryClient ?? createTestQueryClient(),
+        preferences: options.preferences,
         url: `/calculations/${id}`,
       },
     );
@@ -108,6 +123,14 @@ describe('saved calculation page', () => {
     resetWarmup();
     useWarmup.setState({ server: 'ready' });
     useDraft.getState().reset();
+    vi.mocked(checkPricingData).mockClear();
+    seedPricingData(makePricingData(), null);
+  });
+
+  afterEach(() => {
+    resetPricingData();
+    useExchangeRate.setState({ rate: null });
+    vi.useRealTimers();
   });
 
   describe.each(forEachLocale)('in %s', (locale) => {
@@ -286,6 +309,117 @@ describe('saved calculation page', () => {
       'Could not recalculate',
     );
     expect(screen.getByRole('button', { name: 'Recalculate' })).toBeEnabled();
+  });
+
+  it('shows the price difference in USD when the snapshot has no rate', async () => {
+    useExchangeRate.setState({
+      rate: { uahPerUsd: 40, date: '2026-01-01', source: 'NBU' },
+    });
+    get.mockResolvedValue(
+      ok(makeChangedPriceVersionView({ exchangeRate: null })),
+    );
+    await renderSaved('en', undefined, publicId, {
+      preferences: { currency: 'UAH' },
+    });
+
+    const diff = normalize(moneyMinor(12500, 'USD', 'en'));
+    expect(
+      await screen.findByText((content) => normalize(content).includes(diff)),
+    ).toBeInTheDocument();
+  });
+
+  it('leaves the pending state and seeds the new version after recalculating', async () => {
+    const queryClient = createTestQueryClient();
+    const next = makeVersionView({ number: 4 });
+    get.mockResolvedValue(ok(makeChangedPriceVersionView()));
+    post.mockResolvedValue(created(next));
+    const { location } = await renderSaved('en', undefined, publicId, {
+      queryClient,
+    });
+
+    await click(await screen.findByRole('button', { name: 'Recalculate' }));
+
+    await waitFor(() =>
+      expect(location().pathname).toBe(`/en/calculations/${publicId}/v/4`),
+    );
+    expect(
+      queryClient.getQueryData(calculationKeys.version(publicId, 4, 'en')),
+    ).toEqual(next);
+    expect(
+      screen.getByRole('button', { name: 'Recalculate' }),
+    ).not.toHaveAttribute('aria-busy');
+  });
+
+  it('allows recalculating again once the rate limit has passed', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+    get.mockResolvedValue(ok(makeChangedPriceVersionView()));
+    post.mockResolvedValue(
+      failure(429, 'RATE_LIMITED', { retryAfterSeconds: 3 }),
+    );
+    await renderSaved();
+
+    await click(await screen.findByRole('button', { name: 'Recalculate' }));
+    expect(screen.getByRole('button', { name: 'Recalculate' })).toBeDisabled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('2');
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByRole('button', { name: 'Recalculate' })).toBeEnabled();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('runs the edit only once on a double click', async () => {
+    get.mockResolvedValue(ok(makeVersionView()));
+    let finish!: () => void;
+    vi.mocked(checkPricingData).mockReturnValueOnce(
+      new Promise<void>((done) => {
+        finish = done;
+      }),
+    );
+    const { location } = await renderSaved();
+    const button = await screen.findByRole('button', { name: 'Edit' });
+
+    await act(async () => {
+      fireEvent.click(button);
+      fireEvent.click(button);
+    });
+    await act(async () => {
+      finish();
+    });
+
+    await waitFor(() =>
+      expect(location().pathname).toBe('/en/configurator/result'),
+    );
+    expect(checkPricingData).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the draft and shows an error when pricing data is unavailable', async () => {
+    const draft = makeFullRoomsDraft();
+    useDraft.getState().replaceDraft(draft);
+    get.mockResolvedValue(ok(makeVersionView()));
+    const { location } = await renderSaved();
+    resetPricingData();
+
+    await click(await screen.findByRole('button', { name: 'Edit' }));
+    await click(
+      within(await screen.findByRole('dialog')).getByRole('button', {
+        name: 'Replace and edit',
+      }),
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not load current prices',
+    );
+    expect(location().pathname).toBe(`/en/calculations/${publicId}`);
+    expect(useDraft.getState().rooms.map((room) => room.clientId)).toEqual(
+      draft.rooms.map((room) => room.clientId),
+    );
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeEnabled();
   });
 
   it('opens the configurator result at once when the draft is empty', async () => {

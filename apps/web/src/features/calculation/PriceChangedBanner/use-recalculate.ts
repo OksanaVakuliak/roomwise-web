@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   calculationKeys,
   recalculateCalculation,
@@ -12,6 +12,8 @@ import { createActionKey } from '@/lib/api/idempotency';
 import { ApiRequestError } from '@/lib/api/request-error';
 import { createWriteGate, RateLimitedError } from '@/lib/api/write';
 import { captureException } from '@/lib/monitoring/client';
+
+const SECOND_MS = 1000;
 
 export type RecalculateState =
   | { kind: 'idle' }
@@ -30,6 +32,18 @@ export function useRecalculate(
   const busy = useRef(false);
   const [state, setState] = useState<RecalculateState>({ kind: 'idle' });
   const { publicId, number } = version;
+  const limited = state.kind === 'limited';
+
+  useEffect(() => {
+    if (!limited) {
+      return;
+    }
+    const timer = setInterval(() => {
+      const seconds = gate.blockedForSeconds();
+      setState(seconds > 0 ? { kind: 'limited', seconds } : { kind: 'idle' });
+    }, SECOND_MS);
+    return () => clearInterval(timer);
+  }, [limited, gate]);
 
   const recalculate = useCallback(async () => {
     if (busy.current) {
@@ -44,9 +58,14 @@ export function useRecalculate(
         lang,
         idempotencyKey: actionKey.current.keyFor(body),
       });
-      await queryClient.invalidateQueries({
+      queryClient.setQueryData(
+        calculationKeys.version(publicId, created.number, lang),
+        created,
+      );
+      void queryClient.invalidateQueries({
         queryKey: calculationKeys.all(publicId),
       });
+      setState({ kind: 'idle' });
       onCreated(created);
     } catch (error) {
       if (error instanceof RateLimitedError) {

@@ -6,6 +6,7 @@ export * from './ExpiredBadge/ExpiredBadge';
 export * from './NewerVersionLink/NewerVersionLink';
 export * from './PriceChangedBanner/PriceChangedBanner';
 export * from './SavedCalculation/SavedCalculation';
+export * from './snapshot-currency';
 export * from './snapshot-model';
 export * from './VersionList/VersionList';
 export * from './version-number';

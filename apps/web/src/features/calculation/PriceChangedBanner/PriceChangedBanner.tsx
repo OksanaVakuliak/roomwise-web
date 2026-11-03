@@ -7,7 +7,8 @@ import { calculationPath } from '@/config/routes';
 import { useRouter } from '@/i18n/navigation';
 import type { VersionView } from '@/lib/api/calculations';
 import { money } from '@/lib/format';
-import { useDisplayCurrency } from '@/stores/use-display-currency';
+import { usePreferences } from '@/stores/preferences';
+import { snapshotCurrency } from '../snapshot-currency';
 import styles from './PriceChangedBanner.module.css';
 import { useRecalculate } from './use-recalculate';
 
@@ -19,7 +20,8 @@ export function PriceChangedBanner({ version }: PriceChangedBannerProps) {
   const t = useTranslations('CalculationPage.recalculate');
   const locale = useLocale();
   const router = useRouter();
-  const { currency, rate } = useDisplayCurrency();
+  const preferred = usePreferences((state) => state.currency);
+  const { currency, rate } = snapshotCurrency(preferred, version.exchangeRate);
   const diffCents = version.priceStatus?.diffCents ?? 0;
   const changed = version.priceStatus?.changed ?? false;
 

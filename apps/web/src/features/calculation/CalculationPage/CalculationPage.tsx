@@ -5,13 +5,9 @@ import { type ReactNode, useId } from 'react';
 import { KeyValueGrid, VisuallyHidden } from '@/components/ui';
 import { EstimateBreakdown } from '@/features/estimate';
 import type { VersionView } from '@/lib/api/calculations';
-import {
-  displayMoney,
-  type ExchangeRate,
-  rateDate,
-  rateValue,
-} from '@/lib/format';
+import { displayMoney, rateDate, rateValue } from '@/lib/format';
 import { usePreferences } from '@/stores/preferences';
+import { snapshotCurrency } from '../snapshot-currency';
 import { toSnapshotModel } from '../snapshot-model';
 import styles from './CalculationPage.module.css';
 
@@ -38,10 +34,7 @@ export function CalculationPage({
   const totalId = useId();
   const preferred = usePreferences((state) => state.currency);
   const { exchangeRate } = version;
-  const currency = preferred === 'UAH' && exchangeRate ? 'UAH' : 'USD';
-  const rate: ExchangeRate | undefined = exchangeRate
-    ? { uahPerUsd: Number(exchangeRate.rate) }
-    : undefined;
+  const { currency, rate } = snapshotCurrency(preferred, exchangeRate);
   const model = toSnapshotModel(version);
   const rateText = exchangeRate
     ? tRate(exchangeRate.source === 'NBU' ? 'noteNbu' : 'noteManual', {

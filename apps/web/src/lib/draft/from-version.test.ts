@@ -190,6 +190,41 @@ describe('fromVersion', () => {
     );
   });
 
+  it('keeps a custom room name trimmed and within the limit', () => {
+    const base = makeVersionView();
+    const draft = fromVersion(
+      versionWith({
+        rooms: base.configuration.rooms.map((room, index) => ({
+          ...room,
+          name: index === 0 ? `  ${'a'.repeat(80)}  ` : '   ',
+        })),
+      }),
+      null,
+    );
+
+    expect(draft.rooms[0]?.name).toBe('a'.repeat(60));
+    expect(draft.rooms[1]?.name).toBeNull();
+    expect(DraftV1Schema.safeParse(draft).success).toBe(true);
+  });
+
+  it('restores a custom room name without changing the hash', () => {
+    const base = makeVersionView();
+    const named = versionWith({
+      rooms: base.configuration.rooms.map((room) => ({
+        ...room,
+        name: 'Custom',
+      })),
+    });
+
+    expect(fromVersion(named, null).rooms.map((room) => room.name)).toEqual([
+      'Custom',
+      'Custom',
+    ]);
+    expect(fromVersion(named, null).lastSaved?.configurationHash).toBe(
+      fromVersion(base, null).lastSaved?.configurationHash,
+    );
+  });
+
   it('ignores room names that the server adds to the configuration', () => {
     const base = makeVersionView();
     const named = versionWith({
@@ -201,9 +236,6 @@ describe('fromVersion', () => {
 
     expect(fromVersion(named, null).lastSaved?.configurationHash).toBe(
       fromVersion(base, null).lastSaved?.configurationHash,
-    );
-    expect(fromVersion(named, null).rooms.every((r) => r.name === null)).toBe(
-      true,
     );
   });
 });

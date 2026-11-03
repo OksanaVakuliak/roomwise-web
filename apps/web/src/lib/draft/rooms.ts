@@ -12,7 +12,7 @@ export function normalizeRoomName(text: string): string {
 }
 
 export function roomOrdinal(
-  rooms: readonly DraftRoom[],
+  rooms: readonly Pick<DraftRoom, 'clientId' | 'roomTypeCode'>[],
   clientId: string,
 ): number | null {
   const index = rooms.findIndex((room) => room.clientId === clientId);

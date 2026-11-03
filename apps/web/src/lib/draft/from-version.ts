@@ -1,15 +1,17 @@
 import type { Configuration } from '@roomwise/calc-engine';
 import type { VersionView } from '@/lib/api/calculations';
 import { configurationHash } from './hash';
+import { normalizeRoomName } from './rooms';
 import type { DraftOption, DraftRoom, DraftV1 } from './schema';
 
 type VersionConfiguration = VersionView['configuration'];
 
 function toDraftRoom(room: VersionConfiguration['rooms'][number]): DraftRoom {
+  const name = normalizeRoomName(room.name ?? '');
   return {
     clientId: room.clientId,
     roomTypeCode: room.roomTypeCode,
-    name: null,
+    name: name === '' ? null : name,
     lengthM: room.lengthM,
     widthM: room.widthM,
     heightM: room.heightM,

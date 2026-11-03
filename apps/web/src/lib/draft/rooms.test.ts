@@ -27,6 +27,15 @@ describe('auto name', () => {
     expect(roomOrdinal(rooms, 'missing')).toBeNull();
   });
 
+  it('numbers rooms given only their id and type', () => {
+    const slim = [
+      { clientId: 'a', roomTypeCode: 'BEDROOM' },
+      { clientId: 'b', roomTypeCode: 'BEDROOM' },
+    ] as const;
+
+    expect(roomOrdinal(slim, 'b')).toBe(2);
+  });
+
   it('builds the display name from the label and ordinal', () => {
     expect(roomDisplayName(rooms, makeDraftRoom(rooms[2]), 'Bedroom')).toBe(
       'Bedroom 2',

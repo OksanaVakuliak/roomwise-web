@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Button, ConfirmDialog } from '@/components/ui';
 import { STEP_PATHS } from '@/config/routes';
 import { useRouter } from '@/i18n/navigation';
@@ -34,16 +34,33 @@ export function EditInConfigurator({ version }: EditInConfiguratorProps) {
   const hydrated = useDraftHydration();
   const replaceDraft = useDraft((state) => state.replaceDraft);
   const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const busy = useRef(false);
 
   const edit = useCallback(async () => {
+    if (busy.current) {
+      return;
+    }
+    busy.current = true;
     setConfirming(false);
-    await checkPricingData();
-    const { data } = usePricingData.getState();
-    const heatedFloorOptionId = data
-      ? (findHeatedFloorOption(data.options)?.id ?? null)
-      : null;
-    replaceDraft(fromVersion(version, heatedFloorOptionId));
-    router.push(STEP_PATHS.result);
+    setFailed(false);
+    setPending(true);
+    try {
+      await checkPricingData();
+      const { data } = usePricingData.getState();
+      if (!data) {
+        setFailed(true);
+        return;
+      }
+      const heatedFloorOptionId =
+        findHeatedFloorOption(data.options)?.id ?? null;
+      replaceDraft(fromVersion(version, heatedFloorOptionId));
+      router.push(STEP_PATHS.result);
+    } finally {
+      busy.current = false;
+      setPending(false);
+    }
   }, [version, replaceDraft, router]);
 
   const start = useCallback(() => {
@@ -57,9 +74,15 @@ export function EditInConfigurator({ version }: EditInConfiguratorProps) {
 
   return (
     <>
-      <Button onClick={start} disabled={!hydrated}>
+      <Button
+        onClick={start}
+        disabled={!hydrated}
+        loading={pending}
+        loadingLabel={t('pending')}
+      >
         {t('action')}
       </Button>
+      {failed ? <p role="alert">{t('failed')}</p> : null}
       <ConfirmDialog
         open={confirming}
         title={t('title')}

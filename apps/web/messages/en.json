@@ -1116,7 +1116,9 @@
       "message": "Your current draft in the configurator will be replaced with this estimate. This cannot be undone.",
       "confirm": "Replace and edit",
       "cancel": "Keep my draft",
-      "close": "Close dialog"
+      "close": "Close dialog",
+      "pending": "Working…",
+      "failed": "Could not load current prices. Your draft was not changed. Try again."
     }
   },
   "PackageList": {
