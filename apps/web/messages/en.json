@@ -407,7 +407,14 @@
     "planEmpty": "No file chosen",
     "planName": "bedroom-plan.pdf",
     "planError": "The file is too large",
-    "planUploading": "Uploading the file"
+    "planUploading": "Uploading the file",
+    "copyTitle": "CopyField",
+    "copyLabel": "Link to the calculation",
+    "copyHint": "Anyone with the link can open this calculation",
+    "copyValue": "https://roomwise.example/en/calculations/abc123/v/1",
+    "copyButton": "Copy",
+    "copied": "Copied",
+    "copyFallback": "Copying failed. Press Ctrl+C to copy the selected link."
   },
   "ShowcaseSectionCut": {
     "hatches": "Hatch materials",

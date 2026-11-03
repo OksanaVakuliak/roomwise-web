@@ -5,6 +5,7 @@ export * from './Button/Button';
 export * from './ButtonLink/ButtonLink';
 export * from './Checkbox/Checkbox';
 export * from './ConfirmDialog/ConfirmDialog';
+export * from './CopyField/CopyField';
 export * from './CostBar/CostBar';
 export * from './CutLayer/CutLayer';
 export * from './CutLayers/CutLayers';

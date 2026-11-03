@@ -407,7 +407,14 @@
     "planEmpty": "Файл не обрано",
     "planName": "plan-spalni.pdf",
     "planError": "Файл завеликий",
-    "planUploading": "Завантаження файлу"
+    "planUploading": "Завантаження файлу",
+    "copyTitle": "CopyField",
+    "copyLabel": "Посилання на розрахунок",
+    "copyHint": "Кожен, хто має посилання, відкриє цей розрахунок",
+    "copyValue": "https://roomwise.example/uk/calculations/abc123/v/1",
+    "copyButton": "Скопіювати",
+    "copied": "Скопійовано",
+    "copyFallback": "Не вдалося скопіювати. Натисніть Ctrl+C, щоб скопіювати виділене посилання."
   },
   "ShowcaseSectionCut": {
     "hatches": "Матеріали штрихування",
