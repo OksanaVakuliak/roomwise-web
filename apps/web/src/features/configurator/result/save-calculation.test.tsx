@@ -129,6 +129,19 @@ describe('save calculation', () => {
     expect(captureMessage).not.toHaveBeenCalled();
   });
 
+  it('offers to save again once the draft changes after saving', async () => {
+    await renderResult();
+    post.mockResolvedValue(created(snapshot(clientTotal())));
+
+    await save();
+    await act(async () => {
+      useDraft.setState((state) => ({ revision: state.revision + 1 }));
+    });
+
+    expect(saveButton()).toBeEnabled();
+    expect(screen.queryByLabelText('Link to the estimate')).toBeNull();
+  });
+
   it('sends the strict configuration with lang, key and client totals', async () => {
     await renderResult('uk');
     const total = clientTotal();

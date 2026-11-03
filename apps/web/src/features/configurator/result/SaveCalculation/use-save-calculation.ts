@@ -25,7 +25,12 @@ export type SaveState =
   | { kind: 'pending' }
   | { kind: 'limited'; seconds: number }
   | { kind: 'failed'; reason: FailureReason }
-  | { kind: 'saved'; saved: SavedCalculation; diffCents: number | null };
+  | {
+      kind: 'saved';
+      saved: SavedCalculation;
+      diffCents: number | null;
+      revision: number;
+    };
 
 const SECOND_MS = 1000;
 
@@ -35,6 +40,7 @@ export function useSaveCalculation(
   const lang = useLang();
   const queryClient = useQueryClient();
   const draft = useDraftValue();
+  const revision = useDraft((state) => state.revision);
   const setLastSaved = useDraft((state) => state.setLastSaved);
   const clearStyle = useDraft((state) => state.clearStyle);
   const [gate] = useState(createWriteGate);
@@ -149,13 +155,18 @@ export function useSaveCalculation(
         configurationHash: hash,
       });
       onSaved(version.totals);
-      setState({ kind: 'saved', saved, diffCents });
+      setState({ kind: 'saved', saved, diffCents, revision });
     } catch (error) {
       setState(fail(error));
     } finally {
       busy.current = false;
     }
-  }, [draft, gate, lang, onSaved, setLastSaved, fail]);
+  }, [draft, revision, gate, lang, onSaved, setLastSaved, fail]);
 
-  return { state, save };
+  const current =
+    state.kind === 'saved' && state.revision !== revision
+      ? { kind: 'idle' as const }
+      : state;
+
+  return { state: current, save };
 }
