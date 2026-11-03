@@ -119,6 +119,7 @@ type DraftState = DraftV1 & {
   normalizeSurfaces: (roomTypes: RoomTypesCatalog) => void;
   reconcileCatalog: (catalog: ReconcileCatalog) => void;
   dismissReplacements: () => void;
+  setLastSaved: (lastSaved: DraftV1['lastSaved']) => void;
   reset: () => void;
   dismissNotice: () => void;
   dismissHeatedFloorReset: () => void;
@@ -369,6 +370,7 @@ export const useDraft = create<DraftState>()(
         }));
       },
       dismissReplacements: () => set({ replacements: [] }),
+      setLastSaved: (lastSaved) => set({ lastSaved }),
       reset: () =>
         set((state) => ({
           ...createDefaultDraft(),
