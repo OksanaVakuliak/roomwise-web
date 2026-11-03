@@ -8,7 +8,7 @@ import {
   productIds,
   styleIds,
 } from '@/test/fixtures/catalog';
-import { makeDraftRoom } from '@/test/fixtures/draft';
+import { makeDraftRoom, makeInteriorDraft } from '@/test/fixtures/draft';
 import { makePricingData } from '@/test/fixtures/pricing-data';
 import { DRAFT_STORAGE_KEY, useDraft } from './draft';
 
@@ -958,5 +958,58 @@ describe('useDraft reconcileCatalog', () => {
     useDraft.getState().reconcileCatalog(staleDraft());
 
     expect(stored()?.state).not.toHaveProperty('replacements');
+  });
+});
+
+describe('useDraft replaceDraft', () => {
+  it('replaces the whole draft and persists it', () => {
+    const draft = makeInteriorDraft({
+      lastSaved: {
+        publicId: 'k3m9x2q7',
+        versionNumber: 3,
+        configurationHash: 'abc123',
+      },
+    });
+    useDraft.getState().setObject({ totalAreaSqm: 99 });
+    useDraft.getState().addRoom();
+
+    useDraft.getState().replaceDraft(draft);
+
+    const { rooms, object, styleId, step, furthestStep, options, lastSaved } =
+      useDraft.getState();
+    expect({
+      rooms,
+      object,
+      styleId,
+      step,
+      furthestStep,
+      options,
+      lastSaved,
+    }).toEqual(draft);
+    expect(stored().state).toEqual(draft);
+  });
+
+  it('clears notices and transient messages and bumps the revision', () => {
+    useDraft.setState({
+      notice: 'draftReset',
+      heatedFloorReset: true,
+      replacements: [
+        {
+          roomClientId: 'room',
+          categoryId: categoryIds.floor,
+          fromProductId: 'p-gone',
+          toProductId: null,
+        },
+      ],
+      revision: 4,
+    });
+
+    useDraft.getState().replaceDraft(makeInteriorDraft());
+
+    const state = useDraft.getState();
+    expect(state.notice).toBeNull();
+    expect(state.heatedFloorReset).toBe(false);
+    expect(state.replacements).toEqual([]);
+    expect(state.revision).toBe(5);
   });
 });
