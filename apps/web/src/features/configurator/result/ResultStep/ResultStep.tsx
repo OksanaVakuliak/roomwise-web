@@ -123,8 +123,9 @@ export function ResultStep() {
   const roomPricing = useRoomPricing();
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const handleSaved = useCallback(
-    (totals: Snapshot['totals']) => setSnapshot({ revision, totals }),
-    [revision],
+    (totals: Snapshot['totals'], savedRevision: number) =>
+      setSnapshot({ revision: savedRevision, totals }),
+    [],
   );
   const changeAction = useChangeAction(
     catalogState.status === 'ready' ? catalogState.rooms : NO_ROOMS,

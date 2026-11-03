@@ -35,7 +35,10 @@ export type SaveState =
 const SECOND_MS = 1000;
 
 export function useSaveCalculation(
-  onSaved: (totals: SavedCalculation['version']['totals']) => void,
+  onSaved: (
+    totals: SavedCalculation['version']['totals'],
+    revision: number,
+  ) => void,
 ) {
   const lang = useLang();
   const queryClient = useQueryClient();
@@ -154,7 +157,7 @@ export function useSaveCalculation(
         versionNumber: version.number,
         configurationHash: hash,
       });
-      onSaved(version.totals);
+      onSaved(version.totals, requestRevision);
       setState({ kind: 'saved', saved, diffCents, revision: requestRevision });
     } catch (error) {
       setState(fail(error, requestRevision));

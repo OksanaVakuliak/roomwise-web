@@ -17,7 +17,10 @@ import {
 } from './use-save-calculation';
 
 export type SaveCalculationProps = {
-  onSaved: (totals: SavedCalculation['version']['totals']) => void;
+  onSaved: (
+    totals: SavedCalculation['version']['totals'],
+    revision: number,
+  ) => void;
 };
 
 type NoticeProps = { text: string; href?: string; linkLabel?: string };
