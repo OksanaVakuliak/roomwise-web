@@ -1048,6 +1048,32 @@
       "style": "Style"
     }
   },
+  "SaveCalculation": {
+    "title": "Save the estimate",
+    "save": "Save the estimate",
+    "saving": "Saving the estimate",
+    "warming": "Waking the server, this can take a minute",
+    "rateLimited": "{seconds, plural, one {You can save again in # second.} other {You can save again in # seconds.}}",
+    "totalUpdated": "The total has changed by {diff}. The amounts above are the saved ones.",
+    "failure": {
+      "incomplete": "Some values are missing or outside the allowed range, so the estimate cannot be saved yet.",
+      "incompleteLink": "Check the object",
+      "outOfBounds": "Some values are outside the allowed range. Check the object fields and save again.",
+      "outOfBoundsLink": "Go to the object",
+      "unknownReference": "Some materials or services have changed. We refreshed the data, review the estimate and save again.",
+      "styleMissing": "The chosen style is no longer available. Choose another one and save again.",
+      "styleMissingLink": "Choose a style",
+      "generic": "Could not save the estimate. Please try again."
+    }
+  },
+  "SavedLink": {
+    "title": "Estimate saved",
+    "text": "Keep the link to come back to this estimate or share it.",
+    "label": "Link to the estimate",
+    "copy": "Copy",
+    "copied": "Link copied",
+    "fallback": "Copying failed. Press Ctrl+C to copy the selected link."
+  },
   "PackageList": {
     "title": "Base engineering package",
     "included": "Included in the base cost",
