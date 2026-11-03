@@ -38,7 +38,7 @@ describe('CopyField', () => {
     const input = screen.getByLabelText('Link');
     expect(input).toHaveValue(URL_VALUE);
     expect(input).toHaveAttribute('readonly');
-    expect(input).toHaveAccessibleDescription('Share it');
+    expect(input).toHaveAccessibleDescription(/^Share it\s*$/);
   });
 
   it('writes the value to the clipboard and announces it politely', async () => {
@@ -77,6 +77,73 @@ describe('CopyField', () => {
       expect(screen.getByRole('status')).toHaveTextContent('Copied'),
     );
     expect(execCommand).toHaveBeenCalledWith('copy');
+  });
+
+  it('calls a consumer onFocus and still selects the text', () => {
+    const onFocus = vi.fn();
+    renderWithProviders(
+      <CopyField
+        label="Link"
+        value={URL_VALUE}
+        copyLabel="Copy"
+        copiedLabel="Copied"
+        fallbackLabel="Press Ctrl+C"
+        onFocus={onFocus}
+      />,
+    );
+    const input = screen.getByLabelText('Link') as HTMLInputElement;
+    fireEvent.focus(input);
+    expect(onFocus).toHaveBeenCalledTimes(1);
+    expect(input.selectionEnd).toBe(URL_VALUE.length);
+  });
+
+  it('describes the input with the status message', async () => {
+    stubClipboard(vi.fn().mockResolvedValue(undefined));
+    renderField();
+    fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    await waitFor(() =>
+      expect(screen.getByLabelText('Link')).toHaveAccessibleDescription(
+        'Share it Copied',
+      ),
+    );
+  });
+
+  it('clears the status when the value changes', async () => {
+    stubClipboard(vi.fn().mockResolvedValue(undefined));
+    const props = {
+      label: 'Link',
+      copyLabel: 'Copy',
+      copiedLabel: 'Copied',
+      fallbackLabel: 'Press Ctrl+C',
+    };
+    const { rerender } = renderWithProviders(
+      <CopyField {...props} value={URL_VALUE} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Copied'),
+    );
+    rerender(<CopyField {...props} value={`${URL_VALUE}2`} />);
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('replaces a copied status when a later copy fails', async () => {
+    const writeText = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('denied'));
+    stubClipboard(writeText);
+    document.execCommand = vi.fn().mockReturnValue(false);
+    renderField();
+    const copy = screen.getByRole('button', { name: 'Copy' });
+    fireEvent.click(copy);
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Copied'),
+    );
+    fireEvent.click(copy);
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Press Ctrl+C'),
+    );
   });
 
   it('has no axe violations', async () => {

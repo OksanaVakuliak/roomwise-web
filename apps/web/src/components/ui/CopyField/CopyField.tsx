@@ -1,6 +1,13 @@
 'use client';
 
-import { type ComponentProps, useCallback, useRef, useState } from 'react';
+import {
+  type ComponentProps,
+  type FocusEvent,
+  useCallback,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 import { cx } from '@/lib/cx';
 import { mergeControl } from '@/lib/form';
 import { Button } from '../Button/Button';
@@ -21,6 +28,7 @@ export type CopyFieldProps = Omit<
 };
 
 type CopyStatus = 'idle' | 'copied' | 'manual';
+type CopyResult = { status: CopyStatus; value: string };
 
 function copyBySelection(input: HTMLInputElement | null) {
   if (!input) {
@@ -44,24 +52,34 @@ export function CopyField({
   hint,
   id,
   className,
+  onFocus,
   ...rest
 }: CopyFieldProps) {
-  const [status, setStatus] = useState<CopyStatus>('idle');
+  const [result, setResult] = useState<CopyResult>({
+    status: 'idle',
+    value,
+  });
+  const statusId = useId();
+  const status = result.value === value ? result.status : 'idle';
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(value);
-      setStatus('copied');
-      return;
+      setResult({ status: 'copied', value });
     } catch {
-      setStatus(copyBySelection(inputRef.current) ? 'copied' : 'manual');
+      const copied = copyBySelection(inputRef.current);
+      setResult({ status: copied ? 'copied' : 'manual', value });
     }
   }, [value]);
 
-  const handleFocus = useCallback(() => {
-    inputRef.current?.select();
-  }, []);
+  const handleFocus = useCallback(
+    (event: FocusEvent<HTMLInputElement>) => {
+      onFocus?.(event);
+      event.currentTarget.select();
+    },
+    [onFocus],
+  );
 
   return (
     <div className={cx(styles.root, className)}>
@@ -70,7 +88,7 @@ export function CopyField({
           <span className={styles.row}>
             <input
               {...rest}
-              {...mergeControl(control, rest)}
+              {...mergeControl(control, rest, statusId)}
               ref={inputRef}
               type="text"
               value={value}
@@ -85,7 +103,12 @@ export function CopyField({
           </span>
         )}
       </FormField>
-      <p role="status" className={styles.status} data-status={status}>
+      <p
+        id={statusId}
+        role="status"
+        className={styles.status}
+        data-status={status}
+      >
         {status === 'copied' ? copiedLabel : null}
         {status === 'manual' ? fallbackLabel : null}
       </p>
