@@ -1,13 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import type { components } from '@/generated/api';
-import { useCatalogReady, useLang } from './catalog';
+import { type Lang, unwrap, useCatalogReady, useLang } from './catalog';
 import { api } from './client';
-import { ApiRequestError } from './request-error';
 import type { WriteGate } from './write';
 
 type Schemas = components['schemas'];
-type Lang = 'en' | 'uk';
-type Result<T> = { data?: T; error?: unknown; response: { status: number } };
 
 export type SaveCalculationBody = Schemas['SaveCalculationRequestDto'];
 export type SavedCalculation = Schemas['SaveCalculationResponseDto_Output'];
@@ -26,14 +23,6 @@ export const calculationKeys = {
   version: (publicId: string, number: number, lang: string) =>
     ['calculation', publicId, number, lang] as const,
 };
-
-async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
-  const { data, error, response } = await request;
-  if (data === undefined) {
-    throw new ApiRequestError(response.status, error);
-  }
-  return data;
-}
 
 export function saveCalculation(
   gate: WriteGate,
