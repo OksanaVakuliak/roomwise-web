@@ -17,6 +17,7 @@ import { StepNav } from '../StepNav/StepNav';
 import { StepTape } from '../StepTape/StepTape';
 import { StepValidationProvider } from '../StepValidation/StepValidation';
 import { stepFromPath } from '../step-path';
+import { useDraftReconciliation } from '../use-draft-reconciliation';
 import { useStepContext } from '../use-step-context';
 import { useSurfaceNormalization } from '../use-surface-normalization';
 
@@ -41,6 +42,7 @@ function ConfiguratorFrame({
 
   useDraftTabSync();
   useSurfaceNormalization(hydrated);
+  useDraftReconciliation(hydrated);
 
   return (
     <StepValidationProvider>

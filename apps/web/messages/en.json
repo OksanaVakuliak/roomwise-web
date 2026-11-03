@@ -730,6 +730,12 @@
     "options": "Options",
     "back": "Back",
     "next": "Next",
+    "startOver": "Start over",
+    "startOverTitle": "Start over?",
+    "startOverDescription": "The current draft will be deleted: rooms, style, materials and options. This cannot be undone.",
+    "startOverConfirm": "Start over",
+    "startOverCancel": "Cancel",
+    "startOverClose": "Close dialog",
     "tapeLabel": "Configurator steps",
     "state": {
       "done": "done",
@@ -795,7 +801,13 @@
   "DraftNotices": {
     "storageUnavailable": "Your browser blocks storage, so the draft won’t be saved. It will be lost when you close or reload the page.",
     "draftReset": "We couldn’t restore your saved draft, so you’re starting from scratch.",
-    "heatedFloorReset": "Heated floor was turned off: it isn’t available for this room type."
+    "heatedFloorReset": "Heated floor was turned off: it isn’t available for this room type.",
+    "replacementsTitle": "Some materials are no longer available, so we replaced them:",
+    "replacedWithStyle": "{room} · {category}: style material “{product}”",
+    "replacedWithStyleUnnamed": "{room} · {category}: replaced with the style material",
+    "chooseMaterial": "{room} · {category}: choose a material",
+    "pricesUpdatedWithTotal": "Prices updated. New total: {total}",
+    "pricesUpdated": "Prices updated."
   },
   "HeatedFloorSwitch": {
     "title": "Heated floor",

@@ -285,6 +285,77 @@ describe('ConfiguratorShell', () => {
     ).toBeInTheDocument();
   });
 
+  it('offers Start over instead of Next on the last step', async () => {
+    await renderShell('result', makeInteriorDraft({ furthestStep: 'result' }));
+
+    expect(
+      screen.getByRole('button', { name: en.Configurator.startOver }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: en.Configurator.next }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps the draft when Start over is cancelled', async () => {
+    const { location } = await renderShell(
+      'result',
+      makeInteriorDraft({ furthestStep: 'result' }),
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.Configurator.startOver }),
+    );
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: en.Configurator.startOverCancel,
+      }),
+    );
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(useDraft.getState().rooms.length).toBeGreaterThan(0);
+    expect(location().pathname).toBe('/en/configurator/result');
+  });
+
+  it('clears the draft and returns to the first step when Start over is confirmed', async () => {
+    const { location } = await renderShell(
+      'result',
+      makeInteriorDraft({ furthestStep: 'result' }),
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.Configurator.startOver }),
+    );
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: en.Configurator.startOverConfirm,
+      }),
+    );
+
+    expect(useDraft.getState().rooms).toEqual([]);
+    expect(useDraft.getState().step).toBe('object');
+    expect(location().pathname).toBe('/en/configurator/object');
+  });
+
+  it('clears leftover notices when Start over is confirmed', async () => {
+    await renderShell('result', makeInteriorDraft({ furthestStep: 'result' }));
+    act(() => {
+      useDraft.setState({ notice: 'draftReset' });
+      usePricingData.setState({ priceUpdate: { from: 'v1', to: 'v2' } });
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.Configurator.startOver }),
+    );
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: en.Configurator.startOverConfirm,
+      }),
+    );
+
+    expect(useDraft.getState().notice).toBeNull();
+    expect(usePricingData.getState().priceUpdate).toBeNull();
+  });
+
   it.each(forEachViewport)(
     'keeps steps, content, scene, showcase and cost in reading order at %i px',
     async (width) => {

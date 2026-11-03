@@ -1,9 +1,11 @@
 import { PricingDataSchema } from '@roomwise/calc-engine';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { captureException } from '@/lib/monitoring/client';
+import { breakStorage, installMemoryStorage } from '@/lib/theme/test-utils';
 import { makePricingData } from '@/test/fixtures';
 import {
   checkPricingData,
+  PRICING_VERSION_KEY,
   resetPricingData,
   usePricingData,
 } from './pricing-data';
@@ -35,6 +37,7 @@ beforeEach(() => {
   fetchMock.mockReset();
   vi.mocked(captureException).mockClear();
   vi.stubGlobal('fetch', fetchMock);
+  installMemoryStorage();
   resetPricingData();
 });
 
@@ -122,6 +125,57 @@ describe('checkPricingData', () => {
     });
     usePricingData.getState().acknowledgePriceUpdate();
     expect(usePricingData.getState().priceUpdate).toBeNull();
+  });
+
+  it('raises a price update when a returning visitor finds a new version', async () => {
+    localStorage.setItem(PRICING_VERSION_KEY, JSON.stringify(V1));
+    fetchMock.mockResolvedValueOnce(
+      ok(makePricingData({ version: V2 }), 'W/"2"'),
+    );
+
+    await checkPricingData();
+
+    expect(usePricingData.getState().priceUpdate).toEqual({
+      from: V1,
+      to: V2,
+    });
+    expect(localStorage.getItem(PRICING_VERSION_KEY)).toBe(JSON.stringify(V2));
+  });
+
+  it('loads prices when the stored version is corrupt', async () => {
+    localStorage.setItem(PRICING_VERSION_KEY, '{not json');
+    fetchMock.mockResolvedValueOnce(
+      ok(makePricingData({ version: V2 }), 'W/"2"'),
+    );
+
+    await checkPricingData();
+
+    expect(usePricingData.getState().status).toBe('ready');
+    expect(usePricingData.getState().priceUpdate).toBeNull();
+  });
+
+  it('stays silent for a returning visitor on the same version', async () => {
+    localStorage.setItem(PRICING_VERSION_KEY, JSON.stringify(V1));
+    fetchMock.mockResolvedValueOnce(
+      ok(makePricingData({ version: V1 }), 'W/"1"'),
+    );
+
+    await checkPricingData();
+
+    expect(usePricingData.getState().priceUpdate).toBeNull();
+  });
+
+  it('does not throw when storage is unavailable', async () => {
+    breakStorage('getItem');
+    breakStorage('setItem');
+    fetchMock.mockResolvedValueOnce(ok(makePricingData(), 'W/"1"'));
+
+    await checkPricingData();
+
+    expect(usePricingData.getState()).toMatchObject({
+      status: 'ready',
+      priceUpdate: null,
+    });
   });
 
   it('keeps the first version of an unacknowledged price update', async () => {

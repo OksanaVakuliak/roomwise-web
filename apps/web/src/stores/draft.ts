@@ -8,6 +8,11 @@ import {
   migrate as migrateDraft,
 } from '@/lib/draft/migrate';
 import {
+  type ReconcileCatalog,
+  type Replacement,
+  reconcile,
+} from '@/lib/draft/reconcile';
+import {
   addRoom as addDraftRoom,
   createRoom,
   removeRoom as removeDraftRoom,
@@ -76,6 +81,7 @@ type DraftState = DraftV1 & {
   storageAvailable: boolean;
   notice: DraftNotice | null;
   heatedFloorReset: boolean;
+  replacements: Replacement[];
   setStep: (step: StepId) => void;
   setObject: (patch: Partial<DraftV1['object']>) => void;
   selectStyle: (
@@ -111,6 +117,8 @@ type DraftState = DraftV1 & {
     siblingIds?: readonly string[],
   ) => void;
   normalizeSurfaces: (roomTypes: RoomTypesCatalog) => void;
+  reconcileCatalog: (catalog: ReconcileCatalog) => void;
+  dismissReplacements: () => void;
   reset: () => void;
   dismissNotice: () => void;
   dismissHeatedFloorReset: () => void;
@@ -124,6 +132,16 @@ function pickDraft(state: DraftV1): DraftV1 {
   return Object.fromEntries(
     DRAFT_KEYS.map((key) => [key, state[key]]),
   ) as DraftV1;
+}
+
+function mergeReplacements(
+  current: Replacement[],
+  added: Replacement[],
+): Replacement[] {
+  const keyOf = (item: Replacement) =>
+    `${item.roomClientId}:${item.categoryId}`;
+  const addedKeys = new Set(added.map(keyOf));
+  return [...current.filter((item) => !addedKeys.has(keyOf(item))), ...added];
 }
 
 function markStorageCorrupt() {
@@ -144,6 +162,7 @@ export const useDraft = create<DraftState>()(
       storageAvailable: true,
       notice: null,
       heatedFloorReset: false,
+      replacements: [],
       setStep: (step) =>
         set((state) => ({
           step,
@@ -334,10 +353,28 @@ export const useDraft = create<DraftState>()(
           set((state) => ({ ...next, revision: state.revision + 1 }));
         }
       },
+      reconcileCatalog: (catalog) => {
+        const draft = pickDraft(get());
+        const result = reconcile(draft, catalog);
+        if (result.draft === draft) {
+          return;
+        }
+        set((state) => ({
+          ...result.draft,
+          replacements: mergeReplacements(
+            state.replacements,
+            result.replacements,
+          ),
+          revision: state.revision + 1,
+        }));
+      },
+      dismissReplacements: () => set({ replacements: [] }),
       reset: () =>
         set((state) => ({
           ...createDefaultDraft(),
+          notice: null,
           heatedFloorReset: false,
+          replacements: [],
           revision: state.revision + 1,
         })),
       dismissNotice: () => set({ notice: null }),

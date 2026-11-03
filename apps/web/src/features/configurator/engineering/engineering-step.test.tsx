@@ -138,10 +138,12 @@ describe('engineering step', () => {
   );
 
   it('blocks Next and focuses the field when a quantity is out of range', async () => {
-    const draft = makeDraft();
     const { router } = await renderEngineering('en', {
-      ...draft,
-      options: { 'opt-ac': { quantity: 99 } },
+      ...makeDraft(),
+      options: { 'opt-ac': { quantity: 1 } },
+    });
+    act(() => {
+      useDraft.setState({ options: { 'opt-ac': { quantity: 99 } } });
     });
 
     expect(

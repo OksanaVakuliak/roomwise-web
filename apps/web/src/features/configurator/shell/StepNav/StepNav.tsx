@@ -1,8 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback } from 'react';
-import { Button } from '@/components/ui';
+import { useCallback, useState } from 'react';
+import { Button, ConfirmDialog } from '@/components/ui';
 import { STEP_PATHS } from '@/config/routes';
 import { useRouter } from '@/i18n/navigation';
 import type { StepId } from '@/lib/draft/schema';
@@ -15,6 +15,7 @@ import {
 } from '@/lib/draft/steps';
 import { focusField } from '@/lib/focus';
 import { useDraft } from '@/stores/draft';
+import { usePricingData } from '@/stores/pricing-data';
 import { useRunStepValidation } from '../StepValidation/step-validation-context';
 import styles from './StepNav.module.css';
 
@@ -29,6 +30,7 @@ export function StepNav({ step, context }: StepNavProps) {
   const setStep = useDraft((state) => state.setStep);
   const runValidation = useRunStepValidation();
   const next = nextStep(step);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const goBack = useCallback(() => {
     const previous = STEP_ORDER[stepIndex(step) - 1];
@@ -51,16 +53,41 @@ export function StepNav({ step, context }: StepNavProps) {
     router.push(STEP_PATHS[next]);
   }, [context, next, router, runValidation, setStep, step]);
 
+  const openConfirm = useCallback(() => setConfirmOpen(true), []);
+  const closeConfirm = useCallback(() => setConfirmOpen(false), []);
+
+  const startOver = useCallback(() => {
+    setConfirmOpen(false);
+    useDraft.getState().reset();
+    usePricingData.getState().acknowledgePriceUpdate();
+    router.push(STEP_PATHS.object);
+  }, [router]);
+
   return (
     <div className={styles.root}>
       <Button kind="outline" onClick={goBack}>
         {t('back')}
       </Button>
-      {next === null ? null : (
+      {next === null ? (
+        <Button kind="fill" onClick={openConfirm}>
+          {t('startOver')}
+        </Button>
+      ) : (
         <Button kind="fill" onClick={goNext}>
           {t('next')}
         </Button>
       )}
+      <ConfirmDialog
+        open={confirmOpen}
+        tone="danger"
+        title={t('startOverTitle')}
+        description={t('startOverDescription')}
+        confirmLabel={t('startOverConfirm')}
+        cancelLabel={t('startOverCancel')}
+        closeLabel={t('startOverClose')}
+        onConfirm={startOver}
+        onCancel={closeConfirm}
+      />
     </div>
   );
 }

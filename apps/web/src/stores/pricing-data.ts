@@ -5,6 +5,24 @@ import {
   PricingDataNetworkError,
 } from '@/lib/api/pricing-data';
 import { captureException } from '@/lib/monitoring/client';
+import { createSafeStorage } from './safe-storage';
+
+export const PRICING_VERSION_KEY = 'roomwise-pricing-version';
+
+const versionStorage = createSafeStorage();
+
+function readStoredVersion(): string | null {
+  const raw = versionStorage.getItem(PRICING_VERSION_KEY);
+  if (typeof raw !== 'string') {
+    return null;
+  }
+  try {
+    const value: unknown = JSON.parse(raw);
+    return typeof value === 'string' ? value : null;
+  } catch {
+    return null;
+  }
+}
 
 export type PriceUpdate = { from: string; to: string };
 
@@ -38,6 +56,7 @@ let generation = 0;
 export function resetPricingData(): void {
   generation += 1;
   pending = undefined;
+  versionStorage.removeItem(PRICING_VERSION_KEY);
   usePricingData.setState(INITIAL);
 }
 
@@ -70,6 +89,8 @@ async function run(started: number): Promise<void> {
       return;
     }
     const { data, etag } = response;
+    const known = current.version ?? readStoredVersion();
+    versionStorage.setItem(PRICING_VERSION_KEY, JSON.stringify(data.version));
     usePricingData.setState({
       status: 'ready',
       data,
@@ -77,9 +98,9 @@ async function run(started: number): Promise<void> {
       version: data.version,
       checkedAt: Date.now(),
       priceUpdate:
-        current.version !== null && current.version !== data.version
+        known !== null && known !== data.version
           ? {
-              from: current.priceUpdate?.from ?? current.version,
+              from: current.priceUpdate?.from ?? known,
               to: data.version,
             }
           : current.priceUpdate,

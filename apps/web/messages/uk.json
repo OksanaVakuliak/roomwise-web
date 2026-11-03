@@ -730,6 +730,12 @@
     "options": "Опції",
     "back": "Назад",
     "next": "Далі",
+    "startOver": "Почати заново",
+    "startOverTitle": "Почати заново?",
+    "startOverDescription": "Поточну чернетку буде видалено: приміщення, стиль, матеріали й опції. Цю дію не можна скасувати.",
+    "startOverConfirm": "Почати заново",
+    "startOverCancel": "Скасувати",
+    "startOverClose": "Закрити вікно",
     "tapeLabel": "Кроки конфігуратора",
     "state": {
       "done": "виконано",
@@ -795,7 +801,13 @@
   "DraftNotices": {
     "storageUnavailable": "Браузер блокує сховище, тому чернетка не збережеться. Вона зникне, коли ви закриєте або перезавантажите сторінку.",
     "draftReset": "Не вдалося відновити збережену чернетку, тому ви починаєте з чистого аркуша.",
-    "heatedFloorReset": "Теплу підлогу вимкнено: для цього типу приміщення вона недоступна."
+    "heatedFloorReset": "Теплу підлогу вимкнено: для цього типу приміщення вона недоступна.",
+    "replacementsTitle": "Деякі матеріали більше недоступні, тому ми їх замінили:",
+    "replacedWithStyle": "{room} · {category}: матеріал стилю «{product}»",
+    "replacedWithStyleUnnamed": "{room} · {category}: замінено матеріалом стилю",
+    "chooseMaterial": "{room} · {category}: оберіть матеріал",
+    "pricesUpdatedWithTotal": "Ціни оновлено. Нова сума: {total}",
+    "pricesUpdated": "Ціни оновлено."
   },
   "HeatedFloorSwitch": {
     "title": "Тепла підлога",

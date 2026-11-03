@@ -19,6 +19,18 @@ describe('Banner', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Failed');
   });
 
+  it('renders block content without nesting it in a paragraph', () => {
+    const { container } = render(
+      <Banner variant="info">
+        <ul>
+          <li>Living room</li>
+        </ul>
+      </Banner>,
+    );
+    expect(screen.getByRole('listitem')).toHaveTextContent('Living room');
+    expect(container.querySelector('p ul')).toBeNull();
+  });
+
   it('renders title and action', () => {
     render(
       <Banner
