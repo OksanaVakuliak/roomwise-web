@@ -1,0 +1,9 @@
+.root {
+  padding: var(--space-16) var(--space-16) var(--space-28);
+}
+
+@media (min-width: 768px) {
+  .root {
+    padding-inline: var(--space-28);
+  }
+}
