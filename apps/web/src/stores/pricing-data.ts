@@ -56,6 +56,7 @@ let generation = 0;
 export function resetPricingData(): void {
   generation += 1;
   pending = undefined;
+  versionStorage.removeItem(PRICING_VERSION_KEY);
   usePricingData.setState(INITIAL);
 }
 
