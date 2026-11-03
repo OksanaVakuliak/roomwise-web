@@ -6,7 +6,7 @@ import { Link } from '@/components/ui';
 import { calculationPath } from '@/config/routes';
 import type { VersionView } from '@/lib/api/calculations';
 import { cx } from '@/lib/cx';
-import { moneyMinor, rateDate } from '@/lib/format';
+import { localDate, moneyMinor } from '@/lib/format';
 import styles from './VersionList.module.css';
 
 export type VersionListProps = {
@@ -43,7 +43,7 @@ export function VersionList({ version }: VersionListProps) {
                   {label}
                 </Link>
               )}
-              <span>{rateDate(entry.createdAt, locale)}</span>
+              <span>{localDate(entry.createdAt, locale)}</span>
               <span className={styles.total}>
                 {moneyMinor(entry.totalUsdCents, 'USD', locale)}
               </span>

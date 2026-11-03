@@ -8,7 +8,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { calculationKeys } from '@/lib/api/calculations';
 import { api } from '@/lib/api/client';
-import { moneyMinor, rateDate } from '@/lib/format';
+import { localDate, moneyMinor } from '@/lib/format';
 import { resetWarmup, useWarmup } from '@/lib/warmup';
 import { useDraft } from '@/stores/draft';
 import { useExchangeRate } from '@/stores/exchange-rate';
@@ -150,10 +150,10 @@ describe('saved calculation page', () => {
         normalize(moneyMinor(version.totals.usdCents, 'USD', locale)),
       );
       expect(
-        screen.getAllByText(rateDate(version.createdAt, locale)).length,
+        screen.getAllByText(localDate(version.createdAt, locale)).length,
       ).toBeGreaterThan(0);
       expect(
-        screen.getByText(rateDate(version.expiresAt, locale)),
+        screen.getByText(localDate(version.expiresAt, locale)),
       ).toBeInTheDocument();
       expect(screen.getByText(/44[.,]55/)).toBeInTheDocument();
       expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();

@@ -5,7 +5,7 @@ import { type ReactNode, useId } from 'react';
 import { KeyValueGrid, VisuallyHidden } from '@/components/ui';
 import { EstimateBreakdown } from '@/features/estimate';
 import type { VersionView } from '@/lib/api/calculations';
-import { displayMoney, rateDate, rateValue } from '@/lib/format';
+import { displayMoney, localDate, rateDate, rateValue } from '@/lib/format';
 import { usePreferences } from '@/stores/preferences';
 import { snapshotCurrency } from '../snapshot-currency';
 import { toSnapshotModel } from '../snapshot-model';
@@ -52,12 +52,12 @@ export function CalculationPage({
     {
       key: 'saved',
       label: t('saved'),
-      value: rateDate(version.createdAt, locale),
+      value: localDate(version.createdAt, locale),
     },
     {
       key: 'validUntil',
       label: t('validUntil'),
-      value: rateDate(version.expiresAt, locale),
+      value: localDate(version.expiresAt, locale),
     },
     ...(rateText ? [{ key: 'rate', label: t('rate'), value: rateText }] : []),
   ];
