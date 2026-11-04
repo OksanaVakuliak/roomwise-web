@@ -8,7 +8,7 @@ import { moneyMinor } from '@/lib/format';
 import { captureException, captureMessage } from '@/lib/monitoring/client';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { resetWarmup, useWarmup } from '@/lib/warmup';
-import { useDraft } from '@/stores/draft';
+import { pickDraft, useDraft } from '@/stores/draft';
 import { resetExchangeRate } from '@/stores/exchange-rate';
 import { checkPricingData } from '@/stores/pricing-data';
 import { calculationIds, makeVersionView } from '@/test/fixtures';
@@ -21,6 +21,7 @@ import {
 } from '@/test/render-with-providers';
 import { setViewport } from '@/test/viewports';
 import { makeCatalog, makeDraft } from '../interior/interior-step.helpers';
+import { buildSaveRequest } from './build-save-request';
 import { ResultStep } from './ResultStep/ResultStep';
 
 vi.mock('@/lib/api/client', () => ({
@@ -131,6 +132,25 @@ describe('save calculation', () => {
       configurationHash: expect.any(String),
     });
     expect(captureMessage).not.toHaveBeenCalled();
+  });
+
+  it('shows the saved link without a request when the configuration is already saved', async () => {
+    await renderResult();
+    const request = buildSaveRequest(pickDraft(useDraft.getState()), pricing);
+    useDraft.setState({
+      lastSaved: {
+        publicId: 'saved123',
+        versionNumber: 2,
+        configurationHash: request?.hash ?? '',
+      },
+    });
+
+    await save();
+
+    expect(post).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('link', { name: 'Open the estimate' }),
+    ).toHaveAttribute('href', '/en/calculations/saved123/v/2');
   });
 
   it('offers to save again once the draft changes after saving', async () => {

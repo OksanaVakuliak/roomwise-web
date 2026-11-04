@@ -103,8 +103,8 @@ function Feedback({
       return (
         <>
           <SavedLink
-            publicId={state.saved.version.publicId}
-            versionNumber={state.saved.version.number}
+            publicId={state.publicId}
+            versionNumber={state.versionNumber}
           />
           {state.diffCents === null ? null : (
             <Banner variant="info">

@@ -27,7 +27,8 @@ export type SaveState =
   | { kind: 'failed'; reason: FailureReason; revision: number }
   | {
       kind: 'saved';
-      saved: SavedCalculation;
+      publicId: string;
+      versionNumber: number;
       diffCents: number | null;
       revision: number;
     };
@@ -128,6 +129,17 @@ export function useSaveCalculation(
         return;
       }
       const { body, hash } = request;
+      const { lastSaved } = useDraft.getState();
+      if (lastSaved?.configurationHash === hash) {
+        setState({
+          kind: 'saved',
+          publicId: lastSaved.publicId,
+          versionNumber: lastSaved.versionNumber,
+          diffCents: null,
+          revision: requestRevision,
+        });
+        return;
+      }
       const saved = await saveCalculation(gate, {
         body,
         lang,
@@ -158,7 +170,13 @@ export function useSaveCalculation(
         configurationHash: hash,
       });
       onSaved(version.totals, requestRevision);
-      setState({ kind: 'saved', saved, diffCents, revision: requestRevision });
+      setState({
+        kind: 'saved',
+        publicId: version.publicId,
+        versionNumber: version.number,
+        diffCents,
+        revision: requestRevision,
+      });
     } catch (error) {
       setState(fail(error, requestRevision));
     } finally {
