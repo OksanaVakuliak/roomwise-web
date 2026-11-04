@@ -101,7 +101,7 @@
   --tape-height-desktop: 4rem;
   --tape-step-gap: 0.3125rem;
   --tape-step-pad-bottom: 0.4375rem;
-  --tape-step-inset-mobile: min(0.625rem, 10px);
+  --tape-step-inset-mobile: min(0.625rem, 2.5vw);
   --tape-step-inset-desktop: 1rem;
   --tape-label-size-mobile: 0.875rem;
   --tape-label-size-desktop: 1.0625rem;
