@@ -380,6 +380,7 @@ export const useDraft = create<DraftState>()(
       setLastSaved: (lastSaved) => set({ lastSaved }),
       replaceDraft: (draft) =>
         set((state) => ({
+          styleAuto: undefined,
           ...draft,
           notice: null,
           heatedFloorReset: false,
@@ -388,6 +389,7 @@ export const useDraft = create<DraftState>()(
         })),
       reset: () =>
         set((state) => ({
+          styleAuto: undefined,
           ...createDefaultDraft(),
           notice: null,
           heatedFloorReset: false,

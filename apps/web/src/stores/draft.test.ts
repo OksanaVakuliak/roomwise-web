@@ -90,6 +90,14 @@ describe('useDraft', () => {
     expect(useDraft.getState().revision).toBe(2);
   });
 
+  it('clears styleAuto on reset', () => {
+    useDraft.setState({ styleAuto: true });
+
+    useDraft.getState().reset();
+
+    expect(useDraft.getState().styleAuto).toBeUndefined();
+  });
+
   it('clears leftover notices on reset', () => {
     useDraft.setState({
       notice: 'draftReset',
@@ -1012,6 +1020,14 @@ describe('useDraft replaceDraft', () => {
     expect(state.heatedFloorReset).toBe(false);
     expect(state.replacements).toEqual([]);
     expect(state.revision).toBe(5);
+  });
+
+  it('clears a stale styleAuto when the loaded draft has none', () => {
+    useDraft.setState({ styleAuto: true });
+
+    useDraft.getState().replaceDraft(makeInteriorDraft());
+
+    expect(useDraft.getState().styleAuto).toBeUndefined();
   });
 });
 
