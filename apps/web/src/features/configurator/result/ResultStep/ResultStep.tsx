@@ -21,6 +21,7 @@ import {
 } from '@/features/estimate';
 import { LeadAction, type LeadTarget } from '@/features/lead';
 import type { VersionView } from '@/lib/api/calculations';
+import { FINISH_LABEL } from '@/lib/draft/finish-level';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import type { Money } from '@/lib/engine/sections';
@@ -216,7 +217,7 @@ export function ResultStep() {
   const finishLabel =
     object.finishLevel === null
       ? EMPTY_VALUE
-      : tForm(object.finishLevel === 'ROUGH' ? 'finishRough' : 'finishPre');
+      : tForm(FINISH_LABEL[object.finishLevel]);
   const objectItems = [
     { key: 'finish', label: tForm('finishLevel'), value: finishLabel },
     {

@@ -470,6 +470,17 @@ describe('result step', () => {
     expect(object.getByText('Modern')).toBeInTheDocument();
   });
 
+  it('names the lived-in finish level', async () => {
+    const draft = withOptions(makeDraft());
+    await renderResult({
+      draft: { ...draft, object: { ...draft.object, finishLevel: 'LIVED_IN' } },
+    });
+
+    expect(
+      within(sectionOf('Object and style')).getByText('Lived-in'),
+    ).toBeInTheDocument();
+  });
+
   it('shows a loading state until the pricing data arrives', async () => {
     await renderResult({ pricingData: false });
 
