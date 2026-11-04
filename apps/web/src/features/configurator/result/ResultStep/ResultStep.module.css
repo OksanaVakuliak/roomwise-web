@@ -35,7 +35,8 @@
   font-weight: var(--text-number-l-weight);
   font-size: var(--text-number-l-size);
   line-height: var(--text-number-l-line);
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .rate {
