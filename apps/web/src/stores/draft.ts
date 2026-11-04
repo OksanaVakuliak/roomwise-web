@@ -84,6 +84,7 @@ type DraftState = DraftV1 & {
   replacements: Replacement[];
   setStep: (step: StepId) => void;
   setObject: (patch: Partial<DraftV1['object']>) => void;
+  setScope: (scope: DraftV1['object']['scope']) => void;
   selectStyle: (
     defaultMaterials: DefaultMaterials,
     roomTypes: RoomTypesCatalog,
@@ -177,6 +178,11 @@ export const useDraft = create<DraftState>()(
       setObject: (patch) =>
         set((state) => ({
           object: { ...state.object, ...patch },
+          revision: state.revision + 1,
+        })),
+      setScope: (scope) =>
+        set((state) => ({
+          object: { ...state.object, scope },
           revision: state.revision + 1,
         })),
       selectStyle: (defaultMaterials, roomTypes) =>

@@ -10,7 +10,7 @@ import {
 } from '@/test/fixtures/catalog';
 import { makeDraftRoom, makeInteriorDraft } from '@/test/fixtures/draft';
 import { makePricingData } from '@/test/fixtures/pricing-data';
-import { DRAFT_STORAGE_KEY, useDraft } from './draft';
+import { DRAFT_STORAGE_KEY, pickDraft, useDraft } from './draft';
 
 const stored = () => {
   const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
@@ -1012,5 +1012,38 @@ describe('useDraft replaceDraft', () => {
     expect(state.heatedFloorReset).toBe(false);
     expect(state.replacements).toEqual([]);
     expect(state.revision).toBe(5);
+  });
+});
+
+describe('useDraft setScope', () => {
+  it('changes only the scope and keeps the rest of the draft', () => {
+    const roomTypes = makeRoomTypes();
+    const defaults = makeDefaultMaterials(styleIds.modern);
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    const roomId =
+      useDraft.getState().addRoom({ defaultMaterials: defaults, roomTypes }) ??
+      '';
+    useDraft.getState().setObject({ totalAreaSqm: 62 });
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+    useDraft.getState().disableCategory(roomId, categoryIds.walls);
+    const before = pickDraft(useDraft.getState());
+
+    useDraft.getState().setScope('PARTIAL');
+
+    const partial = pickDraft(useDraft.getState());
+    expect(partial.object.scope).toBe('PARTIAL');
+    expect(partial).toEqual({
+      ...before,
+      object: { ...before.object, scope: 'PARTIAL' },
+    });
+
+    useDraft.getState().setScope('FULL');
+
+    const full = pickDraft(useDraft.getState());
+    expect(full).toEqual(before);
+    expect(full.rooms[0]?.selections[categoryIds.walls]?.disabled).toBe(true);
+    expect(full.object.totalAreaSqm).toBe(62);
   });
 });
