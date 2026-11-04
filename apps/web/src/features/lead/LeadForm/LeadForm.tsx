@@ -184,6 +184,7 @@ export function LeadForm({ state, onSubmit }: LeadFormProps) {
         type="tel"
         inputMode="tel"
         autoComplete="tel"
+        maxLength={LEAD_LIMITS.phone}
         required
         value={phone}
         error={message('phone')}

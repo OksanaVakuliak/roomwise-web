@@ -21,6 +21,7 @@ export type LeadFieldErrors = Partial<Record<LeadField, true>>;
 
 export const LEAD_LIMITS = {
   name: 100,
+  phone: 32,
   email: 254,
   comment: 1000,
 } as const;

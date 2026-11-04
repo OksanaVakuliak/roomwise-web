@@ -227,6 +227,36 @@ describe('lead request', () => {
     expect(checkPricingData).toHaveBeenCalled();
   });
 
+  it('shows the form again once the draft changes after sending', async () => {
+    await renderLead(draftTarget);
+    post.mockResolvedValue(created(makeLeadCreated()));
+    fill();
+    await send();
+    expect(screen.getByText(text.en.confirmation)).toBeInTheDocument();
+
+    act(() => {
+      useDraft.getState().toggleOption('opt-new', true);
+    });
+
+    expect(screen.queryByText(text.en.confirmation)).toBeNull();
+    expect(
+      screen.getByRole('button', { name: text.en.submit }),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the confirmation on a snapshot target when the draft changes', async () => {
+    await renderLead(snapshotTarget);
+    post.mockResolvedValue(created(makeLeadCreated()));
+    fill();
+    await send();
+
+    act(() => {
+      useDraft.getState().toggleOption('opt-new', true);
+    });
+
+    expect(screen.getByText(text.en.confirmation)).toBeInTheDocument();
+  });
+
   it('references the snapshot on a snapshot target', async () => {
     await renderLead(snapshotTarget);
     post.mockResolvedValue(created(makeLeadCreated()));

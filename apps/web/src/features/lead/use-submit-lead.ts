@@ -36,8 +36,8 @@ export type LeadState =
   | { kind: 'pending' }
   | { kind: 'limited'; seconds: number }
   | { kind: 'invalid'; errors: LeadFieldErrors }
-  | { kind: 'failed'; reason: LeadFailureReason }
-  | { kind: 'sent'; created: LeadCreated };
+  | { kind: 'failed'; reason: LeadFailureReason; revision: number | null }
+  | { kind: 'sent'; created: LeadCreated; revision: number | null };
 
 type Reference = Pick<LeadBody, 'calculation' | 'draft'>;
 
@@ -48,6 +48,11 @@ type Resolved =
 const SECOND_MS = 1000;
 
 export function useSubmitLead(target: LeadTarget) {
+  const { kind } = target;
+  const publicId = target.kind === 'snapshot' ? target.publicId : null;
+  const versionNumber =
+    target.kind === 'snapshot' ? target.versionNumber : null;
+  const revision = useDraft((state) => state.revision);
   const locale = useLocale() as LeadBody['locale'];
   const queryClient = useQueryClient();
   const setLastSaved = useDraft((state) => state.setLastSaved);
@@ -75,9 +80,14 @@ export function useSubmitLead(target: LeadTarget) {
     }
   }, [queryClient]);
 
+  const currentRevision = useCallback(
+    (): number | null =>
+      kind === 'draft' ? useDraft.getState().revision : null,
+    [kind],
+  );
+
   const resolve = useCallback(async (): Promise<Resolved> => {
-    if (target.kind === 'snapshot') {
-      const { publicId, versionNumber } = target;
+    if (publicId !== null && versionNumber !== null) {
       return {
         ok: true,
         reference: { calculation: { publicId, versionNumber } },
@@ -92,7 +102,11 @@ export function useSubmitLead(target: LeadTarget) {
     if (request === null) {
       return {
         ok: false,
-        state: { kind: 'failed', reason: pricing ? 'incomplete' : 'generic' },
+        state: {
+          kind: 'failed',
+          reason: pricing ? 'incomplete' : 'generic',
+          revision: useDraft.getState().revision,
+        },
       };
     }
     const { body, hash } = request;
@@ -106,10 +120,10 @@ export function useSubmitLead(target: LeadTarget) {
       };
     }
     return { ok: true, reference: { draft: body }, hash };
-  }, [target]);
+  }, [publicId, versionNumber]);
 
   const fail = useCallback(
-    (error: unknown): LeadState => {
+    (error: unknown, revision: number | null): LeadState => {
       if (error instanceof RateLimitedError) {
         return { kind: 'limited', seconds: error.retryAfterSeconds };
       }
@@ -126,40 +140,44 @@ export function useSubmitLead(target: LeadTarget) {
             return { kind: 'invalid', errors };
           }
           captureException(error);
-          return { kind: 'failed', reason: 'generic' };
+          return { kind: 'failed', reason: 'generic', revision };
         }
         case 'PHONE_INVALID':
           return { kind: 'invalid', errors: { phone: true } };
         case 'INPUT_OUT_OF_BOUNDS':
           void checkPricingData();
-          return { kind: 'failed', reason: 'outOfBounds' };
+          return { kind: 'failed', reason: 'outOfBounds', revision };
         case 'UNKNOWN_REFERENCE':
           void checkPricingData();
           refreshCatalog();
-          return { kind: 'failed', reason: 'unknownReference' };
+          return { kind: 'failed', reason: 'unknownReference', revision };
         case 'STYLE_NOT_FOUND':
           clearStyle();
-          return { kind: 'failed', reason: 'styleMissing' };
+          return {
+            kind: 'failed',
+            reason: 'styleMissing',
+            revision: kind === 'draft' ? useDraft.getState().revision : null,
+          };
         case 'CALCULATION_NOT_FOUND':
           actionKey.current = createActionKey();
-          if (target.kind === 'draft') {
+          if (kind === 'draft') {
             setLastSaved(null);
-            return { kind: 'failed', reason: 'resave' };
+            return { kind: 'failed', reason: 'resave', revision };
           }
-          return { kind: 'failed', reason: 'notFound' };
+          return { kind: 'failed', reason: 'notFound', revision };
         case 'IDEMPOTENCY_KEY_REUSED':
         case 'IDEMPOTENCY_KEY_REQUIRED':
           actionKey.current = createActionKey();
           captureException(error);
-          return { kind: 'failed', reason: 'generic' };
+          return { kind: 'failed', reason: 'generic', revision };
         case 'network':
-          return { kind: 'failed', reason: 'generic' };
+          return { kind: 'failed', reason: 'generic', revision };
         default:
           captureException(error);
-          return { kind: 'failed', reason: 'generic' };
+          return { kind: 'failed', reason: 'generic', revision };
       }
     },
-    [clearStyle, refreshCatalog, setLastSaved, target.kind],
+    [clearStyle, refreshCatalog, setLastSaved, kind],
   );
 
   const submit = useCallback(
@@ -169,8 +187,10 @@ export function useSubmitLead(target: LeadTarget) {
       }
       busy.current = true;
       setState({ kind: 'pending' });
+      let requestRevision = currentRevision();
       try {
         const resolved = await resolve();
+        requestRevision = currentRevision();
         if (!resolved.ok) {
           setState(resolved.state);
           return;
@@ -202,15 +222,22 @@ export function useSubmitLead(target: LeadTarget) {
         if (created.priceDifference) {
           void checkPricingData();
         }
-        setState({ kind: 'sent', created });
+        setState({ kind: 'sent', created, revision: requestRevision });
       } catch (error) {
-        setState(fail(error));
+        setState(fail(error, requestRevision));
       } finally {
         busy.current = false;
       }
     },
-    [gate, locale, resolve, fail, setLastSaved],
+    [gate, locale, resolve, fail, setLastSaved, currentRevision],
   );
 
-  return { state, submit };
+  const current =
+    (state.kind === 'sent' || state.kind === 'failed') &&
+    state.revision !== null &&
+    state.revision !== revision
+      ? { kind: 'idle' as const }
+      : state;
+
+  return { state: current, submit };
 }
