@@ -924,7 +924,6 @@
       "roomsOnly": "Приміщення: {rooms} м²"
     },
     "planCost": {
-      "base": "Базова вартість: {area} м² × {price} = {amount}",
       "objectLine": "{name}: {amount}"
     }
   },

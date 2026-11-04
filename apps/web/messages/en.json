@@ -924,7 +924,6 @@
       "roomsOnly": "Rooms: {rooms} m²"
     },
     "planCost": {
-      "base": "Base cost: {area} m² × {price} = {amount}",
       "objectLine": "{name}: {amount}"
     }
   },
