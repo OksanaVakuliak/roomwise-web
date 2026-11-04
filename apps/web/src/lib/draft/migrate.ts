@@ -7,7 +7,7 @@ import {
   StepIdSchema,
 } from './schema';
 
-export const DRAFT_VERSION = 2;
+export const DRAFT_VERSION = 3;
 
 export type DraftMigration = {
   draft: DraftV1;
@@ -23,6 +23,17 @@ const transitions: Record<number, (state: unknown) => unknown> = {
     isRecord(state) && state.furthestStep === 'engineering'
       ? { ...state, furthestStep: 'interior' }
       : state,
+  2: (state) => {
+    if (!isRecord(state)) {
+      return state;
+    }
+    const object = isRecord(state.object) ? state.object : {};
+    return {
+      ...state,
+      object: { ...object, scope: 'FULL' },
+      ...(state.styleId != null && { styleAuto: true }),
+    };
+  },
 };
 
 export function salvage(state: unknown): DraftV1 | null {

@@ -404,6 +404,7 @@ export const useDraft = create<DraftState>()(
         object: state.object,
         rooms: state.rooms,
         styleId: state.styleId,
+        ...(state.styleAuto !== undefined && { styleAuto: state.styleAuto }),
         options: state.options,
         lastSaved: state.lastSaved,
       }),

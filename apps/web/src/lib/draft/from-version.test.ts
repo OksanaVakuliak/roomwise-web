@@ -33,6 +33,7 @@ describe('fromVersion', () => {
     const draft = fromVersion(makeVersionView(), heatedFloorId);
 
     expect(draft.object).toEqual({
+      scope: 'FULL',
       finishLevel: 'PRE_FINISH',
       totalAreaSqm: 62,
       balcony: { present: true, areaSqm: 4, tiles: true },

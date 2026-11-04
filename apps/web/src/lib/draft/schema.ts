@@ -39,7 +39,8 @@ export const DraftOptionSchema = z.object({
 });
 
 export const DraftObjectSchema = z.object({
-  finishLevel: z.enum(['ROUGH', 'PRE_FINISH']).nullable(),
+  scope: z.enum(['FULL', 'PARTIAL']),
+  finishLevel: z.enum(['ROUGH', 'PRE_FINISH', 'LIVED_IN']).nullable(),
   totalAreaSqm: nullableAmount,
   balcony: z.object({
     present: z.boolean(),
@@ -60,6 +61,7 @@ export const DraftV1Schema = z.object({
   object: DraftObjectSchema,
   rooms: z.array(DraftRoomSchema).max(MAX_ROOMS_STORED),
   styleId: id.nullable(),
+  styleAuto: z.boolean().optional(),
   options: z.record(id, DraftOptionSchema),
   lastSaved: DraftLastSavedSchema.nullable(),
 });
@@ -75,6 +77,7 @@ export function createDefaultDraft(): DraftV1 {
     step: 'object',
     furthestStep: 'object',
     object: {
+      scope: 'FULL',
       finishLevel: null,
       totalAreaSqm: null,
       balcony: { present: false, areaSqm: null, tiles: false },

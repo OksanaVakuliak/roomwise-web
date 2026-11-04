@@ -30,6 +30,7 @@ const FINISH_LEVELS: readonly FinishLevel[] = ['ROUGH', 'PRE_FINISH'];
 const FINISH_LABEL = {
   ROUGH: 'finishRough',
   PRE_FINISH: 'finishPre',
+  LIVED_IN: 'finishLivedIn',
 } as const satisfies Record<FinishLevel, string>;
 
 export function ObjectForm({ errors = {}, className }: ObjectFormProps) {

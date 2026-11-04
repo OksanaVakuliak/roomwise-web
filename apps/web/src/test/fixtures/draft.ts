@@ -26,6 +26,7 @@ export function makeEmptyDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
     step: 'object',
     furthestStep: 'object',
     object: {
+      scope: 'FULL',
       finishLevel: null,
       totalAreaSqm: null,
       balcony: { present: false, areaSqm: null, tiles: false },
@@ -47,6 +48,7 @@ export function makeInteriorDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
     step: 'interior',
     furthestStep: 'interior',
     object: {
+      scope: 'FULL',
       finishLevel: 'PRE_FINISH',
       totalAreaSqm: 62,
       balcony: { present: true, areaSqm: 4, tiles: true },
@@ -82,6 +84,7 @@ export function makeInteriorDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
 export function makeFullRoomsDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
   return makeInteriorDraft({
     object: {
+      scope: 'FULL',
       finishLevel: 'ROUGH',
       totalAreaSqm: 200,
       balcony: { present: false, areaSqm: null, tiles: false },

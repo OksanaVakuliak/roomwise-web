@@ -204,7 +204,7 @@ export function toConfiguration(
   }
 
   return {
-    scope: 'FULL',
+    scope: object.scope,
     finishLevel: object.finishLevel,
     totalAreaSqm: object.totalAreaSqm,
     balconyAreaSqm: object.balcony.present ? (object.balcony.areaSqm ?? 0) : 0,

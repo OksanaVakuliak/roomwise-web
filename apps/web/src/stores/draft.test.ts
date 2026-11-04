@@ -28,6 +28,7 @@ beforeEach(() => {
   resetThemeDom();
   useDraft.setState({
     ...createDefaultDraft(),
+    styleAuto: undefined,
     revision: 0,
     storageAvailable: true,
     notice: null,
@@ -56,7 +57,7 @@ describe('useDraft', () => {
 
     expect(stored()).toEqual({
       state: { ...createDefaultDraft(), step: 'style', furthestStep: 'style' },
-      version: 2,
+      version: 3,
     });
   });
 
