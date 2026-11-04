@@ -1,0 +1,47 @@
+.control {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(var(--size-target) * 2);
+  padding: var(--space-8) var(--space-12);
+  resize: vertical;
+  border: var(--stroke-1-5) solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--line);
+  font-family: var(--text-body-default-family);
+  font-weight: var(--text-body-default-weight);
+  font-size: var(--text-body-default-size);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
+}
+
+.control::placeholder {
+  color: var(--line-2);
+}
+
+.control:hover {
+  background: var(--fill-a);
+}
+
+.control[aria-invalid="true"] {
+  border-color: var(--heat);
+  box-shadow: inset var(--stroke-2) 0 0 var(--heat);
+}
+
+.control[aria-busy="true"] {
+  cursor: progress;
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--fill-a) 0 var(--space-4),
+    transparent var(--space-4) var(--space-8)
+  );
+}
+
+.control:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  background: var(--fill-a);
+}

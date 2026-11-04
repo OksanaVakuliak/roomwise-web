@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale } from 'next-intl';
+import { useCallback } from 'react';
 import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
 import { api } from './client';
 import { ApiRequestError } from './request-error';
@@ -140,4 +141,13 @@ export function useDefaultMaterials(styleId: string | null) {
     ...defaultMaterialsQuery(styleId ?? ''),
     enabled: ready && styleId !== null,
   });
+}
+
+export function useRefreshCatalog() {
+  const queryClient = useQueryClient();
+  return useCallback(() => {
+    for (const root of Object.values(catalogRoots)) {
+      void queryClient.invalidateQueries({ queryKey: [root] });
+    }
+  }, [queryClient]);
 }

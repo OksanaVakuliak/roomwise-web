@@ -1076,6 +1076,57 @@
     "fallback": "Copying failed. Press Ctrl+C to copy the selected link.",
     "open": "Open the estimate"
   },
+  "Lead": {
+    "title": "Leave a request",
+    "open": "Leave a request",
+    "intro": "Send this estimate to a manager. We will contact you to discuss the details.",
+    "loading": "Loading the request form",
+    "settingsError": {
+      "title": "Could not load the request form",
+      "message": "Check your connection and try again."
+    },
+    "form": {
+      "name": "Name",
+      "phone": "Phone",
+      "phoneHint": "In international format, for example +380501234567",
+      "email": "Email",
+      "emailHint": "Optional",
+      "comment": "Comment",
+      "commentHint": "Optional",
+      "consent": "I agree to the processing of my personal data to receive an answer to this request.",
+      "submit": "Send the request",
+      "sending": "Sending the request",
+      "warming": "Waking the server, this can take a minute",
+      "rateLimited": "{seconds, plural, one {You can send the request again in # second.} other {You can send the request again in # seconds.}}"
+    },
+    "errors": {
+      "name": "Enter your name, up to 100 characters.",
+      "phone": "Enter a phone number in international format, for example +380501234567.",
+      "email": "Enter a valid email address, up to 254 characters.",
+      "comment": "The comment is too long, up to 1000 characters.",
+      "consent": "To send the request, agree to the processing of your personal data."
+    },
+    "failure": {
+      "incomplete": "Some values are missing or outside the allowed range, so the estimate cannot be sent yet.",
+      "incompleteLink": "Check the object",
+      "outOfBounds": "Some values are outside the allowed range. Check the object fields and send the request again.",
+      "outOfBoundsLink": "Go to the object",
+      "styleMissing": "The chosen style is no longer available. Choose another one and send the request again.",
+      "styleMissingLink": "Choose a style",
+      "unknownReference": "Some materials or services have changed. We refreshed the data, review the estimate and send the request again.",
+      "resave": "The saved estimate is no longer available. It will be saved anew when you send the request.",
+      "notFound": "The estimate for this request was not found, so the request cannot be sent.",
+      "generic": "Could not send the request. Please try again."
+    },
+    "confirmation": {
+      "title": "Request No. {number} sent",
+      "text": "A manager will contact you using the details you provided.",
+      "open": "Open the estimate",
+      "expired": "The estimate had already expired. The manager will recalculate it.",
+      "totalIncreased": "The total has increased by {diff}. The manager will use the saved amounts.",
+      "totalDecreased": "The total has decreased by {diff}. The manager will use the saved amounts."
+    }
+  },
   "CalculationPage": {
     "title": "Saved estimate. Roomwise",
     "heading": "Saved estimate",

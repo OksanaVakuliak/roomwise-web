@@ -51,6 +51,7 @@ export * from './TabPanel/TabPanel';
 export * from './Tabs/Tabs';
 export * from './TapeRule/TapeRule';
 export * from './TapeStep/TapeStep';
+export * from './TextArea/TextArea';
 export * from './TextField/TextField';
 export * from './Toast/Toast';
 export * from './Toggle/Toggle';

@@ -1,0 +1,8 @@
+.panel {
+  flex-basis: 100%;
+  min-width: 0;
+}
+
+.panel:focus {
+  outline: none;
+}

@@ -65,3 +65,10 @@
   flex-wrap: wrap;
   gap: var(--space-6) var(--space-16);
 }
+
+.final {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-12);
+}

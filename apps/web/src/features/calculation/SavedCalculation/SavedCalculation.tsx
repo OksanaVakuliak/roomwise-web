@@ -1,5 +1,6 @@
 'use client';
 
+import { LeadAction } from '@/features/lead';
 import type { VersionView } from '@/lib/api/calculations';
 import { CalculationScreen } from '../CalculationScreen/CalculationScreen';
 import { EditInConfigurator } from '../EditInConfigurator/EditInConfigurator';
@@ -25,7 +26,16 @@ const renderVersions = (version: VersionView) => (
   <VersionList version={version} />
 );
 const renderActions = (version: VersionView) => (
-  <EditInConfigurator version={version} />
+  <>
+    <EditInConfigurator version={version} />
+    <LeadAction
+      target={{
+        kind: 'snapshot',
+        publicId: version.publicId,
+        versionNumber: version.number,
+      }}
+    />
+  </>
 );
 
 export function SavedCalculation({
