@@ -130,7 +130,6 @@ export function SaveCalculation({ onSaved }: SaveCalculationProps) {
     <section className={styles.root} aria-label={t('title')}>
       {state.kind === 'saved' ? null : (
         <Button
-          kind="fill"
           onClick={save}
           loading={pending}
           loadingLabel={t(warmingUp ? 'warming' : 'saving')}

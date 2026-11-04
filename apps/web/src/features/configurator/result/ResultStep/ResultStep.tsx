@@ -19,6 +19,7 @@ import {
   type EstimateRoomInput,
   SectionBlock,
 } from '@/features/estimate';
+import { LeadAction, type LeadTarget } from '@/features/lead';
 import type { VersionView } from '@/lib/api/calculations';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { runEstimate } from '@/lib/engine/run-estimate';
@@ -38,6 +39,7 @@ import styles from './ResultStep.module.css';
 
 const EMPTY_VALUE = '—';
 const NO_ROOMS: readonly EstimateRoomInput[] = [];
+const DRAFT_TARGET: LeadTarget = { kind: 'draft' };
 
 type Snapshot = { revision: number; totals: VersionView['totals'] };
 
@@ -296,7 +298,10 @@ export function ResultStep() {
       >
         <KeyValueGrid items={objectItems} />
       </SectionBlock>
-      <SaveCalculation onSaved={handleSaved} />
+      <div className={styles.final}>
+        <SaveCalculation onSaved={handleSaved} />
+        <LeadAction target={DRAFT_TARGET} />
+      </div>
     </div>
   );
 }

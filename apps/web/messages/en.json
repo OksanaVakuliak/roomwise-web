@@ -1078,6 +1078,7 @@
   },
   "Lead": {
     "title": "Leave a request",
+    "open": "Leave a request",
     "intro": "Send this estimate to a manager. We will contact you to discuss the details.",
     "loading": "Loading the request form",
     "settingsError": {
