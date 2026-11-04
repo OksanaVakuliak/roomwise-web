@@ -1013,7 +1013,7 @@
   "EstimateBreakdown": {
     "sections": {
       "base": "Base renovation",
-      "object": "Object-level work",
+      "balcony": "Balcony",
       "materials": "Materials",
       "engineering": "Engineering",
       "additional": "Additional"

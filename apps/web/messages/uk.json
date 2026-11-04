@@ -1013,7 +1013,7 @@
   "EstimateBreakdown": {
     "sections": {
       "base": "Базовий ремонт",
-      "object": "Роботи на рівні об'єкта",
+      "balcony": "Балкон",
       "materials": "Матеріали",
       "engineering": "Інженерія",
       "additional": "Додатково"

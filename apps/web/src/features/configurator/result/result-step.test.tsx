@@ -209,7 +209,7 @@ describe('result step', () => {
       await renderResult({ draft, currency });
 
       const rows = estimate.lines.filter(
-        (line) => line.section === 'MATERIALS',
+        (line) => line.section === 'MATERIALS' || line.section === 'OBJECT',
       );
       const sum = rows.reduce(
         (acc, line) =>
@@ -220,8 +220,10 @@ describe('result step', () => {
       );
       expect(sum).toBe(
         field === 'usdCents'
-          ? estimate.totals.sections.MATERIALS.usdCents
-          : estimate.totals.sections.MATERIALS.uahKopecks,
+          ? estimate.totals.sections.MATERIALS.usdCents +
+              estimate.totals.sections.OBJECT.usdCents
+          : (estimate.totals.sections.MATERIALS.uahKopecks ?? 0) +
+              (estimate.totals.sections.OBJECT.uahKopecks ?? 0),
       );
       expectText(
         amountOf(sectionOf('Materials')),

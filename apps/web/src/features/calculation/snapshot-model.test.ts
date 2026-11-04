@@ -20,7 +20,7 @@ describe('toSnapshotModel', () => {
       amountCents: 42000,
       amountUahKopecks: 1871029,
     });
-    expect(model.base.objectLines[0]?.title).toBe('Balcony tiles');
+    expect(model.materials.balcony?.lines[0]?.title).toBe('Balcony tiles');
     expect(model.engineering.lines.map((line) => line.title)).toEqual([
       'Electrical wiring',
       'Air conditioner',

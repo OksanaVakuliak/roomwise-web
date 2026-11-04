@@ -24,6 +24,8 @@ export type LineView = Omit<
   amountUahKopecks: number | null;
 };
 
+export const OBJECT_GROUP_ID = 'OBJECT';
+
 export type RoomLines = { roomClientId: string; lines: LineView[] };
 
 export type GroupedLines = {
@@ -72,8 +74,8 @@ export function toCostPanelView(
       ? null
       : sumMoney(names.map((name) => sections[name]));
 
-  const base = pick('BASE', 'OBJECT');
-  const materials = materialsReady ? pick('MATERIALS') : null;
+  const base = pick('BASE');
+  const materials = materialsReady ? pick('MATERIALS', 'OBJECT') : null;
   const engineering = pick('ENGINEERING');
   const additional = pick('ADDITIONAL');
   const total =
@@ -113,7 +115,6 @@ export function groupLines(
     const view = toLineView(line, blockedLineIds);
     switch (line.section) {
       case 'BASE':
-      case 'OBJECT':
         grouped.base.push(view);
         break;
       case 'ENGINEERING':
@@ -122,8 +123,12 @@ export function groupLines(
       case 'ADDITIONAL':
         grouped.additional.push(view);
         break;
+      case 'OBJECT':
       case 'MATERIALS': {
-        const key = line.roomClientId ?? '';
+        const key =
+          line.section === 'OBJECT'
+            ? OBJECT_GROUP_ID
+            : (line.roomClientId ?? '');
         const bucket = byRoom.get(key) ?? [];
         bucket.push(view);
         byRoom.set(key, bucket);
@@ -131,10 +136,11 @@ export function groupLines(
       }
     }
   }
-  const known = new Set(roomOrder);
+  const known = new Set([...roomOrder, OBJECT_GROUP_ID]);
   const ordered = [
     ...roomOrder,
     ...[...byRoom.keys()].filter((key) => !known.has(key)),
+    OBJECT_GROUP_ID,
   ];
   for (const roomClientId of ordered) {
     const lines = byRoom.get(roomClientId);

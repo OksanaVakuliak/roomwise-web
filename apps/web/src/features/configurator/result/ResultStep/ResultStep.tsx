@@ -77,6 +77,13 @@ function useChangeAction(rooms: readonly EstimateRoomInput[]) {
           return (
             <ChangeLink href={STEP_PATHS.object} label={tBreakdown('base')} />
           );
+        case 'balcony':
+          return (
+            <ChangeLink
+              href={STEP_PATHS.object}
+              label={tBreakdown('balcony')}
+            />
+          );
         case 'materials':
           return (
             <ChangeLink

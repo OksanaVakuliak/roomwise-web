@@ -10,6 +10,7 @@ import {
   groupLines,
   type LineView,
   type Money,
+  OBJECT_GROUP_ID,
   sumMoney,
 } from '@/lib/engine/sections';
 
@@ -47,10 +48,6 @@ export type EstimateFlatSectionModel = {
   lines: readonly EstimateLineModel[];
 };
 
-export type EstimateBaseSectionModel = EstimateFlatSectionModel & {
-  objectLines: readonly EstimateLineModel[];
-};
-
 export type EstimateRoomModel = {
   roomClientId: string;
   name: string;
@@ -61,10 +58,11 @@ export type EstimateRoomModel = {
 export type EstimateMaterialsModel = {
   subtotal: Money | null;
   rooms: readonly EstimateRoomModel[];
+  balcony: EstimateRoomModel | null;
 };
 
 export type EstimateModel = {
-  base: EstimateBaseSectionModel;
+  base: EstimateFlatSectionModel;
   materials: EstimateMaterialsModel;
   engineering: EstimateFlatSectionModel;
   additional: EstimateFlatSectionModel;
@@ -297,7 +295,9 @@ export function buildEstimateModel({
   );
   const order = [
     ...inputs.keys(),
-    ...[...rawByRoom.keys()].filter((id) => !inputs.has(id)),
+    ...[...rawByRoom.keys()].filter(
+      (id) => !inputs.has(id) && id !== OBJECT_GROUP_ID,
+    ),
   ];
 
   const roomModels: EstimateRoomModel[] = [];
@@ -313,14 +313,14 @@ export function buildEstimateModel({
     }
   }
 
-  const baseLines = toLineModels(
-    grouped.base.filter((line) => line.section === 'BASE'),
+  const balcony = roomModelOf(
+    OBJECT_GROUP_ID,
+    undefined,
+    rawByRoom.get(OBJECT_GROUP_ID) ?? [],
     catalog,
-    roomNames,
-    optionRoomIds,
   );
-  const objectLines = toLineModels(
-    grouped.base.filter((line) => line.section === 'OBJECT'),
+  const baseLines = toLineModels(
+    grouped.base,
     catalog,
     roomNames,
     optionRoomIds,
@@ -339,14 +339,15 @@ export function buildEstimateModel({
   );
 
   return {
-    base: {
-      lines: baseLines,
-      objectLines,
-      subtotal: subtotalOf([...baseLines, ...objectLines]),
-    },
+    base: { lines: baseLines, subtotal: subtotalOf(baseLines) },
     materials: {
-      subtotal: subtotalOf(roomModels.flatMap((room) => room.lines)),
+      subtotal: subtotalOf(
+        [...roomModels, ...(balcony ? [balcony] : [])].flatMap(
+          (room) => room.lines,
+        ),
+      ),
       rooms: roomModels,
+      balcony,
     },
     engineering: { lines: engineering, subtotal: subtotalOf(engineering) },
     additional: { lines: additional, subtotal: subtotalOf(additional) },
