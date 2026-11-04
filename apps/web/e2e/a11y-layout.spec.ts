@@ -1,4 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
+import { DRAFT_VERSION } from '@/lib/draft/migrate';
+import { THEME_STORAGE_KEY } from '@/lib/theme/constants';
 import { DRAFT_STORAGE_KEY } from '@/stores/draft';
 import {
   calculationIds,
@@ -8,8 +10,6 @@ import {
 } from '@/test/fixtures';
 import { createMockStore, installMockApi } from './mock-api';
 
-const DRAFT_VERSION = 2;
-const THEME_STORAGE_KEY = 'roomwise-theme';
 const NARROW = { width: 320, height: 640 };
 const LONG_NAME = 'Extra long room name that fills the whole field width';
 

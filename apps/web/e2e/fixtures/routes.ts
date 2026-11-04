@@ -34,10 +34,7 @@ export function createMockStore(): MockStore {
 type Route = {
   method: 'GET' | 'POST';
   pattern: RegExp;
-  reply: (
-    match: RegExpMatchArray,
-    request: { body: Json; store: MockStore; key: string | null },
-  ) => MockReply;
+  reply: (match: RegExpMatchArray, request: { store: MockStore }) => MockReply;
 };
 
 const ok = (body: Json): MockReply => ({ status: 200, body, etag: true });

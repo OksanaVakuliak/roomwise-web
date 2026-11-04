@@ -48,11 +48,7 @@ async function answer(route: Route, store: MockStore) {
     }
   }
 
-  const reply = match.candidate.reply(match.found, {
-    body: request.postDataJSON(),
-    store,
-    key,
-  });
+  const reply = match.candidate.reply(match.found, { store });
   const status = reply.status ?? 200;
 
   if (method === 'POST' && key && status < 300) {
