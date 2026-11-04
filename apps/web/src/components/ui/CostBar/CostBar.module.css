@@ -1,6 +1,8 @@
 .root {
   display: grid;
-  grid-template-columns: var(--bar-label-width) 1fr var(--bar-value-width);
+  grid-template-columns:
+    minmax(0, var(--bar-label-width)) minmax(0, 1fr)
+    minmax(0, var(--bar-value-width));
   gap: var(--space-8);
   align-items: center;
   margin: var(--space-6) 0;
@@ -36,4 +38,5 @@
   font-weight: var(--text-number-s-weight);
   font-size: var(--text-body-default-size);
   text-align: right;
+  overflow-wrap: anywhere;
 }

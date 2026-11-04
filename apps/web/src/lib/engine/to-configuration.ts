@@ -7,6 +7,7 @@ import type {
   RoomConfiguration,
   RoomTypeCode,
 } from '@roomwise/calc-engine';
+import { normalizeRoomName } from '@/lib/draft/rooms';
 import type { DraftRoom, DraftV1 } from '@/lib/draft/schema';
 import { findHeatedFloorOption, isHeatedFloorAllowed } from './heated-floor';
 import { isOptionAllowedForRoom } from './room-options';
@@ -183,9 +184,11 @@ export function toConfiguration(
       continue;
     }
     const complete = room as CompleteRoom;
+    const name = normalizeRoomName(complete.name ?? '');
     rooms.push({
       clientId: complete.clientId,
       roomTypeCode: complete.roomTypeCode,
+      ...(name !== '' && { name }),
       lengthM: complete.lengthM,
       widthM: complete.widthM,
       heightM: complete.heightM,

@@ -41,7 +41,7 @@
   font-weight: var(--text-number-l-weight);
   font-size: var(--text-number-l-size);
   line-height: var(--text-number-l-line);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .badge {

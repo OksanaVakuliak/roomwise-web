@@ -15,8 +15,9 @@
 
 .room {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--space-8);
+  gap: var(--space-4) var(--space-8);
   margin: 0;
   font-family: var(--text-title-s-family);
   font-weight: var(--text-title-s-weight);

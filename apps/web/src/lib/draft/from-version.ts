@@ -50,18 +50,22 @@ function toSavedConfiguration(source: VersionConfiguration): Configuration {
     totalAreaSqm: source.totalAreaSqm,
     balconyAreaSqm: source.balconyAreaSqm,
     balconyTiles: source.balconyTiles,
-    rooms: source.rooms.map((room) => ({
-      clientId: room.clientId,
-      roomTypeCode: room.roomTypeCode,
-      lengthM: room.lengthM,
-      widthM: room.widthM,
-      heightM: room.heightM,
-      heatedFloor: room.heatedFloor,
-      selections: room.selections.map(({ categoryId, productId }) => ({
-        categoryId,
-        productId,
-      })),
-    })),
+    rooms: source.rooms.map((room) => {
+      const name = normalizeRoomName(room.name ?? '');
+      return {
+        clientId: room.clientId,
+        roomTypeCode: room.roomTypeCode,
+        ...(name !== '' && { name }),
+        lengthM: room.lengthM,
+        widthM: room.widthM,
+        heightM: room.heightM,
+        heatedFloor: room.heatedFloor,
+        selections: room.selections.map(({ categoryId, productId }) => ({
+          categoryId,
+          productId,
+        })),
+      };
+    }),
     options: source.options.map((option) => ({
       optionId: option.optionId,
       ...(option.quantity !== undefined && { quantity: option.quantity }),

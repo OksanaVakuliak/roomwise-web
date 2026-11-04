@@ -207,7 +207,7 @@ describe('fromVersion', () => {
     expect(DraftV1Schema.safeParse(draft).success).toBe(true);
   });
 
-  it('restores a custom room name without changing the hash', () => {
+  it('restores a custom room name and keeps it in the hash', () => {
     const base = makeVersionView();
     const named = versionWith({
       rooms: base.configuration.rooms.map((room) => ({
@@ -220,22 +220,27 @@ describe('fromVersion', () => {
       'Custom',
       'Custom',
     ]);
-    expect(fromVersion(named, null).lastSaved?.configurationHash).toBe(
+    expect(fromVersion(named, null).lastSaved?.configurationHash).not.toBe(
       fromVersion(base, null).lastSaved?.configurationHash,
     );
   });
 
-  it('ignores room names that the server adds to the configuration', () => {
+  it('matches the save request hash for named rooms', () => {
+    const pricing = makePricingData();
     const base = makeVersionView();
     const named = versionWith({
+      balconyAreaSqm: 0,
+      balconyTiles: false,
+      options: [{ optionId: heatedFloorId, roomClientIds: ['bath'] }],
       rooms: base.configuration.rooms.map((room) => ({
         ...room,
         name: 'Custom',
       })),
     });
+    const draft = fromVersion(named, heatedFloorId);
 
-    expect(fromVersion(named, null).lastSaved?.configurationHash).toBe(
-      fromVersion(base, null).lastSaved?.configurationHash,
+    expect(draft.lastSaved?.configurationHash).toBe(
+      buildSaveRequest(draft, pricing)?.hash,
     );
   });
 });
