@@ -93,7 +93,7 @@ Run from the repository root:
 | `pnpm commit`    | Interactive Conventional Commits prompt (commitizen) |
 
 Run in `apps/web` (or with `pnpm --filter web run <script>`): `dev`, `build`,
-`start`, `typecheck`, `test`, `test:e2e`, `api:types`.
+`start`, `typecheck`, `test`, `test:e2e`, `test:perf`, `api:types`.
 
 ## Environment variables
 
@@ -146,21 +146,15 @@ pnpm --filter web test:e2e
 ```
 
 Playwright starts the dev server itself, or reuses one that is already running
-on the port. Environment variables:
-
-| Variable     | Description                                                              |
-| ------------ | ------------------------------------------------------------------------ |
-| `E2E_PORT`   | Port of the dev server (default `3001`).                                 |
-| `E2E_LIVE`   | Set to `1` to turn the mock off and run against a real backend.          |
-| `API_ORIGIN` | Backend origin for `E2E_LIVE=1` (default `http://localhost:4000`).       |
-
-```bash
-E2E_LIVE=1 API_ORIGIN=http://localhost:4000 pnpm --filter web test:e2e
-```
+on the port. `E2E_PORT` sets the port (default `3001`).
 
 The estimate performance budget (15 rooms) is checked by
-`src/lib/engine/run-estimate.perf.test.ts`, which runs with the rest of the
-unit tests in `pnpm test`.
+`src/lib/engine/run-estimate.perf.test.ts`. It runs separately from the unit
+tests, so parallel workers do not skew the timing:
+
+```bash
+pnpm --filter web test:perf
+```
 
 ## Deployment
 

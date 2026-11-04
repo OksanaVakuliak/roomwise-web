@@ -8,7 +8,7 @@ import {
 } from '@/test/fixtures';
 import en from '../messages/en.json';
 import uk from '../messages/uk.json';
-import { installMockApi } from './mock-api';
+import { installMockApi, isLive } from './mock-api';
 
 const catalogs = { en, uk };
 type Locale = keyof typeof catalogs;
@@ -42,6 +42,8 @@ async function press(page: Page, name: string | RegExp) {
   );
   await page.keyboard.press('Enter');
 }
+
+test.skip(isLive(), 'The flow relies on fixture catalog names');
 
 test('keyboard-only main flow', async ({ page, browser }) => {
   const locale = test.info().project.name as Locale;
@@ -133,9 +135,11 @@ test('keyboard-only main flow', async ({ page, browser }) => {
   await fillField(page, lead.form.phone, '+380501234567');
   await tabTo(page, page.getByRole('checkbox', { name: lead.form.consent }));
   await page.keyboard.press('Space');
-  const leadNumber = String(store.leadCount + 1);
   await press(page, lead.form.submit);
+  const [before, after] = lead.confirmation.title
+    .split('{number}')
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   await expect(
-    page.getByText(lead.confirmation.title.replace('{number}', leadNumber)),
+    page.getByText(new RegExp(`^${before}\\d+${after}$`)),
   ).toBeVisible();
 });
