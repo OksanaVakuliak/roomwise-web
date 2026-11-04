@@ -99,10 +99,11 @@ export function OptionList({ kind, title, pricing }: OptionListProps) {
   const headingId = useId();
   const texts = useEngineering().data?.options;
   const chosen = useDraft((state) => state.options);
+  const scope = useDraft((state) => state.object.scope);
   const pricingOptions = pricing.pricing.options;
   const options = useMemo(
-    () => apartmentOptions(texts, pricingOptions, kind, chosen),
-    [texts, pricingOptions, kind, chosen],
+    () => apartmentOptions(texts, pricingOptions, kind, scope, chosen),
+    [texts, pricingOptions, kind, scope, chosen],
   );
 
   if (options.length === 0) {
