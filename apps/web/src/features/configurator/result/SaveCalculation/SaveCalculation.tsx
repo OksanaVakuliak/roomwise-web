@@ -2,19 +2,15 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { ErrorState } from '@/components/system';
-import { Banner, Button, Link } from '@/components/ui';
-import { STEP_PATHS } from '@/config/routes';
+import { Banner, Button } from '@/components/ui';
 import type { SavedCalculation } from '@/lib/api/calculations';
 import { money } from '@/lib/format';
 import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
 import { useDisplayCurrency } from '@/stores/use-display-currency';
 import { SavedLink } from '../SavedLink/SavedLink';
+import { WriteFailureNotice } from '../WriteFailureNotice/WriteFailureNotice';
 import styles from './SaveCalculation.module.css';
-import {
-  type FailureReason,
-  type SaveState,
-  useSaveCalculation,
-} from './use-save-calculation';
+import { type SaveState, useSaveCalculation } from './use-save-calculation';
 
 export type SaveCalculationProps = {
   onSaved: (
@@ -22,58 +18,6 @@ export type SaveCalculationProps = {
     revision: number,
   ) => void;
 };
-
-type NoticeProps = { text: string; href?: string; linkLabel?: string };
-
-function FailureBanner({ text, href, linkLabel }: NoticeProps) {
-  return (
-    <Banner
-      variant="error"
-      action={href ? <Link href={href}>{linkLabel}</Link> : undefined}
-    >
-      {text}
-    </Banner>
-  );
-}
-
-function FailureNotice({
-  reason,
-}: {
-  reason: Exclude<FailureReason, 'validation'>;
-}) {
-  const t = useTranslations('SaveCalculation.failure');
-
-  switch (reason) {
-    case 'incomplete':
-      return (
-        <FailureBanner
-          text={t('incomplete')}
-          href={STEP_PATHS.object}
-          linkLabel={t('incompleteLink')}
-        />
-      );
-    case 'outOfBounds':
-      return (
-        <FailureBanner
-          text={t('outOfBounds')}
-          href={STEP_PATHS.object}
-          linkLabel={t('outOfBoundsLink')}
-        />
-      );
-    case 'styleMissing':
-      return (
-        <FailureBanner
-          text={t('styleMissing')}
-          href={STEP_PATHS.style}
-          linkLabel={t('styleMissingLink')}
-        />
-      );
-    case 'unknownReference':
-      return <FailureBanner text={t('unknownReference')} />;
-    case 'generic':
-      return <FailureBanner text={t('generic')} />;
-  }
-}
 
 function Feedback({
   state,
@@ -97,7 +41,10 @@ function Feedback({
       return state.reason === 'validation' ? (
         <ErrorState headingLevel={3} onRetry={onRetry} />
       ) : (
-        <FailureNotice reason={state.reason} />
+        <WriteFailureNotice
+          namespace="SaveCalculation.failure"
+          reason={state.reason}
+        />
       );
     case 'saved':
       return (

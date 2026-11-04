@@ -1,14 +1,17 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { useLocale } from 'next-intl';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { buildSaveRequest } from '@/features/configurator/result/build-save-request';
-import { catalogRoots } from '@/lib/api/catalog';
+import {
+  errorCode,
+  useWriteFailure,
+} from '@/features/configurator/result/use-write-failure';
 import { createActionKey } from '@/lib/api/idempotency';
 import { type LeadBody, type LeadCreated, submitLead } from '@/lib/api/leads';
 import { ApiRequestError } from '@/lib/api/request-error';
-import { createWriteGate, RateLimitedError } from '@/lib/api/write';
+import { useRateLimitCountdown } from '@/lib/api/use-rate-limit-countdown';
+import { createWriteGate } from '@/lib/api/write';
 import { captureException } from '@/lib/monitoring/client';
 import { pickDraft, useDraft } from '@/stores/draft';
 import { checkPricingData, usePricingData } from '@/stores/pricing-data';
@@ -45,8 +48,6 @@ type Resolved =
   | { ok: true; reference: Reference; hash: string | null }
   | { ok: false; state: LeadState };
 
-const SECOND_MS = 1000;
-
 export function useSubmitLead(target: LeadTarget) {
   const { kind } = target;
   const publicId = target.kind === 'snapshot' ? target.publicId : null;
@@ -54,31 +55,14 @@ export function useSubmitLead(target: LeadTarget) {
     target.kind === 'snapshot' ? target.versionNumber : null;
   const revision = useDraft((state) => state.revision);
   const locale = useLocale() as LeadBody['locale'];
-  const queryClient = useQueryClient();
   const setLastSaved = useDraft((state) => state.setLastSaved);
-  const clearStyle = useDraft((state) => state.clearStyle);
   const [gate] = useState(createWriteGate);
   const actionKey = useRef(createActionKey());
   const busy = useRef(false);
   const [state, setState] = useState<LeadState>({ kind: 'idle' });
   const limited = state.kind === 'limited';
 
-  useEffect(() => {
-    if (!limited) {
-      return;
-    }
-    const timer = setInterval(() => {
-      const seconds = gate.blockedForSeconds();
-      setState(seconds > 0 ? { kind: 'limited', seconds } : { kind: 'idle' });
-    }, SECOND_MS);
-    return () => clearInterval(timer);
-  }, [limited, gate]);
-
-  const refreshCatalog = useCallback(() => {
-    for (const root of Object.values(catalogRoots)) {
-      void queryClient.invalidateQueries({ queryKey: [root] });
-    }
-  }, [queryClient]);
+  useRateLimitCountdown(gate, limited, setState);
 
   const currentRevision = useCallback(
     (): number | null =>
@@ -122,14 +106,14 @@ export function useSubmitLead(target: LeadTarget) {
     return { ok: true, reference: { draft: body }, hash };
   }, [publicId, versionNumber]);
 
+  const mapSharedFailure = useWriteFailure<number | null>(
+    actionKey,
+    currentRevision,
+  );
+
   const fail = useCallback(
     (error: unknown, revision: number | null): LeadState => {
-      if (error instanceof RateLimitedError) {
-        return { kind: 'limited', seconds: error.retryAfterSeconds };
-      }
-      const code =
-        error instanceof ApiRequestError ? error.apiError.code : null;
-      switch (code) {
+      switch (errorCode(error)) {
         case 'VALIDATION_FAILED': {
           const errors = serverFieldErrors(
             error instanceof ApiRequestError
@@ -144,20 +128,6 @@ export function useSubmitLead(target: LeadTarget) {
         }
         case 'PHONE_INVALID':
           return { kind: 'invalid', errors: { phone: true } };
-        case 'INPUT_OUT_OF_BOUNDS':
-          void checkPricingData();
-          return { kind: 'failed', reason: 'outOfBounds', revision };
-        case 'UNKNOWN_REFERENCE':
-          void checkPricingData();
-          refreshCatalog();
-          return { kind: 'failed', reason: 'unknownReference', revision };
-        case 'STYLE_NOT_FOUND':
-          clearStyle();
-          return {
-            kind: 'failed',
-            reason: 'styleMissing',
-            revision: kind === 'draft' ? useDraft.getState().revision : null,
-          };
         case 'CALCULATION_NOT_FOUND':
           actionKey.current = createActionKey();
           if (kind === 'draft') {
@@ -165,19 +135,11 @@ export function useSubmitLead(target: LeadTarget) {
             return { kind: 'failed', reason: 'resave', revision };
           }
           return { kind: 'failed', reason: 'notFound', revision };
-        case 'IDEMPOTENCY_KEY_REUSED':
-        case 'IDEMPOTENCY_KEY_REQUIRED':
-          actionKey.current = createActionKey();
-          captureException(error);
-          return { kind: 'failed', reason: 'generic', revision };
-        case 'network':
-          return { kind: 'failed', reason: 'generic', revision };
         default:
-          captureException(error);
-          return { kind: 'failed', reason: 'generic', revision };
+          return mapSharedFailure(error, revision);
       }
     },
-    [clearStyle, refreshCatalog, setLastSaved, kind],
+    [mapSharedFailure, setLastSaved, kind],
   );
 
   const submit = useCallback(

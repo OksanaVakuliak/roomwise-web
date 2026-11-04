@@ -11,15 +11,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  Banner,
-  Button,
-  Checkbox,
-  Link,
-  TextArea,
-  TextField,
-} from '@/components/ui';
-import { STEP_PATHS } from '@/config/routes';
+import { Banner, Button, Checkbox, TextArea, TextField } from '@/components/ui';
+import { WriteFailureNotice } from '@/features/configurator/result/WriteFailureNotice/WriteFailureNotice';
 import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
 import {
   DEFAULT_PHONE,
@@ -30,34 +23,13 @@ import {
   type LeadInput,
   validateLead,
 } from '../lead-fields';
-import type { LeadFailureReason, LeadState } from '../use-submit-lead';
+import type { LeadState } from '../use-submit-lead';
 import styles from './LeadForm.module.css';
 
 export type LeadFormProps = {
   state: LeadState;
   onSubmit: (input: LeadInput) => void;
 };
-
-type FailureLink = { href: string; label: string };
-
-function FailureNotice({ reason }: { reason: LeadFailureReason }) {
-  const t = useTranslations('Lead.failure');
-  const links: Partial<Record<LeadFailureReason, FailureLink>> = {
-    incomplete: { href: STEP_PATHS.object, label: t('incompleteLink') },
-    outOfBounds: { href: STEP_PATHS.object, label: t('outOfBoundsLink') },
-    styleMissing: { href: STEP_PATHS.style, label: t('styleMissingLink') },
-  };
-  const link = links[reason];
-
-  return (
-    <Banner
-      variant={reason === 'resave' ? 'info' : 'error'}
-      action={link ? <Link href={link.href}>{link.label}</Link> : undefined}
-    >
-      {t(reason)}
-    </Banner>
-  );
-}
 
 export function LeadForm({ state, onSubmit }: LeadFormProps) {
   const t = useTranslations('Lead');
@@ -247,7 +219,7 @@ export function LeadForm({ state, onSubmit }: LeadFormProps) {
           </Banner>
         ) : null}
         {state.kind === 'failed' ? (
-          <FailureNotice reason={state.reason} />
+          <WriteFailureNotice namespace="Lead.failure" reason={state.reason} />
         ) : null}
       </div>
     </form>
