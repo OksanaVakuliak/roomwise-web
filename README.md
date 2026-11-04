@@ -138,7 +138,7 @@ API repository is expected to be checked out next to this one. Set
 
 Playwright tests live in `apps/web/e2e` and run in Chromium on a phone-sized
 viewport, once for English and once for Ukrainian. The API is mocked with
-`page.route('**/api/v1/**')` (`e2e/mock-api.ts`), so no backend is needed.
+`context.route('**/api/v1/**')` (`e2e/mock-api.ts`), so no backend is needed.
 
 ```bash
 pnpm --filter web exec playwright install chromium   # first time only
