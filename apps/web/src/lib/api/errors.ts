@@ -47,6 +47,7 @@ export const BACKEND_ERROR_CODES = [
   'IDEMPOTENCY_KEY_REUSED',
   'IDEMPOTENCY_KEY_CONFLICT',
   'PHONE_INVALID',
+  'EMPTY_ESTIMATE',
 ] as const;
 
 export type BackendErrorCode = (typeof BACKEND_ERROR_CODES)[number];
@@ -107,12 +108,15 @@ export const errorMessageKey = (code: string): ApiErrorCode =>
 export const ESTIMATE_LINE_ERROR_CODES = [
   'PRODUCT_UNAVAILABLE',
   'RULE_NOT_FOUND',
+  'OPTION_SCOPE_NOT_ALLOWED',
 ] as const;
 
 export const ESTIMATE_WARNING_CODES = [
   'HEATED_FLOOR_INCOMPATIBLE',
   'OPTION_ROOM_TYPE_NOT_ALLOWED',
   'ROOMS_AREA_EXCEEDS_TOTAL',
+  'ROOMS_AREA_BELOW_TOTAL',
+  'LABOR_RATE_MISSING',
   'EXCHANGE_RATE_UNAVAILABLE',
 ] as const;
 
