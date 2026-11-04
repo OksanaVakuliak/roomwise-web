@@ -42,6 +42,7 @@ export {
   makeEmptyDraft,
   makeFullRoomsDraft,
   makeInteriorDraft,
+  makePartialDraft,
   type StepId,
 } from './draft';
 export {

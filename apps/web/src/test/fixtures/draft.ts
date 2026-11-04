@@ -107,4 +107,18 @@ export function makeFullRoomsDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
   });
 }
 
+export function makePartialDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
+  const draft = makeInteriorDraft();
+  return {
+    ...draft,
+    object: {
+      scope: 'PARTIAL',
+      finishLevel: 'PRE_FINISH',
+      totalAreaSqm: 62,
+      balcony: { present: false, areaSqm: null, tiles: false },
+    },
+    ...overrides,
+  };
+}
+
 export type { DraftOption, DraftRoom, DraftSelection, DraftV1, StepId };
