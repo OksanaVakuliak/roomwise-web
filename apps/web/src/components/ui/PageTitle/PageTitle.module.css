@@ -3,6 +3,7 @@
   font-weight: var(--text-display-m-weight);
   font-size: var(--text-title-m-size);
   line-height: var(--text-display-m-line);
+  overflow-wrap: anywhere;
 }
 
 @media (min-width: 768px) {
