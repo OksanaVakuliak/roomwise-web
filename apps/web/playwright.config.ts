@@ -19,6 +19,7 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'retain-on-failure',
+    serviceWorkers: 'block',
   },
   projects: [
     {
@@ -31,7 +32,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `pnpm --filter web exec next dev -p ${port}`,
+    command: `pnpm --filter web exec next ${process.env.CI ? 'start' : 'dev'} -p ${port}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
