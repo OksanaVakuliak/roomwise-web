@@ -245,6 +245,18 @@ describe('toConfiguration rooms', () => {
       toConfiguration(makeInteriorDraft(), pricing, preview)?.rooms ?? [];
     expect([room?.lengthM, room?.widthM, room?.heightM]).toEqual([5, 4, 2.7]);
   });
+
+  it('sends a custom room name and omits it for default names', () => {
+    const draft = makeInteriorDraft({
+      rooms: [
+        makeDraftRoom({ clientId: 'named', name: 'Hall' }),
+        makeDraftRoom({ clientId: 'default', name: null }),
+      ],
+    });
+    const rooms = toConfiguration(draft, pricing, preview)?.rooms ?? [];
+    expect(rooms[0]?.name).toBe('Hall');
+    expect(rooms[1]).not.toHaveProperty('name');
+  });
 });
 
 describe('toConfiguration selections', () => {

@@ -186,6 +186,7 @@ export function toConfiguration(
     rooms.push({
       clientId: complete.clientId,
       roomTypeCode: complete.roomTypeCode,
+      ...(complete.name !== null && { name: complete.name }),
       lengthM: complete.lengthM,
       widthM: complete.widthM,
       heightM: complete.heightM,
