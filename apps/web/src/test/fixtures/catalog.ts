@@ -41,6 +41,8 @@ export const roomTypeIds = {
   KITCHEN: 'rt-kitchen',
   KITCHEN_LIVING: 'rt-kitchen-living',
   BATHROOM: 'rt-bathroom',
+  HALLWAY: 'rt-hallway',
+  STORAGE: 'rt-storage',
 } as const;
 
 type RoomTypeCode = keyof typeof roomTypeIds;
@@ -51,6 +53,8 @@ const roomTypeNames: Record<RoomTypeCode, string> = {
   KITCHEN: 'Kitchen',
   KITCHEN_LIVING: 'Kitchen-living room',
   BATHROOM: 'Bathroom',
+  HALLWAY: 'Hallway',
+  STORAGE: 'Storage room',
 };
 
 const productDisplay: Record<

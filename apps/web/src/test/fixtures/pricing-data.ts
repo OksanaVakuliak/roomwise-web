@@ -119,6 +119,8 @@ const reference = {
     { id: 'rt-kitchen', code: 'KITCHEN' },
     { id: 'rt-kitchen-living', code: 'KITCHEN_LIVING' },
     { id: 'rt-bathroom', code: 'BATHROOM' },
+    { id: 'rt-hallway', code: 'HALLWAY' },
+    { id: 'rt-storage', code: 'STORAGE' },
   ],
   categories: [
     { id: 'cat-floor', wastePercent: 5, surface: 'FLOOR' },
