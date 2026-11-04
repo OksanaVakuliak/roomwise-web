@@ -220,6 +220,7 @@ export function makeVersionView(
     pricingVersion: pricing.version,
     style: { id: 'style-modern', name: 'Modern' },
     configuration: {
+      scope: 'FULL',
       finishLevel: 'PRE_FINISH',
       totalAreaSqm: 62,
       balconyAreaSqm: 4,

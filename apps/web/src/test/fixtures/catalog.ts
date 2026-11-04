@@ -346,6 +346,8 @@ export function makeEngineering(
         roomTypeCodes: ['LIVING_ROOM', 'BEDROOM', 'KITCHEN'],
         minQuantity: 1,
         maxQuantity: 10,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
       },
       {
         id: 'opt-heated-floor',
@@ -360,6 +362,8 @@ export function makeEngineering(
         roomTypeCodes: ['BATHROOM', 'KITCHEN'],
         minQuantity: null,
         maxQuantity: null,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
       },
       {
         id: 'opt-soundproofing',
@@ -374,6 +378,8 @@ export function makeEngineering(
         roomTypeCodes: [],
         minQuantity: null,
         maxQuantity: null,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
       },
       {
         id: 'opt-design',
@@ -388,6 +394,8 @@ export function makeEngineering(
         roomTypeCodes: [],
         minQuantity: null,
         maxQuantity: null,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
       },
       {
         id: 'opt-smart-switches',
@@ -402,6 +410,8 @@ export function makeEngineering(
         roomTypeCodes: Object.keys(roomTypeIds) as RoomTypeCode[],
         minQuantity: null,
         maxQuantity: null,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
       },
     ],
     ...overrides,
