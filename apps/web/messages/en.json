@@ -1189,7 +1189,7 @@
       "PROJECT": "{price} per project",
       "ROOM": "{price} per room",
       "ROOM_SQM": "{price} per m²",
-      "VARIABLE": "price depends on the area"
+      "UNKNOWN": "price not set"
     },
     "unavailable": "No longer available",
     "quantity": "Quantity: {name}",

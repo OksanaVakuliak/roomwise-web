@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useId, useMemo } from 'react';
 import { SectionHeader, Stepper, SwitchRow } from '@/components/ui';
 import { useEngineering } from '@/lib/api/catalog';
+import { optionUnitPriceCents } from '@/lib/engine/option-price';
 import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../../shell/use-room-pricing';
 import { type ApartmentOption, apartmentOptions } from '../apartment-options';
@@ -52,15 +53,16 @@ function OptionItem({ kind, pricing, option }: OptionItemProps) {
   const quantity = chosen?.quantity ?? bounds.min;
   const valid = isQuantityValid(quantity, bounds);
   const line = on && valid ? pricing.line(`${kind}:option:${option.id}`) : null;
+  const unitCents = optionUnitPriceCents(option, pricing.pricing.coefficients);
   const cost =
     option.available === false
       ? t('unavailable')
       : line && line.status === 'OK'
         ? pricing.formatLine(line)
-        : option.priceCents === null
-          ? t('price.VARIABLE')
+        : unitCents === null
+          ? t('price.UNKNOWN')
           : t(`price.${piece ? 'PIECE' : 'PROJECT'}`, {
-              price: pricing.formatUnitPrice(option.priceCents),
+              price: pricing.formatUnitPrice(unitCents),
             });
   const error = valid
     ? undefined

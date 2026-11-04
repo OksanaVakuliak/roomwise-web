@@ -1189,7 +1189,7 @@
       "PROJECT": "{price} за проєкт",
       "ROOM": "{price} за приміщення",
       "ROOM_SQM": "{price} за м²",
-      "VARIABLE": "ціна залежить від площі"
+      "UNKNOWN": "ціну не задано"
     },
     "unavailable": "Більше недоступно",
     "quantity": "Кількість: {name}",
