@@ -4,6 +4,7 @@ import {
   makeDraftRoom,
   makeEmptyDraft,
   makeInteriorDraft,
+  makePartialDraft,
   makePricingData,
 } from '@/test/fixtures';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
@@ -60,7 +61,7 @@ describe('runEstimate', () => {
 
   it('recomputes for a different draft with the same revision and version', () => {
     const first = run(makeInteriorDraft(), 3);
-    const second = run(makeInteriorDraft({ styleId: null }), 3);
+    const second = run(makeInteriorDraft({ rooms: [makeDraftRoom()] }), 3);
     expect(second).not.toBe(first);
     expect(second.panel.materials).toBeNull();
     expect(first.panel.materials).not.toBeNull();
@@ -87,10 +88,22 @@ describe('runEstimate', () => {
     });
   });
 
-  it('shows no materials before a style is chosen', () => {
-    const result = run(makeInteriorDraft({ styleId: null }));
+  it('shows no materials before a product is chosen', () => {
+    const result = run(makeInteriorDraft({ rooms: [makeDraftRoom()] }));
     expect(result.panel.materials).toBeNull();
     expect(result.panel.base).not.toBeNull();
+  });
+
+  it('shows materials once a product is chosen, with or without a style', () => {
+    expect(
+      run(makeInteriorDraft({ styleId: null })).panel.materials,
+    ).not.toBeNull();
+  });
+
+  it('shows materials for a PARTIAL draft with chosen products', () => {
+    const result = run(makePartialDraft());
+    expect(result.configuration?.totalAreaSqm).toBeNull();
+    expect(result.panel.materials).not.toBeNull();
   });
 
   it('total equals the sum of sections in both currencies', () => {
@@ -129,7 +142,7 @@ describe('runEstimate', () => {
     );
     expect(result.panel.base).toBeNull();
     expect(result.panel.total).toBeNull();
-    expect(result.panel.materials).not.toBeNull();
+    expect(result.panel.materials).toBeNull();
     const grouped = groupLines(result.estimate!, [], result.blockedLineIds);
     expect(grouped.base.every((line) => line.amountCents === null)).toBe(true);
     expect(grouped.materials[0]?.lines[0]?.amountCents).not.toBeNull();
@@ -153,9 +166,10 @@ describe('groupLines', () => {
     const { estimate } = run(draft);
     const order = draft.rooms.map((room) => room.clientId);
     const grouped = groupLines(estimate!, [...order].reverse());
-    expect(grouped.materials.map((group) => group.roomClientId)).toEqual(
-      [...order].reverse(),
-    );
+    expect(grouped.materials.map((group) => group.roomClientId)).toEqual([
+      ...[...order].reverse(),
+      'OBJECT',
+    ]);
     expect(grouped.base.length).toBeGreaterThan(0);
     expect(grouped.engineering.length).toBeGreaterThan(0);
   });
@@ -163,7 +177,11 @@ describe('groupLines', () => {
   it('keeps rooms with no lines out', () => {
     const draft = makeInteriorDraft({ rooms: [makeDraftRoom()] });
     const { estimate } = run(draft);
-    expect(groupLines(estimate!, ['absent']).materials).toEqual([]);
+    expect(
+      groupLines(estimate!, ['absent']).materials.map(
+        (group) => group.roomClientId,
+      ),
+    ).toEqual(['OBJECT']);
   });
 });
 
