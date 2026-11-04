@@ -1,17 +1,20 @@
 import { expect, type Page, test } from '@playwright/test';
 import { DRAFT_VERSION } from '@/lib/draft/migrate';
+import { ROOM_NAME_MAX } from '@/lib/draft/schema';
 import { THEME_STORAGE_KEY } from '@/lib/theme/constants';
 import { DRAFT_STORAGE_KEY } from '@/stores/draft';
 import {
   calculationIds,
   makeDraftRoom,
   makeFullRoomsDraft,
+  makePricingData,
   makeVersionView,
 } from '@/test/fixtures';
-import { createMockStore, installMockApi } from './mock-api';
+import { createMockStore, installMockApi, isLive } from './mock-api';
 
 const NARROW = { width: 320, height: 640 };
 const LONG_NAME = 'Extra long room name that fills the whole field width';
+const { limits } = makePricingData();
 
 const pages = [
   { name: 'object', path: '/configurator/object' },
@@ -36,14 +39,14 @@ const extremeDraft = () => {
   });
   return {
     ...draft,
-    object: { ...draft.object, totalAreaSqm: 9_999_999 },
-    rooms: draft.rooms.map((room, index) =>
+    object: { ...draft.object, totalAreaSqm: limits.totalAreaSqm.max },
+    rooms: Array.from({ length: limits.rooms.max }, (_, index) =>
       makeDraftRoom({
-        ...room,
-        name: `${index + 1}. ${LONG_NAME}`,
-        lengthM: 999_999,
-        widthM: 999_999,
-        heightM: 99_999,
+        ...draft.rooms[index],
+        name: `${index + 1}. ${LONG_NAME}`.padEnd(ROOM_NAME_MAX, 'x'),
+        lengthM: limits.roomSideM.max,
+        widthM: limits.roomSideM.max,
+        heightM: limits.roomHeightM.max,
       }),
     ),
   };
@@ -72,7 +75,19 @@ async function overflowOf(page: Page) {
   return page.evaluate(() => {
     const root = document.documentElement;
     const limit = root.clientWidth;
+    const clippedByAncestor = (element: Element) => {
+      for (
+        let parent = element.parentElement;
+        parent && parent !== document.body;
+        parent = parent.parentElement
+      ) {
+        const { overflowX } = getComputedStyle(parent);
+        if (overflowX !== 'visible') return true;
+      }
+      return false;
+    };
     const offenders = [...document.body.querySelectorAll('*')]
+      .filter((element) => !clippedByAncestor(element))
       .map((element) => ({
         element,
         right: Math.round(element.getBoundingClientRect().right),
@@ -81,7 +96,7 @@ async function overflowOf(page: Page) {
       .slice(0, 5)
       .map(
         ({ element, right }) =>
-          `${element.tagName.toLowerCase()}.${String(element.className).slice(0, 60)} right=${right}`,
+          `${element.tagName.toLowerCase()}.${String(element.className).slice(0, 60)} in ${String(element.parentElement?.className).slice(0, 60)} "${(element.textContent ?? '').slice(0, 30)}" right=${right}`,
       );
     const clipped = [...document.body.querySelectorAll('*')]
       .filter((element) => {
@@ -113,6 +128,7 @@ for (const theme of themes) {
       test(`${target.name} in ${theme} theme has no horizontal overflow at ${mode.name}`, async ({
         page,
       }) => {
+        test.skip(isLive(), 'relies on the mocked snapshot');
         const locale = test.info().project.name;
         const store = createMockStore();
         store.calculations.set(calculationIds.publicId, makeVersionView());
@@ -121,6 +137,7 @@ for (const theme of themes) {
         await page.setViewportSize(NARROW);
 
         await page.goto(`/${locale}${target.path}`);
+        await expect(page).toHaveURL(new RegExp(`${target.path}$`));
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         await page.waitForLoadState('networkidle');
