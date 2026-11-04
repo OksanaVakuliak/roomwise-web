@@ -15,11 +15,7 @@ const WARNING_CODES = [
   'ROOMS_AREA_EXCEEDS_TOTAL',
   'EXCHANGE_RATE_UNAVAILABLE',
 ] as const;
-const ERROR_CODES = [
-  'PRODUCT_UNAVAILABLE',
-  'RULE_NOT_FOUND',
-  'BASE_RATE_NOT_FOUND',
-] as const;
+const ERROR_CODES = ['PRODUCT_UNAVAILABLE', 'RULE_NOT_FOUND'] as const;
 
 function isWarningCode(code: string): code is (typeof WARNING_CODES)[number] {
   return (WARNING_CODES as readonly string[]).includes(code);

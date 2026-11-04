@@ -617,7 +617,6 @@
     "lineError": {
       "PRODUCT_UNAVAILABLE": "The product is unavailable",
       "RULE_NOT_FOUND": "No pricing rule for this item",
-      "BASE_RATE_NOT_FOUND": "No base rate for this item",
       "generic": "Could not be calculated"
     },
     "warning": {
@@ -1189,7 +1188,8 @@
       "PIECE": "{price} per piece",
       "PROJECT": "{price} per project",
       "ROOM": "{price} per room",
-      "ROOM_SQM": "{price} per m²"
+      "ROOM_SQM": "{price} per m²",
+      "VARIABLE": "price depends on the area"
     },
     "unavailable": "No longer available",
     "quantity": "Quantity: {name}",

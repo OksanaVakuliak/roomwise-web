@@ -107,7 +107,6 @@ export const errorMessageKey = (code: string): ApiErrorCode =>
 export const ESTIMATE_LINE_ERROR_CODES = [
   'PRODUCT_UNAVAILABLE',
   'RULE_NOT_FOUND',
-  'BASE_RATE_NOT_FOUND',
 ] as const;
 
 export const ESTIMATE_WARNING_CODES = [

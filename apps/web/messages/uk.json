@@ -617,7 +617,6 @@
     "lineError": {
       "PRODUCT_UNAVAILABLE": "Товар недоступний",
       "RULE_NOT_FOUND": "Немає правила розрахунку для цієї позиції",
-      "BASE_RATE_NOT_FOUND": "Немає базової ставки для цієї позиції",
       "generic": "Не вдалося розрахувати"
     },
     "warning": {
@@ -1189,7 +1188,8 @@
       "PIECE": "{price} за штуку",
       "PROJECT": "{price} за проєкт",
       "ROOM": "{price} за приміщення",
-      "ROOM_SQM": "{price} за м²"
+      "ROOM_SQM": "{price} за м²",
+      "VARIABLE": "ціна залежить від площі"
     },
     "unavailable": "Більше недоступно",
     "quantity": "Кількість: {name}",
