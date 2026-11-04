@@ -46,6 +46,7 @@ function toDraftOptions(
 
 function toSavedConfiguration(source: VersionConfiguration): Configuration {
   return {
+    scope: 'FULL',
     finishLevel: source.finishLevel,
     totalAreaSqm: source.totalAreaSqm,
     balconyAreaSqm: source.balconyAreaSqm,

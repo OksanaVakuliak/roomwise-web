@@ -172,7 +172,10 @@ describe('fromVersion', () => {
     const request = buildSaveRequest(draft, pricing);
 
     expect(request).not.toBeNull();
-    expect(request?.body.configuration).toEqual(version.configuration);
+    expect(request?.body.configuration).toEqual({
+      ...version.configuration,
+      scope: 'FULL',
+    });
     expect(draft.lastSaved?.configurationHash).toBe(request?.hash);
   });
 
