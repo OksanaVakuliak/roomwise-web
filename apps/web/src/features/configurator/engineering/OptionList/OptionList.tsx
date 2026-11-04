@@ -57,9 +57,11 @@ function OptionItem({ kind, pricing, option }: OptionItemProps) {
       ? t('unavailable')
       : line && line.status === 'OK'
         ? pricing.formatLine(line)
-        : t(`price.${piece ? 'PIECE' : 'PROJECT'}`, {
-            price: pricing.formatUnitPrice(option.priceCents),
-          });
+        : option.priceCents === null
+          ? t('price.VARIABLE')
+          : t(`price.${piece ? 'PIECE' : 'PROJECT'}`, {
+              price: pricing.formatUnitPrice(option.priceCents),
+            });
   const error = valid
     ? undefined
     : bounds.max === undefined

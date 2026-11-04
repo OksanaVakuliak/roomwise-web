@@ -59,6 +59,28 @@ describe('OptionList', () => {
     expect(useDraft.getState().options).toEqual({});
   });
 
+  it('describes a coefficient-priced option without a sum until it is computed', async () => {
+    const base = makePricingData();
+    await renderList(
+      'ENGINEERING',
+      makePricingData({
+        options: base.options.map((option) =>
+          option.id === 'opt-ac'
+            ? {
+                ...option,
+                priceCents: null,
+                priceCoefficientKeys: ['tile_glue'],
+              }
+            : option,
+        ),
+      }),
+    );
+
+    expect(
+      screen.getByRole('switch', { name: 'Air conditioner' }),
+    ).toHaveAccessibleDescription(/price depends on the area/);
+  });
+
   it('shows a quantity stepper starting at the minimum for a piece option', async () => {
     await renderList();
 
