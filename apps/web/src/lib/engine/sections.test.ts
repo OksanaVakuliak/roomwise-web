@@ -64,4 +64,23 @@ describe('groupLines', () => {
     expect(last?.roomClientId).toBe(OBJECT_GROUP_ID);
     expect(last?.lines.every((line) => line.section === 'OBJECT')).toBe(true);
   });
+
+  it('leaves out an OBJECT group without amounts', () => {
+    const { estimate, draft } = estimateOf();
+    const zeroed = {
+      ...estimate,
+      lines: estimate.lines.map((line) =>
+        line.section === 'OBJECT' && line.status === 'OK'
+          ? { ...line, amountCents: 0, amountUahKopecks: 0 }
+          : line,
+      ),
+    };
+    const grouped = groupLines(
+      zeroed,
+      draft.rooms.map((room) => room.clientId),
+    );
+    expect(
+      grouped.materials.some((group) => group.roomClientId === OBJECT_GROUP_ID),
+    ).toBe(false);
+  });
 });

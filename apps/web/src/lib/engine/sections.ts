@@ -112,6 +112,13 @@ export function groupLines(
   };
   const byRoom = new Map<string, LineView[]>();
   for (const line of estimate.lines) {
+    if (
+      line.section === 'OBJECT' &&
+      line.status === 'OK' &&
+      line.amountCents === 0
+    ) {
+      continue;
+    }
     const view = toLineView(line, blockedLineIds);
     switch (line.section) {
       case 'BASE':
