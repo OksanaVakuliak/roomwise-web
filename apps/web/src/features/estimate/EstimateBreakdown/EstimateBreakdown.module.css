@@ -13,7 +13,3 @@
   gap: var(--space-16);
   margin-top: var(--space-12);
 }
-
-.object {
-  margin-top: var(--space-12);
-}

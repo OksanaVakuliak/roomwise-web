@@ -67,6 +67,36 @@ describe('migrate', () => {
     expect(migrate(draft, 1)).toEqual({ draft });
   });
 
+  it('migrates a v1 draft to v3 as a full renovation keeping its state', () => {
+    const draft = makeInteriorDraft();
+    const { scope: _scope, ...object } = draft.object;
+    const { styleAuto: _auto, ...v1 } = { ...draft, object };
+    const result = migrate(v1, 1);
+    expect(result.notice).toBeUndefined();
+    expect(result.draft).toEqual({ ...draft, styleAuto: true });
+    expect(result.draft.object.scope).toBe('FULL');
+  });
+
+  it('migrates a v2 draft to v3 as a full renovation keeping its state', () => {
+    const draft = makeFullRoomsDraft();
+    const { scope: _scope, ...object } = draft.object;
+    const result = migrate({ ...draft, object }, 2);
+    expect(result.notice).toBeUndefined();
+    expect(result.draft).toEqual({ ...draft, styleAuto: true });
+  });
+
+  it('marks the style as automatic only when one was chosen', () => {
+    const { scope: _scope, ...object } = makeEmptyDraft().object;
+    const withoutStyle = migrate({ ...makeEmptyDraft(), object }, 2).draft;
+    expect(withoutStyle.styleId).toBeNull();
+    expect('styleAuto' in withoutStyle).toBe(false);
+    const withStyle = migrate(
+      { ...makeEmptyDraft({ styleId: 'modern' }), object },
+      2,
+    ).draft;
+    expect(withStyle.styleAuto).toBe(true);
+  });
+
   it('resets the persisted envelope with a newer version', () => {
     const envelope = JSON.parse('{"state":{"rooms":"x"},"version":9}');
     expect(migrate(envelope.state, envelope.version)).toEqual({
@@ -95,7 +125,7 @@ describe('migrate', () => {
   });
 
   it('salvages a newer-version draft when some fields still fit', () => {
-    const result = migrate({ styleId: 'modern', extra: true }, 2);
+    const result = migrate({ styleId: 'modern', extra: true }, 3);
     expect(result.notice).toBeUndefined();
     expect(result.draft.styleId).toBe('modern');
   });

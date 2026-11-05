@@ -26,8 +26,7 @@ export type IncompleteReason =
   | 'BALCONY_AREA'
   | 'ROOMS_COUNT'
   | 'ROOM_TYPE'
-  | 'ROOM_DIMENSIONS'
-  | 'STYLE';
+  | 'ROOM_DIMENSIONS';
 
 export class IncompleteDraftError extends Error {
   readonly reason: IncompleteReason;
@@ -154,7 +153,8 @@ export function toConfiguration(
     }
     return null;
   }
-  if (!inRange(object.totalAreaSqm, limits.totalAreaSqm)) {
+  const partial = object.scope === 'PARTIAL';
+  if (!partial && !inRange(object.totalAreaSqm, limits.totalAreaSqm)) {
     if (strict) {
       throw new IncompleteDraftError('TOTAL_AREA');
     }
@@ -199,13 +199,10 @@ export function toConfiguration(
     });
   }
 
-  if (strict && draft.styleId === null) {
-    throw new IncompleteDraftError('STYLE');
-  }
-
   return {
+    scope: object.scope,
     finishLevel: object.finishLevel,
-    totalAreaSqm: object.totalAreaSqm,
+    totalAreaSqm: partial ? null : object.totalAreaSqm,
     balconyAreaSqm: object.balcony.present ? (object.balcony.areaSqm ?? 0) : 0,
     balconyTiles: object.balcony.present && object.balcony.tiles,
     rooms,

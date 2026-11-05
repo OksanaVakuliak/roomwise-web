@@ -94,6 +94,7 @@ describe('EstimateBreakdown', () => {
     );
     expect(screen.getAllByRole('button', { name: 'Change' }).length).toBe(
       model.materials.rooms.length +
+        (model.materials.balcony ? 1 : 0) +
         1 +
         (model.engineering.lines.length > 0 ? 1 : 0) +
         (model.additional.lines.length > 0 ? 1 : 0),

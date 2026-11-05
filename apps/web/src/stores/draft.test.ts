@@ -10,7 +10,7 @@ import {
 } from '@/test/fixtures/catalog';
 import { makeDraftRoom, makeInteriorDraft } from '@/test/fixtures/draft';
 import { makePricingData } from '@/test/fixtures/pricing-data';
-import { DRAFT_STORAGE_KEY, useDraft } from './draft';
+import { DRAFT_STORAGE_KEY, pickDraft, useDraft } from './draft';
 
 const stored = () => {
   const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
@@ -28,6 +28,7 @@ beforeEach(() => {
   resetThemeDom();
   useDraft.setState({
     ...createDefaultDraft(),
+    styleAuto: undefined,
     revision: 0,
     storageAvailable: true,
     notice: null,
@@ -56,7 +57,7 @@ describe('useDraft', () => {
 
     expect(stored()).toEqual({
       state: { ...createDefaultDraft(), step: 'style', furthestStep: 'style' },
-      version: 2,
+      version: 3,
     });
   });
 
@@ -87,6 +88,14 @@ describe('useDraft', () => {
     useDraft.getState().reset();
 
     expect(useDraft.getState().revision).toBe(2);
+  });
+
+  it('clears styleAuto on reset', () => {
+    useDraft.setState({ styleAuto: true });
+
+    useDraft.getState().reset();
+
+    expect(useDraft.getState().styleAuto).toBeUndefined();
   });
 
   it('clears leftover notices on reset', () => {
@@ -1011,5 +1020,46 @@ describe('useDraft replaceDraft', () => {
     expect(state.heatedFloorReset).toBe(false);
     expect(state.replacements).toEqual([]);
     expect(state.revision).toBe(5);
+  });
+
+  it('clears a stale styleAuto when the loaded draft has none', () => {
+    useDraft.setState({ styleAuto: true });
+
+    useDraft.getState().replaceDraft(makeInteriorDraft());
+
+    expect(useDraft.getState().styleAuto).toBeUndefined();
+  });
+});
+
+describe('useDraft setScope', () => {
+  it('changes only the scope and keeps the rest of the draft', () => {
+    const roomTypes = makeRoomTypes();
+    const defaults = makeDefaultMaterials(styleIds.modern);
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    const roomId =
+      useDraft.getState().addRoom({ defaultMaterials: defaults, roomTypes }) ??
+      '';
+    useDraft.getState().setObject({ totalAreaSqm: 62 });
+    useDraft
+      .getState()
+      .selectProduct(roomId, categoryIds.floor, productIds.tile);
+    useDraft.getState().disableCategory(roomId, categoryIds.walls);
+    const before = pickDraft(useDraft.getState());
+
+    useDraft.getState().setScope('PARTIAL');
+
+    const partial = pickDraft(useDraft.getState());
+    expect(partial.object.scope).toBe('PARTIAL');
+    expect(partial).toEqual({
+      ...before,
+      object: { ...before.object, scope: 'PARTIAL' },
+    });
+
+    useDraft.getState().setScope('FULL');
+
+    const full = pickDraft(useDraft.getState());
+    expect(full).toEqual(before);
+    expect(full.rooms[0]?.selections[categoryIds.walls]?.disabled).toBe(true);
+    expect(full.object.totalAreaSqm).toBe(62);
   });
 });

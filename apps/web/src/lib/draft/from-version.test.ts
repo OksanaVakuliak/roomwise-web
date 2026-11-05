@@ -33,6 +33,7 @@ describe('fromVersion', () => {
     const draft = fromVersion(makeVersionView(), heatedFloorId);
 
     expect(draft.object).toEqual({
+      scope: 'FULL',
       finishLevel: 'PRE_FINISH',
       totalAreaSqm: 62,
       balcony: { present: true, areaSqm: 4, tiles: true },
@@ -172,7 +173,10 @@ describe('fromVersion', () => {
     const request = buildSaveRequest(draft, pricing);
 
     expect(request).not.toBeNull();
-    expect(request?.body.configuration).toEqual(version.configuration);
+    expect(request?.body.configuration).toEqual({
+      ...version.configuration,
+      scope: 'FULL',
+    });
     expect(draft.lastSaved?.configurationHash).toBe(request?.hash);
   });
 

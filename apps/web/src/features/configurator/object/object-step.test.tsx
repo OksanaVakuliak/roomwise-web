@@ -490,11 +490,10 @@ describe('ObjectStep', () => {
         pricingVersion: pricing.version,
         currency: 'UAH',
       }).estimate?.lines.find((line) => line.section === 'BASE');
-      expect(baseLine?.unitPriceCents).toBeTruthy();
+      expect(baseLine?.status).toBe('OK');
       expect(plan).toHaveTextContent(
-        step('planCost.base', {
-          area: '64',
-          price: moneyMinor(baseLine?.unitPriceCents ?? 0, 'USD', locale),
+        step('planCost.objectLine', {
+          name: locale === 'uk' ? 'Базова вартість' : 'Base cost',
           amount: moneyMinor(baseLine?.amountCents ?? 0, 'USD', locale),
         }).replace(/\s/g, ' '),
       );

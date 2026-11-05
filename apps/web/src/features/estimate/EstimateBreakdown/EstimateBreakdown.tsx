@@ -9,6 +9,7 @@ import styles from './EstimateBreakdown.module.css';
 
 export type EstimateActionTarget =
   | { section: 'base' }
+  | { section: 'balcony' }
   | { section: 'materials'; roomClientId: string }
   | { section: 'engineering' }
   | { section: 'additional' };
@@ -60,9 +61,10 @@ export function EstimateBreakdown({
 
   const { base, materials, engineering, additional } = model;
   let block = 0;
-  const hasBase = base.lines.length + base.objectLines.length > 0;
+  const hasBase = base.lines.length > 0;
   const baseNumber = hasBase ? ++block : 0;
   const roomNumbers = materials.rooms.map(() => ++block);
+  const balconyNumber = materials.balcony ? ++block : 0;
   const engineeringNumber = engineering.lines.length > 0 ? ++block : 0;
   const additionalNumber = additional.lines.length > 0 ? ++block : 0;
 
@@ -77,20 +79,9 @@ export function EstimateBreakdown({
           action={action({ section: 'base' })}
         >
           {lineList(base.lines, baseNumber)}
-          {base.objectLines.length > 0 ? (
-            <div className={styles.object}>
-              <SectionBlock
-                id={`${prefix}-object`}
-                level={3}
-                title={t('sections.object')}
-              >
-                {lineList(base.objectLines, baseNumber, base.lines.length)}
-              </SectionBlock>
-            </div>
-          ) : null}
         </SectionBlock>
       ) : null}
-      {materials.rooms.length > 0 ? (
+      {materials.rooms.length > 0 || materials.balcony ? (
         <SectionBlock
           id={`${prefix}-materials`}
           level={2}
@@ -113,6 +104,17 @@ export function EstimateBreakdown({
                 {lineList(room.lines, roomNumbers[index] ?? 0)}
               </SectionBlock>
             ))}
+            {materials.balcony ? (
+              <SectionBlock
+                id={`${prefix}-balcony`}
+                level={3}
+                title={t('sections.balcony')}
+                amount={amount(materials.balcony.subtotal)}
+                action={action({ section: 'balcony' })}
+              >
+                {lineList(materials.balcony.lines, balconyNumber)}
+              </SectionBlock>
+            ) : null}
           </div>
         </SectionBlock>
       ) : null}

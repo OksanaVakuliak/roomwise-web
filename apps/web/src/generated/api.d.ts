@@ -703,38 +703,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/pricing/base-rates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["BaseRatesController_list"];
-        put?: never;
-        post: operations["BaseRatesController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/pricing/base-rates/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["BaseRatesController_remove"];
-        options?: never;
-        head?: never;
-        patch: operations["BaseRatesController_update"];
-        trace?: never;
-    };
     "/api/v1/admin/pricing/coefficients": {
         parameters: {
             query?: never;
@@ -1054,7 +1022,7 @@ export interface components {
                 /** Format: uuid */
                 id: string;
                 /** @enum {string} */
-                code: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                code: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                 name: string;
                 categories: {
                     /** Format: uuid */
@@ -1143,7 +1111,7 @@ export interface components {
             styleId: string;
             items: {
                 /** @enum {string} */
-                roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                 /** Format: uuid */
                 categoryId: string;
                 productId: string | null;
@@ -1177,11 +1145,13 @@ export interface components {
                     /** Format: uri */
                     zoom: string;
                 } | null;
-                priceCents: number;
+                priceCents: number | null;
                 /** @enum {string} */
                 unit: "PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT";
                 perRoom: boolean;
-                roomTypeCodes: ("LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM")[];
+                roomTypeCodes: ("LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE")[];
+                priceCoefficientKeys: string[];
+                scopes: ("FULL" | "PARTIAL")[];
                 minQuantity: number | null;
                 maxQuantity: number | null;
             }[];
@@ -1205,7 +1175,7 @@ export interface components {
                 /** Format: uuid */
                 id: string;
                 /** @enum {string} */
-                code: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                code: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                 name: {
                     en: string;
                     uk: string;
@@ -1245,7 +1215,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            code: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+            code: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
             name: {
                 en: string;
                 uk: string;
@@ -1288,10 +1258,11 @@ export interface components {
                 wastePercent: number;
                 /** @enum {string} */
                 surface: "NONE" | "FLOOR" | "WALLS" | "CEILING";
+                requiresPutty: boolean;
                 /** @enum {string} */
                 status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
                 productCount: number;
-                roomTypeCodes: ("LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM")[];
+                roomTypeCodes: ("LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE")[];
                 /** Format: uuid */
                 revision: string;
                 /** Format: date-time */
@@ -1311,6 +1282,8 @@ export interface components {
             wastePercent: number;
             /** @enum {string} */
             surface: "NONE" | "FLOOR" | "WALLS" | "CEILING";
+            /** @default true */
+            requiresPutty: boolean;
         };
         CategoryAdminDto_Output: {
             /** Format: uuid */
@@ -1322,10 +1295,11 @@ export interface components {
             wastePercent: number;
             /** @enum {string} */
             surface: "NONE" | "FLOOR" | "WALLS" | "CEILING";
+            requiresPutty: boolean;
             /** @enum {string} */
             status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
             productCount: number;
-            roomTypeCodes: ("LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM")[];
+            roomTypeCodes: ("LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE")[];
             /** Format: uuid */
             revision: string;
             /** Format: date-time */
@@ -1344,6 +1318,7 @@ export interface components {
             wastePercent?: number;
             /** @enum {string} */
             surface?: "NONE" | "FLOOR" | "WALLS" | "CEILING";
+            requiresPutty?: boolean;
             /** Format: uuid */
             revision: string;
         };
@@ -1788,7 +1763,7 @@ export interface components {
             } | null;
             pairs: {
                 /** @enum {string} */
-                roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                 /** Format: uuid */
                 roomTypeId: string;
                 /** Format: uuid */
@@ -1972,13 +1947,15 @@ export interface components {
                     /** Format: uri */
                     zoom: string;
                 } | null;
-                priceCents: number;
+                priceCents: number | null;
                 /** @enum {string} */
                 unit: "PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT";
                 perRoom: boolean;
                 minQuantity: number | null;
                 maxQuantity: number | null;
                 roomTypeIds: string[];
+                priceCoefficientKeys: string[];
+                scopes: ("FULL" | "PARTIAL")[];
                 sortOrder: number;
                 /** @enum {string} */
                 status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
@@ -2017,13 +1994,15 @@ export interface components {
                 /** Format: uri */
                 zoom: string;
             } | null;
-            priceCents: number;
+            priceCents: number | null;
             /** @enum {string} */
             unit: "PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT";
             perRoom: boolean;
             minQuantity: number | null;
             maxQuantity: number | null;
             roomTypeIds: string[];
+            priceCoefficientKeys: string[];
+            scopes: ("FULL" | "PARTIAL")[];
             sortOrder: number;
             /** @enum {string} */
             status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
@@ -2050,7 +2029,7 @@ export interface components {
             };
             /** Format: uuid */
             imageId?: string;
-            priceCents: number;
+            priceCents: number | null;
             /** @default false */
             confirmZeroPrice: boolean;
             /** @enum {string} */
@@ -2058,6 +2037,15 @@ export interface components {
             minQuantity?: number;
             maxQuantity?: number;
             roomTypeIds: string[];
+            /** @default [] */
+            priceCoefficientKeys: string[];
+            /**
+             * @default [
+             *       "FULL",
+             *       "PARTIAL"
+             *     ]
+             */
+            scopes: ("FULL" | "PARTIAL")[];
         };
         PatchOptionDto: {
             /** @enum {string} */
@@ -2071,13 +2059,15 @@ export interface components {
                 uk: string;
             };
             imageId?: string | null;
-            priceCents?: number;
+            priceCents?: number | null;
             confirmZeroPrice?: boolean;
             /** @enum {string} */
             unit?: "PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT";
             minQuantity?: number | null;
             maxQuantity?: number | null;
             roomTypeIds?: string[];
+            priceCoefficientKeys?: string[];
+            scopes?: ("FULL" | "PARTIAL")[];
             /** Format: uuid */
             revision: string;
         };
@@ -2117,21 +2107,15 @@ export interface components {
                     min: number;
                     max: number;
                 };
+                missingAreaHintSqm: number;
             };
-            baseRates: {
-                /** @enum {string} */
-                finishLevel: "ROUGH" | "PRE_FINISH";
-                areaFromSqm: number;
-                areaToSqm: number;
-                rateCentsPerSqm: number;
-            }[];
             coefficients: {
                 [key: string]: number;
             };
             rules: {
                 id: string;
                 /** @enum {string} */
-                level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+                level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE" | "SURFACE";
                 categoryId: string | null;
                 materialTypeId: string | null;
                 name: {
@@ -2139,7 +2123,10 @@ export interface components {
                     uk: string;
                 };
                 quantityFormula: string | null;
+                surface: ("FLOOR" | "WALLS" | "CEILING") | null;
+                baseComponent: boolean;
                 costFormula: string;
+                laborFormula: string | null;
                 sortOrder: number;
             }[];
             roomTypes: {
@@ -2151,6 +2138,8 @@ export interface components {
                 wastePercent: number;
                 /** @enum {string} */
                 surface: "NONE" | "FLOOR" | "WALLS" | "CEILING";
+                /** @default true */
+                requiresPutty: boolean;
             }[];
             materialTypes: {
                 id: string;
@@ -2178,10 +2167,12 @@ export interface components {
                 code: "HEATED_FLOOR" | null;
                 /** @enum {string} */
                 kind: "ENGINEERING" | "ADDITIONAL";
-                priceCents: number;
+                priceCents: number | null;
                 /** @enum {string} */
                 unit: "PIECE" | "ROOM_SQM" | "ROOM" | "PROJECT";
                 roomTypeCodes: string[];
+                priceCoefficientKeys: string[];
+                scopes: ("FULL" | "PARTIAL")[];
                 minQuantity: number | null;
                 maxQuantity: number | null;
                 available: boolean;
@@ -2189,16 +2180,21 @@ export interface components {
         };
         EstimateRequestDto: {
             configuration: {
+                /**
+                 * @default FULL
+                 * @enum {string}
+                 */
+                scope: "FULL" | "PARTIAL";
                 /** @enum {string} */
-                finishLevel: "ROUGH" | "PRE_FINISH";
-                totalAreaSqm: number;
+                finishLevel: "ROUGH" | "PRE_FINISH" | "LIVED_IN";
+                totalAreaSqm: number | null;
                 balconyAreaSqm: number;
                 balconyTiles: boolean;
                 rooms: {
                     clientId: string;
                     name?: string;
                     /** @enum {string} */
-                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                     lengthM: number;
                     widthM: number;
                     heightM: number;
@@ -2206,6 +2202,7 @@ export interface components {
                     selections: {
                         categoryId: string;
                         productId: string | null;
+                        areaShare?: number;
                     }[];
                 }[];
                 options: {
@@ -2246,6 +2243,13 @@ export interface components {
                     unitPriceCents: number | null;
                     amountCents: number;
                     amountUahKopecks: number | null;
+                    components?: {
+                        /** @enum {string} */
+                        kind: "MATERIAL" | "LABOR" | "PREP";
+                        ruleId: string;
+                        amountCents: number;
+                        sharedWithCategoryId?: string;
+                    }[];
                     warnings: {
                         code: string;
                         params?: {
@@ -2286,15 +2290,18 @@ export interface components {
                 /** Format: uuid */
                 id: string;
                 /** @enum {string} */
-                level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+                level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE" | "SURFACE";
                 categoryId: string | null;
                 materialTypeId: string | null;
+                surface: ("FLOOR" | "WALLS" | "CEILING") | null;
+                baseComponent: boolean;
                 name: {
                     en: string;
                     uk: string;
                 };
                 quantityFormula: string | null;
                 costFormula: string;
+                laborFormula: string | null;
                 coefficientKeys: string[];
                 sortOrder: number;
                 orphaned: boolean;
@@ -2319,29 +2326,36 @@ export interface components {
         };
         RuleInputDto: {
             /** @enum {string} */
-            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE" | "SURFACE";
             categoryId?: string | null;
             materialTypeId?: string | null;
+            surface?: ("FLOOR" | "WALLS" | "CEILING") | null;
             name: {
                 en: string;
                 uk: string;
             };
             quantityFormula?: string | null;
             costFormula: string;
+            laborFormula?: string | null;
+            /** @default false */
+            baseComponent: boolean;
         };
         RuleAdminDto_Output: {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE" | "SURFACE";
             categoryId: string | null;
             materialTypeId: string | null;
+            surface: ("FLOOR" | "WALLS" | "CEILING") | null;
+            baseComponent: boolean;
             name: {
                 en: string;
                 uk: string;
             };
-            quantityFormula: string[];
+            quantityFormula: string | null;
             costFormula: string;
+            laborFormula: string | null;
             coefficientKeys: string[];
             sortOrder: number;
             orphaned: boolean;
@@ -2357,13 +2371,14 @@ export interface components {
         };
         PreviewRuleDto: {
             /** @enum {string} */
-            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE" | "SURFACE";
             quantityFormula?: string | null;
             costFormula: string;
+            laborFormula?: string | null;
             sample: {
                 room?: {
                     /** @enum {string} */
-                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                     lengthM: number;
                     widthM: number;
                     heightM: number;
@@ -2375,20 +2390,31 @@ export interface components {
                     unit: "SQM" | "LINEAR_M" | "PIECE";
                     wastePercent: number;
                 };
+                surfaceArea?: number;
+                puttyRequired?: boolean;
+                puttyArea?: number;
                 object: {
-                    totalAreaSqm: number;
+                    /** @enum {string} */
+                    scope: "FULL" | "PARTIAL";
+                    totalAreaSqm: number | null;
                     balconyAreaSqm: number;
                     balconyTiles: boolean;
                     /** @enum {string} */
-                    finishLevel: "ROUGH" | "PRE_FINISH";
+                    finishLevel: "ROUGH" | "PRE_FINISH" | "LIVED_IN";
                     roomsCount: number;
                     bathroomsCount: number;
+                    roomsFloorArea: number;
+                    roomsWallArea: number;
+                    roomsPuttyWallArea?: number;
+                    roomsPerimeter: number;
+                    wetRoomsCount: number;
                 };
             };
         };
         RulePreviewDto_Output: {
-            quantity: number[];
+            quantity: number | null;
             amountCents: number | null;
+            laborCents: number | null;
             variables: {
                 [key: string]: number | boolean | string;
             };
@@ -2412,21 +2438,24 @@ export interface components {
             };
             quantityFormula?: string | null;
             costFormula?: string;
+            laborFormula?: string | null;
+            baseComponent?: boolean;
             /** Format: uuid */
             revision: string;
         };
         ValidateFormulasDto: {
             /** @enum {string} */
-            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE";
+            level: "OBJECT" | "CATEGORY" | "MATERIAL_TYPE" | "SURFACE";
             quantityFormula?: string | null;
             costFormula: string;
+            laborFormula?: string | null;
         };
         ValidateFormulasResponseDto_Output: {
             valid: boolean;
             coefficientKeys: string[];
             errors: {
                 /** @enum {string} */
-                formula: "quantity" | "cost";
+                formula: "quantity" | "cost" | "labor";
                 code: string;
                 position: number;
                 length: number;
@@ -2434,66 +2463,6 @@ export interface components {
                     [key: string]: string | number;
                 };
             }[];
-        };
-        BaseRateListResponseDto_Output: {
-            items: {
-                /** Format: uuid */
-                id: string;
-                /** @enum {string} */
-                finishLevel: "ROUGH" | "PRE_FINISH";
-                areaFromSqm: number;
-                areaToSqm: number;
-                rateCentsPerSqm: number;
-                /** Format: uuid */
-                revision: string;
-                /** Format: date-time */
-                updatedAt: string;
-                updatedBy: {
-                    /** Format: uuid */
-                    id: string;
-                    login: string;
-                } | null;
-            }[];
-            gaps: {
-                /** @enum {string} */
-                finishLevel: "ROUGH" | "PRE_FINISH";
-                fromSqm: number;
-                toSqm: number;
-            }[];
-        };
-        BaseRateInputDto: {
-            /** @enum {string} */
-            finishLevel: "ROUGH" | "PRE_FINISH";
-            areaFromSqm: number;
-            areaToSqm: number;
-            rateCentsPerSqm: number;
-        };
-        BaseRateAdminDto_Output: {
-            /** Format: uuid */
-            id: string;
-            /** @enum {string} */
-            finishLevel: "ROUGH" | "PRE_FINISH";
-            areaFromSqm: number;
-            areaToSqm: number;
-            rateCentsPerSqm: number;
-            /** Format: uuid */
-            revision: string;
-            /** Format: date-time */
-            updatedAt: string;
-            updatedBy: {
-                /** Format: uuid */
-                id: string;
-                login: string;
-            } | null;
-        };
-        UpdateBaseRateDto: {
-            /** @enum {string} */
-            finishLevel?: "ROUGH" | "PRE_FINISH";
-            areaFromSqm?: number;
-            areaToSqm?: number;
-            rateCentsPerSqm?: number;
-            /** Format: uuid */
-            revision: string;
         };
         CoefficientListResponseDto_Output: {
             items: {
@@ -2509,10 +2478,20 @@ export interface components {
                     en: string;
                     uk: string;
                 };
+                /** @enum {string} */
+                group: "LABOR" | "PREPARATION" | "ROUGH_MATERIAL" | "ENGINEERING" | "MATERIAL_EXTRA";
                 usedBy: {
                     /** Format: uuid */
                     ruleId: string;
                     ruleName: {
+                        en: string;
+                        uk: string;
+                    };
+                }[];
+                usedByOptions: {
+                    /** Format: uuid */
+                    optionId: string;
+                    optionName: {
                         en: string;
                         uk: string;
                     };
@@ -2539,6 +2518,11 @@ export interface components {
                 en: string;
                 uk: string;
             };
+            /**
+             * @default MATERIAL_EXTRA
+             * @enum {string}
+             */
+            group: "LABOR" | "PREPARATION" | "ROUGH_MATERIAL" | "ENGINEERING" | "MATERIAL_EXTRA";
         };
         CoefficientAdminDto_Output: {
             /** Format: uuid */
@@ -2553,10 +2537,20 @@ export interface components {
                 en: string;
                 uk: string;
             };
+            /** @enum {string} */
+            group: "LABOR" | "PREPARATION" | "ROUGH_MATERIAL" | "ENGINEERING" | "MATERIAL_EXTRA";
             usedBy: {
                 /** Format: uuid */
                 ruleId: string;
                 ruleName: {
+                    en: string;
+                    uk: string;
+                };
+            }[];
+            usedByOptions: {
+                /** Format: uuid */
+                optionId: string;
+                optionName: {
                     en: string;
                     uk: string;
                 };
@@ -2582,6 +2576,8 @@ export interface components {
                 en: string;
                 uk: string;
             };
+            /** @enum {string} */
+            group?: "LABOR" | "PREPARATION" | "ROUGH_MATERIAL" | "ENGINEERING" | "MATERIAL_EXTRA";
             /** Format: uuid */
             revision: string;
         };
@@ -2605,7 +2601,7 @@ export interface components {
             } | null;
             lastSuccessfulFetchDate: string | null;
             lastAttemptAt: string | null;
-            lastError: string[];
+            lastError: string | null;
             staleSince: string | null;
         };
         ManualRateInputDto: {
@@ -2613,16 +2609,21 @@ export interface components {
         };
         SaveCalculationRequestDto: {
             configuration: {
+                /**
+                 * @default FULL
+                 * @enum {string}
+                 */
+                scope: "FULL" | "PARTIAL";
                 /** @enum {string} */
-                finishLevel: "ROUGH" | "PRE_FINISH";
-                totalAreaSqm: number;
+                finishLevel: "ROUGH" | "PRE_FINISH" | "LIVED_IN";
+                totalAreaSqm: number | null;
                 balconyAreaSqm: number;
                 balconyTiles: boolean;
                 rooms: {
                     clientId: string;
                     name?: string;
                     /** @enum {string} */
-                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                     lengthM: number;
                     widthM: number;
                     heightM: number;
@@ -2630,6 +2631,7 @@ export interface components {
                     selections: {
                         categoryId: string;
                         productId: string | null;
+                        areaShare?: number;
                     }[];
                 }[];
                 options: {
@@ -2640,8 +2642,7 @@ export interface components {
                 /** @enum {string} */
                 currency: "USD" | "UAH";
             };
-            /** Format: uuid */
-            styleId: string;
+            styleId: string | null;
             clientPricingVersion: string;
             clientTotalUsdCents: number;
         };
@@ -2661,16 +2662,21 @@ export interface components {
                     name: string;
                 } | null;
                 configuration: {
+                    /**
+                     * @default FULL
+                     * @enum {string}
+                     */
+                    scope: "FULL" | "PARTIAL";
                     /** @enum {string} */
-                    finishLevel: "ROUGH" | "PRE_FINISH";
-                    totalAreaSqm: number;
+                    finishLevel: "ROUGH" | "PRE_FINISH" | "LIVED_IN";
+                    totalAreaSqm: number | null;
                     balconyAreaSqm: number;
                     balconyTiles: boolean;
                     rooms: {
                         clientId: string;
                         name?: string;
                         /** @enum {string} */
-                        roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                        roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                         lengthM: number;
                         widthM: number;
                         heightM: number;
@@ -2678,6 +2684,7 @@ export interface components {
                         selections: {
                             categoryId: string;
                             productId: string | null;
+                            areaShare?: number;
                         }[];
                     }[];
                     options: {
@@ -2691,7 +2698,7 @@ export interface components {
                 rooms: {
                     clientId: string;
                     /** @enum {string} */
-                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                     lengthM: number;
                     widthM: number;
                     heightM: number;
@@ -2716,6 +2723,13 @@ export interface components {
                     unitPriceCents: number | null;
                     amountCents: number;
                     amountUahKopecks: number | null;
+                    components?: {
+                        /** @enum {string} */
+                        kind: "MATERIAL" | "LABOR" | "PREP";
+                        ruleId: string;
+                        amountCents: number;
+                        sharedWithCategoryId?: string;
+                    }[];
                     warnings: {
                         code: string;
                         params?: {
@@ -2818,16 +2832,21 @@ export interface components {
                 name: string;
             } | null;
             configuration: {
+                /**
+                 * @default FULL
+                 * @enum {string}
+                 */
+                scope: "FULL" | "PARTIAL";
                 /** @enum {string} */
-                finishLevel: "ROUGH" | "PRE_FINISH";
-                totalAreaSqm: number;
+                finishLevel: "ROUGH" | "PRE_FINISH" | "LIVED_IN";
+                totalAreaSqm: number | null;
                 balconyAreaSqm: number;
                 balconyTiles: boolean;
                 rooms: {
                     clientId: string;
                     name?: string;
                     /** @enum {string} */
-                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                     lengthM: number;
                     widthM: number;
                     heightM: number;
@@ -2835,6 +2854,7 @@ export interface components {
                     selections: {
                         categoryId: string;
                         productId: string | null;
+                        areaShare?: number;
                     }[];
                 }[];
                 options: {
@@ -2848,7 +2868,7 @@ export interface components {
             rooms: {
                 clientId: string;
                 /** @enum {string} */
-                roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                 lengthM: number;
                 widthM: number;
                 heightM: number;
@@ -2873,6 +2893,13 @@ export interface components {
                 unitPriceCents: number | null;
                 amountCents: number;
                 amountUahKopecks: number | null;
+                components?: {
+                    /** @enum {string} */
+                    kind: "MATERIAL" | "LABOR" | "PREP";
+                    ruleId: string;
+                    amountCents: number;
+                    sharedWithCategoryId?: string;
+                }[];
                 warnings: {
                     code: string;
                     params?: {
@@ -2958,16 +2985,21 @@ export interface components {
             };
             draft?: {
                 configuration: {
+                    /**
+                     * @default FULL
+                     * @enum {string}
+                     */
+                    scope: "FULL" | "PARTIAL";
                     /** @enum {string} */
-                    finishLevel: "ROUGH" | "PRE_FINISH";
-                    totalAreaSqm: number;
+                    finishLevel: "ROUGH" | "PRE_FINISH" | "LIVED_IN";
+                    totalAreaSqm: number | null;
                     balconyAreaSqm: number;
                     balconyTiles: boolean;
                     rooms: {
                         clientId: string;
                         name?: string;
                         /** @enum {string} */
-                        roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                        roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                         lengthM: number;
                         widthM: number;
                         heightM: number;
@@ -2975,6 +3007,7 @@ export interface components {
                         selections: {
                             categoryId: string;
                             productId: string | null;
+                            areaShare?: number;
                         }[];
                     }[];
                     options: {
@@ -2985,8 +3018,7 @@ export interface components {
                     /** @enum {string} */
                     currency: "USD" | "UAH";
                 };
-                /** Format: uuid */
-                styleId: string;
+                styleId: string | null;
                 clientPricingVersion: string;
                 clientTotalUsdCents: number;
             };
@@ -3078,12 +3110,12 @@ export interface components {
             status: "NEW" | "IN_PROGRESS" | "DONE" | "REJECTED" | "SPAM";
             name: string;
             phone: string;
-            email: string[];
+            email: string | null;
             expiredAtSubmission: boolean;
             totalUsdCents: number;
             masked: boolean;
-            comment: string[];
-            consentText: string[];
+            comment: string | null;
+            consentText: string | null;
             /** Format: date-time */
             consentAt: string;
             /** @enum {string} */
@@ -3129,16 +3161,21 @@ export interface components {
                     name: string;
                 } | null;
                 configuration: {
+                    /**
+                     * @default FULL
+                     * @enum {string}
+                     */
+                    scope: "FULL" | "PARTIAL";
                     /** @enum {string} */
-                    finishLevel: "ROUGH" | "PRE_FINISH";
-                    totalAreaSqm: number;
+                    finishLevel: "ROUGH" | "PRE_FINISH" | "LIVED_IN";
+                    totalAreaSqm: number | null;
                     balconyAreaSqm: number;
                     balconyTiles: boolean;
                     rooms: {
                         clientId: string;
                         name?: string;
                         /** @enum {string} */
-                        roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                        roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                         lengthM: number;
                         widthM: number;
                         heightM: number;
@@ -3146,6 +3183,7 @@ export interface components {
                         selections: {
                             categoryId: string;
                             productId: string | null;
+                            areaShare?: number;
                         }[];
                     }[];
                     options: {
@@ -3159,7 +3197,7 @@ export interface components {
                 rooms: {
                     clientId: string;
                     /** @enum {string} */
-                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM";
+                    roomTypeCode: "LIVING_ROOM" | "BEDROOM" | "KITCHEN" | "KITCHEN_LIVING" | "BATHROOM" | "HALLWAY" | "STORAGE";
                     lengthM: number;
                     widthM: number;
                     heightM: number;
@@ -3184,6 +3222,13 @@ export interface components {
                     unitPriceCents: number | null;
                     amountCents: number;
                     amountUahKopecks: number | null;
+                    components?: {
+                        /** @enum {string} */
+                        kind: "MATERIAL" | "LABOR" | "PREP";
+                        ruleId: string;
+                        amountCents: number;
+                        sharedWithCategoryId?: string;
+                    }[];
                     warnings: {
                         code: string;
                         params?: {
@@ -3275,7 +3320,7 @@ export interface components {
         LeadNoteDto_Output: {
             /** Format: uuid */
             id: string;
-            text: string[];
+            text: string | null;
             /** Format: date-time */
             createdAt: string;
             author: {
@@ -5266,7 +5311,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description IMAGE_NOT_FOUND | QUANTITY_BOUNDS_REQUIRED | ROOM_TYPES_NOT_ALLOWED | ROOM_TYPE_NOT_FOUND | ZERO_PRICE_NOT_CONFIRMED */
+            /** @description IMAGE_NOT_FOUND | QUANTITY_BOUNDS_REQUIRED | ROOM_TYPES_NOT_ALLOWED | ROOM_TYPE_NOT_FOUND | UNKNOWN_COEFFICIENT | ZERO_PRICE_NOT_CONFIRMED */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -5422,7 +5467,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description IMAGE_NOT_FOUND | QUANTITY_BOUNDS_REQUIRED | ROOM_TYPES_NOT_ALLOWED | ROOM_TYPE_NOT_FOUND | ZERO_PRICE_NOT_CONFIRMED */
+            /** @description IMAGE_NOT_FOUND | QUANTITY_BOUNDS_REQUIRED | ROOM_TYPES_NOT_ALLOWED | ROOM_TYPE_NOT_FOUND | UNKNOWN_COEFFICIENT | ZERO_PRICE_NOT_CONFIRMED */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -5920,168 +5965,11 @@ export interface operations {
             };
         };
     };
-    BaseRatesController_list: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseRateListResponseDto_Output"];
-                };
-            };
-            /** @description UNAUTHENTICATED */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    BaseRatesController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BaseRateInputDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseRateAdminDto_Output"];
-                };
-            };
-            /** @description UNAUTHENTICATED */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description RANGE_OVERLAP */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    BaseRatesController_remove: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description UNAUTHENTICATED */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description NOT_FOUND */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    BaseRatesController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateBaseRateDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseRateAdminDto_Output"];
-                };
-            };
-            /** @description UNAUTHENTICATED */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description NOT_FOUND */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description RANGE_OVERLAP, STALE_REVISION */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
     CoefficientsController_list: {
         parameters: {
-            query?: never;
+            query?: {
+                group?: "LABOR" | "PREPARATION" | "ROUGH_MATERIAL" | "ENGINEERING" | "MATERIAL_EXTRA";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -6378,7 +6266,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description INPUT_OUT_OF_BOUNDS | UNKNOWN_REFERENCE | STYLE_NOT_FOUND | IDEMPOTENCY_KEY_REUSED */
+            /** @description INPUT_OUT_OF_BOUNDS | UNKNOWN_REFERENCE | STYLE_NOT_FOUND | IDEMPOTENCY_KEY_REUSED | EMPTY_ESTIMATE */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -6587,7 +6475,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description PHONE_INVALID | INPUT_OUT_OF_BOUNDS | UNKNOWN_REFERENCE | STYLE_NOT_FOUND | IDEMPOTENCY_KEY_REUSED */
+            /** @description PHONE_INVALID | INPUT_OUT_OF_BOUNDS | UNKNOWN_REFERENCE | STYLE_NOT_FOUND | IDEMPOTENCY_KEY_REUSED | EMPTY_ESTIMATE */
             422: {
                 headers: {
                     [name: string]: unknown;

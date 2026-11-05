@@ -1,10 +1,11 @@
-import { PricingDataSchema } from '@roomwise/calc-engine';
+import { ConfigurationSchema, PricingDataSchema } from '@roomwise/calc-engine';
 import { describe, expect, it } from 'vitest';
 import {
   categoryIds,
   makeCategoryProducts,
   makeDefaultMaterials,
   makeEngineering,
+  makePartialDraft,
   makePricingData,
   makeRoomTypes,
   makeVersionView,
@@ -68,5 +69,29 @@ describe('fixtures', () => {
     expect(view.totals.usdCents).toBe(
       view.lines.reduce((sum, line) => sum + line.amountCents, 0),
     );
+  });
+
+  it('parses the version view configuration with the engine schema', () => {
+    const { configuration } = makeVersionView();
+    expect(ConfigurationSchema.safeParse(configuration).success).toBe(true);
+    expect(configuration.scope).toBe('FULL');
+  });
+
+  it('keeps pricing rules and options covering every scope', () => {
+    expect(pricing.rules.some((rule) => rule.level === 'SURFACE')).toBe(true);
+    expect(pricing.rules.some((rule) => rule.laborFormula)).toBe(true);
+    expect(
+      pricing.options.some(
+        (option) =>
+          option.scopes.length === 1 &&
+          option.scopes[0] === 'PARTIAL' &&
+          option.priceCents === null &&
+          option.priceCoefficientKeys.length > 0,
+      ),
+    ).toBe(true);
+  });
+
+  it('builds a partial draft', () => {
+    expect(makePartialDraft().object.scope).toBe('PARTIAL');
   });
 });

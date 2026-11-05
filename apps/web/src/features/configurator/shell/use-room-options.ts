@@ -9,9 +9,11 @@ import { useDraft } from '@/stores/draft';
 export function useRoomOptions(room: DraftRoom) {
   const engineering = useEngineering();
   const options = engineering.data?.options;
+  const scope = useDraft((state) => state.object.scope);
+  const chosen = useDraft((state) => state.options);
   return useMemo(
-    () => roomOptionsFor(options ?? [], room.roomTypeCode),
-    [options, room.roomTypeCode],
+    () => roomOptionsFor(options ?? [], room.roomTypeCode, scope, chosen),
+    [options, room.roomTypeCode, scope, chosen],
   );
 }
 

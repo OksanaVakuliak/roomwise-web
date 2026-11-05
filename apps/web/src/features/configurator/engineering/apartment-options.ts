@@ -1,4 +1,5 @@
 import type { PricingData } from '@roomwise/calc-engine';
+import type { OptionScope } from '@/lib/engine/room-options';
 
 type PricedOption = PricingData['options'][number];
 
@@ -20,6 +21,7 @@ export function apartmentOptions(
   texts: readonly OptionText[] | undefined,
   pricingOptions: readonly PricedOption[],
   kind: 'ENGINEERING' | 'ADDITIONAL',
+  scope: OptionScope,
   chosen: Readonly<Record<string, unknown>>,
 ): ApartmentOption[] {
   const priced = new Map(pricingOptions.map((o) => [o.id, o]));
@@ -30,7 +32,8 @@ export function apartmentOptions(
       text.kind !== kind ||
       text.perRoom ||
       text.code === 'HEATED_FLOOR' ||
-      (price.available === false && chosen[text.id] === undefined)
+      ((price.available === false || !price.scopes.includes(scope)) &&
+        chosen[text.id] === undefined)
     ) {
       return [];
     }

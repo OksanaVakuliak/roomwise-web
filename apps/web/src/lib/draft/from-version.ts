@@ -46,6 +46,7 @@ function toDraftOptions(
 
 function toSavedConfiguration(source: VersionConfiguration): Configuration {
   return {
+    scope: source.scope ?? 'FULL',
     finishLevel: source.finishLevel,
     totalAreaSqm: source.totalAreaSqm,
     balconyAreaSqm: source.balconyAreaSqm,
@@ -89,6 +90,7 @@ export function fromVersion(
     step: 'result',
     furthestStep: 'result',
     object: {
+      scope: configuration.scope ?? 'FULL',
       finishLevel: configuration.finishLevel,
       totalAreaSqm: configuration.totalAreaSqm,
       balcony: {

@@ -4,6 +4,7 @@ import {
   makeDraftRoom,
   makeEmptyDraft,
   makeInteriorDraft,
+  makePartialDraft,
   makePricingData,
   productIds,
 } from '@/test/fixtures';
@@ -43,6 +44,37 @@ describe('toConfiguration object fields', () => {
     const draft = withObject({ totalAreaSqm });
     expect(toConfiguration(draft, pricing, preview)).toBeNull();
     expect(reasonOf(draft)).toBe('TOTAL_AREA');
+  });
+
+  it('does not require a style for completeness', () => {
+    const draft = makeInteriorDraft({ styleId: null });
+    expect(reasonOf(draft)).toBeUndefined();
+    expect(toConfiguration(draft, pricing, strict)).not.toBeNull();
+  });
+
+  it('sends a null total area and skips its check for a PARTIAL scope', () => {
+    for (const totalAreaSqm of [
+      62,
+      null,
+      pricing.limits.totalAreaSqm.max + 1,
+    ]) {
+      const base = makePartialDraft();
+      const draft = { ...base, object: { ...base.object, totalAreaSqm } };
+      expect(reasonOf(draft)).toBeUndefined();
+      expect(toConfiguration(draft, pricing, strict)).toMatchObject({
+        scope: 'PARTIAL',
+        totalAreaSqm: null,
+      });
+      expect(toConfiguration(draft, pricing, preview)).toMatchObject({
+        totalAreaSqm: null,
+      });
+    }
+  });
+
+  it('keeps the FULL scope and its total area', () => {
+    expect(toConfiguration(makeInteriorDraft(), pricing, strict)).toMatchObject(
+      { scope: 'FULL', totalAreaSqm: expect.any(Number) },
+    );
   });
 
   it('accepts the exact limit values', () => {
@@ -446,7 +478,6 @@ describe('toConfiguration strict', () => {
       withObject({ balcony: { present: true, areaSqm: null, tiles: true } }),
       'BALCONY_AREA',
     ],
-    ['no style', makeInteriorDraft({ styleId: null }), 'STYLE'],
     ['empty draft', makeEmptyDraft(), 'FINISH_LEVEL'],
   ])('throws for %s', (_, draft, reason) => {
     expect(reasonOf(draft)).toBe(reason);

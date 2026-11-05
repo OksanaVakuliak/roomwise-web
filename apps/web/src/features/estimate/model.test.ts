@@ -65,8 +65,10 @@ describe('buildEstimateModel', () => {
     const { estimate, model } = build(makeInteriorDraft());
     const { sections } = estimate.totals;
     expect(model.materials.subtotal).toEqual({
-      usdCents: sections.MATERIALS.usdCents,
-      uahKopecks: sections.MATERIALS.uahKopecks,
+      usdCents: sections.MATERIALS.usdCents + sections.OBJECT.usdCents,
+      uahKopecks:
+        (sections.MATERIALS.uahKopecks ?? 0) +
+        (sections.OBJECT.uahKopecks ?? 0),
     });
     expect(model.engineering.subtotal).toEqual({
       usdCents: sections.ENGINEERING.usdCents,
@@ -77,29 +79,31 @@ describe('buildEstimateModel', () => {
       uahKopecks: sections.ADDITIONAL.uahKopecks,
     });
     expect(model.base.subtotal).toEqual({
-      usdCents: sections.BASE.usdCents + sections.OBJECT.usdCents,
-      uahKopecks:
-        (sections.BASE.uahKopecks ?? 0) + (sections.OBJECT.uahKopecks ?? 0),
+      usdCents: sections.BASE.usdCents,
+      uahKopecks: sections.BASE.uahKopecks,
     });
     expect(model.materials.subtotal).toEqual(
-      sum(model.materials.rooms.flatMap((room) => room.lines)),
+      sum(
+        [...model.materials.rooms, model.materials.balcony].flatMap(
+          (room) => room?.lines ?? [],
+        ),
+      ),
     );
     for (const room of model.materials.rooms) {
       expect(room.subtotal).toEqual(sum(room.lines));
     }
   });
 
-  it('keeps object lines apart from base lines inside the base section', () => {
+  it('keeps BASE lines in base and OBJECT lines in a materials balcony group', () => {
     const { model } = build(makeInteriorDraft());
     expect(model.base.lines.every((line) => line.section === 'BASE')).toBe(
       true,
     );
     expect(model.base.lines.length).toBeGreaterThan(0);
-    expect(model.base.objectLines.length).toBeGreaterThan(0);
-    expect(
-      model.base.objectLines.every((line) => line.section === 'OBJECT'),
-    ).toBe(true);
-    expect(model.base.objectLines[0]?.title).toMatch(/^Rule /);
+    const group = model.materials.balcony;
+    expect(group?.roomClientId).toBe('OBJECT');
+    expect(group?.lines.every((line) => line.section === 'OBJECT')).toBe(true);
+    expect(group?.lines[0]?.title).toMatch(/^Rule /);
   });
 
   it('orders rooms by the draft and names them', () => {
@@ -153,7 +157,8 @@ describe('buildEstimateModel', () => {
     expect(line?.amountCents).toBe(0);
     expect(room?.lines.filter((item) => item.disabled)).toHaveLength(1);
     expect(model.materials.subtotal?.usdCents).toBe(
-      estimate.totals.sections.MATERIALS.usdCents,
+      estimate.totals.sections.MATERIALS.usdCents +
+        estimate.totals.sections.OBJECT.usdCents,
     );
   });
 

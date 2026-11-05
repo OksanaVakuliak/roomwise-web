@@ -59,6 +59,50 @@ describe('OptionList', () => {
     expect(useDraft.getState().options).toEqual({});
   });
 
+  it('prices a coefficient option from the pricing coefficients', async () => {
+    const base = makePricingData();
+    await renderList(
+      'ENGINEERING',
+      makePricingData({
+        options: base.options.map((option) =>
+          option.id === 'opt-ac'
+            ? {
+                ...option,
+                priceCents: null,
+                priceCoefficientKeys: ['tile_glue'],
+              }
+            : option,
+        ),
+      }),
+    );
+
+    expect(
+      screen.getByRole('switch', { name: 'Air conditioner' }),
+    ).toHaveAccessibleDescription(/\$10(\.00)? per piece/);
+  });
+
+  it('says the price is not set when a coefficient is missing', async () => {
+    const base = makePricingData();
+    await renderList(
+      'ENGINEERING',
+      makePricingData({
+        options: base.options.map((option) =>
+          option.id === 'opt-ac'
+            ? {
+                ...option,
+                priceCents: null,
+                priceCoefficientKeys: ['missing_key'],
+              }
+            : option,
+        ),
+      }),
+    );
+
+    expect(
+      screen.getByRole('switch', { name: 'Air conditioner' }),
+    ).toHaveAccessibleDescription(/price not set/);
+  });
+
   it('shows a quantity stepper starting at the minimum for a piece option', async () => {
     await renderList();
 

@@ -41,6 +41,8 @@ export const roomTypeIds = {
   KITCHEN: 'rt-kitchen',
   KITCHEN_LIVING: 'rt-kitchen-living',
   BATHROOM: 'rt-bathroom',
+  HALLWAY: 'rt-hallway',
+  STORAGE: 'rt-storage',
 } as const;
 
 type RoomTypeCode = keyof typeof roomTypeIds;
@@ -51,6 +53,8 @@ const roomTypeNames: Record<RoomTypeCode, string> = {
   KITCHEN: 'Kitchen',
   KITCHEN_LIVING: 'Kitchen-living room',
   BATHROOM: 'Bathroom',
+  HALLWAY: 'Hallway',
+  STORAGE: 'Storage room',
 };
 
 const productDisplay: Record<
@@ -346,6 +350,8 @@ export function makeEngineering(
         roomTypeCodes: ['LIVING_ROOM', 'BEDROOM', 'KITCHEN'],
         minQuantity: 1,
         maxQuantity: 10,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
       },
       {
         id: 'opt-heated-floor',
@@ -360,6 +366,8 @@ export function makeEngineering(
         roomTypeCodes: ['BATHROOM', 'KITCHEN'],
         minQuantity: null,
         maxQuantity: null,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
       },
       {
         id: 'opt-soundproofing',
@@ -374,6 +382,24 @@ export function makeEngineering(
         roomTypeCodes: [],
         minQuantity: null,
         maxQuantity: null,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
+      },
+      {
+        id: 'opt-smart-panel',
+        code: null,
+        kind: 'ENGINEERING',
+        name: 'Smart control panel',
+        description: 'Wall panel for lighting and climate scenes.',
+        image: null,
+        priceCents: null,
+        unit: 'PIECE',
+        perRoom: false,
+        roomTypeCodes: [],
+        minQuantity: null,
+        maxQuantity: null,
+        priceCoefficientKeys: ['smart_panel'],
+        scopes: ['PARTIAL'],
       },
       {
         id: 'opt-design',
@@ -388,6 +414,8 @@ export function makeEngineering(
         roomTypeCodes: [],
         minQuantity: null,
         maxQuantity: null,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
       },
       {
         id: 'opt-smart-switches',
@@ -402,6 +430,8 @@ export function makeEngineering(
         roomTypeCodes: Object.keys(roomTypeIds) as RoomTypeCode[],
         minQuantity: null,
         maxQuantity: null,
+        priceCoefficientKeys: [],
+        scopes: ['FULL', 'PARTIAL'],
       },
     ],
     ...overrides,

@@ -11,6 +11,7 @@ import { usePricingData } from '@/stores/pricing-data';
 import { axe } from '@/test/axe';
 import {
   type DraftV1,
+  makeDraftRoom,
   makeEmptyDraft,
   makeInteriorDraft,
 } from '@/test/fixtures/draft';
@@ -143,8 +144,8 @@ describe('CostPanel', () => {
     expect(row(t.materials)).not.toHaveTextContent('0');
   });
 
-  it('shows a dash for materials until a style is chosen', () => {
-    renderPanel(makeInteriorDraft({ styleId: null }));
+  it('shows a dash for materials until a product is chosen', () => {
+    renderPanel(makeInteriorDraft({ rooms: [makeDraftRoom()] }));
     expect(row(en.CostPanel.materials)).toHaveTextContent('—');
   });
 

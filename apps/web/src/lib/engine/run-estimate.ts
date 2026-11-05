@@ -71,6 +71,14 @@ function blockedLines(
   return { lineIds, sections, total };
 }
 
+function hasChosenProduct(draft: DraftV1): boolean {
+  return draft.rooms.some((room) =>
+    Object.values(room.selections).some(
+      (selection) => selection?.productId != null && !selection.disabled,
+    ),
+  );
+}
+
 function compute(input: RunEstimateInput): RunEstimateResult {
   const { draft, pricing, currency } = input;
   const configuration = toConfiguration(draft, pricing, {
@@ -97,7 +105,7 @@ function compute(input: RunEstimateInput): RunEstimateResult {
     panel: toCostPanelView(estimate, {
       blockedSections: blocked.sections,
       totalBlocked: blocked.total,
-      materialsReady: draft.styleId !== null,
+      materialsReady: hasChosenProduct(draft),
     }),
   };
 }

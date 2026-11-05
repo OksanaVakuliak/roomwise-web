@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useId, useMemo } from 'react';
 import { SectionHeader, Stepper, SwitchRow } from '@/components/ui';
 import { useEngineering } from '@/lib/api/catalog';
+import { optionUnitPriceCents } from '@/lib/engine/option-price';
 import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../../shell/use-room-pricing';
 import { type ApartmentOption, apartmentOptions } from '../apartment-options';
@@ -52,14 +53,17 @@ function OptionItem({ kind, pricing, option }: OptionItemProps) {
   const quantity = chosen?.quantity ?? bounds.min;
   const valid = isQuantityValid(quantity, bounds);
   const line = on && valid ? pricing.line(`${kind}:option:${option.id}`) : null;
+  const unitCents = optionUnitPriceCents(option, pricing.pricing.coefficients);
   const cost =
     option.available === false
       ? t('unavailable')
       : line && line.status === 'OK'
         ? pricing.formatLine(line)
-        : t(`price.${piece ? 'PIECE' : 'PROJECT'}`, {
-            price: pricing.formatUnitPrice(option.priceCents),
-          });
+        : unitCents === null
+          ? t('price.UNKNOWN')
+          : t(`price.${piece ? 'PIECE' : 'PROJECT'}`, {
+              price: pricing.formatUnitPrice(unitCents),
+            });
   const error = valid
     ? undefined
     : bounds.max === undefined
@@ -95,10 +99,11 @@ export function OptionList({ kind, title, pricing }: OptionListProps) {
   const headingId = useId();
   const texts = useEngineering().data?.options;
   const chosen = useDraft((state) => state.options);
+  const scope = useDraft((state) => state.object.scope);
   const pricingOptions = pricing.pricing.options;
   const options = useMemo(
-    () => apartmentOptions(texts, pricingOptions, kind, chosen),
-    [texts, pricingOptions, kind, chosen],
+    () => apartmentOptions(texts, pricingOptions, kind, scope, chosen),
+    [texts, pricingOptions, kind, scope, chosen],
   );
 
   if (options.length === 0) {

@@ -78,6 +78,7 @@ describe('errorMessageKey', () => {
     'IDEMPOTENCY_KEY_REUSED',
     'IDEMPOTENCY_KEY_CONFLICT',
     'PHONE_INVALID',
+    'EMPTY_ESTIMATE',
   ])('recognises the %s code', (code) => {
     expect(BACKEND_ERROR_CODES).toContain(code);
     expect(parseApiError({ error: { code } })).toEqual({ code });
@@ -114,6 +115,9 @@ describe('errorMessageKey', () => {
 describe('estimate message keys', () => {
   it('maps known line error codes to themselves and others to generic', () => {
     expect(lineErrorKey('RULE_NOT_FOUND')).toBe('RULE_NOT_FOUND');
+    expect(lineErrorKey('OPTION_SCOPE_NOT_ALLOWED')).toBe(
+      'OPTION_SCOPE_NOT_ALLOWED',
+    );
     expect(lineErrorKey('FORMULA_DIVISION_BY_ZERO')).toBe('generic');
   });
 
@@ -121,6 +125,8 @@ describe('estimate message keys', () => {
     expect(warningKey('ROOMS_AREA_EXCEEDS_TOTAL')).toBe(
       'ROOMS_AREA_EXCEEDS_TOTAL',
     );
+    expect(warningKey('ROOMS_AREA_BELOW_TOTAL')).toBe('ROOMS_AREA_BELOW_TOTAL');
+    expect(warningKey('LABOR_RATE_MISSING')).toBe('LABOR_RATE_MISSING');
     expect(warningKey('SOMETHING_NEW')).toBe('generic');
   });
 

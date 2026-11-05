@@ -1,3 +1,5 @@
+export type OptionScope = 'FULL' | 'PARTIAL';
+
 export const HEATED_FLOOR_CODE = 'HEATED_FLOOR';
 
 export type RoomOptionLike = {
@@ -6,6 +8,7 @@ export type RoomOptionLike = {
   perRoom: boolean;
   roomTypeCodes: readonly string[];
   available?: boolean;
+  scopes: readonly OptionScope[];
 };
 
 export function isOptionAllowedForRoom(
@@ -19,9 +22,11 @@ export function isOptionAllowedForRoom(
   );
 }
 
-export function roomOptionsFor<T extends RoomOptionLike>(
+export function roomOptionsFor<T extends RoomOptionLike & { id: string }>(
   options: readonly T[],
   roomTypeCode: string | null,
+  scope: OptionScope,
+  chosen: Readonly<Record<string, unknown>>,
 ): T[] {
   if (roomTypeCode === null) {
     return [];
@@ -31,6 +36,7 @@ export function roomOptionsFor<T extends RoomOptionLike>(
       option.kind === 'ENGINEERING' &&
       option.perRoom &&
       option.code !== HEATED_FLOOR_CODE &&
-      isOptionAllowedForRoom(option, roomTypeCode),
+      isOptionAllowedForRoom(option, roomTypeCode) &&
+      (option.scopes.includes(scope) || chosen[option.id] !== undefined),
   );
 }

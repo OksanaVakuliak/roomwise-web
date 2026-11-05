@@ -10,6 +10,7 @@ const base = {
   kind: 'ENGINEERING',
   perRoom: true,
   roomTypeCodes: [] as string[],
+  scopes: ['FULL', 'PARTIAL'] as ('FULL' | 'PARTIAL')[],
 };
 
 describe('isOptionAllowedForRoom', () => {
@@ -44,14 +45,29 @@ describe('roomOptionsFor', () => {
   ];
 
   it('keeps allowed per-room engineering options without heated floor', () => {
-    expect(roomOptionsFor(options, 'BEDROOM').map((o) => o.id)).toEqual(['a']);
-    expect(roomOptionsFor(options, 'BATHROOM').map((o) => o.id)).toEqual([
-      'a',
-      'b',
-    ]);
+    expect(
+      roomOptionsFor(options, 'BEDROOM', 'FULL', {}).map((o) => o.id),
+    ).toEqual(['a']);
+    expect(
+      roomOptionsFor(options, 'BATHROOM', 'FULL', {}).map((o) => o.id),
+    ).toEqual(['a', 'b']);
   });
 
   it('returns nothing without a room type', () => {
-    expect(roomOptionsFor(options, null)).toEqual([]);
+    expect(roomOptionsFor(options, null, 'FULL', {})).toEqual([]);
+  });
+
+  it('hides options outside the scope unless chosen', () => {
+    const scoped = [
+      { ...base, id: 'a', scopes: ['FULL' as const] },
+      { ...base, id: 'b', scopes: ['FULL' as const] },
+      { ...base, id: 'c' },
+    ];
+    expect(
+      roomOptionsFor(scoped, 'BEDROOM', 'PARTIAL', { b: {} }).map((o) => o.id),
+    ).toEqual(['b', 'c']);
+    expect(
+      roomOptionsFor(scoped, 'BEDROOM', 'FULL', {}).map((o) => o.id),
+    ).toEqual(['a', 'b', 'c']);
   });
 });

@@ -10,7 +10,7 @@ import {
   SwitchRow,
 } from '@/components/ui';
 import { cx } from '@/lib/cx';
-import type { DraftV1 } from '@/lib/draft/schema';
+import { FINISH_LABEL, type FinishLevel } from '@/lib/draft/finish-level';
 import { parseDecimal, useDecimalText } from '@/lib/form';
 import { useDraft } from '@/stores/draft';
 import { type ObjectFieldId, objectFieldDomId } from './field-ids';
@@ -23,14 +23,7 @@ export type ObjectFormProps = {
   className?: string;
 };
 
-type FinishLevel = NonNullable<DraftV1['object']['finishLevel']>;
-
 const FINISH_LEVELS: readonly FinishLevel[] = ['ROUGH', 'PRE_FINISH'];
-
-const FINISH_LABEL = {
-  ROUGH: 'finishRough',
-  PRE_FINISH: 'finishPre',
-} as const satisfies Record<FinishLevel, string>;
 
 export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
   const t = useTranslations('ObjectStep.form');

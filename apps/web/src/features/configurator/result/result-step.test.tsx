@@ -209,7 +209,7 @@ describe('result step', () => {
       await renderResult({ draft, currency });
 
       const rows = estimate.lines.filter(
-        (line) => line.section === 'MATERIALS',
+        (line) => line.section === 'MATERIALS' || line.section === 'OBJECT',
       );
       const sum = rows.reduce(
         (acc, line) =>
@@ -220,8 +220,10 @@ describe('result step', () => {
       );
       expect(sum).toBe(
         field === 'usdCents'
-          ? estimate.totals.sections.MATERIALS.usdCents
-          : estimate.totals.sections.MATERIALS.uahKopecks,
+          ? estimate.totals.sections.MATERIALS.usdCents +
+              estimate.totals.sections.OBJECT.usdCents
+          : (estimate.totals.sections.MATERIALS.uahKopecks ?? 0) +
+              (estimate.totals.sections.OBJECT.uahKopecks ?? 0),
       );
       expectText(
         amountOf(sectionOf('Materials')),
@@ -468,6 +470,17 @@ describe('result step', () => {
     expect(object.getByText('62 m²')).toBeInTheDocument();
     expect(object.getByText('Balcony')).toBeInTheDocument();
     expect(object.getByText('Modern')).toBeInTheDocument();
+  });
+
+  it('names the lived-in finish level', async () => {
+    const draft = withOptions(makeDraft());
+    await renderResult({
+      draft: { ...draft, object: { ...draft.object, finishLevel: 'LIVED_IN' } },
+    });
+
+    expect(
+      within(sectionOf('Object and style')).getByText('Lived-in'),
+    ).toBeInTheDocument();
   });
 
   it('shows a loading state until the pricing data arrives', async () => {

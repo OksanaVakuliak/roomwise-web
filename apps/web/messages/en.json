@@ -603,6 +603,7 @@
     "IDEMPOTENCY_KEY_REUSED": "This request key was already used with different data",
     "IDEMPOTENCY_KEY_CONFLICT": "The same request is already being processed",
     "PHONE_INVALID": "Enter a valid phone number",
+    "EMPTY_ESTIMATE": "Choose at least one item to calculate",
     "unknown": "Something went wrong",
     "network": "Cannot reach the server"
   },
@@ -617,13 +618,15 @@
     "lineError": {
       "PRODUCT_UNAVAILABLE": "The product is unavailable",
       "RULE_NOT_FOUND": "No pricing rule for this item",
-      "BASE_RATE_NOT_FOUND": "No base rate for this item",
+      "OPTION_SCOPE_NOT_ALLOWED": "Not available for this renovation type",
       "generic": "Could not be calculated"
     },
     "warning": {
       "HEATED_FLOOR_INCOMPATIBLE": "Heated floor is not compatible with the chosen floor",
       "OPTION_ROOM_TYPE_NOT_ALLOWED": "This option is not available for the room type",
       "ROOMS_AREA_EXCEEDS_TOTAL": "Rooms exceed the total area by {diff} m²",
+      "ROOMS_AREA_BELOW_TOTAL": "Rooms are {missingSqm} m² smaller than the total area",
+      "LABOR_RATE_MISSING": "Labor price is not set",
       "EXCHANGE_RATE_UNAVAILABLE": "Exchange rate is unavailable, amounts are shown in USD",
       "generic": "Check the estimate: some values may be inaccurate"
     },
@@ -883,6 +886,7 @@
       "finishLevel": "Finish level",
       "finishRough": "Rough",
       "finishPre": "Pre-finish",
+      "finishLivedIn": "Lived-in",
       "totalArea": "Total area",
       "balcony": "Balcony",
       "balconyArea": "Balcony area",
@@ -925,7 +929,6 @@
       "roomsOnly": "Rooms: {rooms} m²"
     },
     "planCost": {
-      "base": "Base cost: {area} m² × {price} = {amount}",
       "objectLine": "{name}: {amount}"
     }
   },
@@ -1014,7 +1017,7 @@
   "EstimateBreakdown": {
     "sections": {
       "base": "Base renovation",
-      "object": "Object-level work",
+      "balcony": "Balcony",
       "materials": "Materials",
       "engineering": "Engineering",
       "additional": "Additional"
@@ -1189,7 +1192,8 @@
       "PIECE": "{price} per piece",
       "PROJECT": "{price} per project",
       "ROOM": "{price} per room",
-      "ROOM_SQM": "{price} per m²"
+      "ROOM_SQM": "{price} per m²",
+      "UNKNOWN": "price not set"
     },
     "unavailable": "No longer available",
     "quantity": "Quantity: {name}",

@@ -46,10 +46,14 @@ const texts = [
 describe('apartmentOptions', () => {
   it('keeps only rendered apartment options of the kind', () => {
     expect(
-      apartmentOptions(texts, options, 'ENGINEERING', {}).map((o) => o.id),
+      apartmentOptions(texts, options, 'ENGINEERING', 'FULL', {}).map(
+        (o) => o.id,
+      ),
     ).toEqual(['opt-ac']);
     expect(
-      apartmentOptions(texts, options, 'ADDITIONAL', {}).map((o) => o.id),
+      apartmentOptions(texts, options, 'ADDITIONAL', 'FULL', {}).map(
+        (o) => o.id,
+      ),
     ).toEqual(['opt-design']);
   });
 
@@ -57,15 +61,38 @@ describe('apartmentOptions', () => {
     const unavailable = options.map((o) =>
       o.id === 'opt-ac' ? { ...o, available: false } : o,
     );
-    expect(apartmentOptions(texts, unavailable, 'ENGINEERING', {})).toEqual([]);
     expect(
-      apartmentOptions(texts, unavailable, 'ENGINEERING', { 'opt-ac': {} }).map(
+      apartmentOptions(texts, unavailable, 'ENGINEERING', 'FULL', {}),
+    ).toEqual([]);
+    expect(
+      apartmentOptions(texts, unavailable, 'ENGINEERING', 'FULL', {
+        'opt-ac': {},
+      }).map((o) => o.id),
+    ).toEqual(['opt-ac']);
+  });
+
+  it('hides an option outside the scope unless it is chosen', () => {
+    const fullOnly = options.map((o) =>
+      o.id === 'opt-ac' ? { ...o, scopes: ['FULL' as const] } : o,
+    );
+    expect(
+      apartmentOptions(texts, fullOnly, 'ENGINEERING', 'FULL', {}).map(
         (o) => o.id,
       ),
+    ).toEqual(['opt-ac']);
+    expect(
+      apartmentOptions(texts, fullOnly, 'ENGINEERING', 'PARTIAL', {}),
+    ).toEqual([]);
+    expect(
+      apartmentOptions(texts, fullOnly, 'ENGINEERING', 'PARTIAL', {
+        'opt-ac': {},
+      }).map((o) => o.id),
     ).toEqual(['opt-ac']);
   });
 
   it('returns an empty list without texts', () => {
-    expect(apartmentOptions(undefined, options, 'ENGINEERING', {})).toEqual([]);
+    expect(
+      apartmentOptions(undefined, options, 'ENGINEERING', 'FULL', {}),
+    ).toEqual([]);
   });
 });

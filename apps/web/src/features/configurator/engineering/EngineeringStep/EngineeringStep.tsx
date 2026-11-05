@@ -36,10 +36,10 @@ export function EngineeringStep() {
     if (!pricingOptions) {
       return null;
     }
-    const chosen = useDraft.getState().options;
+    const { options: chosen, object } = useDraft.getState();
     const texts = engineeringQuery.data?.options;
     const rendered = (['ENGINEERING', 'ADDITIONAL'] as const).flatMap((kind) =>
-      apartmentOptions(texts, pricingOptions, kind, chosen),
+      apartmentOptions(texts, pricingOptions, kind, object.scope, chosen),
     );
     return firstInvalidQuantityId(rendered, chosen);
   });

@@ -603,6 +603,7 @@
     "IDEMPOTENCY_KEY_REUSED": "Цей ключ запиту вже використано з іншими даними",
     "IDEMPOTENCY_KEY_CONFLICT": "Такий самий запит уже обробляється",
     "PHONE_INVALID": "Введіть коректний номер телефону",
+    "EMPTY_ESTIMATE": "Оберіть хоча б одну позицію для розрахунку",
     "unknown": "Щось пішло не так",
     "network": "Немає зв'язку із сервером"
   },
@@ -617,13 +618,15 @@
     "lineError": {
       "PRODUCT_UNAVAILABLE": "Товар недоступний",
       "RULE_NOT_FOUND": "Немає правила розрахунку для цієї позиції",
-      "BASE_RATE_NOT_FOUND": "Немає базової ставки для цієї позиції",
+      "OPTION_SCOPE_NOT_ALLOWED": "Недоступно для цього виду ремонту",
       "generic": "Не вдалося розрахувати"
     },
     "warning": {
       "HEATED_FLOOR_INCOMPATIBLE": "Тепла підлога несумісна з обраною підлогою",
       "OPTION_ROOM_TYPE_NOT_ALLOWED": "Ця опція недоступна для типу кімнати",
       "ROOMS_AREA_EXCEEDS_TOTAL": "Кімнати перевищують загальну площу на {diff} м²",
+      "ROOMS_AREA_BELOW_TOTAL": "Площа приміщень менша за загальну на {missingSqm} м²",
+      "LABOR_RATE_MISSING": "Ціну роботи не задано",
       "EXCHANGE_RATE_UNAVAILABLE": "Курс валют недоступний, суми показано в доларах",
       "generic": "Перевірте розрахунок: деякі значення можуть бути неточними"
     },
@@ -883,6 +886,7 @@
       "finishLevel": "Стан здачі",
       "finishRough": "Чорнова",
       "finishPre": "Передчистова",
+      "finishLivedIn": "Житловий стан",
       "totalArea": "Загальна площа",
       "balcony": "Балкон",
       "balconyArea": "Площа балкона",
@@ -925,7 +929,6 @@
       "roomsOnly": "Приміщення: {rooms} м²"
     },
     "planCost": {
-      "base": "Базова вартість: {area} м² × {price} = {amount}",
       "objectLine": "{name}: {amount}"
     }
   },
@@ -1014,7 +1017,7 @@
   "EstimateBreakdown": {
     "sections": {
       "base": "Базовий ремонт",
-      "object": "Роботи на рівні об'єкта",
+      "balcony": "Балкон",
       "materials": "Матеріали",
       "engineering": "Інженерія",
       "additional": "Додатково"
@@ -1189,7 +1192,8 @@
       "PIECE": "{price} за штуку",
       "PROJECT": "{price} за проєкт",
       "ROOM": "{price} за приміщення",
-      "ROOM_SQM": "{price} за м²"
+      "ROOM_SQM": "{price} за м²",
+      "UNKNOWN": "ціну не задано"
     },
     "unavailable": "Більше недоступно",
     "quantity": "Кількість: {name}",
