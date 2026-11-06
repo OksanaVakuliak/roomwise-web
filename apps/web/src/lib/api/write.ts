@@ -1,5 +1,12 @@
-import { selectWarmupStatus, startWarmup, useWarmup } from '@/lib/warmup';
+import {
+  rewarm,
+  selectWarmupStatus,
+  startWarmup,
+  useWarmup,
+} from '@/lib/warmup';
+import { parseApiError } from './errors';
 import { ApiRequestError } from './request-error';
+import { isServerUnavailable } from './server-unavailable';
 
 export const DEFAULT_RETRY_AFTER_SECONDS = 60;
 
@@ -61,11 +68,20 @@ async function attempt<T>(
   idempotencyKey: string,
 ): Promise<WriteResult<T>> {
   await waitUntilReady();
+  let result: WriteResult<T>;
   try {
-    return await send(idempotencyKey);
+    result = await send(idempotencyKey);
   } catch {
     throw networkFailure();
   }
+  if (
+    result.data === undefined &&
+    isServerUnavailable(result.response.status, parseApiError(result.error))
+  ) {
+    rewarm();
+    throw networkFailure();
+  }
+  return result;
 }
 
 async function sendWithRetry<T>(

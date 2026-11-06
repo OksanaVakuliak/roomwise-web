@@ -110,6 +110,18 @@ export function startWarmup(): void {
   beginWindow();
 }
 
+export function rewarm(): void {
+  const { server, network } = useWarmup.getState();
+  if (server === 'warming' || server === 'failed') {
+    return;
+  }
+  if (network === 'offline') {
+    useWarmup.setState({ server: 'warming' });
+    return;
+  }
+  beginWindow();
+}
+
 export async function retryWarmup(): Promise<void> {
   const { server, network } = useWarmup.getState();
   if (server === 'ready') {

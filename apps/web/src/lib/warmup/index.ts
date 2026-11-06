@@ -4,6 +4,7 @@ export {
   type NetworkState,
   resetWarmup,
   retryWarmup,
+  rewarm,
   type ServerState,
   selectWarmupStatus,
   startWarmup,
