@@ -76,6 +76,10 @@ test('keyboard-only main flow', async ({ page, browser }) => {
     .getByRole('region', { name: messages.EngineeringStep.apartmentTitle })
     .getByRole('switch');
   if ((await apartmentSwitches.count()) > 0) {
+    const checkedSwitches = apartmentSwitches.and(
+      page.getByRole('switch', { checked: true }),
+    );
+    const checkedBefore = await checkedSwitches.count();
     await tabTo(
       page,
       apartmentSwitches
@@ -83,9 +87,7 @@ test('keyboard-only main flow', async ({ page, browser }) => {
         .first(),
     );
     await page.keyboard.press('Space');
-    await expect(
-      apartmentSwitches.and(page.getByRole('switch', { checked: true })),
-    ).toHaveCount(1);
+    await expect(checkedSwitches).toHaveCount(checkedBefore + 1);
   }
   await press(page, messages.Configurator.next);
   await expect(page).toHaveURL(/\/configurator\/style$/);
