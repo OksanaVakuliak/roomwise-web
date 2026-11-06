@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { catalogRoots } from '@/lib/api/catalog';
+import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
 import { checkPricingData, usePricingData } from './pricing-data';
 
 export const PRICING_DATA_RECHECK_MS = 30_000;
@@ -17,7 +18,18 @@ export function usePricingDataSync(): void {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    void checkPricingData();
+    let initialPending = true;
+    function checkWhenReady() {
+      if (selectWarmupStatus(useWarmup.getState()) !== 'ready') {
+        return;
+      }
+      if (initialPending || usePricingData.getState().status === 'error') {
+        initialPending = false;
+        void checkPricingData();
+      }
+    }
+    checkWhenReady();
+    const unsubscribeWarmup = useWarmup.subscribe(checkWhenReady);
 
     function onVisibilityChange() {
       if (document.visibilityState !== 'visible') {
@@ -42,6 +54,7 @@ export function usePricingDataSync(): void {
     });
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange);
+      unsubscribeWarmup();
       unsubscribe();
     };
   }, [queryClient]);

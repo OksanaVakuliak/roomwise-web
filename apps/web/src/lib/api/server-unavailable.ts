@@ -4,7 +4,7 @@ const GATEWAY_STATUSES: ReadonlySet<number> = new Set([502, 503, 504]);
 
 export const isServerUnavailable = (
   status: number,
-  apiError?: ApiError,
+  apiError: ApiError,
 ): boolean =>
   GATEWAY_STATUSES.has(status) ||
-  (status === 500 && (apiError === undefined || apiError.code === 'unknown'));
+  (status === 500 && apiError.code === 'unknown');

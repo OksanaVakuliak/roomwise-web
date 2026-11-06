@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '@/lib/api/client';
 import {
   installNetworkListeners,
-  REWARM_COOLDOWN_MS,
   resetWarmup,
   retryWarmup,
   rewarm,
@@ -167,34 +166,47 @@ describe('warmup', () => {
     expect(status()).toBe('failed');
   });
 
-  it('rewarm opens a new window from ready', async () => {
+  it('rewarm opens a new window when health fails after ready', async () => {
     get.mockResolvedValue(up);
     startWarmup();
     await vi.advanceTimersByTimeAsync(0);
     expect(status()).toBe('ready');
     get.mockReset();
     get.mockResolvedValue(down);
-    await vi.advanceTimersByTimeAsync(REWARM_COOLDOWN_MS);
 
-    rewarm();
+    await rewarm();
 
     expect(status()).toBe('warming');
-    expect(get).toHaveBeenCalledTimes(1);
     get.mockResolvedValue(up);
     await vi.advanceTimersByTimeAsync(WARMUP_RETRY_BASE_MS);
     expect(status()).toBe('ready');
   });
 
-  it('rewarm waits for the cooldown after the server became ready', async () => {
+  it('rewarm stays ready when health answers', async () => {
     get.mockResolvedValue(up);
     startWarmup();
     await vi.advanceTimersByTimeAsync(0);
     get.mockReset();
+    get.mockResolvedValue(up);
+    const states: string[] = [];
+    const unsubscribe = useWarmup.subscribe((state) => {
+      states.push(state.server);
+    });
 
-    rewarm();
+    await rewarm();
 
-    expect(status()).toBe('ready');
-    expect(get).not.toHaveBeenCalled();
+    unsubscribe();
+    expect(states).toEqual([]);
+    expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it('rewarm shares one health check between callers', async () => {
+    useWarmup.setState({ server: 'ready' });
+    get.mockResolvedValue(up);
+
+    await Promise.all([rewarm(), rewarm()]);
+
+    expect(get).toHaveBeenCalledTimes(1);
   });
 
   it('rewarm does not start a second window while warming', () => {

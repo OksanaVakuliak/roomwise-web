@@ -4,9 +4,9 @@ import { resetWarmup, useWarmup } from '@/lib/warmup';
 import { ApiRequestError } from './request-error';
 import { createWriteGate, RateLimitedError } from './write';
 
-vi.mock('@/lib/api/client', () => ({
-  api: { GET: () => Promise.resolve({ response: { ok: true } }) },
-}));
+const health = vi.hoisted(() => vi.fn());
+
+vi.mock('@/lib/api/client', () => ({ api: { GET: health } }));
 
 const ok = (data: unknown) => ({ data, response: { status: 201 } });
 const failure = (status: number, error: unknown) => ({
@@ -19,6 +19,8 @@ const limited = (retryAfterSeconds: unknown) =>
   });
 
 beforeEach(() => {
+  health.mockReset();
+  health.mockResolvedValue({ response: { ok: true } });
   resetWarmup();
   useWarmup.setState({ server: 'ready' });
 });
@@ -154,7 +156,10 @@ describe('createWriteGate', () => {
     expect(send).toHaveBeenCalledTimes(2);
   });
 
-  it('puts warmup back into warming when the proxy answers 503', async () => {
+  it('puts warmup back into warming when the proxy answers 503 and health is down', async () => {
+    health
+      .mockResolvedValueOnce({ response: { ok: false } })
+      .mockResolvedValue({ response: { ok: true } });
     const states: string[] = [];
     const unsubscribe = useWarmup.subscribe((state) => {
       states.push(state.server);
@@ -163,10 +168,25 @@ describe('createWriteGate', () => {
       .fn()
       .mockResolvedValueOnce(failure(503, 'Unavailable'))
       .mockResolvedValueOnce(ok('saved'));
-    await createWriteGate().write(send, 'key-1');
+    await expect(createWriteGate().write(send, 'key-1')).resolves.toBe('saved');
     unsubscribe();
     expect(states[0]).toBe('warming');
     expect(states.at(-1)).toBe('ready');
+  });
+
+  it('stays ready when health answers after a proxy 503', async () => {
+    const states: string[] = [];
+    const unsubscribe = useWarmup.subscribe((state) => {
+      states.push(state.server);
+    });
+    const send = vi
+      .fn()
+      .mockResolvedValueOnce(failure(503, 'Unavailable'))
+      .mockResolvedValueOnce(ok('saved'));
+    await expect(createWriteGate().write(send, 'key-1')).resolves.toBe('saved');
+    unsubscribe();
+    expect(states).toEqual([]);
+    expect(health).toHaveBeenCalledTimes(1);
   });
 
   it('keeps a 500 with an API code as a normal error', async () => {

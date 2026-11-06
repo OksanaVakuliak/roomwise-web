@@ -307,6 +307,19 @@ describe('checkPricingData', () => {
     },
   );
 
+  it('reports a 500 with an API code without rewarming', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: { code: 'INTERNAL' } }), {
+        status: 500,
+      }),
+    );
+
+    await checkPricingData();
+
+    expect(rewarm).not.toHaveBeenCalled();
+    expect(captureException).toHaveBeenCalledTimes(1);
+  });
+
   it('reports other statuses without rewarming', async () => {
     fetchMock.mockResolvedValueOnce(new Response('', { status: 404 }));
 

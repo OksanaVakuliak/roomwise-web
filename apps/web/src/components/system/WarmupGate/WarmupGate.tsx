@@ -77,8 +77,10 @@ export function WarmupGate({ children }: WarmupGateProps) {
   useEffect(() => {
     if (hasOverlay) {
       setOverlayShown(true);
+    } else if (status === 'ready') {
+      setOverlayShown(false);
     }
-  }, [hasOverlay]);
+  }, [hasOverlay, status]);
 
   return (
     <div className={styles.root}>

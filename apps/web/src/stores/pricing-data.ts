@@ -112,9 +112,9 @@ async function run(started: number): Promise<void> {
     if (started === generation) {
       if (
         error instanceof PricingDataRequestError &&
-        isServerUnavailable(error.status)
+        isServerUnavailable(error.status, error.apiError)
       ) {
-        rewarm();
+        void rewarm();
       } else if (!(error instanceof PricingDataNetworkError)) {
         captureException(error);
       }

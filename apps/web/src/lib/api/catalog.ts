@@ -40,7 +40,7 @@ export async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
   if (data === undefined) {
     const failure = new ApiRequestError(response.status, error);
     if (isServerUnavailable(failure.status, failure.apiError)) {
-      rewarm();
+      void rewarm();
     }
     throw failure;
   }
