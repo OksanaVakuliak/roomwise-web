@@ -4,7 +4,7 @@ import { act, screen, within } from '@testing-library/react';
 import type { AnchorHTMLAttributes } from 'react';
 import { Suspense } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import ConfiguratorPage from '@/app/[locale]/configurator/page';
+import ObjectPage from '@/app/[locale]/configurator/object/page';
 import HomePage from '@/app/[locale]/page';
 import { axe } from '@/test/axe';
 import {
@@ -35,7 +35,7 @@ const TABBABLE =
 
 const pages = {
   home: HomePage,
-  configurator: ConfiguratorPage,
+  configurator: ObjectPage,
 } as const;
 
 type PageName = keyof typeof pages;
@@ -135,7 +135,7 @@ describe.each(forEachPage)('page shell: %s', (name) => {
     const regions = order.map(region);
     expect(regions).toEqual([...regions].sort((a, b) => a - b));
     expect(regions).toContain(1);
-    expect(regions).toContain(2);
+    if (name === 'home') expect(regions).toContain(2);
   });
 
   it.each(forEachViewport)(
@@ -156,49 +156,6 @@ describe.each(forEachPage)('page shell: %s', (name) => {
     const { container } = await renderShell(name, locale);
 
     expect(await axe(container)).toHaveNoViolations();
-  });
-});
-
-describe('configurator zones', () => {
-  it.each(forEachViewport)(
-    'keeps steps, content, scene, showcase and cost in reading order at %i px',
-    async (width) => {
-      await renderShell('configurator', 'en', width);
-
-      const steps = screen.getByRole('navigation', {
-        name: en.Configurator.tapeLabel,
-      });
-      const content = screen.getByRole('heading', { level: 1 });
-      const scene = screen.getByRole('region', { name: en.StepLayout.scene });
-      const showcase = screen.getByRole('region', {
-        name: en.StepLayout.showcase,
-      });
-      const cost = screen.getByRole('region', { name: en.StepLayout.cost });
-      const zones = [steps, content, scene, showcase, cost];
-
-      for (const [index, zone] of zones.entries()) {
-        for (const later of zones.slice(index + 1)) {
-          expect(precedes(zone, later)).toBe(true);
-          expect(zone.contains(later)).toBe(false);
-          expect(later.contains(zone)).toBe(false);
-        }
-      }
-    },
-  );
-
-  it('reaches the cost actions after every other control in the page body', async () => {
-    await renderShell('configurator');
-
-    const main = screen.getByRole('main');
-    const cost = screen.getByRole('region', { name: en.StepLayout.cost });
-    const inMain = tabbables(main);
-    const inCost = inMain.filter((element) => cost.contains(element));
-
-    expect(inCost.length).toBeGreaterThan(0);
-    expect(inMain.slice(-inCost.length)).toEqual(inCost);
-    expect(
-      within(cost).getByRole('button', { name: en.Configurator.next }),
-    ).toBeInTheDocument();
   });
 });
 

@@ -2,6 +2,7 @@
   display: flex;
   flex: none;
   flex-direction: column;
+  max-width: 100%;
   align-items: flex-start;
   gap: var(--space-5);
   min-height: var(--size-target);
@@ -32,9 +33,12 @@
   display: block;
   box-sizing: border-box;
   width: calc(var(--room-length) * var(--plan-scale));
-  height: calc(var(--room-width) * var(--plan-scale));
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: calc(var(--room-length) / var(--room-width));
   border: var(--stroke-1-5) solid var(--line);
   background: var(--fill-a);
+  transition: background-color var(--duration-fast) var(--ease-standard);
 }
 
 .current .sketch {
@@ -45,6 +49,7 @@
   color: var(--line);
   font-size: var(--text-label-size);
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .current .name {

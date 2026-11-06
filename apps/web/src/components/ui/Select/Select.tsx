@@ -17,6 +17,7 @@ export type SelectProps = Omit<ComponentProps<'select'>, 'children'> & {
   label: string;
   placeholder?: string;
   hint?: string;
+  hideLabel?: boolean;
   error?: string;
   loading?: boolean;
   loadingLabel?: string;
@@ -27,6 +28,7 @@ export function Select({
   label,
   placeholder,
   hint,
+  hideLabel,
   error,
   loading,
   loadingLabel,
@@ -89,6 +91,7 @@ export function Select({
       id={id}
       label={label}
       hint={hint}
+      hideLabel={hideLabel}
       error={error}
       required={required}
       loading={loading}

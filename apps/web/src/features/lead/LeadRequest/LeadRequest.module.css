@@ -1,0 +1,9 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.intro {
+  margin: 0;
+}

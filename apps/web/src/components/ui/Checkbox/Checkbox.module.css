@@ -35,11 +35,16 @@
   border: var(--stroke-1-5) solid var(--line);
   background: var(--paper);
   color: var(--sheet);
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 }
 
 .check {
   opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
 }
 
 .input:checked ~ .box {
@@ -69,6 +74,7 @@
 }
 
 .text {
+  transition: opacity var(--duration-fast) var(--ease-standard);
   color: var(--line);
   font-family: var(--text-body-default-family);
   font-weight: var(--text-body-default-weight);

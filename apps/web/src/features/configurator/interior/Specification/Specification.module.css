@@ -1,0 +1,22 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.sort {
+  align-self: flex-end;
+}
+
+.sort select {
+  min-height: var(--size-compact);
+  font-size: var(--text-body-s-size);
+}

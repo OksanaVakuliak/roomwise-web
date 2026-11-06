@@ -1,14 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { MessageOptions } from './client';
+
 const DSN = 'https://public@o0.ingest.sentry.io/0';
 
 const sentry = vi.hoisted(() => ({
   init: vi.fn(),
   captureException: vi.fn(),
+  captureMessage: vi.fn(),
   captureRouterTransitionStart: vi.fn(),
 }));
 
 vi.mock('@sentry/nextjs', () => sentry);
+
+const options: MessageOptions = {
+  level: 'error',
+  fingerprint: ['estimate-discrepancy'],
+  tags: { pricingVersion: 'v1', diffCents: 5, matched: false },
+};
 
 async function loadClient() {
   vi.resetModules();
@@ -42,10 +51,12 @@ describe('without a DSN', () => {
     const client = await loadClient();
     client.initMonitoring();
     client.captureException(new Error('boom'));
+    client.captureMessage('estimate-discrepancy', options);
     client.captureRouterTransition('/uk', 'push');
     await flush();
     expect(sentry.init).not.toHaveBeenCalled();
     expect(sentry.captureException).not.toHaveBeenCalled();
+    expect(sentry.captureMessage).not.toHaveBeenCalled();
     expect(sentry.captureRouterTransitionStart).not.toHaveBeenCalled();
   });
 });
@@ -108,6 +119,17 @@ describe('with a DSN', () => {
     expect(sentry.captureException).toHaveBeenCalledWith(error);
     expect(sentry.init.mock.invocationCallOrder[0]).toBeLessThan(
       sentry.captureException.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('loads and initializes on demand when capturing a message', async () => {
+    const client = await loadClient();
+    client.captureMessage('estimate-discrepancy', options);
+    await flush();
+    expect(sentry.init).toHaveBeenCalledOnce();
+    expect(sentry.captureMessage).toHaveBeenCalledWith(
+      'estimate-discrepancy',
+      options,
     );
   });
 

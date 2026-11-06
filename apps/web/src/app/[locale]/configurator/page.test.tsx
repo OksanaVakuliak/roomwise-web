@@ -1,58 +1,59 @@
-import { act, screen, within } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import { getTranslations } from 'next-intl/server';
-import type { AnchorHTMLAttributes } from 'react';
 import { Suspense } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { resetExchangeRate } from '@/stores/exchange-rate';
-import { usePreferences } from '@/stores/preferences';
-import { axe } from '@/test/axe';
-import { setLoadedRate } from '@/test/fixtures/exchange-rate';
-import {
-  forEachLocale,
-  renderWithProviders,
-} from '@/test/render-with-providers';
-import en from '../../../../messages/en.json';
+import { STEP_PATHS } from '@/config/routes';
+import { StepIdSchema } from '@/lib/draft/schema';
+import { useDraft } from '@/stores/draft';
+import { renderWithProviders } from '@/test/render-with-providers';
 import ConfiguratorPage, { generateMetadata } from './page';
 
-vi.mock('@/lib/api/client', () => ({ api: { GET: vi.fn() } }));
+const navigation = vi.hoisted(() => ({ replace: vi.fn() }));
+const hydration = vi.hoisted(() => ({ done: true }));
+
 vi.mock('next-intl/server', () => ({
   setRequestLocale: vi.fn(),
   getTranslations: vi.fn(),
 }));
+vi.mock('@/stores/use-draft-hydration', () => ({
+  useDraftHydration: () => hydration.done,
+}));
 vi.mock('@/i18n/navigation', () => ({
-  Link: ({ href, ...rest }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={`/en${href}`} {...rest} />
-  ),
+  useRouter: () => ({ replace: navigation.replace }),
 }));
 
-async function renderPage(locale: 'en' | 'uk') {
-  let result!: ReturnType<typeof renderWithProviders>;
-
+async function renderPage() {
   await act(async () => {
-    result = renderWithProviders(
+    renderWithProviders(
       <Suspense>
-        <ConfiguratorPage params={Promise.resolve({ locale })} />
+        <ConfiguratorPage params={Promise.resolve({ locale: 'en' })} />
       </Suspense>,
-      { locale },
     );
   });
-
-  return result;
 }
 
 describe('ConfiguratorPage', () => {
+  beforeEach(() => {
+    navigation.replace.mockClear();
+    hydration.done = true;
+    useDraft.setState({ step: 'object' });
+  });
+
   it.each([
     ['en', '/en/configurator'],
     ['uk', '/uk/configurator'],
   ] as const)('declares alternates for %s', async (locale, canonical) => {
     vi.mocked(getTranslations).mockResolvedValue(
-      (() => 'Title') as unknown as Awaited<ReturnType<typeof getTranslations>>,
+      ((key: string) => key) as unknown as Awaited<
+        ReturnType<typeof getTranslations>
+      >,
     );
 
     const metadata = await generateMetadata({
       params: Promise.resolve({ locale }),
     });
 
+    expect(metadata.title).toBe('index');
     expect(metadata.alternates).toEqual({
       canonical,
       languages: {
@@ -63,43 +64,30 @@ describe('ConfiguratorPage', () => {
     });
   });
 
-  beforeEach(() => {
-    resetExchangeRate();
+  it('replaces the route with the first step when there is no draft', async () => {
+    await renderPage();
+
+    expect(navigation.replace).toHaveBeenCalledWith(STEP_PATHS.object);
   });
 
-  it.each(forEachLocale)(
-    'has one h1 and no axe violations in %s',
-    async (locale) => {
-      const { container } = await renderPage(locale);
+  it.each(StepIdSchema.options)(
+    'replaces the route with the stored step %s once hydrated',
+    async (step) => {
+      await act(async () => {
+        useDraft.setState({ step });
+      });
 
-      expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-      expect(await axe(container)).toHaveNoViolations();
+      await renderPage();
+
+      expect(navigation.replace).toHaveBeenLastCalledWith(STEP_PATHS[step]);
     },
   );
 
-  it('shows the estimate in the selected currency', async () => {
-    await renderPage('en');
-    const cost = screen.getByRole('region', { name: en.StepLayout.cost });
-    expect(within(cost).getAllByText(/\$/).length).toBeGreaterThan(0);
+  it('does not redirect before the draft is hydrated', async () => {
+    hydration.done = false;
 
-    await act(async () => {
-      setLoadedRate();
-      usePreferences.getState().setCurrency('UAH');
-    });
+    await renderPage();
 
-    expect(within(cost).getAllByText(/₴|грн|UAH/).length).toBeGreaterThan(0);
-    expect(within(cost).getByText(/NBU rate/)).toBeInTheDocument();
-  });
-
-  it('keeps dollars while the hryvnia rate is not loaded', async () => {
-    await renderPage('en');
-    const cost = screen.getByRole('region', { name: en.StepLayout.cost });
-
-    await act(async () => {
-      usePreferences.getState().setCurrency('UAH');
-    });
-
-    expect(within(cost).getAllByText(/\$/).length).toBeGreaterThan(0);
-    expect(within(cost).queryByText(/NBU rate/)).not.toBeInTheDocument();
+    expect(navigation.replace).not.toHaveBeenCalled();
   });
 });

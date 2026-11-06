@@ -17,7 +17,9 @@
     background-color var(--duration-slow) var(--ease-symmetric),
     border-color var(--duration-slow) var(--ease-symmetric),
     color var(--duration-slow) var(--ease-symmetric),
-    filter var(--duration-fast) var(--ease-standard);
+    filter var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 }
 
 .root :global(.num) {

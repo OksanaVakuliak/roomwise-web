@@ -15,17 +15,17 @@
         "text": "Rooms, sizes and the base work."
       },
       "style": {
-        "code": "A2",
+        "code": "A3",
         "name": "Style",
         "text": "The look of the whole apartment."
       },
       "interior": {
-        "code": "A3",
+        "code": "A4",
         "name": "Interior",
         "text": "Finishes and fixtures for each room."
       },
       "engineering": {
-        "code": "A4",
+        "code": "A2",
         "name": "Engineering",
         "text": "Electrics, plumbing and heating."
       },
@@ -179,15 +179,15 @@
     "number4": "A4",
     "number5": "A5",
     "step1": "Object",
-    "step2": "Style",
-    "step3": "Interior",
-    "step4": "Engineering",
+    "step2": "Engineering",
+    "step3": "Style",
+    "step4": "Interior",
     "step5": "Estimate"
   },
   "ShowcaseActions": {
     "buttonsTitle": "Button",
     "outline": "Sheet A2",
-    "fill": "Next: A4 engineering",
+    "fill": "Next: A2 engineering",
     "heat": "Delete item",
     "price": "+$89.04",
     "disabled": "Disabled",
@@ -251,6 +251,12 @@
     "panelBody": "A panel that slides in from the side on wide screens.",
     "closeLabel": "Close dialog",
     "confirm": "Apply choice",
+    "confirmTitle": "Confirm dialog",
+    "confirmButton": "Open confirm dialog",
+    "confirmHeading": "Delete this room?",
+    "confirmBody": "The materials chosen for this room will be lost.",
+    "confirmDelete": "Delete room",
+    "confirmKeep": "Keep room",
     "tooltipTitle": "Tooltip",
     "tooltipButton": "Hover or focus me",
     "tooltipContent": "Prices include materials and labour",
@@ -274,6 +280,8 @@
     "headerNote": "thicknesses enlarged",
     "pickedBadge": "Picked badge",
     "picked": "picked",
+    "choose": "Choose",
+    "chosen": "Selected",
     "price": "Price",
     "priceUsd": "USD",
     "priceUah": "UAH at the sample rate",
@@ -307,6 +315,12 @@
         "name": "Tile “Graphite Concrete”",
         "brand": "Kerama Nova, Azov Ceramics",
         "dimensions": "600 × 600 × 9, graphite"
+      },
+      "walnut": {
+        "name": "Laminate “Tokay Walnut”",
+        "brand": "Forest & Co, Kronowerk",
+        "dimensions": "1285 × 192 × 10",
+        "color": "dark walnut"
       }
     },
     "styleCard": "Style card",
@@ -323,6 +337,18 @@
         "name": "Classic",
         "description": "warm wood, mouldings"
       }
+    },
+    "forRoom": "for the room (6 m²)",
+    "warning": "Not for heated floor, selection stays available",
+    "unavailable": "temporarily unavailable",
+    "gallery": "Gallery",
+    "galleryNote": "Arrow keys, Home and End move between thumbnails.",
+    "galleryLabel": "Product photos",
+    "imageOf": "image {index} of {total}",
+    "shots": {
+      "front": "Front view",
+      "side": "Side view",
+      "close": "Close-up"
     }
   },
   "ShowcaseFormFields": {
@@ -381,7 +407,14 @@
     "planEmpty": "No file chosen",
     "planName": "bedroom-plan.pdf",
     "planError": "The file is too large",
-    "planUploading": "Uploading the file"
+    "planUploading": "Uploading the file",
+    "copyTitle": "CopyField",
+    "copyLabel": "Link to the calculation",
+    "copyHint": "Anyone with the link can open this calculation",
+    "copyValue": "https://roomwise.example/en/calculations/abc123/v/1",
+    "copyButton": "Copy",
+    "copied": "Copied",
+    "copyFallback": "Copying failed. Press Ctrl+C to copy the selected link."
   },
   "ShowcaseSectionCut": {
     "hatches": "Hatch materials",
@@ -443,7 +476,7 @@
     "engineering": "Engineering",
     "options": "Options",
     "back": "Sheet A2",
-    "next": "Next: A4 engineering",
+    "next": "Next: A4 interior",
     "changeTotal": "Change the total",
     "changeNote": "Changing the total announces it to screen readers; the first render stays silent.",
     "resultRowTitle": "Result row",
@@ -562,8 +595,56 @@
     "FORBIDDEN": "Access denied",
     "CONFLICT": "Data conflict",
     "UNPROCESSABLE": "The request cannot be processed",
+    "STYLE_NOT_FOUND": "Style not found",
+    "CALCULATION_NOT_FOUND": "Calculation not found",
+    "INPUT_OUT_OF_BOUNDS": "Some values are out of the allowed range",
+    "UNKNOWN_REFERENCE": "Some items are no longer available",
+    "IDEMPOTENCY_KEY_REQUIRED": "Request key is missing",
+    "IDEMPOTENCY_KEY_REUSED": "This request key was already used with different data",
+    "IDEMPOTENCY_KEY_CONFLICT": "The same request is already being processed",
+    "PHONE_INVALID": "Enter a valid phone number",
+    "EMPTY_ESTIMATE": "Choose at least one item to calculate",
     "unknown": "Something went wrong",
     "network": "Cannot reach the server"
+  },
+  "Estimate": {
+    "status": {
+      "OK": "Calculated",
+      "INCLUDED": "Included in the base cost",
+      "NOT_CALCULATED": "Not calculated",
+      "UNAVAILABLE": "Unavailable",
+      "ERROR": "Could not be calculated"
+    },
+    "lineError": {
+      "PRODUCT_UNAVAILABLE": "The product is unavailable",
+      "RULE_NOT_FOUND": "No pricing rule for this item",
+      "OPTION_SCOPE_NOT_ALLOWED": "Not available for this renovation type",
+      "generic": "Could not be calculated"
+    },
+    "warning": {
+      "HEATED_FLOOR_INCOMPATIBLE": "Heated floor is not compatible with the chosen floor",
+      "OPTION_ROOM_TYPE_NOT_ALLOWED": "This option is not available for the room type",
+      "ROOMS_AREA_EXCEEDS_TOTAL": "Rooms exceed the total area by {diff} m²",
+      "ROOMS_AREA_BELOW_TOTAL": "Rooms are {missingSqm} m² smaller than the total area",
+      "LABOR_RATE_MISSING": "Labor price is not set",
+      "EXCHANGE_RATE_UNAVAILABLE": "Exchange rate is unavailable, amounts are shown in USD",
+      "generic": "Check the estimate: some values may be inaccurate"
+    },
+    "range": "from {min} to {max} {unit}",
+    "unit": {
+      "m": "m",
+      "sqm": "m²",
+      "pcs": "pcs",
+      "room": "rm"
+    }
+  },
+  "CostPanel": {
+    "base": "Base cost",
+    "materials": "Materials",
+    "engineering": "Engineering",
+    "additional": "Additional options",
+    "errorTitle": "Prices are unavailable",
+    "errorMessage": "The cost cannot be calculated without pricing data. You can keep filling in the steps and retry."
   },
   "Layout": {
     "skipLink": "Skip to content",
@@ -624,8 +705,26 @@
   "StepLayout": {
     "steps": "Configurator steps",
     "scene": "Room view",
+    "picker": "Material picker",
     "showcase": "Specification",
     "cost": "Estimate"
+  },
+  "ConfiguratorSteps": {
+    "title": {
+      "index": "Configurator. Roomwise",
+      "object": "Object. Roomwise",
+      "style": "Style. Roomwise",
+      "interior": "Interior. Roomwise",
+      "engineering": "Engineering. Roomwise",
+      "result": "Estimate. Roomwise"
+    },
+    "heading": {
+      "object": "Object",
+      "style": "Style",
+      "interior": "Interior",
+      "engineering": "Engineering",
+      "result": "Estimate"
+    }
   },
   "ZoneStub": {
     "scene": "3D room view",
@@ -641,6 +740,12 @@
     "options": "Options",
     "back": "Back",
     "next": "Next",
+    "startOver": "Start over",
+    "startOverTitle": "Start over?",
+    "startOverDescription": "The current draft will be deleted: rooms, style, materials and options. This cannot be undone.",
+    "startOverConfirm": "Start over",
+    "startOverCancel": "Cancel",
+    "startOverClose": "Close dialog",
     "tapeLabel": "Configurator steps",
     "state": {
       "done": "done",
@@ -653,9 +758,9 @@
     "toggleLabel": "Show breakdown",
     "steps": {
       "1": "Object",
-      "2": "Style",
-      "3": "Interior",
-      "4": "Engineering",
+      "2": "Engineering",
+      "3": "Style",
+      "4": "Interior",
       "5": "Estimate"
     }
   },
@@ -702,5 +807,399 @@
     "newVersion": "A new version is available.",
     "reload": "Reload",
     "dismiss": "Dismiss"
+  },
+  "DraftNotices": {
+    "storageUnavailable": "Your browser blocks storage, so the draft won’t be saved. It will be lost when you close or reload the page.",
+    "draftReset": "We couldn’t restore your saved draft, so you’re starting from scratch.",
+    "heatedFloorReset": "Heated floor was turned off: it isn’t available for this room type.",
+    "replacementsTitle": "Some materials are no longer available, so we replaced them:",
+    "replacedWithStyle": "{room} · {category}: style material “{product}”",
+    "replacedWithStyleUnnamed": "{room} · {category}: replaced with the style material",
+    "chooseMaterial": "{room} · {category}: choose a material",
+    "pricesUpdatedWithTotal": "Prices updated. New total: {total}",
+    "pricesUpdated": "Prices updated."
+  },
+  "HeatedFloorSwitch": {
+    "title": "Heated floor",
+    "description": "Adds heated floor engineering for this room and adjusts the floor materials",
+    "priced": "{description} · {cost}"
+  },
+  "ConfiguratorShell": {
+    "guardIncomplete": "Fill in the “{step}” step first",
+    "guardOrder": "Go through the steps in order and continue with “{step}”",
+    "dismiss": "Dismiss"
+  },
+  "StyleStep": {
+    "listLabel": "Styles",
+    "picked": "Selected",
+    "choose": "Choose",
+    "chooseLabel": "Choose the {name} style",
+    "previewOpen": "Zoom in",
+    "preview": "Zoom in on {name}",
+    "previewClose": "Close preview",
+    "previewSelect": "Choose this style",
+    "previewSelected": "Style chosen",
+    "required": "Choose a style to continue.",
+    "applying": "Applying style…",
+    "unavailable": "This style is unavailable right now. Choose another one.",
+    "loadFailed": "Could not load the style materials. Try again.",
+    "dismiss": "Dismiss message",
+    "loading": "Loading styles",
+    "emptyTitle": "No styles yet",
+    "emptyText": "Styles will appear here as soon as they are published.",
+    "confirm": {
+      "title": "Replace your materials?",
+      "description": "Some materials in your rooms were chosen by hand. A new style replaces all of them with its own.",
+      "confirm": "Replace",
+      "cancel": "Keep my choice",
+      "close": "Close dialog"
+    }
+  },
+  "RoomEngineering": {
+    "empty": "No engineering options for this room"
+  },
+  "EngineeringStep": {
+    "apartmentTitle": "Engineering for the apartment",
+    "additionalTitle": "Additional services",
+    "loading": "Loading rooms",
+    "roomFallback": "Room"
+  },
+  "HeatedFloorNote": {
+    "text": "Heated floor is on",
+    "link": "Change in Engineering"
+  },
+  "InteriorStep": {
+    "switcherLabel": "Rooms",
+    "loading": "Loading rooms",
+    "roomFallback": "Room",
+    "scene": {
+      "cut": "A",
+      "description": "{name} {length} by {width}, height {height}, section line A–A through the floor"
+    },
+    "unitM": "m",
+    "wallsMobile": "walls {walls}",
+    "perimeter": "perimeter {perimeter}",
+    "closePicker": "Close"
+  },
+  "ObjectStep": {
+    "form": {
+      "finishLevel": "Finish level",
+      "finishRough": "Rough",
+      "finishPre": "Pre-finish",
+      "finishLivedIn": "Lived-in",
+      "totalArea": "Total area",
+      "balcony": "Balcony",
+      "balconyArea": "Balcony area",
+      "balconyTiles": "Tile the balcony floor",
+      "unitSqm": "m²"
+    },
+    "rooms": {
+      "title": "Rooms",
+      "add": "Add room",
+      "empty": "No rooms yet",
+      "type": "Room type",
+      "typePlaceholder": "Choose a type",
+      "name": "Name",
+      "namePlaceholder": "{type} {number}",
+      "length": "Length",
+      "width": "Width",
+      "height": "Height",
+      "area": "Area",
+      "areaValue": "{value} m²",
+      "unitM": "m",
+      "delete": "Delete room",
+      "deleteTitle": "Delete this room?",
+      "deleteMessage": "The materials and options chosen for this room will be removed too.",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Keep",
+      "deleteClose": "Close dialog"
+    },
+    "validation": {
+      "finishLevelRequired": "Choose the finish level",
+      "range": "From {min, number} to {max, number} {unit, select, m {m} sqm {m²} pcs {pcs} other {}}",
+      "roomsRequired": "At least one room is required",
+      "roomTypeRequired": "Choose the room type",
+      "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue."
+    },
+    "plan": "Plan of the apartment",
+    "planCount": "{count, plural, one {# room} other {# rooms}}",
+    "planEmpty": "Add a room and the apartment plan will appear here",
+    "planSummary": {
+      "roomsOfTotal": "Rooms: {rooms} m² of {total} m²",
+      "roomsOnly": "Rooms: {rooms} m²"
+    },
+    "planCost": {
+      "objectLine": "{name}: {amount}"
+    }
+  },
+  "Specification": {
+    "title": "Choose materials",
+    "tabsLabel": "Categories",
+    "emptyTitle": "No products for this room",
+    "emptyText": "This category has nothing to choose from yet.",
+    "dismiss": "Dismiss",
+    "categoryGone": "This category is no longer available. The catalog has been refreshed.",
+    "finishLabel": "Finish type"
+  },
+  "ChosenList": {
+    "title": "Chosen",
+    "heatedFloorWarning": "Not for heated floor",
+    "choose": "choose a material",
+    "openPicker": "Choose a material",
+    "current": "open",
+    "remove": "Remove",
+    "removeLabel": "Remove {category} from {room}",
+    "add": "Add",
+    "addLabel": "Add {category} to {room}",
+    "option": "Engineering"
+  },
+  "RoomOptions": {
+    "title": "Engineering for this room"
+  },
+  "ProductShowcase": {
+    "loading": "Loading products",
+    "heatedFloorWarning": "Not for heated floor, you can still choose it",
+    "sortLabel": "Sort by",
+    "sort": {
+      "server": "Recommended",
+      "asc": "Price: low to high",
+      "desc": "Price: high to low"
+    },
+    "unit": {
+      "SQM": "per m²",
+      "LINEAR_M": "per m",
+      "PIECE": "per piece"
+    },
+    "picked": "picked",
+    "unavailable": "temporarily unavailable",
+    "forRoom": "for the room",
+    "detail": "Details",
+    "detailLabel": "Details: {name}",
+    "choose": "Choose",
+    "chosen": "Selected",
+    "chooseLabel": "Choose: {name}",
+    "excluded": "Not in the estimate — choose a material to add it",
+    "replaces": "Currently chosen for {surface}: {name}. The material you pick here will replace it"
+  },
+  "ProductDetail": {
+    "title": "Product",
+    "loading": "Loading product",
+    "close": "Close",
+    "gallery": "Product photos",
+    "thumbnail": "Photo {index} of {total}",
+    "brand": "Brand",
+    "size": "Size",
+    "color": "Color",
+    "unitPrice": "Price",
+    "unit": {
+      "SQM": "per m²",
+      "LINEAR_M": "per m",
+      "PIECE": "per piece"
+    },
+    "quantity": "Quantity for the room",
+    "quantityValue": "{quantity, number, ::.##} {unit, select, SQM {m²} LINEAR_M {m} PIECE {pcs} other {}}",
+    "cost": "Cost for the room",
+    "choose": "Choose",
+    "picked": "Chosen",
+    "gone": "This product is no longer available.",
+    "unavailable": "Temporarily unavailable"
+  },
+  "Surface": {
+    "FLOOR": "Floor",
+    "WALLS": "Walls",
+    "CEILING": "Ceiling",
+    "for": {
+      "FLOOR": "the floor",
+      "WALLS": "the walls",
+      "CEILING": "the ceiling"
+    }
+  },
+  "EstimateBreakdown": {
+    "sections": {
+      "base": "Base renovation",
+      "balcony": "Balcony",
+      "materials": "Materials",
+      "engineering": "Engineering",
+      "additional": "Additional"
+    },
+    "fallback": {
+      "base": "Base renovation",
+      "product": "Material",
+      "option": "Option",
+      "packageItem": "Package item",
+      "rule": "Work item",
+      "unknown": "Item"
+    },
+    "disabled": "Excluded",
+    "included": "Included",
+    "notesLabel": "Notes",
+    "warning": "Warning",
+    "error": "Error"
+  },
+  "ResultStep": {
+    "additionalTitle": "Additional services",
+    "loading": "Loading the estimate",
+    "preliminary": "This estimate is preliminary and is not an offer. The final price is confirmed on site after measuring.",
+    "totalLabel": "Estimate total",
+    "change": "Change",
+    "changeObject": "Change object",
+    "changeStyle": "Change style",
+    "roomFallback": "Room",
+    "object": {
+      "title": "Object and style",
+      "rooms": "Rooms",
+      "style": "Style"
+    }
+  },
+  "SaveCalculation": {
+    "title": "Save the estimate",
+    "save": "Save the estimate",
+    "saving": "Saving the estimate",
+    "warming": "Waking the server, this can take a minute",
+    "rateLimited": "{minutes, plural, =0 {{seconds, plural, one {You can save again in # second.} other {You can save again in # seconds.}}} one {You can save again in # minute.} other {You can save again in # minutes.}}",
+    "totalIncreased": "The total has increased by {diff}. The amounts above are the saved ones.",
+    "totalDecreased": "The total has decreased by {diff}. The amounts above are the saved ones.",
+    "failure": {
+      "incomplete": "Some values are missing or outside the allowed range, so the estimate cannot be saved yet.",
+      "incompleteLink": "Check the object",
+      "outOfBounds": "Some values are outside the allowed range. Check the object fields and save again.",
+      "outOfBoundsLink": "Go to the object",
+      "unknownReference": "Some materials or services have changed. We refreshed the data, review the estimate and save again.",
+      "styleMissing": "The chosen style is no longer available. Choose another one and save again.",
+      "styleMissingLink": "Choose a style",
+      "generic": "Could not save the estimate. Please try again."
+    }
+  },
+  "SavedLink": {
+    "title": "Estimate saved",
+    "text": "Keep the link to come back to this estimate or share it.",
+    "label": "Link to the estimate",
+    "copy": "Copy",
+    "copied": "Link copied",
+    "fallback": "Copying failed. Press Ctrl+C to copy the selected link.",
+    "open": "Open the estimate"
+  },
+  "Lead": {
+    "title": "Leave a request",
+    "open": "Leave a request",
+    "intro": "Send this estimate to a manager. We will contact you to discuss the details.",
+    "loading": "Loading the request form",
+    "settingsError": {
+      "title": "Could not load the request form",
+      "message": "Check your connection and try again."
+    },
+    "form": {
+      "name": "Name",
+      "phone": "Phone",
+      "phoneHint": "In international format, for example +380501234567",
+      "email": "Email",
+      "emailHint": "Optional",
+      "comment": "Comment",
+      "commentHint": "Optional",
+      "consent": "I agree to the processing of my personal data to receive an answer to this request.",
+      "submit": "Send the request",
+      "sending": "Sending the request",
+      "warming": "Waking the server, this can take a minute",
+      "rateLimited": "{minutes, plural, =0 {{seconds, plural, one {You can send the request again in # second.} other {You can send the request again in # seconds.}}} one {You can send the request again in # minute.} other {You can send the request again in # minutes.}}"
+    },
+    "errors": {
+      "name": "Enter your name, up to 100 characters.",
+      "phone": "Enter a phone number in international format, for example +380501234567.",
+      "email": "Enter a valid email address, up to 254 characters.",
+      "comment": "The comment is too long, up to 1000 characters.",
+      "consent": "To send the request, agree to the processing of your personal data."
+    },
+    "failure": {
+      "incomplete": "Some values are missing or outside the allowed range, so the estimate cannot be sent yet.",
+      "incompleteLink": "Check the object",
+      "outOfBounds": "Some values are outside the allowed range. Check the object fields and send the request again.",
+      "outOfBoundsLink": "Go to the object",
+      "styleMissing": "The chosen style is no longer available. Choose another one and send the request again.",
+      "styleMissingLink": "Choose a style",
+      "unknownReference": "Some materials or services have changed. We refreshed the data, review the estimate and send the request again.",
+      "resave": "The saved estimate is no longer available. It will be saved anew when you send the request.",
+      "notFound": "The estimate for this request was not found, so the request cannot be sent.",
+      "generic": "Could not send the request. Please try again."
+    },
+    "confirmation": {
+      "title": "Request No. {number} sent",
+      "text": "A manager will contact you using the details you provided.",
+      "open": "Open the estimate",
+      "expired": "The estimate had already expired. The manager will recalculate it.",
+      "totalIncreased": "The total has increased by {diff}. The manager will use the saved amounts.",
+      "totalDecreased": "The total has decreased by {diff}. The manager will use the saved amounts."
+    }
+  },
+  "CalculationPage": {
+    "title": "Saved estimate. Roomwise",
+    "heading": "Saved estimate",
+    "loading": "Loading the estimate",
+    "preliminary": "This estimate is preliminary and is not an offer. Amounts are shown as they were on the day it was saved.",
+    "totalLabel": "Estimate total",
+    "style": "Style",
+    "saved": "Saved",
+    "validUntil": "Valid until",
+    "rate": "Exchange rate",
+    "noRate": "This estimate was saved without a hryvnia rate, so amounts are shown in US dollars.",
+    "notFound": {
+      "title": "Estimate not found",
+      "text": "The link may be mistyped or the estimate no longer exists. You can start a new calculation.",
+      "action": "Start calculation"
+    },
+    "expiredBadge": "Expired",
+    "recalculate": {
+      "changed": "Prices have changed since this estimate was saved. Recalculate to see the current total.",
+      "increased": "Prices have changed since this estimate was saved. At current prices the total is {diff} higher.",
+      "decreased": "Prices have changed since this estimate was saved. At current prices the total is {diff} lower.",
+      "expired": "This estimate has expired. Recalculate it at current prices to get an up-to-date version.",
+      "action": "Recalculate",
+      "pending": "Recalculating the estimate",
+      "failed": "Could not recalculate the estimate. Try again.",
+      "rateLimited": "{minutes, plural, =0 {{seconds, plural, one {You can recalculate again in # second.} other {You can recalculate again in # seconds.}}} one {You can recalculate again in # minute.} other {You can recalculate again in # minutes.}}"
+    },
+    "newer": {
+      "text": "A newer version of this estimate exists.",
+      "link": "Open version {number}"
+    },
+    "versions": {
+      "title": "Versions",
+      "item": "Version {number}"
+    },
+    "edit": {
+      "action": "Edit",
+      "title": "Replace the current draft?",
+      "message": "Your current draft in the configurator will be replaced with this estimate. This cannot be undone.",
+      "confirm": "Replace and edit",
+      "cancel": "Keep my draft",
+      "close": "Close dialog",
+      "pending": "Working…",
+      "failed": "Could not load current prices. Your draft was not changed. Try again."
+    }
+  },
+  "PackageList": {
+    "title": "Base engineering package",
+    "included": "Included in the base cost",
+    "price": {
+      "PIECE": "{price} per piece",
+      "PROJECT": "{price} per project",
+      "ROOM": "{price} per room",
+      "ROOM_SQM": "{price} per m²"
+    }
+  },
+  "OptionList": {
+    "priced": "{description} · {cost}",
+    "price": {
+      "PIECE": "{price} per piece",
+      "PROJECT": "{price} per project",
+      "ROOM": "{price} per room",
+      "ROOM_SQM": "{price} per m²",
+      "UNKNOWN": "price not set"
+    },
+    "unavailable": "No longer available",
+    "quantity": "Quantity: {name}",
+    "decrement": "Decrease quantity: {name}",
+    "increment": "Increase quantity: {name}",
+    "quantityRange": "Allowed from {min} to {max}",
+    "quantityMin": "At least {min}"
   }
 }

@@ -1,0 +1,7 @@
+.root {
+  list-style: none;
+}
+
+.disabled {
+  color: var(--line-2);
+}

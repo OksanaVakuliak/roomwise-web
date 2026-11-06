@@ -1,0 +1,202 @@
+'use client';
+
+import type { RoomTypeCode } from '@roomwise/calc-engine';
+import { useFormatter, useTranslations } from 'next-intl';
+import { type ChangeEvent, useCallback, useState } from 'react';
+import { IconButton, NumberField, Select, TextField } from '@/components/ui';
+import {
+  normalizeRoomName,
+  roomDisplayName,
+  roomFloorArea,
+} from '@/lib/draft/rooms';
+import { type DraftRoom, ROOM_NAME_MAX } from '@/lib/draft/schema';
+import type { RoomCatalog } from '@/lib/draft/style';
+import { parseDecimal, useDecimalText } from '@/lib/form';
+import { useDraft } from '@/stores/draft';
+import { usePricingData } from '@/stores/pricing-data';
+import styles from './RoomEditor.module.css';
+import {
+  type RoomFieldErrors,
+  roomDeleteDomId,
+  roomFieldDomId,
+} from './room-field';
+
+export type RoomTypeOption = { code: RoomTypeCode; name: string };
+
+export type RoomEditorProps = {
+  room: DraftRoom;
+  rooms: readonly DraftRoom[];
+  roomTypes: readonly RoomTypeOption[];
+  catalog?: RoomCatalog;
+  errors?: RoomFieldErrors;
+  onDelete: (clientId: string) => void;
+};
+
+type DimensionKey = 'lengthM' | 'widthM' | 'heightM';
+
+type DimensionFieldProps = {
+  room: DraftRoom;
+  field: DimensionKey;
+  label: string;
+  unit: string;
+  error?: string;
+};
+
+function DimensionField({
+  room,
+  field,
+  label,
+  unit,
+  error,
+}: DimensionFieldProps) {
+  const updateRoom = useDraft((state) => state.updateRoom);
+  const [text, setText] = useDecimalText(room[field]);
+  const { clientId } = room;
+  const handleChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setText(event.target.value);
+      updateRoom(clientId, {
+        [field]: parseDecimal(event.target.value) ?? null,
+      });
+    },
+    [clientId, field, setText, updateRoom],
+  );
+
+  return (
+    <NumberField
+      id={roomFieldDomId(room.clientId, field)}
+      label={label}
+      unit={unit}
+      error={error}
+      decimal
+      value={text}
+      onChange={handleChange}
+    />
+  );
+}
+
+export function RoomEditor({
+  room,
+  rooms,
+  roomTypes,
+  catalog,
+  errors = {},
+  onDelete,
+}: RoomEditorProps) {
+  const t = useTranslations('ObjectStep.rooms');
+  const format = useFormatter();
+  const updateRoom = useDraft((state) => state.updateRoom);
+  const renameRoom = useDraft((state) => state.renameRoom);
+  const pricingOptions = usePricingData((state) => state.data?.options);
+  const [nameText, setNameText] = useState(room.name ?? '');
+  if (normalizeRoomName(nameText) !== (room.name ?? '')) {
+    setNameText(room.name ?? '');
+  }
+
+  const typeLabel =
+    roomTypes.find((type) => type.code === room.roomTypeCode)?.name ?? null;
+  const ordinalLabel = typeLabel ?? t('typePlaceholder');
+  const heading = roomDisplayName(rooms, room, ordinalLabel);
+  const placeholder = roomDisplayName(
+    rooms,
+    { ...room, name: null },
+    ordinalLabel,
+  );
+  const areaValue = roomFloorArea(room);
+  const { clientId } = room;
+  const typeId = roomFieldDomId(clientId, 'roomTypeCode');
+
+  const handleDelete = useCallback(
+    () => onDelete(clientId),
+    [onDelete, clientId],
+  );
+  const handleTypeChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) =>
+      updateRoom(
+        clientId,
+        { roomTypeCode: event.target.value as RoomTypeCode },
+        catalog,
+        pricingOptions,
+      ),
+    [updateRoom, clientId, catalog, pricingOptions],
+  );
+  const handleNameChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setNameText(event.target.value);
+      renameRoom(clientId, event.target.value);
+    },
+    [renameRoom, clientId],
+  );
+
+  return (
+    <div className={styles.root}>
+      <div className={styles.header}>
+        <p className={styles.title}>{heading}</p>
+        <IconButton
+          id={roomDeleteDomId(room.clientId)}
+          icon="trash"
+          label={t('delete')}
+          onClick={handleDelete}
+        />
+      </div>
+      <div className={styles.fields}>
+        <Select
+          id={typeId}
+          label={t('type')}
+          placeholder={t('typePlaceholder')}
+          value={room.roomTypeCode ?? ''}
+          error={errors.roomTypeCode}
+          onChange={handleTypeChange}
+        >
+          {roomTypes.map((type) => (
+            <option key={type.code} value={type.code}>
+              {type.name}
+            </option>
+          ))}
+        </Select>
+        <TextField
+          id={roomFieldDomId(room.clientId, 'name')}
+          label={t('name')}
+          placeholder={placeholder}
+          maxLength={ROOM_NAME_MAX}
+          error={errors.name}
+          value={nameText}
+          onChange={handleNameChange}
+        />
+      </div>
+      <div className={styles.dimensions}>
+        <DimensionField
+          room={room}
+          field="lengthM"
+          label={t('length')}
+          unit={t('unitM')}
+          error={errors.lengthM}
+        />
+        <DimensionField
+          room={room}
+          field="widthM"
+          label={t('width')}
+          unit={t('unitM')}
+          error={errors.widthM}
+        />
+        <DimensionField
+          room={room}
+          field="heightM"
+          label={t('height')}
+          unit={t('unitM')}
+          error={errors.heightM}
+        />
+      </div>
+      <p className={styles.area}>
+        <span className={styles.areaLabel}>{t('area')}</span>
+        <span className={`${styles.areaValue} num`}>
+          {areaValue === null
+            ? '—'
+            : t('areaValue', {
+                value: format.number(areaValue, { maximumFractionDigits: 2 }),
+              })}
+        </span>
+      </p>
+    </div>
+  );
+}

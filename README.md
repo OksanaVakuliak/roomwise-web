@@ -4,6 +4,28 @@ Frontend for Roomwise, a step-by-step renovation cost configurator with a 3D
 room preview. The backend lives in
 [roomwise-api](https://github.com/OksanaVakuliak/roomwise-api).
 
+## Configurator
+
+The user goes through five steps: Object, Engineering, Style, Interior and
+Estimate. The estimate can be saved as a calculation: a snapshot that opens by
+its own link and does not change when prices change. From the result the user
+can send a lead request.
+
+The draft (room sizes, options and chosen products) is kept in the browser, so
+a page reload does not lose it. The catalog and prices always come from the API.
+
+## Estimate engine
+
+Costs are calculated on the client, so every change in the configurator is
+reflected in the estimate right away. The calculation is done by
+[`@roomwise/calc-engine`](https://github.com/OksanaVakuliak/roomwise-api), an
+npm package published from the backend repository, so both sides use the same
+formulas. Prices are loaded once from `GET /api/v1/public/pricing-data` and
+cached; the engine recalculates from them without further requests.
+
+The package version has to match the backend release that serves the pricing
+data.
+
 ## Stack
 
 - Next.js 16 (App Router, Turbopack), React 19, TypeScript
@@ -12,7 +34,9 @@ room preview. The backend lives in
 - Zustand for client state
 - Serwist for the PWA (manifest, offline page, update notice)
 - Sentry for error reporting
-- Biome for linting and formatting, Vitest and Testing Library for tests
+- `@roomwise/calc-engine` for the estimate, calculated in the browser
+- Biome for linting and formatting, Vitest and Testing Library for unit tests,
+  Playwright for end-to-end tests
 - lefthook and commitlint for git hooks and Conventional Commits
 
 ## Structure
@@ -69,7 +93,7 @@ Run from the repository root:
 | `pnpm commit`    | Interactive Conventional Commits prompt (commitizen) |
 
 Run in `apps/web` (or with `pnpm --filter web run <script>`): `dev`, `build`,
-`start`, `typecheck`, `test`, `api:types`.
+`start`, `typecheck`, `test`, `test:e2e`, `test:perf`, `api:types`.
 
 ## Environment variables
 
@@ -78,6 +102,7 @@ Defined in `apps/web/.env.example`.
 | Variable                       | Required | Description                                                                                                                  |
 | ------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `API_ORIGIN`                   | yes      | Backend origin, validated as a URL. `/api/*` is proxied to it through Next.js rewrites, so cookies stay same-origin.         |
+| `API_PROXY_SECRET`             | no       | At least 32 characters. Sent to the API as `x-roomwise-proxy-secret` so it can trust the real client IP; must match the API's `API_PROXY_SECRET` on Render. Without it, rate limits fall back to the Vercel egress IP. |
 | `NEXT_PUBLIC_SHOWCASE_ENABLED` | no       | `true` or `false` (default `false`). Enables the component showcase route in `pnpm dev`; production builds never serve it.  |
 | `SENTRY_DSN`                   | no       | Sentry DSN for server-side reporting.                                                                                        |
 | `NEXT_PUBLIC_SENTRY_DSN`       | no       | Sentry DSN for the browser.                                                                                                  |
@@ -108,6 +133,28 @@ types to `apps/web/src/generated/api.d.ts` using `openapi-typescript`. By
 default the spec is taken from `../roomwise-api/apps/api/openapi.json`, so the
 API repository is expected to be checked out next to this one. Set
 `OPENAPI_SPEC` to use another path; a relative path is resolved from `apps/web`.
+
+## End-to-end tests
+
+Playwright tests live in `apps/web/e2e` and run in Chromium on a phone-sized
+viewport, once for English and once for Ukrainian. The API is mocked with
+`context.route('**/api/v1/**')` (`e2e/mock-api.ts`), so no backend is needed.
+
+```bash
+pnpm --filter web exec playwright install chromium   # first time only
+pnpm --filter web test:e2e
+```
+
+Playwright starts the dev server itself, or reuses one that is already running
+on the port. `E2E_PORT` sets the port (default `3001`).
+
+The estimate performance budget (15 rooms) is checked by
+`src/lib/engine/run-estimate.perf.test.ts`. It runs separately from the unit
+tests, so parallel workers do not skew the timing:
+
+```bash
+pnpm --filter web test:perf
+```
 
 ## Deployment
 

@@ -44,6 +44,6 @@ describe('ExchangeRateNote', () => {
     const { container } = renderWithProviders(<ExchangeRateNote />, {
       currency: 'UAH',
     });
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstElementChild).toBeEmptyDOMElement();
   });
 });

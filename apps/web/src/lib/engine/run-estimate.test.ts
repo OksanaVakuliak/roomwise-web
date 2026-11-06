@@ -1,0 +1,251 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import { selectProduct } from '@/lib/draft/selections';
+import {
+  makeDraftRoom,
+  makeEmptyDraft,
+  makeInteriorDraft,
+  makePartialDraft,
+  makePricingData,
+} from '@/test/fixtures';
+import { categoryIds, productIds } from '@/test/fixtures/catalog';
+import type { DraftV1 } from '@/test/fixtures/draft';
+import { clearEstimateCache, runEstimate } from './run-estimate';
+import { groupLines } from './sections';
+
+const pricing = makePricingData();
+
+function run(
+  draft: DraftV1,
+  draftRevision = 1,
+  currency: 'USD' | 'UAH' = 'USD',
+) {
+  return runEstimate({
+    draft,
+    draftRevision,
+    pricing,
+    pricingVersion: pricing.version,
+    currency,
+  });
+}
+
+beforeEach(clearEstimateCache);
+
+describe('runEstimate', () => {
+  it('computes the fixture draft estimate', () => {
+    const result = run(makeInteriorDraft());
+    expect(result.estimate).not.toBeNull();
+    expect(result.violations).toEqual([]);
+    expect(result.panel.base).not.toBeNull();
+    expect(result.panel.materials).not.toBeNull();
+    expect(result.panel.total?.usdCents).toBeGreaterThan(0);
+  });
+
+  it('returns the same reference for the same revision and version', () => {
+    const draft = makeInteriorDraft();
+    expect(run(draft, 3)).toBe(run(draft, 3));
+  });
+
+  it('computes anew when the revision or version changes', () => {
+    const draft = makeInteriorDraft();
+    const first = run(draft, 3);
+    expect(run(draft, 4)).not.toBe(first);
+    const other = runEstimate({
+      draft,
+      draftRevision: 3,
+      pricing,
+      pricingVersion: 'other',
+      currency: 'USD',
+    });
+    expect(other).not.toBe(first);
+  });
+
+  it('recomputes for a different draft with the same revision and version', () => {
+    const first = run(makeInteriorDraft(), 3);
+    const second = run(makeInteriorDraft({ rooms: [makeDraftRoom()] }), 3);
+    expect(second).not.toBe(first);
+    expect(second.panel.materials).toBeNull();
+    expect(first.panel.materials).not.toBeNull();
+  });
+
+  it('keeps the base cost but hides the total when only the rooms count is out of limits', () => {
+    const result = run(makeInteriorDraft({ rooms: [] }));
+    expect(result.violations.length).toBeGreaterThan(0);
+    expect(result.blockedLineIds.size).toBe(0);
+    expect(result.panel.base).not.toBeNull();
+    expect(result.panel.total).toBeNull();
+  });
+
+  it('has no estimate and an empty panel without area', () => {
+    const result = run(makeEmptyDraft());
+    expect(result.configuration).toBeNull();
+    expect(result.estimate).toBeNull();
+    expect(result.panel).toEqual({
+      base: null,
+      materials: null,
+      engineering: null,
+      additional: null,
+      total: null,
+    });
+  });
+
+  it('shows no materials before a product is chosen', () => {
+    const result = run(makeInteriorDraft({ rooms: [makeDraftRoom()] }));
+    expect(result.panel.materials).toBeNull();
+    expect(result.panel.base).not.toBeNull();
+  });
+
+  it('shows materials once a product is chosen, with or without a style', () => {
+    expect(
+      run(makeInteriorDraft({ styleId: null })).panel.materials,
+    ).not.toBeNull();
+  });
+
+  it('shows materials for a PARTIAL draft with chosen products', () => {
+    const result = run(makePartialDraft());
+    expect(result.configuration?.totalAreaSqm).toBeNull();
+    expect(result.panel.materials).not.toBeNull();
+  });
+
+  it('total equals the sum of sections in both currencies', () => {
+    const { estimate, panel } = run(
+      makeInteriorDraft({
+        options: { 'opt-ac': { quantity: 2 }, 'opt-design': {} },
+      }),
+    );
+    const parts = [
+      panel.base,
+      panel.materials,
+      panel.engineering,
+      panel.additional,
+    ];
+    expect(panel.total?.usdCents).toBe(
+      parts.reduce((sum, part) => sum + (part?.usdCents ?? 0), 0),
+    );
+    expect(panel.total?.uahKopecks).toBe(
+      parts.reduce((sum, part) => sum + (part?.uahKopecks ?? 0), 0),
+    );
+    expect(panel.total?.usdCents).toBe(estimate?.totals.usdCents);
+    expect(panel.total?.uahKopecks).toBe(estimate?.totals.uahKopecks);
+  });
+
+  it('nulls base lines and the total on an object-field violation', () => {
+    const draft = makeInteriorDraft();
+    const result = run({
+      ...draft,
+      object: {
+        ...draft.object,
+        balcony: { present: true, areaSqm: 500, tiles: true },
+      },
+    });
+    expect(result.violations.map((violation) => violation.field)).toContain(
+      'balconyAreaSqm',
+    );
+    expect(result.panel.base).toBeNull();
+    expect(result.panel.total).toBeNull();
+    expect(result.panel.materials).toBeNull();
+    const grouped = groupLines(result.estimate!, [], result.blockedLineIds);
+    expect(grouped.base.every((line) => line.amountCents === null)).toBe(true);
+    expect(grouped.materials[0]?.lines[0]?.amountCents).not.toBeNull();
+  });
+
+  it('nulls option lines on an option violation', () => {
+    const result = run(
+      makeInteriorDraft({ options: { 'opt-ac': { quantity: 99 } } }),
+    );
+    expect(result.panel.engineering).toBeNull();
+    expect(result.panel.total).toBeNull();
+    expect(result.blockedLineIds).toEqual(
+      new Set(['ENGINEERING:option:opt-ac']),
+    );
+  });
+});
+
+describe('groupLines', () => {
+  it('groups materials by room in room order', () => {
+    const draft = makeInteriorDraft();
+    const { estimate } = run(draft);
+    const order = draft.rooms.map((room) => room.clientId);
+    const grouped = groupLines(estimate!, [...order].reverse());
+    expect(grouped.materials.map((group) => group.roomClientId)).toEqual([
+      ...[...order].reverse(),
+      'OBJECT',
+    ]);
+    expect(grouped.base.length).toBeGreaterThan(0);
+    expect(grouped.engineering.length).toBeGreaterThan(0);
+  });
+
+  it('keeps rooms with no lines out', () => {
+    const draft = makeInteriorDraft({ rooms: [makeDraftRoom()] });
+    const { estimate } = run(draft);
+    expect(
+      groupLines(estimate!, ['absent']).materials.map(
+        (group) => group.roomClientId,
+      ),
+    ).toEqual(['OBJECT']);
+  });
+});
+
+describe('runEstimate surface exclusivity', () => {
+  const materialIds = (draft: DraftV1) =>
+    (run(draft).estimate?.lines ?? [])
+      .filter(
+        (line) =>
+          line.section === 'MATERIALS' &&
+          line.roomClientId === draft.rooms[0].clientId,
+      )
+      .map((line) => line.categoryId);
+
+  it('prices only the finish chosen last for a surface', () => {
+    const base = makeInteriorDraft();
+    const roomId = base.rooms[0].clientId;
+    const before = materialIds(base);
+    expect(before).toContain(categoryIds.floor);
+    expect(before).toContain(categoryIds.walls);
+
+    const swapped = selectProduct(
+      base,
+      roomId,
+      categoryIds.floor,
+      productIds.tile,
+      [categoryIds.walls],
+    );
+
+    const after = materialIds(swapped);
+    expect(after).toContain(categoryIds.floor);
+    expect(after).not.toContain(categoryIds.walls);
+  });
+});
+
+describe('runEstimate room options open to every room type', () => {
+  it('prices a ROOM option with empty roomTypeCodes without a room type warning', () => {
+    const base = makePricingData();
+    const openPricing = makePricingData({
+      options: base.options.map((option) =>
+        option.id === 'opt-smart-switches'
+          ? { ...option, roomTypeCodes: [] }
+          : option,
+      ),
+    });
+    const draft = makeInteriorDraft();
+    const roomIds = draft.rooms.map((room) => room.clientId);
+    const result = runEstimate({
+      draft: {
+        ...draft,
+        options: { 'opt-smart-switches': { roomClientIds: roomIds } },
+      },
+      draftRevision: 1,
+      pricing: openPricing,
+      pricingVersion: openPricing.version,
+      currency: 'USD',
+    });
+    const line = result.estimate?.lines.find(
+      (candidate) => candidate.optionId === 'opt-smart-switches',
+    );
+    expect(line).toBeDefined();
+    expect(line?.amountCents).toBeGreaterThan(0);
+    expect(
+      result.estimate?.warnings.map((warning) => warning.code),
+    ).not.toContain('OPTION_ROOM_TYPE_NOT_ALLOWED');
+    expect(result.violations).toEqual([]);
+  });
+});

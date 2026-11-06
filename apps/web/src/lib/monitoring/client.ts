@@ -50,6 +50,16 @@ export function captureException(error: unknown) {
   void start()?.then((sentry) => sentry?.captureException(error));
 }
 
+export type MessageOptions = {
+  level: 'fatal' | 'error' | 'warning' | 'info' | 'debug';
+  fingerprint: string[];
+  tags: Record<string, string | number | boolean>;
+};
+
+export function captureMessage(name: string, options: MessageOptions) {
+  void start()?.then((sentry) => sentry?.captureMessage(name, options));
+}
+
 export function captureRouterTransition(href: string, navigationType: string) {
   loaded?.captureRouterTransitionStart(href, navigationType);
 }

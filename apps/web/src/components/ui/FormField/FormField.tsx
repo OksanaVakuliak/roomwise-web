@@ -16,6 +16,7 @@ export type FormFieldProps = {
   loadingLabel?: string;
   id?: string;
   group?: boolean;
+  hideLabel?: boolean;
   className?: string;
   children: (control: FieldControlProps) => ReactNode;
 };
@@ -53,6 +54,7 @@ export function FormField({
   loadingLabel,
   id: idProp,
   group,
+  hideLabel,
   className,
   children,
 }: FormFieldProps) {
@@ -90,8 +92,6 @@ export function FormField({
     </>
   );
 
-  const messages = <FieldMessages id={id} hint={hint} error={error} />;
-
   if (group) {
     return (
       <fieldset
@@ -99,20 +99,28 @@ export function FormField({
         aria-describedby={describedBy}
         aria-busy={loading ? true : undefined}
       >
-        <legend className={styles.label}>{caption}</legend>
-        {messages}
+        <legend className={cx(styles.label, styles.legend)}>{caption}</legend>
+        <FieldMessages id={id} hint={hint} />
         {children(control)}
+        <div className={styles.messages}>
+          <FieldMessages id={id} error={error} />
+        </div>
       </fieldset>
     );
   }
 
   return (
     <div className={classes}>
-      <label htmlFor={id} className={styles.label}>
+      <label
+        htmlFor={id}
+        className={cx(styles.label, hideLabel && styles.hidden)}
+      >
         {caption}
       </label>
       {children(control)}
-      {messages}
+      <div className={cx(styles.messages, hideLabel && styles.compact)}>
+        <FieldMessages id={id} hint={hint} error={error} />
+      </div>
     </div>
   );
 }

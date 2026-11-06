@@ -1,12 +1,17 @@
+import { convertCentsToKopecks } from '@roomwise/calc-engine';
 import { describe, expect, it } from 'vitest';
 import {
   area,
   currencies,
   dimension,
+  displayMoney,
+  localDate,
   money,
+  moneyMinor,
   percent,
   rateDate,
   rateValue,
+  unitPrice,
 } from './index';
 
 const NBSP = '\u00a0';
@@ -118,5 +123,80 @@ describe('rate formatting', () => {
   it('formats the rate date per locale without a timezone shift', () => {
     expect(rateDate('2026-10-01', 'en')).toBe('1 Oct 2026');
     expect(rateDate('2026-10-01', 'uk')).toBe('01.10.2026');
+  });
+});
+
+describe('localDate', () => {
+  it('formats a timestamp in the viewer time zone', () => {
+    const late = '2026-11-03T23:07:00Z';
+    const day = new Date(late);
+    const expected = [
+      String(day.getDate()).padStart(2, '0'),
+      String(day.getMonth() + 1).padStart(2, '0'),
+      day.getFullYear(),
+    ].join('.');
+    expect(localDate(late, 'uk')).toBe(expected);
+  });
+});
+
+describe('moneyMinor', () => {
+  it('formats USD cents with two digits only when fractional', () => {
+    expect(moneyMinor(1250, 'USD', 'en')).toBe('$12.50');
+    expect(moneyMinor(150000, 'USD', 'en')).toBe('$1,500');
+    expect(moneyMinor(22578, 'USD', 'uk')).toBe('$225,78');
+    expect(plain(moneyMinor(123456789, 'USD', 'uk'))).toBe('$1 234 567,89');
+  });
+
+  it('formats UAH kopecks with the hryvnia sign last', () => {
+    expect(moneyMinor(123456, 'UAH', 'en')).toBe(`1,234.56${NBSP}₴`);
+    expect(moneyMinor(123400, 'UAH', 'en')).toBe(`1,234${NBSP}₴`);
+    expect(moneyMinor(123456, 'UAH', 'uk')).toBe(`1${NBSP}234,56${NBSP}₴`);
+    expect(moneyMinor(123400, 'UAH', 'uk')).toBe(`1${NBSP}234${NBSP}₴`);
+  });
+
+  it('handles zero and negative amounts', () => {
+    expect(moneyMinor(0, 'USD', 'en')).toBe('$0');
+    expect(moneyMinor(0, 'UAH', 'uk')).toBe(`0${NBSP}₴`);
+    expect(moneyMinor(-1250, 'USD', 'en')).toBe('-$12.50');
+    expect(moneyMinor(-5050, 'UAH', 'en')).toBe(`-50.50${NBSP}₴`);
+  });
+});
+
+describe('unitPrice', () => {
+  const rate = { uahPerUsd: 41.2345 };
+
+  it('prints USD cents as they are', () => {
+    expect(unitPrice(1250, 'USD', 'en')).toBe('$12.50');
+    expect(unitPrice(1250, 'USD', 'uk')).toBe('$12,50');
+  });
+
+  it('converts to kopecks through the engine', () => {
+    expect(unitPrice(1250, 'UAH', 'en', rate)).toBe(
+      moneyMinor(convertCentsToKopecks(1250, rate.uahPerUsd), 'UAH', 'en'),
+    );
+    expect(unitPrice(1000, 'UAH', 'uk', rate)).toBe(`412,35${NBSP}₴`);
+  });
+
+  it('throws for UAH without a rate', () => {
+    expect(() => unitPrice(100, 'UAH', 'en')).toThrow(
+      'UAH requires an exchange rate',
+    );
+  });
+});
+
+describe('displayMoney', () => {
+  it('uses kopecks in UAH and cents otherwise', () => {
+    expect(displayMoney(1000, 40000, 'UAH', 'en')).toBe(
+      moneyMinor(40000, 'UAH', 'en'),
+    );
+    expect(displayMoney(1000, 40000, 'USD', 'en')).toBe(
+      moneyMinor(1000, 'USD', 'en'),
+    );
+  });
+
+  it('falls back to USD when kopecks are missing', () => {
+    expect(displayMoney(1000, null, 'UAH', 'en')).toBe(
+      moneyMinor(1000, 'USD', 'en'),
+    );
   });
 });

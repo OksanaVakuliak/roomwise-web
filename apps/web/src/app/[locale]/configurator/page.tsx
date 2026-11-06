@@ -1,23 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { hasLocale, useTranslations } from 'next-intl';
+import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { use } from 'react';
-import { StepLayout, ZoneStub } from '@/components/layout';
-import { WarmupGate } from '@/components/system';
-import {
-  PageTitle,
-  TapeRule,
-  TapeStep,
-  type TapeStepState,
-} from '@/components/ui';
 import { CONFIGURATOR_PATH } from '@/config/routes';
 import { localeAlternates } from '@/i18n/metadata';
 import { routing } from '@/i18n/routing';
-import { ConfiguratorEstimate } from './ConfiguratorEstimate';
-
-const STEPS = [1, 2, 3, 4, 5] as const;
-const CURRENT_STEP = 1;
+import { StepRedirect } from './StepRedirect';
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -30,17 +19,15 @@ export async function generateMetadata({
     notFound();
   }
 
-  const t = await getTranslations({ locale, namespace: 'Configurator' });
+  const t = await getTranslations({
+    locale,
+    namespace: 'ConfiguratorSteps.title',
+  });
 
   return {
-    title: t('pageTitle'),
+    title: t('index'),
     alternates: localeAlternates(locale, CONFIGURATOR_PATH),
   };
-}
-
-function stepState(step: number): TapeStepState {
-  if (step < CURRENT_STEP) return 'done';
-  return step === CURRENT_STEP ? 'now' : 'later';
 }
 
 export default function ConfiguratorPage({ params }: PageProps) {
@@ -52,37 +39,5 @@ export default function ConfiguratorPage({ params }: PageProps) {
 
   setRequestLocale(locale);
 
-  const t = useTranslations('Configurator');
-
-  return (
-    <WarmupGate>
-      <StepLayout
-        steps={
-          <nav aria-label={t('tapeLabel')}>
-            <TapeRule size="responsive">
-              {STEPS.map((step) => (
-                <TapeStep
-                  key={step}
-                  size="responsive"
-                  number={`A${step}`}
-                  label={t(`steps.${step}`)}
-                  state={stepState(step)}
-                  stateLabel={t(`state.${stepState(step)}`)}
-                />
-              ))}
-            </TapeRule>
-          </nav>
-        }
-        content={
-          <>
-            <PageTitle>{t('steps.1')}</PageTitle>
-            <ZoneStub kind="content" />
-          </>
-        }
-        scene={<ZoneStub kind="scene" />}
-        showcase={<ZoneStub kind="showcase" />}
-        cost={<ConfiguratorEstimate />}
-      />
-    </WarmupGate>
-  );
+  return <StepRedirect />;
 }

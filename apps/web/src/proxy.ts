@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 
@@ -15,7 +15,22 @@ function supportedLanguages(header: string | null): string {
   return supported.length > 0 ? supported.join(',') : routing.defaultLocale;
 }
 
+const PROXY_SECRET_HEADER = 'x-roomwise-proxy-secret';
+
+function forwardToApi(request: NextRequest) {
+  const headers = new Headers(request.headers);
+  headers.delete(PROXY_SECRET_HEADER);
+  const secret = process.env.API_PROXY_SECRET;
+  if (secret) {
+    headers.set(PROXY_SECRET_HEADER, secret);
+  }
+  return NextResponse.next({ request: { headers } });
+}
+
 export default function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return forwardToApi(request);
+  }
   request.headers.set(
     'accept-language',
     supportedLanguages(request.headers.get('accept-language')),
@@ -24,5 +39,8 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/((?!(?:api|_next|_vercel|~offline)(?:/|$)|.*\\..*).*)',
+  matcher: [
+    '/api/:path*',
+    '/((?!(?:api|_next|_vercel|~offline)(?:/|$)|.*\\..*).*)',
+  ],
 };

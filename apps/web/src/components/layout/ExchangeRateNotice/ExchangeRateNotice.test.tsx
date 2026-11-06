@@ -15,7 +15,7 @@ describe('ExchangeRateNotice', () => {
 
   it('renders nothing without a pending notice', () => {
     const { container } = renderWithProviders(<ExchangeRateNotice />);
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstElementChild).toBeEmptyDOMElement();
   });
 
   it('explains the fallback to dollars and can be dismissed', async () => {

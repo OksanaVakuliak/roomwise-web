@@ -1,0 +1,30 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--text-body-s-size);
+  color: var(--heat);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-body-s-size);
+  color: var(--line-2);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.action {
+  min-height: var(--size-compact);
+  padding: 0 var(--space-14);
+  font-size: var(--text-body-s-size);
+}

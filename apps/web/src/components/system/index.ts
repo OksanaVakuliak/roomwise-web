@@ -1,6 +1,7 @@
 export * from './ErrorState/ErrorState';
 export * from './OfflineShell/OfflineShell';
 export * from './OfflineState/OfflineState';
+export * from './PricingDataSync/PricingDataSync';
 export * from './UpdateNotice/UpdateNotice';
 export * from './WarmupGate/WarmupGate';
 export * from './WarmupStarter/WarmupStarter';

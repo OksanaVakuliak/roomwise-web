@@ -30,6 +30,10 @@ export type SceneGeometry = {
   cutStart: Label;
   cutEnd: Label;
   place: (label: Label) => { left: string; top: string };
+  tileUnit: (millimetres: number) => number;
+  floorTransform: string;
+  rightWallTransform: string;
+  leftWallTransform: string;
 };
 
 const SCALE = 26;
@@ -201,6 +205,10 @@ export function computeGeometry(
     cutLine: segment(cutStart, cutEnd),
     cutTicks: `${barbs(cutStart, 'l-8 12')}${barbs(cutEnd, 'l-8 12')}`,
     ...labels,
+    tileUnit: (millimetres) => (millimetres / 1000) * SCALE,
+    floorTransform: `matrix(${COS} ${SIN} ${-COS} ${SIN} 0 0)`,
+    rightWallTransform: `matrix(${COS} ${SIN} 0 1 0 ${round(-height)})`,
+    leftWallTransform: `matrix(${-COS} ${SIN} 0 1 0 ${round(-height)})`,
     place: (label) => ({
       left: `${round(((label.x - minX) / boxWidth) * 100)}%`,
       top: `${round(((label.y - minY) / boxHeight) * 100)}%`,

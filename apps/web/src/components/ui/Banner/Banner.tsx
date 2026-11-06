@@ -50,7 +50,7 @@ export function Banner({
         {title ? (
           <p className={styles.title}>{announced ? title : null}</p>
         ) : null}
-        <p className={styles.text}>{announced ? children : null}</p>
+        <div className={styles.text}>{announced ? children : null}</div>
         {action ? <div className={styles.action}>{action}</div> : null}
       </div>
       {onDismiss && dismissLabel ? (

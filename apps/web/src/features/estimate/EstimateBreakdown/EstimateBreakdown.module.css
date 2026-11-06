@@ -1,0 +1,15 @@
+.root {
+  display: grid;
+  gap: var(--space-22);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+}
+
+.rooms {
+  display: grid;
+  gap: var(--space-16);
+  margin-top: var(--space-12);
+}

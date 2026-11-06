@@ -19,6 +19,10 @@
   font-size: var(--text-label-size);
 }
 
+.legend {
+  margin-bottom: var(--space-6);
+}
+
 .required {
   color: var(--heat);
 }
@@ -31,6 +35,21 @@
   border-top-color: transparent;
   border-radius: 100%;
   animation: spin var(--duration-slow) linear infinite;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: var(--text-body-s-line);
+}
+
+.compact {
+  min-height: 0;
+}
+
+.compact:empty {
+  display: none;
 }
 
 .hint {
@@ -62,4 +81,13 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

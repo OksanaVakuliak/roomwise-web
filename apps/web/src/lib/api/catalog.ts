@@ -1,0 +1,158 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLocale } from 'next-intl';
+import { useCallback } from 'react';
+import { rewarm, selectWarmupStatus, useWarmup } from '@/lib/warmup';
+import { api } from './client';
+import { ApiRequestError } from './request-error';
+import { isServerUnavailable } from './server-unavailable';
+
+export type Lang = 'en' | 'uk';
+
+export type Result<T> = {
+  data?: T;
+  error?: unknown;
+  response: { status: number };
+};
+
+export const catalogRoots = {
+  styles: 'styles',
+  roomTypes: 'room-types',
+  engineering: 'engineering',
+  products: 'products',
+  product: 'product',
+  defaultMaterials: 'default-materials',
+} as const;
+
+export const catalogKeys = {
+  styles: (lang: string) => [catalogRoots.styles, lang] as const,
+  roomTypes: (lang: string) => [catalogRoots.roomTypes, lang] as const,
+  engineering: (lang: string) => [catalogRoots.engineering, lang] as const,
+  products: (categoryId: string, lang: string) =>
+    [catalogRoots.products, categoryId, lang] as const,
+  product: (productId: string, lang: string) =>
+    [catalogRoots.product, productId, lang] as const,
+  defaultMaterials: (styleId: string) =>
+    [catalogRoots.defaultMaterials, styleId] as const,
+};
+
+export async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
+  const { data, error, response } = await request;
+  if (data === undefined) {
+    const failure = new ApiRequestError(response.status, error);
+    if (isServerUnavailable(failure.status, failure.apiError)) {
+      void rewarm();
+    }
+    throw failure;
+  }
+  return data;
+}
+
+export function useCatalogReady() {
+  return useWarmup(selectWarmupStatus) === 'ready';
+}
+
+export function useLang(): Lang {
+  return useLocale() as Lang;
+}
+
+export function useStyles() {
+  const lang = useLang();
+  const ready = useCatalogReady();
+  return useQuery({
+    queryKey: catalogKeys.styles(lang),
+    queryFn: () =>
+      unwrap(api.GET('/api/v1/public/styles', { params: { query: { lang } } })),
+    enabled: ready,
+  });
+}
+
+export function useRoomTypes() {
+  const lang = useLang();
+  const ready = useCatalogReady();
+  return useQuery({
+    queryKey: catalogKeys.roomTypes(lang),
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/public/room-types', { params: { query: { lang } } }),
+      ),
+    enabled: ready,
+  });
+}
+
+export function useEngineering() {
+  const lang = useLang();
+  const ready = useCatalogReady();
+  return useQuery({
+    queryKey: catalogKeys.engineering(lang),
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/public/engineering', { params: { query: { lang } } }),
+      ),
+    enabled: ready,
+  });
+}
+
+export function useCategoryProducts(categoryId: string | null) {
+  const lang = useLang();
+  const ready = useCatalogReady();
+  return useQuery({
+    queryKey: catalogKeys.products(categoryId ?? '', lang),
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/public/categories/{categoryId}/products', {
+          params: { path: { categoryId: categoryId ?? '' }, query: { lang } },
+        }),
+      ),
+    enabled: ready && categoryId !== null,
+  });
+}
+
+export function productQuery(productId: string, lang: Lang) {
+  return {
+    queryKey: catalogKeys.product(productId, lang),
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/public/products/{productId}', {
+          params: { path: { productId }, query: { lang } },
+        }),
+      ),
+  };
+}
+
+export function useProduct(productId: string | null) {
+  const lang = useLang();
+  const ready = useCatalogReady();
+  return useQuery({
+    ...productQuery(productId ?? '', lang),
+    enabled: ready && productId !== null,
+  });
+}
+
+export function defaultMaterialsQuery(styleId: string) {
+  return {
+    queryKey: catalogKeys.defaultMaterials(styleId),
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/public/styles/{styleId}/default-materials', {
+          params: { path: { styleId } },
+        }),
+      ),
+  };
+}
+
+export function useDefaultMaterials(styleId: string | null) {
+  const ready = useCatalogReady();
+  return useQuery({
+    ...defaultMaterialsQuery(styleId ?? ''),
+    enabled: ready && styleId !== null,
+  });
+}
+
+export function useRefreshCatalog() {
+  const queryClient = useQueryClient();
+  return useCallback(() => {
+    for (const root of Object.values(catalogRoots)) {
+      void queryClient.invalidateQueries({ queryKey: [root] });
+    }
+  }, [queryClient]);
+}

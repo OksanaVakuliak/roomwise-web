@@ -2,7 +2,7 @@ import { act } from '@testing-library/react';
 import type { AnchorHTMLAttributes } from 'react';
 import { type ReactElement, Suspense } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import ConfiguratorPage from '@/app/[locale]/configurator/page';
+import ObjectPage from '@/app/[locale]/configurator/object/page';
 import HomePage from '@/app/[locale]/page';
 import { blockingViolations } from '@/test/axe';
 import {
@@ -38,10 +38,10 @@ const pages: readonly (readonly [string, Page])[] = [
     ),
   ],
   [
-    'step shell',
+    'object step',
     (locale) => (
       <Suspense>
-        <ConfiguratorPage params={Promise.resolve({ locale })} />
+        <ObjectPage params={Promise.resolve({ locale })} />
       </Suspense>
     ),
   ],

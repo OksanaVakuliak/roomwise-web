@@ -30,7 +30,11 @@
   padding: 0 var(--space-12);
   border: var(--stroke-1-5) dashed var(--line);
   background: var(--paper);
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 }
 
 .root:hover .face {

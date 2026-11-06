@@ -13,7 +13,10 @@ export type NumberFieldProps = Omit<
   error?: string;
   loading?: boolean;
   loadingLabel?: string;
+  decimal?: boolean;
 };
+
+const DECIMAL_PATTERN = '[0-9]*[.,]?[0-9]*';
 
 export function NumberField({
   label,
@@ -27,6 +30,10 @@ export function NumberField({
   className,
   readOnly,
   inputMode = 'decimal',
+  decimal = false,
+  min,
+  max,
+  step,
   ...rest
 }: NumberFieldProps) {
   const unitId = useId();
@@ -47,7 +54,9 @@ export function NumberField({
           <input
             {...rest}
             {...mergeControl(control, rest, unit ? unitId : undefined)}
-            type="number"
+            {...(decimal
+              ? { type: 'text', pattern: DECIMAL_PATTERN, autoComplete: 'off' }
+              : { type: 'number', min, max, step })}
             inputMode={inputMode}
             readOnly={loading || readOnly}
             className={`${styles.control} num`}

@@ -1,0 +1,34 @@
+.root {
+  margin: 0;
+  padding: var(--space-4) 0 var(--space-8)
+    calc(var(--result-position-width) + var(--space-8));
+  list-style: none;
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-s-size);
+  color: var(--heat);
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: baseline;
+}
+
+.mark {
+  display: inline-block;
+  width: var(--icon-sm);
+  text-align: center;
+  font-weight: 700;
+  border: var(--stroke-1) solid currentColor;
+  border-radius: 50%;
+  line-height: 1;
+}
+
+.kind {
+  font-weight: 700;
+}
+
+.kind::after {
+  content: ":";
+}

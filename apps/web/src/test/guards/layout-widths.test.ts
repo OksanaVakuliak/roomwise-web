@@ -7,7 +7,7 @@ const SRC = resolve(import.meta.dirname, '../..');
 const SMALLEST = Math.min(...VIEWPORTS);
 const TABLET = 768;
 const ROOT_PX = 16;
-const SCALING_FROM = 1024;
+const SCALING_FROM = 1440;
 const PX_ALLOWLIST = new Set([
   '--breakpoint-phone-max',
   '--breakpoint-tablet-max',
@@ -159,7 +159,11 @@ describe('layout widths guard', () => {
   });
 
   it('defines the layout tokens it relies on', () => {
-    for (const name of ['--layout-aside-width-tablet']) {
+    for (const name of [
+      '--layout-aside-width-tablet',
+      '--layout-picker-min-width',
+      '--layout-aside-min-width',
+    ]) {
       expect(TOKENS.get(name), name).toMatch(/^\d+(?:\.\d+)?rem$/);
     }
   });

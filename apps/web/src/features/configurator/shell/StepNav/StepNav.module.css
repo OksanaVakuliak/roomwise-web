@@ -1,0 +1,13 @@
+.root {
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-10);
+}
+
+.root > :first-child {
+  flex: 1;
+}
+
+.root > :last-child:not(:first-child) {
+  flex: 2;
+}

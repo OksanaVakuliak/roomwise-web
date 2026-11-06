@@ -9,12 +9,18 @@ import {
   AppHeader,
   ExchangeRateNotice,
   MAIN_ID,
+  NoticeProvider,
   NoticeStack,
   SkipLink,
 } from '@/components/layout';
-import { UpdateNotice, WarmupStarter } from '@/components/system';
+import {
+  PricingDataSync,
+  UpdateNotice,
+  WarmupStarter,
+} from '@/components/system';
 import { routing } from '@/i18n/routing';
 import { SHORT_NAME, workerUrl } from '@/lib/pwa';
+import { QueryProvider } from '@/lib/query';
 import { themeInitScript } from '@/lib/theme';
 import { caveat, commissioner, tektur } from '../fonts';
 import '../../styles/global.css';
@@ -74,17 +80,22 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
           reloadOnOnline={false}
         >
           <NextIntlClientProvider>
-            <WarmupStarter />
-            <SkipLink />
-            <AppHeader />
-            <main id={MAIN_ID} tabIndex={-1}>
-              {children}
-            </main>
-            <AppFooter />
-            <NoticeStack>
-              <ExchangeRateNotice />
-              <UpdateNotice />
-            </NoticeStack>
+            <QueryProvider>
+              <NoticeProvider>
+                <WarmupStarter />
+                <PricingDataSync />
+                <SkipLink />
+                <AppHeader />
+                <main id={MAIN_ID} tabIndex={-1}>
+                  {children}
+                </main>
+                <AppFooter />
+                <NoticeStack>
+                  <ExchangeRateNotice />
+                  <UpdateNotice />
+                </NoticeStack>
+              </NoticeProvider>
+            </QueryProvider>
           </NextIntlClientProvider>
         </SerwistProvider>
       </body>
