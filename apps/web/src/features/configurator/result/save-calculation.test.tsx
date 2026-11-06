@@ -368,6 +368,17 @@ describe('save calculation', () => {
     expect(post).toHaveBeenCalledTimes(1);
   });
 
+  it('shows minutes rounded up for a long retryAfterSeconds', async () => {
+    await renderResult();
+    post.mockResolvedValue(
+      failure(429, 'RATE_LIMITED', { retryAfterSeconds: 3577 }),
+    );
+
+    await save();
+
+    expect(screen.getByText(/save again in 60 minutes/)).toBeVisible();
+  });
+
   it('re-enables the button once retryAfterSeconds have passed', async () => {
     post.mockResolvedValue(
       failure(429, 'RATE_LIMITED', { retryAfterSeconds: 3 }),
