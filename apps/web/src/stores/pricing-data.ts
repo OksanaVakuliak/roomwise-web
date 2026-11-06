@@ -3,8 +3,11 @@ import { create } from 'zustand';
 import {
   fetchPricingData,
   PricingDataNetworkError,
+  PricingDataRequestError,
 } from '@/lib/api/pricing-data';
+import { isServerUnavailable } from '@/lib/api/server-unavailable';
 import { captureException } from '@/lib/monitoring/client';
+import { rewarm } from '@/lib/warmup';
 import { createSafeStorage } from './safe-storage';
 
 export const PRICING_VERSION_KEY = 'roomwise-pricing-version';
@@ -107,7 +110,12 @@ async function run(started: number): Promise<void> {
     });
   } catch (error) {
     if (started === generation) {
-      if (!(error instanceof PricingDataNetworkError)) {
+      if (
+        error instanceof PricingDataRequestError &&
+        isServerUnavailable(error.status)
+      ) {
+        rewarm();
+      } else if (!(error instanceof PricingDataNetworkError)) {
         captureException(error);
       }
       usePricingData.setState({ status: 'error' });

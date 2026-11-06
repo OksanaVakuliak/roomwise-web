@@ -2,6 +2,7 @@ import { PricingDataSchema } from '@roomwise/calc-engine';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { captureException } from '@/lib/monitoring/client';
 import { breakStorage, installMemoryStorage } from '@/lib/theme/test-utils';
+import { rewarm } from '@/lib/warmup';
 import { makePricingData } from '@/test/fixtures';
 import {
   checkPricingData,
@@ -11,6 +12,7 @@ import {
 } from './pricing-data';
 
 vi.mock('@/lib/monitoring/client', () => ({ captureException: vi.fn() }));
+vi.mock('@/lib/warmup', () => ({ rewarm: vi.fn() }));
 
 const V1 = '1111111111111111';
 const V2 = '2222222222222222';
@@ -36,6 +38,7 @@ function sentHeaders(call: number) {
 beforeEach(() => {
   fetchMock.mockReset();
   vi.mocked(captureException).mockClear();
+  vi.mocked(rewarm).mockClear();
   vi.stubGlobal('fetch', fetchMock);
   installMemoryStorage();
   resetPricingData();
@@ -228,7 +231,7 @@ describe('checkPricingData', () => {
     [
       'a server error',
       () => Promise.resolve(new Response('x', { status: 500 })),
-      true,
+      false,
     ],
     ['an invalid body', () => Promise.resolve(ok({ version: 1 })), true],
     [
@@ -289,5 +292,27 @@ describe('checkPricingData', () => {
       status: 'idle',
       data: null,
     });
+  });
+
+  it.each([500, 502, 503, 504])(
+    'rewarms without reporting when the server answers %i',
+    async (status) => {
+      fetchMock.mockResolvedValueOnce(new Response('', { status }));
+
+      await checkPricingData();
+
+      expect(usePricingData.getState().status).toBe('error');
+      expect(rewarm).toHaveBeenCalledTimes(1);
+      expect(captureException).not.toHaveBeenCalled();
+    },
+  );
+
+  it('reports other statuses without rewarming', async () => {
+    fetchMock.mockResolvedValueOnce(new Response('', { status: 404 }));
+
+    await checkPricingData();
+
+    expect(rewarm).not.toHaveBeenCalled();
+    expect(captureException).toHaveBeenCalledTimes(1);
   });
 });
