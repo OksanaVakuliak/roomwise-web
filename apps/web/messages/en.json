@@ -640,6 +640,7 @@
   },
   "CostPanel": {
     "base": "Base cost",
+    "worksAndMaterials": "Works and materials",
     "materials": "Materials",
     "engineering": "Engineering",
     "additional": "Additional options",
@@ -753,6 +754,7 @@
       "later": "upcoming"
     },
     "announcement": "Total is now {total}",
+    "barLabelPartial": "Estimate split: works and materials {materials}%, engineering {engineering}%, options {options}%",
     "barLabel": "Estimate split: base {base}%, materials {materials}%, engineering {engineering}%, options {options}%",
     "totalLabel": "Total on the drawing",
     "toggleLabel": "Show breakdown",

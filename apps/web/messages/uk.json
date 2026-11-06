@@ -640,6 +640,7 @@
   },
   "CostPanel": {
     "base": "Базова вартість",
+    "worksAndMaterials": "Роботи й матеріали",
     "materials": "Матеріали",
     "engineering": "Інженерія",
     "additional": "Додаткові опції",
@@ -753,6 +754,7 @@
       "later": "попереду"
     },
     "announcement": "Разом тепер {total}",
+    "barLabelPartial": "Розподіл кошторису: роботи й матеріали {materials}%, інженерія {engineering}%, опції {options}%",
     "barLabel": "Розподіл кошторису: база {base}%, матеріали {materials}%, інженерія {engineering}%, опції {options}%",
     "totalLabel": "Разом за кресленням",
     "toggleLabel": "Показати розбивку",
