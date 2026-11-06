@@ -194,7 +194,7 @@ export const useDraft = create<DraftState>()(
         set((state) => ({ styleId: null, revision: state.revision + 1 })),
       addRoom: (catalog) => {
         const draft = pickDraft(get());
-        const created = createRoom(draft);
+        const created = createRoom(draft, undefined, catalog?.roomTypes);
         const room =
           catalog?.defaultMaterials && draft.styleId !== null
             ? {
@@ -203,6 +203,7 @@ export const useDraft = create<DraftState>()(
                   created.roomTypeCode,
                   catalog.defaultMaterials,
                   catalog.roomTypes,
+                  draft.object.scope,
                 ),
               }
             : created;
@@ -260,6 +261,7 @@ export const useDraft = create<DraftState>()(
                 patch.roomTypeCode,
                 state.styleId === null ? null : catalog.defaultMaterials,
                 catalog.roomTypes,
+                state.object.scope,
               ),
             };
           });
