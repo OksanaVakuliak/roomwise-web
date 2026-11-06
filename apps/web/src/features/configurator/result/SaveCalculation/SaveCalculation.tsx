@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ErrorState } from '@/components/system';
 import { Banner, Button } from '@/components/ui';
 import type { SavedCalculation } from '@/lib/api/calculations';
+import { rateLimitValues } from '@/lib/api/use-rate-limit-countdown';
 import { money } from '@/lib/format';
 import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
 import { useDisplayCurrency } from '@/stores/use-display-currency';
@@ -34,7 +35,7 @@ function Feedback({
     case 'limited':
       return (
         <Banner variant="warning">
-          {t('rateLimited', { seconds: state.seconds })}
+          {t('rateLimited', rateLimitValues(state.seconds))}
         </Banner>
       );
     case 'failed':

@@ -1,7 +1,8 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetWarmup, useWarmup } from '@/lib/warmup';
 import { makePricingData } from '@/test/fixtures';
 import { createTestQueryClient } from '@/test/render-with-providers';
 import {
@@ -44,6 +45,8 @@ beforeEach(() => {
   fetchMock.mockReset();
   vi.stubGlobal('fetch', fetchMock);
   resetPricingData();
+  resetWarmup();
+  useWarmup.setState({ server: 'ready' });
 });
 
 afterEach(() => {
@@ -62,6 +65,37 @@ describe('usePricingDataSync', () => {
       expect(usePricingData.getState().status).toBe('ready'),
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for warm-up before the first check', async () => {
+    fetchMock.mockResolvedValue(ok(V1));
+    useWarmup.setState({ server: 'warming' });
+
+    setup();
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    act(() => useWarmup.setState({ server: 'ready' }));
+    await vi.waitFor(() =>
+      expect(usePricingData.getState().status).toBe('ready'),
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechecks failed pricing data once warm-up is ready again', async () => {
+    fetchMock.mockImplementation(() => Promise.resolve(ok(V1)));
+    setup();
+    await vi.waitFor(() =>
+      expect(usePricingData.getState().status).toBe('ready'),
+    );
+    act(() => {
+      usePricingData.setState({ status: 'error' });
+      useWarmup.setState({ server: 'warming' });
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    act(() => useWarmup.setState({ server: 'ready' }));
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
 
   it('rechecks on becoming visible only when the data is stale', async () => {

@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale } from 'next-intl';
 import { useCallback } from 'react';
-import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
+import { rewarm, selectWarmupStatus, useWarmup } from '@/lib/warmup';
 import { api } from './client';
 import { ApiRequestError } from './request-error';
+import { isServerUnavailable } from './server-unavailable';
 
 export type Lang = 'en' | 'uk';
 
@@ -37,7 +38,11 @@ export const catalogKeys = {
 export async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
   const { data, error, response } = await request;
   if (data === undefined) {
-    throw new ApiRequestError(response.status, error);
+    const failure = new ApiRequestError(response.status, error);
+    if (isServerUnavailable(failure.status, failure.apiError)) {
+      void rewarm();
+    }
+    throw failure;
   }
   return data;
 }

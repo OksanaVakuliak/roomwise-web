@@ -6,6 +6,7 @@ import { Banner, Button } from '@/components/ui';
 import { calculationPath } from '@/config/routes';
 import { useRouter } from '@/i18n/navigation';
 import type { VersionView } from '@/lib/api/calculations';
+import { rateLimitValues } from '@/lib/api/use-rate-limit-countdown';
 import { money } from '@/lib/format';
 import { usePreferences } from '@/stores/preferences';
 import { snapshotCurrency } from '../snapshot-currency';
@@ -70,7 +71,7 @@ export function PriceChangedBanner({ version }: PriceChangedBannerProps) {
         ) : null}
         {state.kind === 'limited' ? (
           <p role="alert" className={styles.error}>
-            {t('rateLimited', { seconds: state.seconds })}
+            {t('rateLimited', rateLimitValues(state.seconds))}
           </p>
         ) : null}
       </div>

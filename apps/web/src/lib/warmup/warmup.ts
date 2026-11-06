@@ -44,6 +44,7 @@ export function selectWarmupStatus(state: WarmupState): WarmupStatus {
 }
 
 let generation = 0;
+let verifying: Promise<void> | undefined;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -110,6 +111,35 @@ export function startWarmup(): void {
   beginWindow();
 }
 
+export function rewarm(): Promise<void> {
+  const { server, network } = useWarmup.getState();
+  if (server !== 'ready') {
+    startWarmup();
+    return Promise.resolve();
+  }
+  if (network === 'offline') {
+    useWarmup.setState({ server: 'warming' });
+    return Promise.resolve();
+  }
+  if (!verifying) {
+    const run = generation;
+    verifying = probe()
+      .then((ok) => {
+        if (
+          !ok &&
+          run === generation &&
+          useWarmup.getState().server === 'ready'
+        ) {
+          beginWindow();
+        }
+      })
+      .finally(() => {
+        verifying = undefined;
+      });
+  }
+  return verifying;
+}
+
 export async function retryWarmup(): Promise<void> {
   const { server, network } = useWarmup.getState();
   if (server === 'ready') {
@@ -159,6 +189,7 @@ export function installNetworkListeners(): () => void {
 
 export function resetWarmup(): void {
   generation += 1;
+  verifying = undefined;
   clearTimers();
   useWarmup.setState(initialState());
 }

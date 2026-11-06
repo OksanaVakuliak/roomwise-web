@@ -4,9 +4,11 @@ import {
   installNetworkListeners,
   resetWarmup,
   retryWarmup,
+  rewarm,
   selectWarmupStatus,
   startWarmup,
   useWarmup,
+  WARMUP_RETRY_BASE_MS,
   WARMUP_SCREEN_DELAY_MS,
   WARMUP_TIMEOUT_MS,
 } from './warmup';
@@ -162,6 +164,78 @@ describe('warmup', () => {
     expect(status()).toBe('warming');
     await vi.advanceTimersByTimeAsync(1);
     expect(status()).toBe('failed');
+  });
+
+  it('rewarm opens a new window when health fails after ready', async () => {
+    get.mockResolvedValue(up);
+    startWarmup();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(status()).toBe('ready');
+    get.mockReset();
+    get.mockResolvedValue(down);
+
+    await rewarm();
+
+    expect(status()).toBe('warming');
+    get.mockResolvedValue(up);
+    await vi.advanceTimersByTimeAsync(WARMUP_RETRY_BASE_MS);
+    expect(status()).toBe('ready');
+  });
+
+  it('rewarm stays ready when health answers', async () => {
+    get.mockResolvedValue(up);
+    startWarmup();
+    await vi.advanceTimersByTimeAsync(0);
+    get.mockReset();
+    get.mockResolvedValue(up);
+    const states: string[] = [];
+    const unsubscribe = useWarmup.subscribe((state) => {
+      states.push(state.server);
+    });
+
+    await rewarm();
+
+    unsubscribe();
+    expect(states).toEqual([]);
+    expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it('rewarm shares one health check between callers', async () => {
+    useWarmup.setState({ server: 'ready' });
+    get.mockResolvedValue(up);
+
+    await Promise.all([rewarm(), rewarm()]);
+
+    expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it('rewarm does not start a second window while warming', () => {
+    get.mockReturnValue(new Promise(() => {}));
+    startWarmup();
+
+    rewarm();
+    rewarm();
+
+    expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it('rewarm starts a window from unknown', () => {
+    get.mockReturnValue(new Promise(() => {}));
+
+    rewarm();
+
+    expect(status()).toBe('warming');
+    expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it('rewarm only marks warming while offline', () => {
+    window.dispatchEvent(new Event('offline'));
+    useWarmup.setState({ server: 'ready' });
+
+    rewarm();
+
+    expect(useWarmup.getState().server).toBe('warming');
+    expect(get).not.toHaveBeenCalled();
   });
 
   it('retry does nothing while warming online', () => {

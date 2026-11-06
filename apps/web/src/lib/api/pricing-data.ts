@@ -1,9 +1,13 @@
 import { type PricingData, PricingDataSchema } from '@roomwise/calc-engine';
+import { type ApiError, parseApiError } from './errors';
 
 export const PRICING_DATA_PATH = '/api/v1/public/pricing-data';
 
 export class PricingDataRequestError extends Error {
-  constructor(readonly status: number) {
+  constructor(
+    readonly status: number,
+    readonly apiError: ApiError,
+  ) {
     super(`Pricing data request failed with ${status}`);
     this.name = 'PricingDataRequestError';
   }
@@ -36,7 +40,8 @@ export async function fetchPricingData(
     return { kind: 'not-modified' };
   }
   if (!response.ok) {
-    throw new PricingDataRequestError(response.status);
+    const body: unknown = await response.json().catch(() => undefined);
+    throw new PricingDataRequestError(response.status, parseApiError(body));
   }
   const data = PricingDataSchema.parse(await response.json());
   return { kind: 'modified', data, etag: response.headers.get('ETag') };

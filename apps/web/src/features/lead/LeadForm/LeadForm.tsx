@@ -13,6 +13,7 @@ import {
 } from 'react';
 import { Banner, Button, Checkbox, TextArea, TextField } from '@/components/ui';
 import { WriteFailureNotice } from '@/features/configurator/result/WriteFailureNotice/WriteFailureNotice';
+import { rateLimitValues } from '@/lib/api/use-rate-limit-countdown';
 import { selectWarmupStatus, useWarmup } from '@/lib/warmup';
 import {
   DEFAULT_PHONE,
@@ -215,7 +216,7 @@ export function LeadForm({ state, onSubmit }: LeadFormProps) {
         </Button>
         {state.kind === 'limited' ? (
           <Banner variant="warning">
-            {t('form.rateLimited', { seconds: state.seconds })}
+            {t('form.rateLimited', rateLimitValues(state.seconds))}
           </Banner>
         ) : null}
         {state.kind === 'failed' ? (

@@ -1,5 +1,11 @@
-import { selectWarmupStatus, startWarmup, useWarmup } from '@/lib/warmup';
+import {
+  rewarm,
+  selectWarmupStatus,
+  startWarmup,
+  useWarmup,
+} from '@/lib/warmup';
 import { ApiRequestError } from './request-error';
+import { isServerUnavailable } from './server-unavailable';
 
 export const DEFAULT_RETRY_AFTER_SECONDS = 60;
 
@@ -59,19 +65,29 @@ function waitUntilReady(): Promise<void> {
 async function attempt<T>(
   send: WriteSender<T>,
   idempotencyKey: string,
-): Promise<WriteResult<T>> {
+): Promise<T> {
   await waitUntilReady();
+  let result: WriteResult<T>;
   try {
-    return await send(idempotencyKey);
+    result = await send(idempotencyKey);
   } catch {
     throw networkFailure();
   }
+  if (result.data !== undefined) {
+    return result.data;
+  }
+  const failure = new ApiRequestError(result.response.status, result.error);
+  if (isServerUnavailable(failure.status, failure.apiError)) {
+    await rewarm();
+    throw networkFailure();
+  }
+  throw failure;
 }
 
 async function sendWithRetry<T>(
   send: WriteSender<T>,
   idempotencyKey: string,
-): Promise<WriteResult<T>> {
+): Promise<T> {
   try {
     return await attempt(send, idempotencyKey);
   } catch (error) {
@@ -105,20 +121,19 @@ export function createWriteGate(now: () => number = Date.now): WriteGate {
           }),
         );
       }
-      const { data, error, response } = await sendWithRetry(
-        send,
-        idempotencyKey,
-      );
-      if (data !== undefined) {
-        return data;
+      try {
+        return await sendWithRetry(send, idempotencyKey);
+      } catch (failure) {
+        if (
+          failure instanceof ApiRequestError &&
+          failure.apiError.code === 'RATE_LIMITED'
+        ) {
+          const limited = new RateLimitedError(failure);
+          blockedUntil = now() + limited.retryAfterSeconds * 1000;
+          throw limited;
+        }
+        throw failure;
       }
-      const failure = new ApiRequestError(response.status, error);
-      if (failure.apiError.code === 'RATE_LIMITED') {
-        const limited = new RateLimitedError(failure);
-        blockedUntil = now() + limited.retryAfterSeconds * 1000;
-        throw limited;
-      }
-      throw failure;
     },
   };
 }

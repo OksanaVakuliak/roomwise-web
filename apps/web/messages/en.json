@@ -1056,7 +1056,7 @@
     "save": "Save the estimate",
     "saving": "Saving the estimate",
     "warming": "Waking the server, this can take a minute",
-    "rateLimited": "{seconds, plural, one {You can save again in # second.} other {You can save again in # seconds.}}",
+    "rateLimited": "{minutes, plural, =0 {{seconds, plural, one {You can save again in # second.} other {You can save again in # seconds.}}} one {You can save again in # minute.} other {You can save again in # minutes.}}",
     "totalIncreased": "The total has increased by {diff}. The amounts above are the saved ones.",
     "totalDecreased": "The total has decreased by {diff}. The amounts above are the saved ones.",
     "failure": {
@@ -1100,7 +1100,7 @@
       "submit": "Send the request",
       "sending": "Sending the request",
       "warming": "Waking the server, this can take a minute",
-      "rateLimited": "{seconds, plural, one {You can send the request again in # second.} other {You can send the request again in # seconds.}}"
+      "rateLimited": "{minutes, plural, =0 {{seconds, plural, one {You can send the request again in # second.} other {You can send the request again in # seconds.}}} one {You can send the request again in # minute.} other {You can send the request again in # minutes.}}"
     },
     "errors": {
       "name": "Enter your name, up to 100 characters.",
@@ -1155,7 +1155,7 @@
       "action": "Recalculate",
       "pending": "Recalculating the estimate",
       "failed": "Could not recalculate the estimate. Try again.",
-      "rateLimited": "{seconds, plural, one {You can recalculate again in # second.} other {You can recalculate again in # seconds.}}"
+      "rateLimited": "{minutes, plural, =0 {{seconds, plural, one {You can recalculate again in # second.} other {You can recalculate again in # seconds.}}} one {You can recalculate again in # minute.} other {You can recalculate again in # minutes.}}"
     },
     "newer": {
       "text": "A newer version of this estimate exists.",

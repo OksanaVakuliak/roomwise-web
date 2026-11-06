@@ -1,14 +1,7 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
-import {
-  makeEngineering,
-  makeProductCard,
-  makeRoomTypes,
-  makeStyles,
-  productIds,
-} from '@/test/fixtures';
 import en from '../messages/en.json';
 import uk from '../messages/uk.json';
-import { installMockApi, isLive } from './mock-api';
+import { installMockApi } from './mock-api';
 
 const catalogs = { en, uk };
 type Locale = keyof typeof catalogs;
@@ -38,19 +31,22 @@ async function fillField(page: Page, label: string, value: string) {
 async function press(page: Page, name: string | RegExp) {
   await tabTo(
     page,
-    page.getByRole('button', { name, exact: typeof name === 'string' }),
+    page.getByRole('button', { name, exact: typeof name === 'string' }).first(),
   );
   await page.keyboard.press('Enter');
 }
 
-test.skip(isLive(), 'The flow relies on fixture catalog names');
+const escapeRegExp = (text: string) =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const templateToRegExp = (template: string) =>
+  new RegExp(`^${template.split('{name}').map(escapeRegExp).join('(.+)')}$`);
 
 test('keyboard-only main flow', async ({ page, browser }) => {
   const locale = test.info().project.name as Locale;
   const messages = catalogs[locale];
   const object = messages.ObjectStep;
   const store = await installMockApi(page.context());
-  const livingRoom = makeRoomTypes().items[0].name;
 
   await page.goto(`/${locale}/configurator/object`);
   await tabTo(page, page.getByRole('radio', { name: object.form.finishRough }));
@@ -63,37 +59,61 @@ test('keyboard-only main flow', async ({ page, browser }) => {
   await expect(
     page.getByRole('combobox', { name: object.rooms.type }),
   ).toBeFocused();
-  await page.keyboard.type(livingRoom);
+  await page.keyboard.press('ArrowDown');
+  await expect(
+    page.getByRole('combobox', { name: object.rooms.type }),
+  ).not.toHaveValue('');
   await fillField(page, object.rooms.length, '5');
   await fillField(page, object.rooms.width, '4');
   await fillField(page, object.rooms.height, '2.7');
   await press(page, messages.Configurator.next);
   await expect(page).toHaveURL(/\/configurator\/engineering$/);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  const [ac] = makeEngineering().options;
-  const airConditioner = page.getByRole('switch', { name: ac.name });
-  await tabTo(page, airConditioner);
-  await page.keyboard.press('Space');
-  await expect(airConditioner).toBeChecked();
+  await expect(
+    page.getByRole('status', { name: messages.EngineeringStep.loading }),
+  ).toBeHidden();
+  const apartmentSwitches = page
+    .getByRole('region', { name: messages.EngineeringStep.apartmentTitle })
+    .getByRole('switch');
+  if ((await apartmentSwitches.count()) > 0) {
+    const checkedSwitches = apartmentSwitches.and(
+      page.getByRole('switch', { checked: true }),
+    );
+    const checkedBefore = await checkedSwitches.count();
+    await tabTo(
+      page,
+      apartmentSwitches
+        .and(page.getByRole('switch', { checked: false }))
+        .first(),
+    );
+    await page.keyboard.press('Space');
+    await expect(checkedSwitches).toHaveCount(checkedBefore + 1);
+  }
   await press(page, messages.Configurator.next);
   await expect(page).toHaveURL(/\/configurator\/style$/);
-  const [modern] = makeStyles().items;
-  await press(
-    page,
-    messages.StyleStep.chooseLabel.replace('{name}', modern.name),
-  );
+  await press(page, templateToRegExp(messages.StyleStep.chooseLabel));
   await press(page, messages.Configurator.next);
   await expect(page).toHaveURL(/\/configurator\/interior$/);
-  const tile = makeProductCard(productIds.tile);
-  await press(page, new RegExp(makeProductCard().name));
-  await press(
-    page,
-    messages.ProductShowcase.chooseLabel.replace('{name}', tile.name),
-  );
+  const chosenRows = page.getByRole('region').getByRole('list');
+  const firstCategory = chosenRows.first().getByRole('button').first();
+  await tabTo(page, firstCategory);
+  await page.keyboard.press('Enter');
+  const pattern = templateToRegExp(messages.ProductShowcase.chooseLabel);
+  const candidate = page
+    .getByRole('dialog')
+    .getByRole('button', { name: pattern, pressed: false })
+    .first();
+  await expect(candidate).toBeVisible();
+  const label = (await candidate.getAttribute('aria-label')) as string;
+  const productName = (label.match(pattern) as RegExpMatchArray)[1];
+  await tabTo(page, candidate);
+  await page.keyboard.press('Enter');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(
-    page.getByRole('button', { name: new RegExp(tile.name) }),
+    chosenRows
+      .first()
+      .getByRole('button', { name: new RegExp(escapeRegExp(productName)) }),
   ).toBeVisible();
   await press(page, messages.Configurator.next);
   await expect(page).toHaveURL(/\/configurator\/result$/);
@@ -124,14 +144,12 @@ test('keyboard-only main flow', async ({ page, browser }) => {
       name: new RegExp(messages.CalculationPage.totalLabel),
     }),
   ).toBeVisible();
-  await expect(
-    snapshotPage.getByText(makeProductCard().name).first(),
-  ).toBeVisible();
+  await expect(snapshotPage.getByText(productName).first()).toBeVisible();
   await fresh.close();
 
   const lead = messages.Lead;
   await press(page, lead.open);
-  await fillField(page, lead.form.name, 'Olena Kovalenko');
+  await fillField(page, lead.form.name, 'E2E Roomwise');
   await fillField(page, lead.form.phone, '+380501234567');
   await tabTo(page, page.getByRole('checkbox', { name: lead.form.consent }));
   await page.keyboard.press('Space');

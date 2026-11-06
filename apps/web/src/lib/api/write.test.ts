@@ -4,6 +4,10 @@ import { resetWarmup, useWarmup } from '@/lib/warmup';
 import { ApiRequestError } from './request-error';
 import { createWriteGate, RateLimitedError } from './write';
 
+const health = vi.hoisted(() => vi.fn());
+
+vi.mock('@/lib/api/client', () => ({ api: { GET: health } }));
+
 const ok = (data: unknown) => ({ data, response: { status: 201 } });
 const failure = (status: number, error: unknown) => ({
   error,
@@ -15,6 +19,8 @@ const limited = (retryAfterSeconds: unknown) =>
   });
 
 beforeEach(() => {
+  health.mockReset();
+  health.mockResolvedValue({ response: { ok: true } });
   resetWarmup();
   useWarmup.setState({ server: 'ready' });
 });
@@ -125,5 +131,81 @@ describe('createWriteGate', () => {
     await expect(gate.write(send, 'key-1')).rejects.toMatchObject({
       retryAfterSeconds: 60,
     });
+  });
+
+  it.each([502, 503, 504])(
+    'rewarms and retries once with the same key after a proxy %i',
+    async (status) => {
+      const send = vi
+        .fn()
+        .mockResolvedValueOnce(failure(status, 'Bad Gateway'))
+        .mockResolvedValueOnce(ok('saved'));
+      await expect(createWriteGate().write(send, 'key-1')).resolves.toBe(
+        'saved',
+      );
+      expect(send.mock.calls).toEqual([['key-1'], ['key-1']]);
+    },
+  );
+
+  it('treats a 500 without an API code as server unavailable', async () => {
+    const send = vi
+      .fn()
+      .mockResolvedValueOnce(failure(500, '<html>error</html>'))
+      .mockResolvedValueOnce(ok('saved'));
+    await expect(createWriteGate().write(send, 'key-1')).resolves.toBe('saved');
+    expect(send).toHaveBeenCalledTimes(2);
+  });
+
+  it('puts warmup back into warming when the proxy answers 503 and health is down', async () => {
+    health
+      .mockResolvedValueOnce({ response: { ok: false } })
+      .mockResolvedValue({ response: { ok: true } });
+    const states: string[] = [];
+    const unsubscribe = useWarmup.subscribe((state) => {
+      states.push(state.server);
+    });
+    const send = vi
+      .fn()
+      .mockResolvedValueOnce(failure(503, 'Unavailable'))
+      .mockResolvedValueOnce(ok('saved'));
+    await expect(createWriteGate().write(send, 'key-1')).resolves.toBe('saved');
+    unsubscribe();
+    expect(states[0]).toBe('warming');
+    expect(states.at(-1)).toBe('ready');
+  });
+
+  it('stays ready when health answers after a proxy 503', async () => {
+    const states: string[] = [];
+    const unsubscribe = useWarmup.subscribe((state) => {
+      states.push(state.server);
+    });
+    const send = vi
+      .fn()
+      .mockResolvedValueOnce(failure(503, 'Unavailable'))
+      .mockResolvedValueOnce(ok('saved'));
+    await expect(createWriteGate().write(send, 'key-1')).resolves.toBe('saved');
+    unsubscribe();
+    expect(states).toEqual([]);
+    expect(health).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a 500 with an API code as a normal error', async () => {
+    const send = vi
+      .fn()
+      .mockResolvedValue(failure(500, { error: { code: 'INTERNAL' } }));
+    await expect(createWriteGate().write(send, 'key-1')).rejects.toMatchObject({
+      status: 500,
+      apiError: { code: 'INTERNAL' },
+    });
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives up with a network error after a second 503', async () => {
+    const send = vi.fn().mockResolvedValue(failure(503, 'Unavailable'));
+    await expect(createWriteGate().write(send, 'key-1')).rejects.toMatchObject({
+      status: 0,
+      apiError: { code: 'network' },
+    });
+    expect(send).toHaveBeenCalledTimes(2);
   });
 });

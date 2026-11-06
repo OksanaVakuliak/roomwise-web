@@ -246,4 +246,29 @@ describe('catalog hooks', () => {
     });
     expect(shouldRetry(0, result.current.error)).toBe(true);
   });
+
+  it('rewarms when the proxy answers 503', async () => {
+    const { wrapper } = setup();
+    await markReady();
+    get.mockResolvedValue({ error: 'Unavailable', response: { status: 503 } });
+
+    const { result } = renderHook(() => useStyles(), { wrapper });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(useWarmup.getState().server).toBe('warming');
+  });
+
+  it('does not rewarm on an error with an API code', async () => {
+    const { wrapper } = setup();
+    await markReady();
+    get.mockResolvedValue({
+      error: { error: { code: 'INTERNAL' } },
+      response: { status: 500 },
+    });
+
+    const { result } = renderHook(() => useStyles(), { wrapper });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(useWarmup.getState().server).toBe('ready');
+  });
 });

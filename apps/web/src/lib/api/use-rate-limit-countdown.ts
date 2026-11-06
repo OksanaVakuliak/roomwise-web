@@ -6,6 +6,13 @@ export type CountdownTick =
   | { kind: 'idle' };
 
 const SECOND_MS = 1000;
+const SECONDS_PER_MINUTE = 60;
+
+export const rateLimitValues = (seconds: number) => ({
+  seconds,
+  minutes:
+    seconds < SECONDS_PER_MINUTE ? 0 : Math.ceil(seconds / SECONDS_PER_MINUTE),
+});
 
 export function useRateLimitCountdown(
   gate: WriteGate,
