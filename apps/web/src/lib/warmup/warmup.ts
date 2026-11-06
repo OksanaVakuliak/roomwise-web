@@ -5,6 +5,7 @@ export const WARMUP_SCREEN_DELAY_MS = 2000;
 export const WARMUP_TIMEOUT_MS = 90000;
 export const WARMUP_RETRY_BASE_MS = 1000;
 export const WARMUP_RETRY_MAX_MS = 10000;
+export const REWARM_COOLDOWN_MS = 30000;
 
 export type ServerState = 'unknown' | 'warming' | 'ready' | 'failed';
 export type NetworkState = 'online' | 'offline';
@@ -44,6 +45,7 @@ export function selectWarmupStatus(state: WarmupState): WarmupStatus {
 }
 
 let generation = 0;
+let readyAt = 0;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -74,6 +76,7 @@ async function attempt(run: number, attemptNumber: number): Promise<void> {
   }
   if (ok) {
     clearTimers();
+    readyAt = Date.now();
     useWarmup.setState({ server: 'ready' });
     return;
   }
@@ -113,6 +116,9 @@ export function startWarmup(): void {
 export function rewarm(): void {
   const { server, network } = useWarmup.getState();
   if (server === 'warming' || server === 'failed') {
+    return;
+  }
+  if (server === 'ready' && Date.now() - readyAt < REWARM_COOLDOWN_MS) {
     return;
   }
   if (network === 'offline') {
@@ -171,6 +177,7 @@ export function installNetworkListeners(): () => void {
 
 export function resetWarmup(): void {
   generation += 1;
+  readyAt = 0;
   clearTimers();
   useWarmup.setState(initialState());
 }

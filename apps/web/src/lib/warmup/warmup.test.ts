@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '@/lib/api/client';
 import {
   installNetworkListeners,
+  REWARM_COOLDOWN_MS,
   resetWarmup,
   retryWarmup,
   rewarm,
@@ -173,6 +174,7 @@ describe('warmup', () => {
     expect(status()).toBe('ready');
     get.mockReset();
     get.mockResolvedValue(down);
+    await vi.advanceTimersByTimeAsync(REWARM_COOLDOWN_MS);
 
     rewarm();
 
@@ -181,6 +183,18 @@ describe('warmup', () => {
     get.mockResolvedValue(up);
     await vi.advanceTimersByTimeAsync(WARMUP_RETRY_BASE_MS);
     expect(status()).toBe('ready');
+  });
+
+  it('rewarm waits for the cooldown after the server became ready', async () => {
+    get.mockResolvedValue(up);
+    startWarmup();
+    await vi.advanceTimersByTimeAsync(0);
+    get.mockReset();
+
+    rewarm();
+
+    expect(status()).toBe('ready');
+    expect(get).not.toHaveBeenCalled();
   });
 
   it('rewarm does not start a second window while warming', () => {
