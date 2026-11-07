@@ -1039,6 +1039,7 @@
     "error": "Error"
   },
   "ResultStep": {
+    "emptyEstimate": "Add at least one work to save the estimate or send a request.",
     "additionalTitle": "Additional services",
     "loading": "Loading the estimate",
     "preliminary": "This estimate is preliminary and is not an offer. The final price is confirmed on site after measuring.",
@@ -1062,6 +1063,7 @@
     "totalIncreased": "The total has increased by {diff}. The amounts above are the saved ones.",
     "totalDecreased": "The total has decreased by {diff}. The amounts above are the saved ones.",
     "failure": {
+      "emptyEstimate": "Add at least one work to save the estimate.",
       "incomplete": "Some values are missing or outside the allowed range, so the estimate cannot be saved yet.",
       "incompleteLink": "Check the object",
       "outOfBounds": "Some values are outside the allowed range. Check the object fields and save again.",
@@ -1112,6 +1114,7 @@
       "consent": "To send the request, agree to the processing of your personal data."
     },
     "failure": {
+      "emptyEstimate": "Add at least one work to send a request.",
       "incomplete": "Some values are missing or outside the allowed range, so the estimate cannot be sent yet.",
       "incompleteLink": "Check the object",
       "outOfBounds": "Some values are outside the allowed range. Check the object fields and send the request again.",

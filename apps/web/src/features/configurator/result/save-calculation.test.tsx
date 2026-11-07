@@ -134,6 +134,19 @@ describe('save calculation', () => {
     expect(captureMessage).not.toHaveBeenCalled();
   });
 
+  it('shows the empty estimate message after 422 EMPTY_ESTIMATE', async () => {
+    await renderResult();
+    post.mockResolvedValue(failure(422, 'EMPTY_ESTIMATE'));
+
+    await save();
+
+    expect(
+      screen.getByText('Add at least one work to save the estimate.'),
+    ).toBeInTheDocument();
+    expect(captureException).not.toHaveBeenCalled();
+    expect(saveButton()).toBeEnabled();
+  });
+
   it('shows the saved link without a request when the configuration is already saved', async () => {
     await renderResult();
     const request = buildSaveRequest(pickDraft(useDraft.getState()), pricing);

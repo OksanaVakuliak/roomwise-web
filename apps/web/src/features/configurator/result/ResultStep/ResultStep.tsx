@@ -122,6 +122,7 @@ export function ResultStep() {
   const tRate = useTranslations('ExchangeRate');
   const locale: Locale = useLocale();
   const totalId = useId();
+  const emptyNoteId = useId();
   const draft = useDraftValue();
   const revision = useDraft((state) => state.revision);
   const pricing = usePricingData((state) => state.data);
@@ -178,6 +179,7 @@ export function ResultStep() {
       ? snapshotPanel(snapshot.totals)
       : estimatedPanel;
   const { catalog, rooms, styleName } = catalogState;
+  const emptyEstimate = !estimate.lines.some((line) => line.amountCents > 0);
   const model = buildEstimateModel({
     estimate,
     rooms,
@@ -306,9 +308,22 @@ export function ResultStep() {
       >
         <KeyValueGrid items={objectItems} />
       </SectionBlock>
+      {emptyEstimate ? (
+        <p id={emptyNoteId} className={styles.empty}>
+          {t('emptyEstimate')}
+        </p>
+      ) : null}
       <div className={styles.final}>
-        <SaveCalculation onSaved={handleSaved} />
-        <LeadAction target={DRAFT_TARGET} />
+        <SaveCalculation
+          onSaved={handleSaved}
+          blocked={emptyEstimate}
+          blockedNoteId={emptyNoteId}
+        />
+        <LeadAction
+          target={DRAFT_TARGET}
+          blocked={emptyEstimate}
+          blockedNoteId={emptyNoteId}
+        />
       </div>
     </div>
   );

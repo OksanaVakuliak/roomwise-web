@@ -7,9 +7,17 @@ import { LeadRequest } from '../LeadRequest/LeadRequest';
 import type { LeadTarget } from '../use-submit-lead';
 import styles from './LeadAction.module.css';
 
-export type LeadActionProps = { target: LeadTarget };
+export type LeadActionProps = {
+  target: LeadTarget;
+  blocked?: boolean;
+  blockedNoteId?: string;
+};
 
-export function LeadAction({ target }: LeadActionProps) {
+export function LeadAction({
+  target,
+  blocked = false,
+  blockedNoteId,
+}: LeadActionProps) {
   const t = useTranslations('Lead');
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
@@ -23,7 +31,12 @@ export function LeadAction({ target }: LeadActionProps) {
 
   if (!open) {
     return (
-      <Button kind="fill" onClick={show}>
+      <Button
+        kind="fill"
+        onClick={show}
+        disabled={blocked}
+        aria-describedby={blocked ? blockedNoteId : undefined}
+      >
         {t('open')}
       </Button>
     );

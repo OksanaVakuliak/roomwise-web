@@ -1,3 +1,4 @@
+import type { PricingData } from '@roomwise/calc-engine';
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { clearCardCostCache } from '@/lib/engine/card-cost';
@@ -42,7 +43,7 @@ type RenderOptions = {
   rate?: boolean;
   shell?: boolean;
   queryClient?: ReturnType<typeof createTestQueryClient>;
-  pricingData?: false;
+  pricingData?: false | PricingData;
   failEngineering?: boolean;
 };
 
@@ -108,12 +109,12 @@ async function renderResult({
   return result;
 }
 
-function estimateOf(draft: DraftV1) {
+function estimateOf(draft: DraftV1, source: PricingData = pricing) {
   const { estimate, panel } = runEstimate({
     draft,
     draftRevision: 1,
-    pricing,
-    pricingVersion: pricing.version,
+    pricing: source,
+    pricingVersion: source.version,
     currency: 'UAH',
   });
   if (estimate === null) {
@@ -448,6 +449,82 @@ describe('result step', () => {
     expect(
       living.getByText(catalogs.en.EstimateBreakdown.disabled),
     ).toBeTruthy();
+  });
+
+  describe('empty estimate', () => {
+    function emptyDraft(): DraftV1 {
+      const base = makeDraft();
+      return {
+        ...base,
+        object: {
+          ...base.object,
+          scope: 'PARTIAL',
+          balcony: { present: false, areaSqm: null, tiles: false },
+        },
+        options: {},
+        rooms: base.rooms.map((room) => ({
+          ...room,
+          heatedFloor: false,
+          selections: Object.fromEntries(
+            Object.keys(room.selections).map((id) => [
+              id,
+              { productId: null, disabled: true, source: 'manual' as const },
+            ]),
+          ),
+        })),
+      };
+    }
+
+    const freePricing: PricingData = {
+      ...pricing,
+      packageItems: pricing.packageItems.map((item) => ({
+        ...item,
+        includedInBase: true,
+        priceCents: null,
+        unit: null,
+      })),
+    };
+
+    it.each(forEachLocale)(
+      'disables saving and the request with an explanation in %s',
+      async (locale) => {
+        const draft = emptyDraft();
+        expect(
+          estimateOf(draft, freePricing).estimate.lines.some(
+            (line) => line.amountCents > 0,
+          ),
+        ).toBe(false);
+        await renderResult({ locale, draft, pricingData: freePricing });
+
+        const message = catalogs[locale].ResultStep.emptyEstimate;
+        const note = screen.getByText(message);
+        const save = screen.getByRole('button', {
+          name: catalogs[locale].SaveCalculation.save,
+        });
+        const request = screen.getByRole('button', {
+          name: catalogs[locale].Lead.open,
+        });
+        expect(save).toBeDisabled();
+        expect(request).toBeDisabled();
+        expect(save).toHaveAccessibleDescription(message);
+        expect(request).toHaveAccessibleDescription(message);
+        expect(note).toBeInTheDocument();
+      },
+    );
+
+    it('keeps the buttons enabled when the estimate has positions', async () => {
+      await renderResult();
+
+      expect(
+        screen.getByRole('button', { name: /Save the estimate/ }),
+      ).toBeEnabled();
+      expect(
+        screen.getByRole('button', { name: /Leave a request/ }),
+      ).toBeEnabled();
+      expect(
+        screen.queryByText(catalogs.en.ResultStep.emptyEstimate),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it.each(forEachLocale)(

@@ -73,3 +73,10 @@
   align-items: flex-start;
   gap: var(--space-12);
 }
+
+.empty {
+  margin: 0;
+  font-family: var(--text-caption-default-family);
+  font-size: var(--text-caption-default-size);
+  color: var(--heat);
+}
