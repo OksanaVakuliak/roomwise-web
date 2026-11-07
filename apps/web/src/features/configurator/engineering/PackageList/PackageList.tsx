@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useId, useMemo } from 'react';
 import { SectionHeader } from '@/components/ui';
 import { useEngineering } from '@/lib/api/catalog';
+import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../../shell/use-room-pricing';
 import styles from './PackageList.module.css';
 
@@ -16,7 +17,18 @@ export function PackageList({ pricing }: PackageListProps) {
   const headingId = useId();
   const packageItems = useEngineering().data?.packageItems;
   const pricedItems = pricing.pricing.packageItems;
-  const items = useMemo(() => packageItems ?? [], [packageItems]);
+  const partial = useDraft((state) => state.object.scope === 'PARTIAL');
+  const items = useMemo(
+    () =>
+      (packageItems ?? []).filter(
+        (item) =>
+          !(
+            partial &&
+            (pricedItems.find((p) => p.id === item.id) ?? item).includedInBase
+          ),
+      ),
+    [packageItems, pricedItems, partial],
+  );
   const priced = useMemo(
     () => new Map(pricedItems.map((i) => [i.id, i])),
     [pricedItems],
