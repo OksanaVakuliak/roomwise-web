@@ -1,6 +1,10 @@
 'use client';
 
-import type { EstimateLine, PricingData } from '@roomwise/calc-engine';
+import {
+  convertCentsToKopecks,
+  type EstimateLine,
+  type PricingData,
+} from '@roomwise/calc-engine';
 import { type Locale, useLocale } from 'next-intl';
 import { useMemo } from 'react';
 import { type CardCostContext, cardCostContext } from '@/lib/engine/card-cost';
@@ -24,6 +28,7 @@ export type RoomPricing = {
   formatLine: (line: EstimateLine) => string;
   formatTotal: (lines: readonly EstimateLine[]) => string;
   formatUnitPrice: (cents: number) => string;
+  formatPart: (cents: number, line: EstimateLine) => string;
 };
 
 export function useRoomPricing(): RoomPricing | null {
@@ -80,6 +85,15 @@ export function useRoomPricing(): RoomPricing | null {
         return displayMoney(cents, kopecks, currency, locale);
       },
       formatUnitPrice: (cents) => unitPrice(cents, currency, locale, rate),
+      formatPart: (cents, line) =>
+        displayMoney(
+          cents,
+          line.amountUahKopecks === null || pricing.exchangeRate === null
+            ? null
+            : convertCentsToKopecks(cents, pricing.exchangeRate.rate),
+          currency,
+          locale,
+        ),
     };
   }, [pricing, version, lines, draft, productsById, currency, rate, locale]);
 }

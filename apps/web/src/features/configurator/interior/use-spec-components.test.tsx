@@ -83,8 +83,8 @@ function Probe({ line }: { line: ReturnType<typeof lines>['first'] }) {
   const describe = useSpecComponents(
     {
       partial: true,
-      formatUnitPrice: (cents: number) => `#${cents}`,
-    } as RoomPricing,
+      formatPart: (cents: number) => `#${cents}`,
+    } as unknown as RoomPricing,
     categories,
   );
   return (

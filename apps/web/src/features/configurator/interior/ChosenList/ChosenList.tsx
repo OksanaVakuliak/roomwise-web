@@ -293,9 +293,8 @@ function ChosenSection({
   const chosenOptions = useChosenRoomOptions(room);
   const nothingOn =
     pricing?.partial === true &&
-    listed.every(
-      (category) => room.selections[category.id]?.disabled !== false,
-    );
+    listed.length > 0 &&
+    listed.every((category) => room.selections[category.id]?.disabled);
   const lines = pricing
     ? [
         ...rows.map(({ category }) =>

@@ -60,7 +60,7 @@ export function useSpecComponents(
           {
             id,
             label: t(`components.${KEYS[component.kind]}`),
-            amount: pricing.formatUnitPrice(component.amountCents),
+            amount: pricing.formatPart(component.amountCents, line),
           },
         ];
       });

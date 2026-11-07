@@ -12,8 +12,14 @@ import { productCardLine } from '@/lib/engine/card-cost';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../../shell/use-room-pricing';
-import { type LineDetails, useSpecComponents } from '../use-spec-components';
+import {
+  type LineDetails,
+  type SpecCategory,
+  useSpecComponents,
+} from '../use-spec-components';
 import styles from './ProductShowcase.module.css';
+
+const NO_CATEGORIES: readonly SpecCategory[] = [];
 
 type ProductCardData = NonNullable<
   ReturnType<typeof useCategoryProducts>['data']
@@ -106,11 +112,12 @@ function ProductCard({
         roomCostLabel={cost ? t('forRoom') : undefined}
         components={details.items.length > 0 ? details.items : undefined}
         warning={
-          hasHeatedFloorWarning(line)
-            ? t('heatedFloorWarning')
-            : details.laborMissing
-              ? tSpec('laborMissing')
-              : undefined
+          [
+            hasHeatedFloorWarning(line) ? t('heatedFloorWarning') : null,
+            details.laborMissing ? tSpec('laborMissing') : null,
+          ]
+            .filter(Boolean)
+            .join(' · ') || undefined
         }
         actions={
           <>
@@ -153,7 +160,7 @@ export function ProductShowcase({
 }: ProductShowcaseProps) {
   const t = useTranslations('ProductShowcase');
   const query = useCategoryProducts(category.id);
-  const describe = useSpecComponents(pricing, []);
+  const describe = useSpecComponents(pricing, NO_CATEGORIES);
   const selectProduct = useDraft((state) => state.selectProduct);
   const { refetch } = query;
 
