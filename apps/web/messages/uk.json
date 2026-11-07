@@ -648,6 +648,9 @@
   },
   "CostPanel": {
     "base": "Базова вартість",
+    "baseDetails": {
+      "label": "Складові базової вартості"
+    },
     "worksAndMaterials": "Роботи й матеріали",
     "materials": "Матеріали",
     "engineering": "Інженерія",

@@ -648,6 +648,9 @@
   },
   "CostPanel": {
     "base": "Base cost",
+    "baseDetails": {
+      "label": "Base cost breakdown"
+    },
     "worksAndMaterials": "Works and materials",
     "materials": "Materials",
     "engineering": "Engineering",

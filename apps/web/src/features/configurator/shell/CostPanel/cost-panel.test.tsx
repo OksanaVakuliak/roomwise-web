@@ -1,5 +1,5 @@
 import * as engine from '@roomwise/calc-engine';
-import { act, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDefaultDraft } from '@/lib/draft/schema';
 import { clearEstimateCache, runEstimate } from '@/lib/engine/run-estimate';
@@ -50,8 +50,8 @@ function figures(draft: DraftV1) {
 }
 
 function row(label: string) {
-  const term = screen.getByText(label, { selector: 'dt' });
-  return within(term.parentElement as HTMLElement).getByRole('definition');
+  const term = screen.getByText(label, { selector: 'dt, dt > button' });
+  return within(term.closest('div') as HTMLElement).getByRole('definition');
 }
 
 describe('CostPanel', () => {
@@ -275,6 +275,196 @@ describe('CostPanel', () => {
       const { container } = renderPanel(makePartialDraft());
       expect(await axe(container)).toHaveNoViolations();
     });
+  });
+
+  describe('base details', () => {
+    const finishLevels = ['ROUGH', 'PRE_FINISH', 'LIVED_IN'] as const;
+    const cases = finishLevels.flatMap((finishLevel) =>
+      forEachLocale.flatMap(([locale]) =>
+        (['USD', 'UAH'] as const).map(
+          (currency) => [finishLevel, locale, currency] as const,
+        ),
+      ),
+    );
+
+    function apartment(finishLevel: (typeof finishLevels)[number]) {
+      const draft = makeInteriorDraft();
+      return {
+        ...draft,
+        object: { ...draft.object, finishLevel, totalAreaSqm: 60 },
+      };
+    }
+
+    function minor(
+      line: { amountCents: number; amountUahKopecks: number | null },
+      currency: 'USD' | 'UAH',
+    ) {
+      return currency === 'USD'
+        ? line.amountCents
+        : (line.amountUahKopecks ?? 0);
+    }
+
+    function baseLines(draft: DraftV1) {
+      return (
+        runEstimate({
+          draft,
+          draftRevision: 1,
+          pricing,
+          pricingVersion: pricing.version,
+          currency: 'UAH',
+        }).estimate?.lines.filter((line) => line.section === 'BASE') ?? []
+      );
+    }
+
+    function renderDetails(
+      draft: DraftV1,
+      locale: 'en' | 'uk',
+      currency: 'USD' | 'UAH',
+    ) {
+      useDraft.setState({ ...draft, revision: 1 });
+      return renderWithProviders(<CostPanel />, { locale, currency });
+    }
+
+    function toggle(locale: 'en' | 'uk') {
+      return screen.getByRole('button', {
+        name: catalogs[locale].CostPanel.base,
+      });
+    }
+
+    function breakdown(locale: 'en' | 'uk') {
+      const label = catalogs[locale].CostPanel.baseDetails.label;
+      return document.querySelector(`dl[aria-label="${label}"]`);
+    }
+
+    function items(list: Element) {
+      return Array.from(list.querySelectorAll('dt')).map((term) => ({
+        name: term.textContent,
+        amount: term.nextElementSibling?.textContent,
+      }));
+    }
+
+    it.each(cases)(
+      'expands the %s base breakdown in %s in %s',
+      (finishLevel, locale, currency) => {
+        const draft = apartment(finishLevel);
+        const lines = baseLines(draft);
+        renderDetails(draft, locale, currency);
+        const button = toggle(locale);
+
+        expect(button).toHaveAttribute('type', 'button');
+        expect(button).toHaveAttribute('aria-expanded', 'false');
+        expect(breakdown(locale)?.closest('dd')).toHaveAttribute('hidden');
+
+        fireEvent.click(button);
+
+        expect(button).toHaveAttribute('aria-expanded', 'true');
+        const list = breakdown(locale) as HTMLElement;
+        expect(list.closest('dd')).not.toHaveAttribute('hidden');
+        expect(items(list)).toEqual(
+          lines.map((line) => ({
+            name: pricing.rules.find((rule) => rule.id === line.ruleId)?.name[
+              locale
+            ],
+            amount: moneyMinor(minor(line, currency), currency, locale),
+          })),
+        );
+      },
+    );
+
+    it.each(cases)(
+      'sums the %s components to the base row in %s in %s',
+      (finishLevel, locale, currency) => {
+        const draft = apartment(finishLevel);
+        const lines = baseLines(draft);
+        renderDetails(draft, locale, currency);
+        fireEvent.click(toggle(locale));
+
+        const sum = lines.reduce((acc, line) => acc + minor(line, currency), 0);
+        const baseRow = toggle(locale).closest('dt')?.nextElementSibling;
+
+        expect(lines.length).toBeGreaterThan(1);
+        expect(baseRow?.textContent).toBe(moneyMinor(sum, currency, locale));
+      },
+    );
+
+    it.each(forEachLocale)(
+      'lists the demolition only for a lived-in apartment in %s',
+      (locale) => {
+        const demolition = pricing.rules.find(
+          (rule) => rule.id === 'rule-base-demolition',
+        )?.name[locale] as string;
+
+        for (const finishLevel of finishLevels) {
+          const { unmount } = renderDetails(
+            apartment(finishLevel),
+            locale,
+            'USD',
+          );
+          fireEvent.click(toggle(locale));
+          const names = items(breakdown(locale) as Element).map(
+            (item) => item.name,
+          );
+
+          expect(names.includes(demolition)).toBe(finishLevel === 'LIVED_IN');
+          unmount();
+        }
+      },
+    );
+
+    it.each(forEachLocale)(
+      'keeps interior categories out of the breakdown in %s',
+      (locale) => {
+        renderDetails(apartment('LIVED_IN'), locale, 'USD');
+        fireEvent.click(toggle(locale));
+        const text = breakdown(locale)?.textContent ?? '';
+
+        const categoryRules = pricing.rules.filter(
+          (rule) => rule.level === 'CATEGORY',
+        );
+        expect(categoryRules.length).toBeGreaterThan(0);
+        for (const rule of categoryRules) {
+          expect(text).not.toContain(rule.name[locale]);
+        }
+      },
+    );
+
+    it('can be focused and operated as a native button', () => {
+      renderDetails(apartment('PRE_FINISH'), 'en', 'USD');
+      const button = toggle('en');
+
+      button.focus();
+      expect(button).toHaveFocus();
+      expect(button.tagName).toBe('BUTTON');
+      expect(button).toHaveAttribute('aria-controls');
+      expect(
+        document.getElementById(button.getAttribute('aria-controls') ?? ''),
+      ).toContainElement(breakdown('en') as HTMLElement);
+
+      fireEvent.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('has no accessibility violations with the breakdown expanded', async () => {
+      const { container } = renderDetails(apartment('LIVED_IN'), 'en', 'USD');
+      fireEvent.click(toggle('en'));
+      expect(await axe(container)).toHaveNoViolations();
+    });
+
+    it.each(forEachLocale)(
+      'has no base toggle or breakdown for a partial renovation in %s',
+      (locale) => {
+        renderPanel(makePartialDraft(), locale);
+
+        expect(
+          screen.queryByRole('button', {
+            name: catalogs[locale].CostPanel.base,
+          }),
+        ).toBeNull();
+        expect(breakdown(locale)).toBeNull();
+      },
+    );
   });
 
   it('has no accessibility violations', async () => {

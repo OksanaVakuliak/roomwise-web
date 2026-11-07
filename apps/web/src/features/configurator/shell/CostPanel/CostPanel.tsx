@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ExchangeRateNote } from '@/components/layout';
 import { ErrorState, ZoneSkeleton } from '@/components/system';
 import { EstimateStamp } from '@/components/ui';
+import { useLang } from '@/lib/api/catalog';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import type { Money } from '@/lib/engine/sections';
@@ -20,6 +21,7 @@ export function CostPanel() {
   const tWarning = useTranslations('Estimate.warning');
   const tConfigurator = useTranslations('Configurator');
   const locale = useLocale();
+  const lang = useLang();
   const draft = useDraftValue();
   const revision = useDraft((state) => state.revision);
   const pricing = usePricingData((state) => state.data);
@@ -61,8 +63,34 @@ export function CostPanel() {
   };
 
   const partial = draft.object.scope === 'PARTIAL';
+  const baseDetails =
+    panel.base === null || estimate === null
+      ? []
+      : estimate.lines
+          .filter((line) => line.section === 'BASE')
+          .map((line) => ({
+            key: line.id,
+            label:
+              pricing.rules.find((rule) => rule.id === line.ruleId)?.name[
+                lang
+              ] ?? t('base'),
+            value: format({
+              usdCents: line.amountCents,
+              uahKopecks: line.amountUahKopecks,
+            }),
+          }));
   const rows = [
-    ...(partial ? [] : [{ key: 'base', label: t('base'), money: panel.base }]),
+    ...(partial
+      ? []
+      : [
+          {
+            key: 'base',
+            label: t('base'),
+            money: panel.base,
+            details: baseDetails,
+            detailsLabel: t('baseDetails.label'),
+          },
+        ]),
     {
       key: 'materials',
       label: partial ? t('worksAndMaterials') : t('materials'),
@@ -106,6 +134,8 @@ export function CostPanel() {
         label: row.label,
         value: format(row.money),
         share: share(row.money),
+        details: row.details,
+        detailsLabel: row.detailsLabel,
       }))}
     />
   );
