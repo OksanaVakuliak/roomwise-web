@@ -1,4 +1,4 @@
-import { estimate } from '@roomwise/calc-engine';
+import { type EstimateLine, estimate } from '@roomwise/calc-engine';
 import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { toConfiguration } from '@/lib/engine/to-configuration';
@@ -83,7 +83,8 @@ function Probe({ line }: { line: ReturnType<typeof lines>['first'] }) {
   const describe = useSpecComponents(
     {
       partial: true,
-      formatPart: (cents: number) => `#${cents}`,
+      formatParts: (line: EstimateLine) =>
+        (line.components ?? []).map((part) => `#${part.amountCents}`),
     } as unknown as RoomPricing,
     categories,
   );

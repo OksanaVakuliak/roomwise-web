@@ -35,6 +35,7 @@ export function useSpecComponents(
       if (!pricing?.partial || !line?.components) {
         return { items: [], laborMissing: false };
       }
+      const amounts = pricing.formatParts(line);
       const items = line.components.flatMap((component, index) => {
         const id = `${component.kind}-${index}`;
         if (component.sharedWithCategoryId) {
@@ -60,7 +61,7 @@ export function useSpecComponents(
           {
             id,
             label: t(`components.${KEYS[component.kind]}`),
-            amount: pricing.formatPart(component.amountCents, line),
+            amount: amounts[index],
           },
         ];
       });
