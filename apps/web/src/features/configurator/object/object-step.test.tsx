@@ -493,7 +493,10 @@ describe('ObjectStep', () => {
       expect(baseLine?.status).toBe('OK');
       expect(plan).toHaveTextContent(
         step('planCost.objectLine', {
-          name: locale === 'uk' ? 'Базова вартість' : 'Base cost',
+          name:
+            pricing.rules.find((rule) => rule.id === baseLine?.ruleId)?.name[
+              locale
+            ] ?? '',
           amount: moneyMinor(baseLine?.amountCents ?? 0, 'USD', locale),
         }).replace(/\s/g, ' '),
       );

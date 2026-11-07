@@ -1,5 +1,59 @@
 import { type PricingData, PricingDataSchema } from '@roomwise/calc-engine';
 
+function tiers(small: number, medium: number, large: number): string {
+  return `(totalArea < 55 ? ${small} : totalArea < 70 ? ${medium} : ${large})`;
+}
+
+function baseRule(
+  id: string,
+  sortOrder: number,
+  name: { en: string; uk: string },
+  rate: { rough: string; preFinish: string; livedIn: string },
+) {
+  return {
+    id,
+    level: 'OBJECT' as const,
+    categoryId: null,
+    materialTypeId: null,
+    name,
+    quantityFormula: null,
+    costFormula: `totalArea * (finishLevel == 'ROUGH' ? ${rate.rough} : finishLevel == 'PRE_FINISH' ? ${rate.preFinish} : ${rate.livedIn})`,
+    baseComponent: true,
+    sortOrder,
+    surface: null,
+    laborFormula: null,
+  };
+}
+
+const baseComponents = [
+  baseRule(
+    'rule-base',
+    0,
+    { en: 'Rough works', uk: 'Чорнові роботи' },
+    {
+      rough: tiers(50, 47, 44),
+      preFinish: tiers(70, 60, 55),
+      livedIn: tiers(65, 55, 50),
+    },
+  ),
+  baseRule(
+    'rule-base-materials',
+    1,
+    { en: 'Rough materials', uk: 'Чорнові матеріали' },
+    {
+      rough: tiers(40, 38, 36),
+      preFinish: tiers(70, 58.5, 54),
+      livedIn: tiers(65, 53.5, 49),
+    },
+  ),
+  baseRule(
+    'rule-base-demolition',
+    2,
+    { en: 'Demolition of coverings', uk: 'Демонтаж покриттів' },
+    { rough: '0', preFinish: '0', livedIn: '10' },
+  ),
+];
+
 const reference = {
   version: '0123456789abcdef',
   exchangeRate: { rate: '44.5483', date: '2026-09-14', source: 'NBU' },
@@ -80,20 +134,7 @@ const reference = {
       laborFormula: null,
       baseComponent: false,
     },
-    {
-      id: 'rule-base',
-      level: 'OBJECT',
-      categoryId: null,
-      materialTypeId: null,
-      name: { en: 'Base cost', uk: 'Базова вартість' },
-      quantityFormula: null,
-      costFormula:
-        "totalArea * (finishLevel == 'ROUGH' ? (totalArea < 55 ? 90 : totalArea < 70 ? 85 : 80) : (totalArea < 55 ? 140 : totalArea < 70 ? 118.5 : 109))",
-      baseComponent: true,
-      sortOrder: 0,
-      surface: null,
-      laborFormula: null,
-    },
+    ...baseComponents,
     {
       id: 'rule-walls-prep',
       level: 'SURFACE',
