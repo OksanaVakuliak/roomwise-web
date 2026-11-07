@@ -21,15 +21,9 @@ export function PackageList({ pricing }: PackageListProps) {
     () => new Map(pricedItems.map((i) => [i.id, i])),
     [pricedItems],
   );
-  const items = useMemo(
-    () =>
-      (packageItems ?? []).filter(
-        (item) => !(partial && (priced.get(item.id) ?? item).includedInBase),
-      ),
-    [packageItems, priced, partial],
-  );
+  const items = packageItems ?? [];
 
-  if (items.length === 0) {
+  if (partial || items.length === 0) {
     return null;
   }
 

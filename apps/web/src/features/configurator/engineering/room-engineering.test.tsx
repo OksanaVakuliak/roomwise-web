@@ -304,25 +304,15 @@ describe('engineering step at partial scope', () => {
     expect(livingCost).not.toBe(bedroomCost);
   });
 
-  it('hides the package items included in the base cost', async () => {
+  it('hides the whole package for separate works', async () => {
     await renderEngineering('en', partialDraft());
-    const text = catalogs.en;
-    const section = within(
-      screen.getByRole('region', { name: text.PackageList.title }),
-    );
 
     expect(
-      section.queryByRole('heading', { name: 'Electrical wiring' }),
+      screen.queryByRole('region', { name: catalogs.en.PackageList.title }),
     ).not.toBeInTheDocument();
     expect(
-      section.queryByRole('heading', { name: 'Plumbing' }),
+      screen.queryByRole('heading', { name: 'Ventilation' }),
     ).not.toBeInTheDocument();
-    expect(
-      section.queryByText(text.PackageList.included),
-    ).not.toBeInTheDocument();
-    expect(
-      section.getByRole('heading', { name: 'Ventilation' }),
-    ).toBeInTheDocument();
   });
 
   it('does not offer the replacement options at full scope', async () => {
