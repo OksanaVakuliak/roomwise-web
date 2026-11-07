@@ -1,8 +1,14 @@
 'use client';
 
+import type { EstimateLine } from '@roomwise/calc-engine';
 import { useTranslations } from 'next-intl';
 import { useCallback, useId } from 'react';
-import { Button, ImageWithFallback, SectionHeader } from '@/components/ui';
+import {
+  Button,
+  ImageWithFallback,
+  SectionHeader,
+  SpecComponents,
+} from '@/components/ui';
 import { useCategoryProducts } from '@/lib/api/catalog';
 import { cx } from '@/lib/cx';
 import type { DraftRoom } from '@/lib/draft/schema';
@@ -16,6 +22,7 @@ import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
 import { useChosenRoomOptions } from '../../shell/use-room-options';
 import type { RoomPricing } from '../../shell/use-room-pricing';
+import { type LineDetails, useSpecComponents } from '../use-spec-components';
 import styles from './ChosenList.module.css';
 
 export type ChosenListCategory = {
@@ -48,6 +55,7 @@ type ChosenRowProps = {
   siblingIds: readonly string[];
   active: boolean;
   pricing: RoomPricing | null;
+  describe: (line: EstimateLine | null | undefined) => LineDetails;
   onSelect: (roomClientId: string, categoryId: string) => void;
 };
 
@@ -58,9 +66,11 @@ function ChosenRow({
   siblingIds,
   active,
   pricing,
+  describe,
   onSelect,
 }: ChosenRowProps) {
   const t = useTranslations('ChosenList');
+  const tSpec = useTranslations('Specification');
   const enableCategory = useDraft((state) => state.enableCategory);
   const disableCategory = useDraft((state) => state.disableCategory);
   const { clientId } = room;
@@ -75,6 +85,7 @@ function ChosenRow({
   );
   const line = pricing?.materialsLine(clientId, category.id);
   const warned = hasHeatedFloorWarning(line);
+  const details = describe(line);
   const sum =
     pricing && line?.status === 'OK' ? pricing.formatLine(line) : null;
   const select = useCallback(
@@ -143,6 +154,9 @@ function ChosenRow({
           {warned ? (
             <span className={styles.warning}>{t('heatedFloorWarning')}</span>
           ) : null}
+          {details.laborMissing ? (
+            <span className={styles.warning}>{tSpec('laborMissing')}</span>
+          ) : null}
         </span>
         {shown && sum ? (
           <span className={`${styles.sum} num`}>{sum}</span>
@@ -158,6 +172,11 @@ function ChosenRow({
           {t('remove')}
         </Button>
       )}
+      {productId !== null && details.items.length > 0 ? (
+        <div className={styles.details}>
+          <SpecComponents items={details.items} />
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -252,8 +271,10 @@ function ChosenSection({
   onSelect,
 }: ChosenSectionProps) {
   const t = useTranslations('ChosenList');
+  const tSpec = useTranslations('Specification');
   const headingId = useId();
   const { room, name, categories } = group;
+  const describe = useSpecComponents(pricing, categories);
   const listed = categories.filter((category) => category.productCount > 0);
   const rows = groupCategories(listed).map((group) => {
     const category =
@@ -270,6 +291,11 @@ function ChosenSection({
     };
   });
   const chosenOptions = useChosenRoomOptions(room);
+  const nothingOn =
+    pricing?.partial === true &&
+    listed.every(
+      (category) => room.selections[category.id]?.disabled !== false,
+    );
   const lines = pricing
     ? [
         ...rows.map(({ category }) =>
@@ -294,6 +320,7 @@ function ChosenSection({
           </span>
         ) : null}
       </h3>
+      {nothingOn ? <p className={styles.hint}>{tSpec('enableHint')}</p> : null}
       <ul className={styles.list} aria-labelledby={headingId}>
         {rows.map((row) => (
           <ChosenRow
@@ -304,6 +331,7 @@ function ChosenSection({
             siblingIds={row.siblingIds}
             active={current && row.active}
             pricing={pricing}
+            describe={describe}
             onSelect={onSelect}
           />
         ))}

@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import { cx } from '@/lib/cx';
 import { PickedBadge } from '../PickedBadge/PickedBadge';
+import {
+  SpecComponents,
+  type SpecComponentsItem,
+} from '../SpecComponents/SpecComponents';
 import styles from './SpecItem.module.css';
 
 export type SpecItemFit = 'ok' | 'no';
@@ -14,6 +18,7 @@ export type SpecItemProps = {
   color?: ReactNode;
   fit?: SpecItemFit;
   fitLabel?: ReactNode;
+  components?: readonly SpecComponentsItem[];
   warning?: ReactNode;
   unavailable?: boolean;
   unavailableLabel?: ReactNode;
@@ -35,6 +40,7 @@ export function SpecItem({
   color,
   fit,
   fitLabel,
+  components,
   warning,
   unavailable = false,
   unavailableLabel,
@@ -81,6 +87,7 @@ export function SpecItem({
           {fit && fitLabel ? (
             <span className={cx(styles.fit, styles[fit])}>{fitLabel}</span>
           ) : null}
+          {components ? <SpecComponents items={components} /> : null}
           {warning ? <span className={styles.warning}>{warning}</span> : null}
           {unavailable && unavailableLabel ? (
             <span className={styles.unavailableNote}>{unavailableLabel}</span>

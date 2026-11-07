@@ -340,6 +340,9 @@
     },
     "forRoom": "for the room (6 m²)",
     "warning": "Not for heated floor, selection stays available",
+    "componentMaterial": "Material",
+    "componentLabor": "Labor",
+    "componentPrep": "Preparation",
     "unavailable": "temporarily unavailable",
     "gallery": "Gallery",
     "galleryNote": "Arrow keys, Home and End move between thumbnails.",
@@ -950,7 +953,15 @@
     "emptyText": "This category has nothing to choose from yet.",
     "dismiss": "Dismiss",
     "categoryGone": "This category is no longer available. The catalog has been refreshed.",
-    "finishLabel": "Finish type"
+    "finishLabel": "Finish type",
+    "enableHint": "Turn on the categories you will work with",
+    "components": {
+      "material": "Material",
+      "labor": "Labor",
+      "prep": "Preparation"
+    },
+    "prepShared": "Preparation of {surface} is in the row “{name}”",
+    "laborMissing": "Labor price is not set"
   },
   "ChosenList": {
     "title": "Chosen",

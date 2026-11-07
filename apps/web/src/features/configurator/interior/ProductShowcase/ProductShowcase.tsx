@@ -1,5 +1,6 @@
 'use client';
 
+import type { EstimateLine } from '@roomwise/calc-engine';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useEffectEvent, useMemo } from 'react';
 import { ErrorState } from '@/components/system';
@@ -11,6 +12,7 @@ import { productCardLine } from '@/lib/engine/card-cost';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { useDraft } from '@/stores/draft';
 import type { RoomPricing } from '../../shell/use-room-pricing';
+import { type LineDetails, useSpecComponents } from '../use-spec-components';
 import styles from './ProductShowcase.module.css';
 
 type ProductCardData = NonNullable<
@@ -43,6 +45,7 @@ type ProductCardProps = {
   room: DraftRoom;
   categoryId: string;
   pricing: RoomPricing;
+  describe: (line: EstimateLine | null | undefined) => LineDetails;
   picked: boolean;
   onChoose: (productId: string) => void;
   onOpenDetail: (productId: string) => void;
@@ -54,17 +57,20 @@ function ProductCard({
   room,
   categoryId,
   pricing,
+  describe,
   picked,
   onChoose,
   onOpenDetail,
 }: ProductCardProps) {
   const t = useTranslations('ProductShowcase');
+  const tSpec = useTranslations('Specification');
   const priced = pricing.productsById.get(product.id);
   const unavailable = priced === undefined || !priced.available;
   const line = unavailable
     ? null
     : productCardLine(pricing.context, room.clientId, categoryId, product.id);
   const cost = line?.status === 'OK' ? pricing.formatLine(line) : undefined;
+  const details = describe(line);
   const brand = [product.brand, product.manufacturer]
     .filter(Boolean)
     .join(', ');
@@ -98,8 +104,13 @@ function ProductCard({
         unit={t(`unit.${product.unit}`)}
         roomCost={cost}
         roomCostLabel={cost ? t('forRoom') : undefined}
+        components={details.items.length > 0 ? details.items : undefined}
         warning={
-          hasHeatedFloorWarning(line) ? t('heatedFloorWarning') : undefined
+          hasHeatedFloorWarning(line)
+            ? t('heatedFloorWarning')
+            : details.laborMissing
+              ? tSpec('laborMissing')
+              : undefined
         }
         actions={
           <>
@@ -142,6 +153,7 @@ export function ProductShowcase({
 }: ProductShowcaseProps) {
   const t = useTranslations('ProductShowcase');
   const query = useCategoryProducts(category.id);
+  const describe = useSpecComponents(pricing, []);
   const selectProduct = useDraft((state) => state.selectProduct);
   const { refetch } = query;
 
@@ -215,6 +227,7 @@ export function ProductShowcase({
             room={room}
             categoryId={category.id}
             pricing={pricing}
+            describe={describe}
             picked={selection?.productId === product.id && !selection.disabled}
             onChoose={choose}
             onOpenDetail={onOpenDetail}

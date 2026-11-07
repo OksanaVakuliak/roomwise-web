@@ -340,6 +340,9 @@
     },
     "forRoom": "для приміщення (6 м²)",
     "warning": "Не для теплої підлоги, вибір не заблоковано",
+    "componentMaterial": "Матеріал",
+    "componentLabor": "Робота",
+    "componentPrep": "Підготовка",
     "unavailable": "тимчасово недоступно",
     "gallery": "Галерея",
     "galleryNote": "Стрілки, Home та End перемикають мініатюри.",
@@ -950,7 +953,15 @@
     "emptyText": "У цій категорії поки немає з чого обирати.",
     "dismiss": "Закрити",
     "categoryGone": "Цієї категорії більше немає. Каталог оновлено.",
-    "finishLabel": "Тип оздоблення"
+    "finishLabel": "Тип оздоблення",
+    "enableHint": "Увімкніть категорії, з якими працюватимете",
+    "components": {
+      "material": "Матеріал",
+      "labor": "Робота",
+      "prep": "Підготовка"
+    },
+    "prepShared": "Підготовка {surface} — у рядку «{name}»",
+    "laborMissing": "Ціну роботи не задано"
   },
   "ChosenList": {
     "title": "Обрано",

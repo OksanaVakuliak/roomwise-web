@@ -14,6 +14,7 @@ export type RoomPricing = {
   pricing: PricingData;
   productsById: ReadonlyMap<string, PricingData['products'][number]>;
   context: CardCostContext;
+  partial: boolean;
   rate: ExchangeRate | undefined;
   materialsLine: (
     roomClientId: string,
@@ -59,6 +60,7 @@ export function useRoomPricing(): RoomPricing | null {
     return {
       pricing,
       context: cardCostContext(draft, pricing, version, 'UAH'),
+      partial: draft.object.scope === 'PARTIAL',
       productsById,
       rate,
       materialsLine: (roomClientId, categoryId) =>

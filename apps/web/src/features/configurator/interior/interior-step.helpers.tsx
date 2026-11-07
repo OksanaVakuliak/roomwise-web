@@ -13,6 +13,7 @@ import {
   type DraftV1,
   makeDraftRoom,
   makeInteriorDraft,
+  makePartialDraft,
 } from '@/test/fixtures/draft';
 import { makePricingData } from '@/test/fixtures/pricing-data';
 import {
@@ -156,9 +157,10 @@ export function roomSection(name: string) {
 }
 
 export function categoryRows(name = 'Living room') {
-  return within(within(roomSection(name)).getByRole('list')).getAllByRole(
-    'listitem',
-  );
+  const list = within(roomSection(name)).getAllByRole('list')[0];
+  return within(list)
+    .getAllByRole('listitem')
+    .filter((item) => item.parentElement === list);
 }
 
 export function rowButton(row: HTMLElement) {
@@ -212,4 +214,34 @@ export function usd(cents: number | undefined) {
 export function costRow(label: string) {
   const term = screen.getByText(label, { selector: 'dt' });
   return within(term.parentElement as HTMLElement).getByRole('definition');
+}
+
+export function offSelection(productId: string | null = null) {
+  return { productId, disabled: true, source: 'manual' as const };
+}
+
+export function makePartialRoomDraft(
+  finishLevel: 'ROUGH' | 'PRE_FINISH' | 'LIVED_IN' = 'ROUGH',
+  selections: DraftV1['rooms'][number]['selections'] = {
+    [categoryIds.floor]: offSelection(),
+    [categoryIds.walls]: offSelection(),
+    [categoryIds.ceiling]: offSelection(),
+  },
+): DraftV1 {
+  const base = makePartialDraft();
+  return {
+    ...base,
+    object: { ...base.object, finishLevel },
+    rooms: [makeDraftRoom({ clientId: livingId, selections })],
+  };
+}
+
+export function estimateLine(draft: DraftV1, lineId: string) {
+  return runEstimate({
+    draft,
+    draftRevision: 1,
+    pricing,
+    pricingVersion: pricing.version,
+    currency: 'UAH',
+  }).estimate?.lines.find((line) => line.id === lineId);
 }

@@ -87,6 +87,25 @@ describe('SpecItem', () => {
     expect(screen.getByText('not for heated floor')).toBeInTheDocument();
   });
 
+  it('lists the components of the cost', () => {
+    render(
+      <SpecItem
+        {...props}
+        components={[
+          { id: 'material', label: 'Material', amount: '$100' },
+          { id: 'labor', label: 'Labor', amount: '$40' },
+        ]}
+      />,
+    );
+    expect(screen.getByText('Material')).toBeInTheDocument();
+    expect(screen.getByText('$40')).toBeInTheDocument();
+  });
+
+  it('omits the components list when none are given', () => {
+    render(<SpecItem {...props} />);
+    expect(screen.queryByRole('list')).toBeNull();
+  });
+
   it('shows the unavailable label', () => {
     render(<SpecItem {...props} unavailable unavailableLabel="out of stock" />);
     expect(screen.getByText('out of stock')).toBeInTheDocument();
@@ -98,6 +117,7 @@ describe('SpecItem', () => {
         {...props}
         color="honey oak"
         warning="not for heated floor"
+        components={[{ id: 'material', label: 'Material', amount: '$100' }]}
         roomCost="$85.20"
         roomCostLabel="for the room"
         unavailable
