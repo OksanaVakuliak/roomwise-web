@@ -89,7 +89,7 @@ export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
 
   return (
     <div className={cx(styles.root, className)}>
-      <RadioCardGroup label={t('scope')} required>
+      <RadioCardGroup label={t('scope')} className={styles.wide} required>
         {SCOPES.map(({ value, label, hint }) => (
           <RadioCard
             key={value}
@@ -105,6 +105,7 @@ export function ObjectForm({ errors = {}, className }: ObjectFormProps) {
 
       <RadioCardGroup
         label={t('finishLevel')}
+        className={styles.wide}
         error={errors.finishLevel}
         required
       >
