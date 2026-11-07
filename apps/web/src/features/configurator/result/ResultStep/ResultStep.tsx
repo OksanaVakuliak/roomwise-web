@@ -229,14 +229,18 @@ export function ResultStep() {
       : tForm(FINISH_LABEL[object.finishLevel]);
   const objectItems = [
     { key: 'finish', label: tForm('finishLevel'), value: finishLabel },
-    {
-      key: 'area',
-      label: tForm('totalArea'),
-      value:
-        object.totalAreaSqm === null
-          ? EMPTY_VALUE
-          : area(object.totalAreaSqm, locale),
-    },
+    ...(object.scope === 'PARTIAL'
+      ? []
+      : [
+          {
+            key: 'area',
+            label: tForm('totalArea'),
+            value:
+              object.totalAreaSqm === null
+                ? EMPTY_VALUE
+                : area(object.totalAreaSqm, locale),
+          },
+        ]),
     ...(object.balcony.present && object.balcony.areaSqm !== null
       ? [
           {

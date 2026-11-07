@@ -560,6 +560,17 @@ describe('result step', () => {
     ).toBeInTheDocument();
   });
 
+  it('hides the kept total area for separate works', async () => {
+    const draft = withOptions(makeDraft());
+    await renderResult({
+      draft: { ...draft, object: { ...draft.object, scope: 'PARTIAL' } },
+    });
+    const object = within(sectionOf('Object and style'));
+
+    expect(object.queryByText('62 m²')).not.toBeInTheDocument();
+    expect(object.getByText('Finish level')).toBeInTheDocument();
+  });
+
   it('shows a loading state until the pricing data arrives', async () => {
     await renderResult({ pricingData: false });
 
