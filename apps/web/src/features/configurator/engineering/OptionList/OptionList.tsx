@@ -81,7 +81,10 @@ function OptionItem({ kind, pricing, option }: OptionItemProps) {
       {on && piece ? (
         <Stepper
           id={optionQuantityId(option.id)}
-          label={t('quantity', { name: option.name })}
+          className={styles.quantity}
+          label={t('quantity')}
+          aria-label={t('quantityOf', { name: option.name })}
+          unit={t('unit')}
           decrementLabel={t('decrement', { name: option.name })}
           incrementLabel={t('increment', { name: option.name })}
           value={quantity}

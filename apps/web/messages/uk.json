@@ -1223,7 +1223,9 @@
       "UNKNOWN": "ціну не задано"
     },
     "unavailable": "Більше недоступно",
-    "quantity": "Кількість: {name}",
+    "quantity": "Кількість",
+    "quantityOf": "Кількість: {name}",
+    "unit": "шт.",
     "decrement": "Зменшити кількість: {name}",
     "increment": "Збільшити кількість: {name}",
     "quantityRange": "Допустимо від {min} до {max}",

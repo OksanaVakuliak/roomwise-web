@@ -1223,7 +1223,9 @@
       "UNKNOWN": "price not set"
     },
     "unavailable": "No longer available",
-    "quantity": "Quantity: {name}",
+    "quantity": "Quantity",
+    "quantityOf": "Quantity: {name}",
+    "unit": "pcs",
     "decrement": "Decrease quantity: {name}",
     "increment": "Increase quantity: {name}",
     "quantityRange": "Allowed from {min} to {max}",
