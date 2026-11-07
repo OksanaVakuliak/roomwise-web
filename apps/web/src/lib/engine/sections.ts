@@ -60,7 +60,10 @@ export function toCostPanelView(
   estimate: Estimate | null,
   options: CostPanelOptions = {},
 ): CostPanelView {
-  if (estimate === null) {
+  if (
+    estimate === null ||
+    !estimate.lines.some((line) => line.amountCents > 0)
+  ) {
     return EMPTY_PANEL;
   }
   const {

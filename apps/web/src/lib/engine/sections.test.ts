@@ -22,6 +22,22 @@ function estimateOf() {
 }
 
 describe('toCostPanelView', () => {
+  it('shows nothing for an estimate without any amount', () => {
+    const { estimate } = estimateOf();
+    const empty = {
+      ...estimate,
+      lines: estimate.lines.map((line) => ({ ...line, amountCents: 0 })),
+    };
+
+    expect(toCostPanelView(empty)).toEqual({
+      base: null,
+      materials: null,
+      engineering: null,
+      additional: null,
+      total: null,
+    });
+  });
+
   it('takes base from the BASE section only', () => {
     const { estimate } = estimateOf();
     const { base } = toCostPanelView(estimate);
