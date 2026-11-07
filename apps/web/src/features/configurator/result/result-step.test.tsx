@@ -556,7 +556,7 @@ describe('result step', () => {
     });
 
     expect(
-      within(sectionOf('Object and style')).getByText('Lived-in'),
+      within(sectionOf('Object and style')).getByText('Lived-in (renovated)'),
     ).toBeInTheDocument();
   });
 
