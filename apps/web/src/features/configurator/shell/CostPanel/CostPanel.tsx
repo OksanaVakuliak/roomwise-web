@@ -60,12 +60,17 @@ export function CostPanel() {
     return moneyMinor(value.usdCents, 'USD', locale);
   };
 
+  const partial = draft.object.scope === 'PARTIAL';
   const rows = [
-    { key: 'base', label: t('base'), money: panel.base },
-    { key: 'materials', label: t('materials'), money: panel.materials },
+    ...(partial ? [] : [{ key: 'base', label: t('base'), money: panel.base }]),
+    {
+      key: 'materials',
+      label: partial ? t('worksAndMaterials') : t('materials'),
+      money: panel.materials,
+    },
     { key: 'engineering', label: t('engineering'), money: panel.engineering },
     { key: 'additional', label: t('additional'), money: panel.additional },
-  ] as const;
+  ];
   const sum = rows.reduce((acc, row) => acc + (row.money?.usdCents ?? 0), 0);
   const share = (value: Money | null) =>
     sum > 0 && value ? (value.usdCents / sum) * 100 : 0;
@@ -88,7 +93,7 @@ export function CostPanel() {
           </>
         ) : undefined
       }
-      barLabel={tConfigurator('barLabel', {
+      barLabel={tConfigurator(partial ? 'barLabelPartial' : 'barLabel', {
         base: Math.round(share(panel.base)),
         materials: Math.round(share(panel.materials)),
         engineering: Math.round(share(panel.engineering)),

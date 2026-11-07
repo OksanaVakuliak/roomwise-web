@@ -282,6 +282,21 @@ describe('saved calculation page', () => {
     });
   });
 
+  it('titles the saved separate works as works and materials', async () => {
+    const base = makeVersionView();
+    get.mockResolvedValue(
+      ok({
+        ...base,
+        configuration: { ...base.configuration, scope: 'PARTIAL' },
+      }),
+    );
+    await renderSaved();
+
+    expect(
+      await screen.findByRole('heading', { name: /Works and materials/ }),
+    ).toBeInTheDocument();
+  });
+
   it('keeps snapshot names and sums when current prices differ', async () => {
     const version = makeChangedPriceVersionView();
     get.mockResolvedValue(ok(version));

@@ -164,6 +164,24 @@ describe('reconcile', () => {
     expect(result.replacements).toEqual([]);
   });
 
+  it('adds a missing category disabled at partial scope', () => {
+    const draft = draftWith({
+      [categoryIds.floor]: manual(productIds.laminate),
+    });
+    const partialDraft = {
+      ...draft,
+      object: { ...draft.object, scope: 'PARTIAL' as const },
+    };
+
+    const result = reconcile(partialDraft, makeCatalog());
+
+    expect(result.draft.rooms[0]?.selections).toEqual({
+      [categoryIds.floor]: manual(productIds.laminate),
+      [categoryIds.walls]: style(null, true),
+      [categoryIds.ceiling]: style(null, true),
+    });
+  });
+
   it('adds a missing category empty when there is no style', () => {
     const { [categoryIds.ceiling]: _removed, ...partial } = validSelections;
     const draft = draftWith(partial);

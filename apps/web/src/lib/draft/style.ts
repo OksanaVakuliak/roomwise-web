@@ -44,13 +44,35 @@ function styleSelection(
   };
 }
 
+const DISABLED: DraftSelection = {
+  productId: null,
+  disabled: true,
+  source: 'style',
+};
+
+export function disabledSelections(
+  roomTypeCode: RoomTypeCode | null,
+  roomTypes: RoomTypesCatalog,
+): Selections {
+  return Object.fromEntries(
+    categoryIdsOf(roomTypeCode, roomTypes).map((categoryId) => [
+      categoryId,
+      DISABLED,
+    ]),
+  );
+}
+
 export function materialsForRoom(
   roomTypeCode: RoomTypeCode | null,
   defaultMaterials: DefaultMaterials,
   roomTypes: RoomTypesCatalog,
+  scope: DraftV1['object']['scope'] = 'FULL',
 ): Selections {
   if (roomTypeCode === null) {
     return {};
+  }
+  if (scope === 'PARTIAL') {
+    return disabledSelections(roomTypeCode, roomTypes);
   }
   const selections = Object.fromEntries(
     categoryIdsOf(roomTypeCode, roomTypes).map((categoryId) => [
@@ -74,13 +96,34 @@ export function applyStyle(
     styleId: defaultMaterials.styleId,
     rooms: draft.rooms.map((room) => ({
       ...room,
-      selections: materialsForRoom(
-        room.roomTypeCode,
-        defaultMaterials,
-        roomTypes,
-      ),
+      selections:
+        draft.object.scope === 'PARTIAL'
+          ? partialStyleSelections(room, defaultMaterials, roomTypes)
+          : materialsForRoom(room.roomTypeCode, defaultMaterials, roomTypes),
     })),
   };
+}
+
+function partialStyleSelections(
+  room: DraftV1['rooms'][number],
+  defaultMaterials: DefaultMaterials,
+  roomTypes: RoomTypesCatalog,
+): Selections {
+  const { roomTypeCode } = room;
+  if (roomTypeCode === null) {
+    return {};
+  }
+  return Object.fromEntries(
+    categoryIdsOf(roomTypeCode, roomTypes).map((categoryId) => {
+      const previous = room.selections[categoryId];
+      return [
+        categoryId,
+        !previous || previous.disabled
+          ? DISABLED
+          : styleSelection(roomTypeCode, categoryId, defaultMaterials),
+      ];
+    }),
+  );
 }
 
 export function hasManualChanges(draft: DraftV1): boolean {
@@ -96,7 +139,19 @@ export function retypeSelections(
   roomTypeCode: RoomTypeCode | null,
   defaultMaterials: DefaultMaterials | null,
   roomTypes: RoomTypesCatalog,
+  scope: DraftV1['object']['scope'] = 'FULL',
 ): Selections {
+  if (scope === 'PARTIAL') {
+    return normalizeSelections(
+      Object.fromEntries(
+        categoryIdsOf(roomTypeCode, roomTypes).map((categoryId) => [
+          categoryId,
+          previous[categoryId] ?? DISABLED,
+        ]),
+      ),
+      categoriesOfRoomType(roomTypeCode, roomTypes),
+    );
+  }
   const fresh =
     defaultMaterials === null
       ? {}

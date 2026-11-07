@@ -17,6 +17,7 @@ export type FailureReason =
   | 'outOfBounds'
   | 'unknownReference'
   | 'styleMissing'
+  | 'emptyEstimate'
   | 'validation'
   | 'generic';
 

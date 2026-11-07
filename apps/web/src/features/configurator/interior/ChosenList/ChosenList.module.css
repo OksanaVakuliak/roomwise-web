@@ -124,6 +124,17 @@
   color: var(--heat);
 }
 
+.details {
+  grid-column: 1 / -1;
+  padding-bottom: var(--space-4);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--text-body-s-size);
+  color: var(--line-2);
+}
+
 .sum {
   font-size: var(--text-body-s-size);
   white-space: nowrap;

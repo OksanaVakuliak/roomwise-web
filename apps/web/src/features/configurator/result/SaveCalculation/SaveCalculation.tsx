@@ -18,6 +18,8 @@ export type SaveCalculationProps = {
     totals: SavedCalculation['version']['totals'],
     revision: number,
   ) => void;
+  blocked?: boolean;
+  blockedNoteId?: string;
 };
 
 function Feedback({
@@ -68,7 +70,11 @@ function Feedback({
   }
 }
 
-export function SaveCalculation({ onSaved }: SaveCalculationProps) {
+export function SaveCalculation({
+  onSaved,
+  blocked = false,
+  blockedNoteId,
+}: SaveCalculationProps) {
   const t = useTranslations('SaveCalculation');
   const { state, save } = useSaveCalculation(onSaved);
   const warmingUp = useWarmup(selectWarmupStatus) !== 'ready';
@@ -81,7 +87,8 @@ export function SaveCalculation({ onSaved }: SaveCalculationProps) {
           onClick={save}
           loading={pending}
           loadingLabel={t(warmingUp ? 'warming' : 'saving')}
-          disabled={state.kind === 'limited'}
+          disabled={blocked || state.kind === 'limited'}
+          aria-describedby={blocked ? blockedNoteId : undefined}
         >
           {t('save')}
         </Button>

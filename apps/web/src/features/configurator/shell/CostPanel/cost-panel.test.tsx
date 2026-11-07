@@ -14,6 +14,7 @@ import {
   makeDraftRoom,
   makeEmptyDraft,
   makeInteriorDraft,
+  makePartialDraft,
 } from '@/test/fixtures/draft';
 import { setLoadedRate } from '@/test/fixtures/exchange-rate';
 import { makePricingData } from '@/test/fixtures/pricing-data';
@@ -192,6 +193,88 @@ describe('CostPanel', () => {
     expect(
       within(alert).getByRole('button', { name: en.SystemStates.retry }),
     ).toBeInTheDocument();
+  });
+
+  describe('partial renovation', () => {
+    function sections(draft: DraftV1) {
+      return runEstimate({
+        draft,
+        draftRevision: 1,
+        pricing,
+        pricingVersion: pricing.version,
+        currency: 'UAH',
+      }).estimate;
+    }
+
+    it.each(forEachLocale)('has no base row in %s', (locale) => {
+      renderPanel(makePartialDraft(), locale);
+      const t = catalogs[locale].CostPanel;
+
+      expect(screen.queryByText(t.base, { selector: 'dt' })).toBeNull();
+      expect(screen.queryByText(t.materials, { selector: 'dt' })).toBeNull();
+    });
+
+    it.each(forEachLocale)(
+      'shows works and materials as materials plus object in %s',
+      (locale) => {
+        const draft = makePartialDraft();
+        const estimate = sections(draft);
+        const totals = estimate?.totals.sections;
+        renderPanel(draft, locale);
+        const t = catalogs[locale].CostPanel;
+
+        expect(row(t.worksAndMaterials).textContent).toBe(
+          moneyMinor(
+            (totals?.MATERIALS.usdCents ?? 0) + (totals?.OBJECT.usdCents ?? 0),
+            'USD',
+            locale,
+          ),
+        );
+      },
+    );
+
+    it('makes the total the sum of the shown rows', () => {
+      const draft = makePartialDraft();
+      const { materials, engineering, additional, total } = figures(draft);
+      const sum = [materials, engineering, additional].reduce(
+        (acc, part) => acc + (part?.usdCents ?? 0),
+        0,
+      );
+      expect(total?.usdCents).toBe(sum);
+      expect(total?.usdCents).toBeGreaterThan(0);
+    });
+
+    it('counts balcony tiles as a separate job from the engine object line', () => {
+      const withTiles = makePartialDraft({
+        object: {
+          ...makePartialDraft().object,
+          balcony: { present: true, areaSqm: 4, tiles: true },
+        },
+      });
+      const without = makePartialDraft({
+        object: {
+          ...makePartialDraft().object,
+          balcony: { present: true, areaSqm: 4, tiles: false },
+        },
+      });
+      const line = sections(withTiles)?.lines.find(
+        (item) => item.section === 'OBJECT' && item.amountCents > 0,
+      );
+      expect(line).toBeDefined();
+
+      renderPanel(withTiles);
+      const shown = row(en.CostPanel.worksAndMaterials).textContent;
+      const base = figures(without).materials?.usdCents ?? 0;
+
+      expect(shown).toBe(
+        moneyMinor(base + (line?.amountCents ?? 0), 'USD', 'en'),
+      );
+    });
+
+    it('has no accessibility violations', async () => {
+      const { container } = renderPanel(makePartialDraft());
+      expect(await axe(container)).toHaveNoViolations();
+    });
   });
 
   it('has no accessibility violations', async () => {

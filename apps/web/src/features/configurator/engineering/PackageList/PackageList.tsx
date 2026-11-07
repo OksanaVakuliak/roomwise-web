@@ -16,13 +16,14 @@ export function PackageList({ pricing }: PackageListProps) {
   const headingId = useId();
   const packageItems = useEngineering().data?.packageItems;
   const pricedItems = pricing.pricing.packageItems;
-  const items = useMemo(() => packageItems ?? [], [packageItems]);
+  const { partial } = pricing;
   const priced = useMemo(
     () => new Map(pricedItems.map((i) => [i.id, i])),
     [pricedItems],
   );
+  const items = packageItems ?? [];
 
-  if (items.length === 0) {
+  if (partial || items.length === 0) {
     return null;
   }
 

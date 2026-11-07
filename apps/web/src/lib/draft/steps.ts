@@ -53,13 +53,17 @@ export function objectComplete(draft: DraftV1, context: StepContext): boolean {
   if (object.finishLevel === null) {
     return false;
   }
-  if (!inRange(object.totalAreaSqm, limits.totalAreaSqm)) {
+  const full = object.scope === 'FULL';
+  if (full && !inRange(object.totalAreaSqm, limits.totalAreaSqm)) {
     return false;
   }
   const { balcony } = object;
+  const balconyMax = full
+    ? (object.totalAreaSqm ?? limits.totalAreaSqm.max)
+    : limits.totalAreaSqm.max;
   if (
     balcony.present &&
-    !inRange(balcony.areaSqm, { min: 0, max: object.totalAreaSqm })
+    !inRange(balcony.areaSqm, { min: 0, max: balconyMax })
   ) {
     return false;
   }

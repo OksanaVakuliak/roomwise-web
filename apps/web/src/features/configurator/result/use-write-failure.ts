@@ -11,6 +11,7 @@ export type SharedFailureReason =
   | 'outOfBounds'
   | 'unknownReference'
   | 'styleMissing'
+  | 'emptyEstimate'
   | 'generic';
 
 export type SharedWriteFailure<Revision extends number | null> =
@@ -48,6 +49,8 @@ export function useWriteFailure<Revision extends number | null>(
             reason: 'styleMissing',
             revision: readRevision ? readRevision() : revision,
           };
+        case 'EMPTY_ESTIMATE':
+          return { kind: 'failed', reason: 'emptyEstimate', revision };
         case 'IDEMPOTENCY_KEY_REUSED':
         case 'IDEMPOTENCY_KEY_REQUIRED':
           actionKey.current = createActionKey();

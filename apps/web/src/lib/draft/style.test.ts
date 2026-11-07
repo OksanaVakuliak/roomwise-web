@@ -68,6 +68,51 @@ describe('materialsForRoom', () => {
   });
 });
 
+describe('partial scope', () => {
+  const partialDraft = (selections = {}) =>
+    makeEmptyDraft({
+      object: { ...makeEmptyDraft().object, scope: 'PARTIAL' },
+      rooms: [
+        makeDraftRoom({ clientId: 'a', roomTypeCode: 'BEDROOM', selections }),
+      ],
+    });
+
+  it('materialsForRoom disables every category', () => {
+    const result = materialsForRoom('BEDROOM', defaults, roomTypes, 'PARTIAL');
+
+    expect(Object.keys(result)).toHaveLength(3);
+    expect(Object.values(result).every((item) => item.disabled)).toBe(true);
+    expect(Object.values(result).every((item) => item.productId === null)).toBe(
+      true,
+    );
+  });
+
+  it('applyStyle keeps disabled categories disabled', () => {
+    const next = applyStyle(partialDraft(), defaults, roomTypes);
+
+    expect(
+      Object.values(next.rooms[0]?.selections ?? {}).every(
+        (item) => item.disabled,
+      ),
+    ).toBe(true);
+  });
+
+  it('applyStyle fills only enabled categories', () => {
+    const next = applyStyle(
+      partialDraft({ [categoryIds.floor]: manual(null) }),
+      defaults,
+      roomTypes,
+    );
+    const selections = next.rooms[0]?.selections ?? {};
+
+    expect(selections[categoryIds.floor]).toEqual(
+      fromStyle(productIds.laminate),
+    );
+    expect(selections[categoryIds.walls]?.disabled).toBe(true);
+    expect(selections[categoryIds.walls]?.productId).toBeNull();
+  });
+});
+
 describe('applyStyle', () => {
   it('sets the style and overwrites selections of every room', () => {
     const draft = makeEmptyDraft({
@@ -145,6 +190,41 @@ describe('retypeSelections', () => {
     expect(retypeSelections(previous, 'BATHROOM', null, narrowTypes)).toEqual({
       [categoryIds.floor]: manual(productIds.tile),
     });
+  });
+
+  it('keeps new categories disabled at partial scope without a style', () => {
+    const next = retypeSelections(
+      { [categoryIds.floor]: manual(productIds.tile) },
+      'BEDROOM',
+      null,
+      roomTypes,
+      'PARTIAL',
+    );
+
+    expect(next[categoryIds.floor]).toEqual(manual(productIds.tile));
+    expect(
+      Object.entries(next)
+        .filter(([id]) => id !== categoryIds.floor)
+        .every(([, selection]) => selection.disabled),
+    ).toBe(true);
+    expect(Object.keys(next).length).toBeGreaterThan(1);
+  });
+
+  it('keeps an enabled style category at partial scope', () => {
+    const floor = {
+      productId: productIds.laminate,
+      disabled: false,
+      source: 'style' as const,
+    };
+    const next = retypeSelections(
+      { [categoryIds.floor]: floor },
+      'BEDROOM',
+      defaults,
+      roomTypes,
+      'PARTIAL',
+    );
+
+    expect(next[categoryIds.floor]).toEqual(floor);
   });
 
   it('adds style defaults for new categories only', () => {

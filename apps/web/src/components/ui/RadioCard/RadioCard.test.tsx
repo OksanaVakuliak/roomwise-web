@@ -13,6 +13,13 @@ describe('RadioCard', () => {
     expect(radio).toHaveAccessibleDescription('Raw and open');
   });
 
+  it('has no aria-describedby without a description', () => {
+    renderWithProviders(<RadioCard name="s" value="a" label="Loft" />);
+    expect(screen.getByRole('radio', { name: 'Loft' })).not.toHaveAttribute(
+      'aria-describedby',
+    );
+  });
+
   it('selects exclusively within a name', () => {
     renderWithProviders(
       <>
