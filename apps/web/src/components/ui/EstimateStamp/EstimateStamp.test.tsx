@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axe } from '@/test/axe';
 import { renderWithProviders } from '@/test/render-with-providers';
@@ -9,6 +9,24 @@ const parts = [
   { key: 'materials', label: 'Materials', value: '$4,912', share: 30 },
   { key: 'engineering', label: 'Engineering', value: '$1,260', share: 8 },
   { key: 'options', label: 'Options', value: '$340', share: 2 },
+];
+
+const detailedParts = [
+  {
+    ...parts[0],
+    detailsLabel: 'Base breakdown',
+    details: [
+      { key: 'floor', label: 'Floor', value: '$3,000' },
+      { key: 'walls', label: 'Walls', value: '$2,844' },
+      { key: 'ceiling', label: 'Ceiling', value: '$1,000' },
+    ],
+  },
+  {
+    ...parts[1],
+    detailsLabel: 'Materials breakdown',
+    details: [{ key: 'paint', label: 'Paint', value: '$900' }],
+  },
+  parts[2],
 ];
 
 function stamp(props: Partial<EstimateStampProps> = {}) {
@@ -114,5 +132,98 @@ describe('EstimateStamp', () => {
   it('has no axe violations', async () => {
     const { container } = renderWithProviders(stamp());
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  describe('part details', () => {
+    it('renders a collapsed disclosure button named after the part', () => {
+      const { container } = renderWithProviders(
+        stamp({ parts: detailedParts }),
+      );
+      const button = screen.getByRole('button', { name: 'Base' });
+      const breakdown = container.querySelector(
+        `[id="${button.getAttribute('aria-controls')}"]`,
+      );
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+      expect(breakdown).toBeInstanceOf(HTMLElement);
+      expect(breakdown).not.toBeVisible();
+    });
+
+    it('toggles on click', () => {
+      renderWithProviders(stamp({ parts: detailedParts }));
+      const button = screen.getByRole('button', { name: 'Base' });
+      fireEvent.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('is a native button so Enter and Space activate it', () => {
+      renderWithProviders(stamp({ parts: detailedParts }));
+      const button = screen.getByRole('button', { name: 'Base' });
+      expect(button.tagName).toBe('BUTTON');
+      expect(button).toHaveAttribute('type', 'button');
+    });
+
+    it('points aria-controls at a labelled breakdown with labels and values', () => {
+      const { container } = renderWithProviders(
+        stamp({ parts: detailedParts }),
+      );
+      const button = screen.getByRole('button', { name: 'Base' });
+      fireEvent.click(button);
+      const breakdown = container.querySelector(
+        `[id="${button.getAttribute('aria-controls')}"]`,
+      ) as HTMLElement;
+      expect(breakdown).toBeVisible();
+      const list = within(breakdown).getByLabelText('Base breakdown');
+      expect(list.tagName).toBe('DL');
+      expect(within(list).getByText('Floor')).toBeInTheDocument();
+      expect(within(list).getByText('$3,000')).toBeInTheDocument();
+      expect(within(list).getByText('Ceiling')).toBeInTheDocument();
+      expect(within(list).getByText('$1,000')).toBeInTheDocument();
+    });
+
+    it('toggles each part independently', () => {
+      renderWithProviders(stamp({ parts: detailedParts }));
+      const base = screen.getByRole('button', { name: 'Base' });
+      const materials = screen.getByRole('button', { name: 'Materials' });
+      expect(base.getAttribute('aria-controls')).not.toBe(
+        materials.getAttribute('aria-controls'),
+      );
+      fireEvent.click(base);
+      expect(base).toHaveAttribute('aria-expanded', 'true');
+      expect(materials).toHaveAttribute('aria-expanded', 'false');
+      fireEvent.click(materials);
+      fireEvent.click(base);
+      expect(base).toHaveAttribute('aria-expanded', 'false');
+      expect(materials).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('renders no button for parts without details', () => {
+      renderWithProviders(
+        stamp({
+          parts: [
+            ...detailedParts,
+            {
+              key: 'empty',
+              label: 'Empty',
+              value: '$0',
+              share: 0,
+              details: [],
+            },
+          ],
+        }),
+      );
+      expect(screen.queryByRole('button', { name: 'Engineering' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Empty' })).toBeNull();
+    });
+
+    it('has no axe violations collapsed or expanded', async () => {
+      const { container } = renderWithProviders(
+        stamp({ parts: detailedParts }),
+      );
+      expect(await axe(container)).toHaveNoViolations();
+      fireEvent.click(screen.getByRole('button', { name: 'Base' }));
+      expect(await axe(container)).toHaveNoViolations();
+    });
   });
 });

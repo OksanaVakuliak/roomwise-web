@@ -101,6 +101,62 @@
   white-space: nowrap;
 }
 
+.partToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--size-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.partChevron {
+  flex: none;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.partOpen .partChevron {
+  transform: rotate(180deg);
+}
+
+.details {
+  margin: 0;
+}
+
+.detailList {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding-inline-start: var(--space-10);
+  font-size: var(--text-caption-default-size);
+  color: var(--line-2);
+}
+
+.detail {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.detail dt {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.detail dd {
+  margin: 0;
+  flex: none;
+  text-align: end;
+  white-space: nowrap;
+  color: var(--line);
+}
+
 .actions {
   display: flex;
   gap: var(--space-8);

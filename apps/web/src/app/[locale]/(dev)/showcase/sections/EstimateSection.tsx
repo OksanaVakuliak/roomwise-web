@@ -22,16 +22,23 @@ const PARTS = [
   { key: 'engineering', cents: 126000 },
   { key: 'options', cents: 34000 },
 ] as const;
+const BASE_DETAILS = [
+  { key: 'works', label: 'detailWorks', cents: 300000 },
+  { key: 'materials', label: 'detailMaterials', cents: 284400 },
+  { key: 'demolition', label: 'detailDemolition', cents: 100000 },
+] as const;
 const EXTRA_CENTS = 25000;
 
 function Stamp({
   currency,
   extra,
   defaultExpanded,
+  detailed,
 }: {
   currency: Currency;
   extra: number;
   defaultExpanded?: boolean;
+  detailed?: boolean;
 }) {
   const t = useTranslations('ShowcaseEstimate');
   const locale = useLocale();
@@ -52,6 +59,16 @@ function Stamp({
         label: t(part.key),
         value: format(part.cents),
         share: (part.cents / sum) * 100,
+        ...(detailed && part.key === 'base'
+          ? {
+              detailsLabel: t('detailsLabel'),
+              details: BASE_DETAILS.map((detail) => ({
+                key: detail.key,
+                label: t(detail.label),
+                value: format(detail.cents),
+              })),
+            }
+          : {}),
       }))}
       actions={
         <>
@@ -126,6 +143,11 @@ export function EstimateSection() {
       <Variant title={t('stampExpanded')}>
         <div className={styles.narrow}>
           <Stamp currency="USD" extra={extra} defaultExpanded />
+        </div>
+      </Variant>
+      <Variant title={t('stampDetailed')}>
+        <div className={styles.narrow}>
+          <Stamp currency="USD" extra={extra} defaultExpanded detailed />
         </div>
       </Variant>
       <Variant title={t('stampUah')}>
