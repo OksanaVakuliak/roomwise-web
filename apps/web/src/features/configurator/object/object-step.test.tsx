@@ -83,7 +83,7 @@ function figures(draft: DraftV1) {
 
 function costRow(label: string) {
   const term = screen.getByText(label, { selector: 'dt, dt > button' });
-  return within(term.closest('div') as HTMLElement).getByRole('definition');
+  return term.closest('dt')?.nextElementSibling as HTMLElement;
 }
 
 function roomItems(locale: Locale) {

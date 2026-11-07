@@ -51,7 +51,7 @@ function figures(draft: DraftV1) {
 
 function row(label: string) {
   const term = screen.getByText(label, { selector: 'dt, dt > button' });
-  return within(term.closest('div') as HTMLElement).getByRole('definition');
+  return term.closest('dt')?.nextElementSibling as HTMLElement;
 }
 
 describe('CostPanel', () => {
@@ -444,6 +444,41 @@ describe('CostPanel', () => {
       expect(button).toHaveAttribute('aria-expanded', 'true');
       fireEvent.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('shows a dash for a base component whose formula failed', () => {
+      const broken = makePricingData({
+        rules: pricing.rules.map((rule) =>
+          rule.id === 'rule-base-materials'
+            ? { ...rule, costFormula: 'missingVariable * 2' }
+            : rule,
+        ),
+      });
+      useDraft.setState({ ...apartment('ROUGH'), revision: 1 });
+      renderWithProviders(<CostPanel />, { locale: 'en', pricing: broken });
+      fireEvent.click(toggle('en'));
+
+      const list = breakdown('en') as HTMLElement;
+      const term = within(list).getByText('Rough materials');
+      expect(term.nextElementSibling).toHaveTextContent('—');
+    });
+
+    it('has no toggle when the base has a single component', () => {
+      const single = makePricingData({
+        rules: pricing.rules.filter(
+          (rule) =>
+            rule.id !== 'rule-base-materials' &&
+            rule.id !== 'rule-base-demolition',
+        ),
+      });
+      useDraft.setState({ ...apartment('ROUGH'), revision: 1 });
+      renderWithProviders(<CostPanel />, { locale: 'en', pricing: single });
+
+      expect(
+        screen.queryByRole('button', { name: en.CostPanel.base }),
+      ).toBeNull();
+      expect(breakdown('en')).toBeNull();
+      expect(row(en.CostPanel.base).textContent).not.toBe('—');
     });
 
     it('has no accessibility violations with the breakdown expanded', async () => {

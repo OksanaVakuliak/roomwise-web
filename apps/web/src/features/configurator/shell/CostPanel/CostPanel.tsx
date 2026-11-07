@@ -43,7 +43,7 @@ export function CostPanel() {
     return <ZoneSkeleton kind="estimate" />;
   }
 
-  const { panel, estimate } = runEstimate({
+  const { panel, estimate, blockedLineIds } = runEstimate({
     draft,
     draftRevision: revision,
     pricing,
@@ -64,21 +64,30 @@ export function CostPanel() {
 
   const partial = draft.object.scope === 'PARTIAL';
   const baseDetails =
-    panel.base === null || estimate === null
+    partial || panel.base === null || estimate === null
       ? []
-      : estimate.lines
-          .filter((line) => line.section === 'BASE')
-          .map((line) => ({
-            key: line.id,
-            label:
-              pricing.rules.find((rule) => rule.id === line.ruleId)?.name[
-                lang
-              ] ?? t('base'),
-            value: format({
-              usdCents: line.amountCents,
-              uahKopecks: line.amountUahKopecks,
-            }),
-          }));
+      : estimate.lines.flatMap((line) => {
+          const rule =
+            line.section === 'BASE'
+              ? pricing.rules.find((item) => item.id === line.ruleId)
+              : undefined;
+          if (rule === undefined) {
+            return [];
+          }
+          const priced = line.status === 'OK' && !blockedLineIds.has(line.id);
+          return [
+            {
+              key: line.id,
+              label: rule.name[lang],
+              value: priced
+                ? format({
+                    usdCents: line.amountCents,
+                    uahKopecks: line.amountUahKopecks,
+                  })
+                : EMPTY_VALUE,
+            },
+          ];
+        });
   const rows = [
     ...(partial
       ? []
@@ -87,7 +96,7 @@ export function CostPanel() {
             key: 'base',
             label: t('base'),
             money: panel.base,
-            details: baseDetails,
+            details: baseDetails.length > 1 ? baseDetails : undefined,
             detailsLabel: t('baseDetails.label'),
           },
         ]),
