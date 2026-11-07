@@ -55,7 +55,7 @@ describe('ObjectForm', () => {
     expect(screen.queryByRole('switch', { name: /gas|газ/i })).toBeNull();
     expect(screen.queryByRole('radio', { name: /kitchen|кухн/i })).toBeNull();
     expect(screen.getAllByRole('switch')).toHaveLength(1);
-    expect(screen.getAllByRole('radio')).toHaveLength(2);
+    expect(screen.getAllByRole('radio')).toHaveLength(5);
     expect(
       screen.getByRole('switch', { name: t('balcony') }),
     ).not.toBeChecked();

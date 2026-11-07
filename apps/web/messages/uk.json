@@ -888,7 +888,15 @@
       "finishLevel": "Стан здачі",
       "finishRough": "Чорнова",
       "finishPre": "Передчистова",
-      "finishLivedIn": "Житловий стан",
+      "finishLivedIn": "Житлова (з ремонтом)",
+      "finishRoughHint": "Голі стіни, без стяжки й штукатурки",
+      "finishPreHint": "Стіни вирівняні, готові під оздоблення",
+      "finishLivedInHint": "Ремонт уже є, його потрібно оновити",
+      "scope": "Обсяг ремонту",
+      "scopeFull": "Повний ремонт",
+      "scopeFullHint": "Усі приміщення: від чорнових робіт до оздоблення",
+      "scopePartial": "Окремі роботи",
+      "scopePartialHint": "Лише ті роботи й матеріали, які ви оберете",
       "totalArea": "Загальна площа",
       "balcony": "Балкон",
       "balconyArea": "Площа балкона",
@@ -928,7 +936,8 @@
     "planEmpty": "Додайте приміщення — тут з'явиться план квартири",
     "planSummary": {
       "roomsOfTotal": "Приміщення: {rooms} м² із {total} м²",
-      "roomsOnly": "Приміщення: {rooms} м²"
+      "roomsOnly": "Приміщення: {rooms} м²",
+      "roomsArea": "Площа приміщень: {rooms} м²"
     },
     "planCost": {
       "objectLine": "{name}: {amount}"

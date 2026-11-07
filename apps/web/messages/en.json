@@ -888,7 +888,15 @@
       "finishLevel": "Finish level",
       "finishRough": "Rough",
       "finishPre": "Pre-finish",
-      "finishLivedIn": "Lived-in",
+      "finishLivedIn": "Lived-in (renovated)",
+      "finishRoughHint": "Bare walls, no screed or plaster",
+      "finishPreHint": "Walls levelled and ready for finishing",
+      "finishLivedInHint": "Already renovated, needs updating",
+      "scope": "Renovation scope",
+      "scopeFull": "Full renovation",
+      "scopeFullHint": "Every room, from rough work to finishing",
+      "scopePartial": "Separate works",
+      "scopePartialHint": "Only the works and materials you choose",
       "totalArea": "Total area",
       "balcony": "Balcony",
       "balconyArea": "Balcony area",
@@ -928,7 +936,8 @@
     "planEmpty": "Add a room and the apartment plan will appear here",
     "planSummary": {
       "roomsOfTotal": "Rooms: {rooms} m² of {total} m²",
-      "roomsOnly": "Rooms: {rooms} m²"
+      "roomsOnly": "Rooms: {rooms} m²",
+      "roomsArea": "Rooms area: {rooms} m²"
     },
     "planCost": {
       "objectLine": "{name}: {amount}"

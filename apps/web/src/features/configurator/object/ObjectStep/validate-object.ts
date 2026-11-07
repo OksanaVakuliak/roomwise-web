@@ -49,14 +49,20 @@ function objectMessages(
   if (object.finishLevel === null) {
     messages.finishLevel = { key: 'finishLevelRequired' };
   }
-  const total = rangeMessage(object.totalAreaSqm, limits.totalAreaSqm, 'sqm');
+  const full = object.scope === 'FULL';
+  const total = full
+    ? rangeMessage(object.totalAreaSqm, limits.totalAreaSqm, 'sqm')
+    : null;
   if (total) {
     messages.totalArea = total;
   }
   if (object.balcony.present) {
     const balcony = rangeMessage(
       object.balcony.areaSqm,
-      { min: 0, max: object.totalAreaSqm ?? limits.totalAreaSqm.max },
+      {
+        min: 0,
+        max: (full ? object.totalAreaSqm : null) ?? limits.totalAreaSqm.max,
+      },
       'sqm',
     );
     if (balcony) {
@@ -156,7 +162,10 @@ export function validateObject(
     firstInvalidId: firstObject
       ? objectFieldDomId(firstObject)
       : (firstRoomId ?? (roomsMessage ? ROOMS_MESSAGE_DOM_ID : null)),
-    excessAreaSqm: roomsExcess(rooms, object.totalAreaSqm),
+    excessAreaSqm: roomsExcess(
+      rooms,
+      object.scope === 'FULL' ? object.totalAreaSqm : null,
+    ),
   };
 }
 

@@ -508,4 +508,121 @@ describe('ObjectStep', () => {
     expect(within(plan).getByText(step('planEmpty'))).toBeInTheDocument();
     expect(within(plan).queryByRole('list')).not.toBeInTheDocument();
   });
+
+  it.each(forEachLocale)(
+    'starts with the full renovation selected and shows three finish cards with descriptions in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      await renderStep(makeEmptyDraft(), locale);
+
+      expect(
+        screen.getByRole('radio', { name: step('form.scopeFull') }),
+      ).toBeChecked();
+      expect(
+        screen.getByRole('radio', { name: step('form.scopePartial') }),
+      ).not.toBeChecked();
+      expect(
+        screen.getByRole('textbox', { name: step('form.totalArea') }),
+      ).toBeInTheDocument();
+
+      const finish = [
+        ['form.finishRough', 'form.finishRoughHint'],
+        ['form.finishPre', 'form.finishPreHint'],
+        ['form.finishLivedIn', 'form.finishLivedInHint'],
+      ] as const;
+      for (const [label, hint] of finish) {
+        expect(
+          screen.getByRole('radio', { name: step(label) }),
+        ).toHaveAccessibleDescription(step(hint));
+      }
+      expect(
+        screen.getByRole('radio', { name: step('form.scopeFull') }),
+      ).toHaveAccessibleDescription(step('form.scopeFullHint'));
+      expect(
+        screen.getByRole('radio', { name: step('form.scopePartial') }),
+      ).toHaveAccessibleDescription(step('form.scopePartialHint'));
+    },
+  );
+
+  it.each(forEachLocale)(
+    'hides the total area for partial works, keeps finish and rooms, and restores the area on return in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      await renderStep(
+        validObject(
+          {},
+          makeEmptyDraft({
+            rooms: [fullRoom({ lengthM: 4, widthM: 3.5, heightM: 2.7 })],
+          }),
+        ),
+        locale,
+      );
+
+      fireEvent.click(
+        screen.getByRole('radio', { name: step('form.scopePartial') }),
+      );
+
+      expect(
+        screen.queryByRole('textbox', { name: step('form.totalArea') }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('radio', { name: step('form.finishPre') }),
+      ).toBeChecked();
+      expect(roomItems(locale)).toHaveLength(1);
+      expect(useDraft.getState().object).toMatchObject({
+        scope: 'PARTIAL',
+        totalAreaSqm: 64,
+      });
+      expect(
+        within(screen.getByRole('region', { name: step('plan') })).getByText(
+          step('planSummary.roomsArea', { rooms: '14' }),
+        ),
+      ).toBeInTheDocument();
+
+      fireEvent.click(
+        screen.getByRole('radio', { name: step('form.scopeFull') }),
+      );
+
+      expect(
+        screen.getByRole('textbox', { name: step('form.totalArea') }),
+      ).toHaveValue('64');
+      expect(useDraft.getState().object.totalAreaSqm).toBe(64);
+    },
+  );
+
+  it.each(forEachLocale)(
+    'lets the visitor continue without a total area for partial works in %s',
+    async (locale) => {
+      const { location } = await renderStep(
+        validObject(
+          { scope: 'PARTIAL', totalAreaSqm: null },
+          makeEmptyDraft({
+            rooms: [fullRoom({ lengthM: 4, widthM: 3.5, heightM: 2.7 })],
+          }),
+        ),
+        locale,
+      );
+
+      clickNext(locale);
+
+      expect(location().pathname).toBe(`/${locale}/configurator/engineering`);
+    },
+  );
+
+  it.each(forEachLocale)(
+    'has no accessibility violations for partial works in %s',
+    async (locale) => {
+      const { container } = await renderStep(
+        validObject(
+          { scope: 'PARTIAL' },
+          makeEmptyDraft({
+            rooms: [fullRoom({ lengthM: 4, widthM: 3.5, heightM: 2.7 })],
+          }),
+        ),
+        locale,
+      );
+
+      expect(await axe(container)).toHaveNoViolations();
+    },
+  );
 });
