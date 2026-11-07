@@ -141,12 +141,21 @@ export function retypeSelections(
   roomTypes: RoomTypesCatalog,
   scope: DraftV1['object']['scope'] = 'FULL',
 ): Selections {
+  if (scope === 'PARTIAL') {
+    return normalizeSelections(
+      Object.fromEntries(
+        categoryIdsOf(roomTypeCode, roomTypes).map((categoryId) => [
+          categoryId,
+          previous[categoryId] ?? DISABLED,
+        ]),
+      ),
+      categoriesOfRoomType(roomTypeCode, roomTypes),
+    );
+  }
   const fresh =
-    scope === 'PARTIAL'
-      ? disabledSelections(roomTypeCode, roomTypes)
-      : defaultMaterials === null
-        ? {}
-        : materialsForRoom(roomTypeCode, defaultMaterials, roomTypes);
+    defaultMaterials === null
+      ? {}
+      : materialsForRoom(roomTypeCode, defaultMaterials, roomTypes);
   const surfaceOf = new Map(
     roomTypes.items.flatMap((type) =>
       type.categories.map((category) => [category.id, category.surface]),

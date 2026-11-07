@@ -210,6 +210,23 @@ describe('retypeSelections', () => {
     expect(Object.keys(next).length).toBeGreaterThan(1);
   });
 
+  it('keeps an enabled style category at partial scope', () => {
+    const floor = {
+      productId: productIds.laminate,
+      disabled: false,
+      source: 'style' as const,
+    };
+    const next = retypeSelections(
+      { [categoryIds.floor]: floor },
+      'BEDROOM',
+      defaults,
+      roomTypes,
+      'PARTIAL',
+    );
+
+    expect(next[categoryIds.floor]).toEqual(floor);
+  });
+
   it('adds style defaults for new categories only', () => {
     const next = retypeSelections(
       { [categoryIds.floor]: manual(productIds.tile) },
