@@ -102,10 +102,11 @@
 }
 
 .partToggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-4);
-  min-height: var(--size-target);
+  min-height: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -113,6 +114,15 @@
   font: inherit;
   text-align: start;
   cursor: pointer;
+}
+
+.partToggle::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 50%;
+  block-size: var(--size-target);
+  transform: translateY(-50%);
 }
 
 .partChevron {
