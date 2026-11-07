@@ -740,6 +740,7 @@
     "pageTitle": "Об'єкт. Roomwise",
     "base": "База",
     "materials": "Матеріали",
+    "worksAndMaterials": "Роботи й матеріали",
     "engineering": "Інженерія",
     "options": "Опції",
     "back": "Назад",
@@ -1041,6 +1042,7 @@
       "base": "Базовий ремонт",
       "balcony": "Балкон",
       "materials": "Матеріали",
+      "worksAndMaterials": "Роботи й матеріали",
       "engineering": "Інженерія",
       "additional": "Додатково"
     },

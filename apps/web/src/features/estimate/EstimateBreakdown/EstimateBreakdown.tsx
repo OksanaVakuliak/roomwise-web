@@ -19,6 +19,7 @@ export type EstimateBreakdownProps = {
   currency: Currency;
   locale: Locale;
   rate?: ExchangeRate;
+  partial?: boolean;
   readOnly?: boolean;
   renderAction?: (target: EstimateActionTarget) => ReactNode;
 };
@@ -28,6 +29,7 @@ export function EstimateBreakdown({
   currency,
   locale,
   rate,
+  partial = false,
   readOnly = false,
   renderAction,
 }: EstimateBreakdownProps) {
@@ -85,7 +87,9 @@ export function EstimateBreakdown({
         <SectionBlock
           id={`${prefix}-materials`}
           level={2}
-          title={t('sections.materials')}
+          title={t(
+            partial ? 'sections.worksAndMaterials' : 'sections.materials',
+          )}
           amount={amount(materials.subtotal)}
         >
           <div className={styles.rooms}>

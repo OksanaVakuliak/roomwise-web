@@ -571,6 +571,19 @@ describe('result step', () => {
     expect(object.getByText('Finish level')).toBeInTheDocument();
   });
 
+  it('shows works and materials without a base for separate works', async () => {
+    const draft = withOptions(makeDraft());
+    await renderResult({
+      draft: { ...draft, object: { ...draft.object, scope: 'PARTIAL' } },
+    });
+
+    expect(screen.queryByText('Base')).not.toBeInTheDocument();
+    expect(screen.queryByText('Materials')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Works and materials').length).toBeGreaterThan(
+      1,
+    );
+  });
+
   it('shows a loading state until the pricing data arrives', async () => {
     await renderResult({ pricingData: false });
 

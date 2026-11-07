@@ -200,11 +200,16 @@ export function ResultStep() {
     return moneyMinor(value.usdCents, 'USD', locale);
   };
 
+  const partial = draft.object.scope === 'PARTIAL';
   const bars = [
-    { key: 'base', label: tConfigurator('base'), money: panel.base },
+    ...(partial
+      ? []
+      : [{ key: 'base', label: tConfigurator('base'), money: panel.base }]),
     {
       key: 'materials',
-      label: tConfigurator('materials'),
+      label: partial
+        ? tConfigurator('worksAndMaterials')
+        : tConfigurator('materials'),
       money: panel.materials,
     },
     {
@@ -229,7 +234,7 @@ export function ResultStep() {
       : tForm(FINISH_LABEL[object.finishLevel]);
   const objectItems = [
     { key: 'finish', label: tForm('finishLevel'), value: finishLabel },
-    ...(object.scope === 'PARTIAL'
+    ...(partial
       ? []
       : [
           {
@@ -290,6 +295,7 @@ export function ResultStep() {
         currency={currency}
         locale={locale}
         rate={rate}
+        partial={partial}
         renderAction={changeAction}
       />
       {roomPricing ? (

@@ -740,6 +740,7 @@
     "pageTitle": "Object. Roomwise",
     "base": "Base",
     "materials": "Materials",
+    "worksAndMaterials": "Works and materials",
     "engineering": "Engineering",
     "options": "Options",
     "back": "Back",
@@ -1041,6 +1042,7 @@
       "base": "Base renovation",
       "balcony": "Balcony",
       "materials": "Materials",
+      "worksAndMaterials": "Works and materials",
       "engineering": "Engineering",
       "additional": "Additional"
     },
