@@ -30,6 +30,11 @@ import {
   enableCategory as enableDraftCategory,
   selectProduct as selectDraftProduct,
 } from '@/lib/draft/selections';
+import {
+  addCovering as addDraftCovering,
+  removeCovering as removeDraftCovering,
+  setAreaShare as setDraftAreaShare,
+} from '@/lib/draft/shares';
 import { stepIndex } from '@/lib/draft/steps';
 import {
   applyStyle,
@@ -39,7 +44,7 @@ import {
   type RoomTypesCatalog,
   retypeSelections,
 } from '@/lib/draft/style';
-import { normalizeDraft } from '@/lib/draft/surfaces';
+import { normalizeDraft, type SurfaceCategory } from '@/lib/draft/surfaces';
 import {
   findHeatedFloorOption,
   isHeatedFloorAllowed,
@@ -112,11 +117,30 @@ type DraftState = DraftV1 & {
     productId: string,
     siblingIds?: readonly string[],
   ) => void;
-  disableCategory: (roomClientId: string, categoryId: string) => void;
+  disableCategory: (
+    roomClientId: string,
+    categoryId: string,
+    categories?: readonly SurfaceCategory[],
+  ) => void;
   enableCategory: (
     roomClientId: string,
     categoryId: string,
     siblingIds?: readonly string[],
+  ) => void;
+  addCovering: (
+    roomClientId: string,
+    categoryId: string,
+    categories: readonly SurfaceCategory[],
+  ) => void;
+  setAreaShare: (
+    roomClientId: string,
+    categoryId: string,
+    percent: number,
+  ) => void;
+  removeCovering: (
+    roomClientId: string,
+    categoryId: string,
+    categories: readonly SurfaceCategory[],
   ) => void;
   normalizeSurfaces: (roomTypes: RoomTypesCatalog) => void;
   reconcileCatalog: (catalog: ReconcileCatalog) => void;
@@ -352,9 +376,14 @@ export const useDraft = create<DraftState>()(
           ),
           revision: state.revision + 1,
         })),
-      disableCategory: (roomClientId, categoryId) =>
+      disableCategory: (roomClientId, categoryId, categories) =>
         set((state) => ({
-          ...disableDraftCategory(pickDraft(state), roomClientId, categoryId),
+          ...disableDraftCategory(
+            pickDraft(state),
+            roomClientId,
+            categoryId,
+            categories,
+          ),
           revision: state.revision + 1,
         })),
       enableCategory: (roomClientId, categoryId, siblingIds) =>
@@ -364,6 +393,36 @@ export const useDraft = create<DraftState>()(
             roomClientId,
             categoryId,
             siblingIds,
+          ),
+          revision: state.revision + 1,
+        })),
+      addCovering: (roomClientId, categoryId, categories) =>
+        set((state) => ({
+          ...addDraftCovering(
+            pickDraft(state),
+            roomClientId,
+            categoryId,
+            categories,
+          ),
+          revision: state.revision + 1,
+        })),
+      setAreaShare: (roomClientId, categoryId, percent) =>
+        set((state) => ({
+          ...setDraftAreaShare(
+            pickDraft(state),
+            roomClientId,
+            categoryId,
+            percent,
+          ),
+          revision: state.revision + 1,
+        })),
+      removeCovering: (roomClientId, categoryId, categories) =>
+        set((state) => ({
+          ...removeDraftCovering(
+            pickDraft(state),
+            roomClientId,
+            categoryId,
+            categories,
           ),
           revision: state.revision + 1,
         })),

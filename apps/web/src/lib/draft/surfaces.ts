@@ -1,5 +1,6 @@
 import type { RoomTypeCode } from '@roomwise/calc-engine';
 import type { DraftSelection, DraftV1 } from './schema';
+import { withoutShare } from './shares';
 import type { RoomTypesCatalog } from './style';
 
 type Selections = Record<string, DraftSelection>;
@@ -71,9 +72,10 @@ export function activateFirstPerSurface(
     for (const category of group) {
       const selection = result[category.id];
       if (selection) {
+        const disabled = category.id !== winner?.id;
         result[category.id] = {
-          ...selection,
-          disabled: category.id !== winner?.id,
+          ...(disabled ? withoutShare(selection) : selection),
+          disabled,
         };
       }
     }
@@ -90,6 +92,21 @@ export function normalizeSelections(
     const enabled = group.filter(
       (category) => selections[category.id]?.disabled === false,
     );
+    const shared = enabled.filter(
+      (category) => selections[category.id]?.areaShare !== undefined,
+    );
+    if (shared.length >= 2) {
+      for (const category of enabled) {
+        const selection = selections[category.id];
+        if (selection && selection.areaShare === undefined) {
+          result = {
+            ...result,
+            [category.id]: { ...selection, disabled: true },
+          };
+        }
+      }
+      continue;
+    }
     const winner =
       enabled.find(
         (category) => selections[category.id]?.source === 'manual',
@@ -101,7 +118,7 @@ export function normalizeSelections(
       if (category.id !== winner?.id && selection) {
         result = {
           ...result,
-          [category.id]: { ...selection, disabled: true },
+          [category.id]: { ...withoutShare(selection), disabled: true },
         };
       }
     }

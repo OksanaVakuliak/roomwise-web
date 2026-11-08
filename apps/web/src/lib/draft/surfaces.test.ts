@@ -177,6 +177,66 @@ describe('normalizeSelections', () => {
   });
 });
 
+describe('normalizeSelections with area shares', () => {
+  const shared = (productId: string, areaShare: number): DraftSelection => ({
+    ...on(productId, 'manual'),
+    areaShare,
+  });
+  const walls: SurfaceCategory[] = [
+    ...categories,
+    { id: 'panels', surface: 'WALLS' },
+  ];
+
+  it('keeps every shared covering of a surface enabled', () => {
+    const selections = {
+      paint: shared('p1', 60),
+      wallpaper: shared('p2', 40),
+    };
+
+    expect(normalizeSelections(selections, walls)).toBe(selections);
+  });
+
+  it('disables an enabled covering without a share on a shared surface', () => {
+    const result = normalizeSelections(
+      {
+        paint: shared('p1', 60),
+        wallpaper: shared('p2', 40),
+        panels: on('p3', 'manual'),
+      },
+      walls,
+    );
+
+    expect(result.panels?.disabled).toBe(true);
+    expect(result.paint?.disabled).toBe(false);
+    expect(result.wallpaper?.disabled).toBe(false);
+  });
+
+  it('falls back to one winner when only one covering is shared', () => {
+    const result = normalizeSelections(
+      { paint: shared('p1', 60), wallpaper: on('p2', 'style') },
+      categories,
+    );
+
+    expect(result.paint).toEqual(shared('p1', 60));
+    expect(result.wallpaper).toEqual(off('p2', 'style'));
+  });
+});
+
+describe('activateFirstPerSurface with area shares', () => {
+  it('strips the share from the coverings it disables', () => {
+    const result = activateFirstPerSurface(
+      {
+        paint: { ...on('p1'), areaShare: 50 },
+        wallpaper: { ...on('p2'), areaShare: 50 },
+      },
+      categories,
+    );
+
+    expect(result.paint?.disabled).toBe(false);
+    expect(result.wallpaper).toEqual(off('p2'));
+  });
+});
+
 describe('normalizeDraft', () => {
   const roomTypes = {
     items: [
