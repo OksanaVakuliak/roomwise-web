@@ -7,7 +7,7 @@ import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { resetWarmup } from '@/lib/warmup/warmup';
 import { useDraft } from '@/stores/draft';
 import { axe } from '@/test/axe';
-import { categoryIds, productIds } from '@/test/fixtures/catalog';
+import { categoryIds, productIds, styleIds } from '@/test/fixtures/catalog';
 import { forEachLocale } from '@/test/render-with-providers';
 import en from '../../../../messages/en.json';
 import {
@@ -178,5 +178,98 @@ describe('InteriorStep at partial scope', () => {
     expect(card).toHaveTextContent(usd(alone?.amountCents));
     expect(alone?.amountCents).toBeGreaterThan(material?.amountCents ?? 0);
     expect(within(card).getAllByRole('listitem')).toHaveLength(3);
+  });
+
+  describe('fill from style', () => {
+    const fillName = (locale: 'en' | 'uk') =>
+      catalogs[locale].Specification.fillFromStyle;
+    const styled = (productId: string | null, disabled: boolean) => ({
+      productId,
+      disabled,
+      source: 'style' as const,
+    });
+    const withStyle = (
+      selections: Parameters<typeof makePartialRoomDraft>[1],
+      styleId: string | null = styleIds.modern,
+    ) => ({ ...makePartialRoomDraft('PRE_FINISH', selections), styleId });
+
+    it.each(forEachLocale)(
+      'fills only the enabled categories in %s',
+      async (locale) => {
+        await renderStep(url, {
+          locale,
+          draft: withStyle({
+            [categoryIds.floor]: styled(null, false),
+            [categoryIds.walls]: styled(null, true),
+            [categoryIds.ceiling]: styled(null, true),
+          }),
+        });
+
+        await act(async () => {
+          fireEvent.click(
+            screen.getByRole('button', { name: fillName(locale) }),
+          );
+        });
+
+        const selections = currentDraft().rooms[0].selections;
+        expect(selections[categoryIds.floor]).toEqual(
+          styled(productIds.laminate, false),
+        );
+        expect(selections[categoryIds.walls]).toEqual(styled(null, true));
+        expect(selections[categoryIds.ceiling]).toEqual(styled(null, true));
+        expect(screen.queryByRole('dialog')).toBeNull();
+        expect(await axe(document.body, noLandmarkRule)).toHaveNoViolations();
+      },
+      30_000,
+    );
+
+    it('asks before replacing manual choices', async () => {
+      await renderStep(url, {
+        draft: withStyle({
+          [categoryIds.floor]: {
+            productId: productIds.tile,
+            disabled: false,
+            source: 'manual',
+          },
+          [categoryIds.walls]: styled(null, true),
+          [categoryIds.ceiling]: styled(null, true),
+        }),
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: fillName('en') }));
+      });
+
+      const dialog = screen.getByRole('dialog');
+      expect(currentDraft().rooms[0].selections[categoryIds.floor]).toEqual(
+        expect.objectContaining({ productId: productIds.tile }),
+      );
+
+      await act(async () => {
+        fireEvent.click(
+          within(dialog).getByRole('button', {
+            name: en.StyleStep.confirm.confirm,
+          }),
+        );
+      });
+
+      expect(currentDraft().rooms[0].selections[categoryIds.floor]).toEqual(
+        styled(productIds.laminate, false),
+      );
+    });
+
+    it('is hidden without a chosen style', async () => {
+      await renderStep(url, {
+        draft: withStyle({ [categoryIds.floor]: styled(null, false) }, null),
+      });
+
+      expect(screen.queryByRole('button', { name: fillName('en') })).toBeNull();
+    });
+
+    it('is hidden at full scope', async () => {
+      await renderStep(url);
+
+      expect(screen.queryByRole('button', { name: fillName('en') })).toBeNull();
+    });
   });
 });

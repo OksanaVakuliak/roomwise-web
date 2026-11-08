@@ -21,6 +21,7 @@ import {
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
 import type { RoomPricing } from '../../shell/use-room-pricing';
+import { FillFromStyle } from '../FillFromStyle/FillFromStyle';
 import { HeatedFloorNote } from '../HeatedFloorNote/HeatedFloorNote';
 import {
   ProductShowcase,
@@ -155,6 +156,7 @@ export function Specification({
         />
       )}
       {hideTitle && sortable ? sort : null}
+      <FillFromStyle />
       {unavailable ? (
         <Banner
           variant="warning"
