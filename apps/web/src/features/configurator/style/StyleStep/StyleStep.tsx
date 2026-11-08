@@ -3,14 +3,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { useCallback, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
 import { ErrorState } from '@/components/system';
 import {
   Banner,
   Button,
   ConfirmDialog,
   EmptyState,
-  Icon,
   ImageWithFallback,
   Skeleton,
   StyleCard,
@@ -32,7 +30,6 @@ import {
 } from '../StylePreview/StylePreview';
 import styles from './StyleStep.module.css';
 
-const REQUIRED_MESSAGE_DOM_ID = 'style-required';
 const APPLYING_STATUS_DOM_ID = 'style-applying';
 
 type Failure = 'unavailable' | 'failed';
@@ -102,8 +99,8 @@ export function StyleStep() {
   const stylesQuery = useStyles();
   const roomTypesQuery = useRoomTypes();
   const styleId = useDraft((state) => state.styleId);
+  const partial = useDraft((state) => state.object.scope === 'PARTIAL');
   const selectStyle = useDraft((state) => state.selectStyle);
-  const [attempted, setAttempted] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
@@ -112,17 +109,12 @@ export function StyleStep() {
 
   const items = stylesQuery.data?.items;
   const roomTypes = roomTypesQuery.data;
-  const chosen = items?.some((item) => item.id === styleId) ?? false;
 
   useStepValidation(() => {
     if (applyingId !== null) {
       return APPLYING_STATUS_DOM_ID;
     }
-    if (chosen) {
-      return null;
-    }
-    flushSync(() => setAttempted(true));
-    return REQUIRED_MESSAGE_DOM_ID;
+    return null;
   });
 
   const apply = useCallback(
@@ -241,6 +233,7 @@ export function StyleStep() {
           {failure === 'unavailable' ? t('unavailable') : t('loadFailed')}
         </Banner>
       ) : null}
+      {partial ? <p className={styles.hint}>{t('partialHint')}</p> : null}
       <ul className={styles.list} aria-label={t('listLabel')}>
         {items.map((item) => (
           <StyleOption
@@ -258,12 +251,6 @@ export function StyleStep() {
           <VisuallyHidden>{t('applying')}</VisuallyHidden>
         ) : null}
       </div>
-      {attempted && !chosen && applyingId === null ? (
-        <p id={REQUIRED_MESSAGE_DOM_ID} tabIndex={-1} className={styles.error}>
-          <Icon name="warning" size="sm" />
-          {t('required')}
-        </p>
-      ) : null}
       <StylePreview
         item={previewStyle}
         selected={previewStyle?.id === styleId}

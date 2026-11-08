@@ -425,6 +425,22 @@ describe('useDraft style actions', () => {
     expect(useDraft.getState().styleId).toBeNull();
     expect(rooms()).toEqual(before);
   });
+
+  it('marks the style as automatic only when applied automatically', () => {
+    useDraft.getState().selectStyle(defaults, roomTypes, true);
+    expect(useDraft.getState().styleAuto).toBe(true);
+
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    expect(useDraft.getState().styleAuto).toBe(false);
+  });
+
+  it('stops automatic styling once the style is cleared', () => {
+    useDraft.getState().selectStyle(defaults, roomTypes, true);
+
+    useDraft.getState().clearStyle();
+
+    expect(useDraft.getState().styleAuto).toBe(false);
+  });
 });
 
 describe('useDraft selection actions', () => {

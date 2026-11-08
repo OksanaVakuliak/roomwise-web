@@ -154,15 +154,25 @@ describe('objectComplete', () => {
 });
 
 describe('styleComplete', () => {
-  it('requires a known style', () => {
-    expect(styleComplete(makeInteriorDraft(), context)).toBe(true);
-    expect(styleComplete(makeInteriorDraft({ styleId: null }), context)).toBe(
-      false,
-    );
-    expect(styleComplete(makeInteriorDraft({ styleId: 'gone' }), context)).toBe(
-      false,
-    );
-  });
+  it.each([{ scope: 'FULL' as const }, { scope: 'PARTIAL' as const }])(
+    'does not require a style at $scope scope',
+    ({ scope }) => {
+      const { object } = makeInteriorDraft();
+      const object2 = { ...object, scope };
+      expect(
+        styleComplete(
+          makeInteriorDraft({ object: object2, styleId: null }),
+          context,
+        ),
+      ).toBe(true);
+      expect(
+        styleComplete(
+          makeInteriorDraft({ object: object2, styleId: 'gone' }),
+          context,
+        ),
+      ).toBe(true);
+    },
+  );
 
   it('requires a complete object', () => {
     expect(styleComplete(makeInteriorDraft({ rooms: [] }), context)).toBe(
@@ -174,9 +184,9 @@ describe('styleComplete', () => {
 describe('firstIncomplete', () => {
   it('points at the first failing step', () => {
     expect(firstIncomplete(makeEmptyDraft(), context)).toBe('object');
-    expect(firstIncomplete(makeInteriorDraft({ styleId: null }), context)).toBe(
-      'style',
-    );
+    expect(
+      firstIncomplete(makeInteriorDraft({ styleId: null }), context),
+    ).toBeNull();
     expect(firstIncomplete(makeInteriorDraft(), context)).toBeNull();
   });
 });
@@ -224,9 +234,9 @@ describe('canOpen', () => {
     expect(openSteps(draft)).toEqual(['object']);
   });
 
-  it('closes steps after style when the style is missing', () => {
+  it('keeps later steps open when the style is missing', () => {
     const draft = makeInteriorDraft({ furthestStep: 'result', styleId: null });
-    expect(openSteps(draft)).toEqual(['object', 'engineering', 'style']);
+    expect(openSteps(draft)).toEqual([...STEP_ORDER]);
   });
 });
 
@@ -251,7 +261,7 @@ describe('stepState', () => {
     const draft = makeInteriorDraft({
       step: 'object',
       furthestStep: 'interior',
-      styleId: null,
+      rooms: [],
     });
     expect(states(draft)).toEqual(['now', 'done', 'later', 'later', 'later']);
   });

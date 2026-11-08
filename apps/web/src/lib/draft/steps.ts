@@ -74,21 +74,14 @@ export function objectComplete(draft: DraftV1, context: StepContext): boolean {
 }
 
 export function styleComplete(draft: DraftV1, context: StepContext): boolean {
-  return (
-    objectComplete(draft, context) &&
-    draft.styleId !== null &&
-    context.styleIds.includes(draft.styleId)
-  );
+  return objectComplete(draft, context);
 }
 
 export function firstIncomplete(
   draft: DraftV1,
   context: StepContext,
 ): StepId | null {
-  if (!objectComplete(draft, context)) {
-    return 'object';
-  }
-  return styleComplete(draft, context) ? null : 'style';
+  return objectComplete(draft, context) ? null : 'object';
 }
 
 export function isStepComplete(
