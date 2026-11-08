@@ -1,11 +1,12 @@
-import type {
-  Configuration,
-  Currency,
-  OptionSelection,
-  PricingData,
-  Range,
-  RoomConfiguration,
-  RoomTypeCode,
+import {
+  type Configuration,
+  type Currency,
+  isShareSurface,
+  type OptionSelection,
+  type PricingData,
+  type Range,
+  type RoomConfiguration,
+  type RoomTypeCode,
 } from '@roomwise/calc-engine';
 import { normalizeRoomName } from '@/lib/draft/rooms';
 import type { DraftRoom, DraftV1 } from '@/lib/draft/schema';
@@ -76,11 +77,38 @@ function selectionsOf(
     pricing.categories
       .map((category) => category.id)
       .filter((id) => id in room.selections);
-  return categoryIds.map((categoryId) => {
+  const surfaceOf = new Map(
+    pricing.categories.map((category) => [category.id, category.surface]),
+  );
+  const chosen = (categoryId: string) => {
     const selection = room.selections[categoryId];
+    return selection && !selection.disabled ? selection : undefined;
+  };
+  const sharedSurfaces = new Set<string>(
+    categoryIds.flatMap((categoryId) => {
+      const surface = surfaceOf.get(categoryId);
+      const selection = chosen(categoryId);
+      return surface !== undefined &&
+        isShareSurface(surface) &&
+        selection?.productId != null &&
+        selection.areaShare !== undefined
+        ? [surface]
+        : [];
+    }),
+  );
+  return categoryIds.map((categoryId) => {
+    const selection = chosen(categoryId);
+    const surface = surfaceOf.get(categoryId);
+    const areaShare =
+      selection?.productId != null &&
+      surface !== undefined &&
+      sharedSurfaces.has(surface)
+        ? selection.areaShare
+        : undefined;
     return {
       categoryId,
-      productId: selection && !selection.disabled ? selection.productId : null,
+      productId: selection ? selection.productId : null,
+      ...(areaShare !== undefined && { areaShare }),
     };
   });
 }
