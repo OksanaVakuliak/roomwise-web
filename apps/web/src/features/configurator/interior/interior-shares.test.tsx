@@ -9,10 +9,12 @@ import { resetWarmup } from '@/lib/warmup/warmup';
 import { useDraft } from '@/stores/draft';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import { forEachLocale } from '@/test/render-with-providers';
+import en from '../../../../messages/en.json';
 import {
   catalogs,
   currentDraft,
   livingId,
+  panelsId,
   renderStep,
   wallpaperId,
 } from './interior-step.helpers';
@@ -170,6 +172,28 @@ describe('InteriorStep area shares', () => {
     await addWallpaper();
 
     expect(screen.queryByText(/will replace it/)).toBeNull();
+  });
+
+  it('names every shared covering in the replace note of another finish', async () => {
+    await renderStep(
+      `/configurator/interior?room=${livingId}&category=${panelsId}`,
+      { withWallpaper: true, withPanels: true },
+    );
+    act(() => {
+      useDraft.getState().addCovering(livingId, wallpaperId, [
+        { id: categoryIds.walls, surface: 'WALLS' },
+        { id: wallpaperId, surface: 'WALLS' },
+        { id: panelsId, surface: 'WALLS' },
+      ]);
+    });
+
+    expect(
+      screen.getByText(
+        en.ProductShowcase.replaces
+          .replace('{surface}', en.Surface.for.WALLS)
+          .replace('{name}', 'Walls and Wallpaper'),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('returns to a single row without a share field after removing one covering', async () => {
