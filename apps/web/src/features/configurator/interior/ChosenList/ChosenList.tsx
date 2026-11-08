@@ -457,7 +457,10 @@ function ChosenSection({
       multiple,
       surfaceArea,
       total: sharedOnes.reduce(
-        (sum, item) => sum + (room.selections[item.id]?.areaShare ?? 0),
+        (sum, item) =>
+          room.selections[item.id]?.productId != null
+            ? sum + (room.selections[item.id]?.areaShare ?? 0)
+            : sum,
         0,
       ),
       candidates:

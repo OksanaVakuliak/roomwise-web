@@ -1,6 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '@/lib/api/client';
+import type { DraftSelection } from '@/lib/draft/schema';
 import { clearCardCostCache } from '@/lib/engine/card-cost';
 import { clearEstimateCache } from '@/lib/engine/run-estimate';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
@@ -23,6 +24,23 @@ const living = () => currentDraft().rooms[0];
 const removeButtons = () =>
   screen.getAllByRole('button', { name: /^Remove .* from Living room 1$/ });
 const share = (id: string) => living().selections[id]?.areaShare;
+
+function setWallpaperProduct(productId: string | null) {
+  act(() => {
+    useDraft.setState({
+      rooms: currentDraft().rooms.map((room) => ({
+        ...room,
+        selections: {
+          ...room.selections,
+          [wallpaperId]: {
+            ...(room.selections[wallpaperId] as DraftSelection),
+            productId,
+          },
+        },
+      })),
+    });
+  });
+}
 
 async function addWallpaper(locale: 'en' | 'uk' = 'en') {
   const text = catalogs[locale].ChosenList;
@@ -95,6 +113,7 @@ describe('InteriorStep area shares', () => {
   it('shows an error when the shares go over 100', async () => {
     await renderStep(url, { withWallpaper: true });
     await addWallpaper();
+    setWallpaperProduct(productIds.paint);
     const [first] = screen.getAllByRole('spinbutton');
 
     await act(async () => {
@@ -109,6 +128,7 @@ describe('InteriorStep area shares', () => {
   it('shows the unallocated warning when the shares are under 100', async () => {
     await renderStep(url, { withWallpaper: true });
     await addWallpaper();
+    setWallpaperProduct(productIds.paint);
     const [first] = screen.getAllByRole('spinbutton');
 
     await act(async () => {
@@ -120,6 +140,22 @@ describe('InteriorStep area shares', () => {
       /^Walls: 30% not allocated \(≈ [\d.,]+ m²\)$/,
     );
     expect(note).toHaveAttribute('role', 'status');
+  });
+
+  it('counts only shared coverings with a product as allocated', async () => {
+    await renderStep(url, { withWallpaper: true });
+    await addWallpaper();
+    setWallpaperProduct(null);
+    const [first] = screen.getAllByRole('spinbutton');
+
+    await act(async () => {
+      fireEvent.change(first, { target: { value: '20' } });
+      fireEvent.blur(first);
+    });
+
+    expect(
+      screen.getByText(/^Walls: 80% not allocated \(≈ [\d.,]+ m²\)$/),
+    ).toBeInTheDocument();
   });
 
   it('shows the share area as a hint', async () => {
