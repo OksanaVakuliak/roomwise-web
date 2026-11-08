@@ -457,6 +457,9 @@ function ChosenSection({
             ),
       })),
       multiple,
+      hasProduct: sharedOnes.some(
+        (item) => room.selections[item.id]?.productId != null,
+      ),
       surfaceArea,
       total: sharedOnes.reduce(
         (sum, item) =>
@@ -532,7 +535,10 @@ function ChosenSection({
               onSelect={onSelect}
             />
           )),
-          ...(item.multiple && item.surface !== null && item.total !== 100
+          ...(item.multiple &&
+          item.hasProduct &&
+          item.surface !== null &&
+          item.total !== 100
             ? [
                 <ShareNote
                   key={`note:${item.key}`}

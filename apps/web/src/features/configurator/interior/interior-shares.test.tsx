@@ -160,6 +160,26 @@ describe('InteriorStep area shares', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows no allocation note when no shared covering has a product', async () => {
+    await renderStep(url, { withWallpaper: true });
+    await addWallpaper();
+    act(() => {
+      useDraft.setState({
+        rooms: currentDraft().rooms.map((room) => ({
+          ...room,
+          selections: Object.fromEntries(
+            Object.entries(room.selections).map(([id, selection]) => [
+              id,
+              { ...selection, productId: null },
+            ]),
+          ),
+        })),
+      });
+    });
+
+    expect(screen.queryByText(/not allocated/)).toBeNull();
+  });
+
   it('keeps the note inside a plain list item', async () => {
     await renderStep(url, { withWallpaper: true });
     await addWallpaper();
