@@ -160,7 +160,10 @@ export function categoryRows(name = 'Living room') {
   const list = within(roomSection(name)).getAllByRole('list')[0];
   return within(list)
     .getAllByRole('listitem')
-    .filter((item) => item.parentElement === list);
+    .filter(
+      (item) =>
+        item.parentElement === list && !item.textContent?.startsWith('+'),
+    );
 }
 
 export function rowButton(row: HTMLElement) {
