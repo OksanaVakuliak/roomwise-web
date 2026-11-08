@@ -14,11 +14,19 @@ import { StackBar } from '../StackBar/StackBar';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './EstimateStamp.module.css';
 
+export type EstimateStampDetail = {
+  key: string;
+  label: ReactNode;
+  value: ReactNode;
+};
+
 export type EstimateStampPart = {
   key: string;
   label: ReactNode;
   value: ReactNode;
   share: number;
+  details?: readonly EstimateStampDetail[];
+  detailsLabel?: string;
 };
 
 export type EstimateStampProps = {
@@ -33,6 +41,50 @@ export type EstimateStampProps = {
   defaultExpanded?: boolean;
   className?: string;
 };
+
+function StampPart({ part }: { part: EstimateStampPart }) {
+  const detailsId = useId();
+  const [open, setOpen] = useState(false);
+  const toggle = useCallback(() => setOpen((value) => !value), []);
+  const { details } = part;
+
+  if (!details || details.length === 0) {
+    return (
+      <div className={styles.part}>
+        <dt>{part.label}</dt>
+        <dd className={`${styles.partValue} num`}>{part.value}</dd>
+      </div>
+    );
+  }
+
+  return (
+    <div className={cx(styles.part, open && styles.partOpen)}>
+      <dt>
+        <button
+          type="button"
+          className={styles.partToggle}
+          aria-expanded={open}
+          aria-controls={detailsId}
+          onClick={toggle}
+        >
+          {part.label}
+          <Icon name="chevronDown" size="sm" className={styles.partChevron} />
+        </button>
+      </dt>
+      <dd className={`${styles.partValue} num`}>{part.value}</dd>
+      <dd id={detailsId} className={styles.details} hidden={!open}>
+        <dl aria-label={part.detailsLabel} className={styles.detailList}>
+          {details.map((detail) => (
+            <div key={detail.key} className={styles.detail}>
+              <dt>{detail.label}</dt>
+              <dd className="num">{detail.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </dd>
+    </div>
+  );
+}
 
 export function EstimateStamp({
   totalLabel,
@@ -94,10 +146,7 @@ export function EstimateStamp({
       />
       <dl id={panelId} className={styles.parts}>
         {parts.map((part) => (
-          <div key={part.key} className={styles.part}>
-            <dt>{part.label}</dt>
-            <dd className={`${styles.partValue} num`}>{part.value}</dd>
-          </div>
+          <StampPart key={part.key} part={part} />
         ))}
       </dl>
       {actions ? <div className={styles.actions}>{actions}</div> : null}

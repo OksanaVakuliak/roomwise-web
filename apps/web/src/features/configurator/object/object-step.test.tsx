@@ -82,8 +82,8 @@ function figures(draft: DraftV1) {
 }
 
 function costRow(label: string) {
-  const term = screen.getByText(label, { selector: 'dt' });
-  return within(term.parentElement as HTMLElement).getByRole('definition');
+  const term = screen.getByText(label, { selector: 'dt, dt > button' });
+  return term.closest('dt')?.nextElementSibling as HTMLElement;
 }
 
 function roomItems(locale: Locale) {
@@ -493,7 +493,10 @@ describe('ObjectStep', () => {
       expect(baseLine?.status).toBe('OK');
       expect(plan).toHaveTextContent(
         step('planCost.objectLine', {
-          name: locale === 'uk' ? 'Базова вартість' : 'Base cost',
+          name:
+            pricing.rules.find((rule) => rule.id === baseLine?.ruleId)?.name[
+              locale
+            ] ?? '',
           amount: moneyMinor(baseLine?.amountCents ?? 0, 'USD', locale),
         }).replace(/\s/g, ' '),
       );

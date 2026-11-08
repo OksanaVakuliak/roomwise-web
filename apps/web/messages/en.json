@@ -471,6 +471,11 @@
     "stampExpanded": "Estimate stamp, expanded on a phone",
     "stampUah": "Estimate stamp, hryvnia",
     "stampUahDesktop": "Estimate stamp, hryvnia, desktop",
+    "stampDetailed": "Estimate stamp, with a breakdown",
+    "detailsLabel": "Base cost breakdown",
+    "detailWorks": "Rough works",
+    "detailMaterials": "Rough materials",
+    "detailDemolition": "Demolition of coverings",
     "totalLabel": "Total on the drawing",
     "toggleLabel": "Show breakdown",
     "announcement": "Total is now {total}",
@@ -643,6 +648,9 @@
   },
   "CostPanel": {
     "base": "Base cost",
+    "baseDetails": {
+      "label": "Base cost breakdown"
+    },
     "worksAndMaterials": "Works and materials",
     "materials": "Materials",
     "engineering": "Engineering",

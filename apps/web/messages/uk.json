@@ -471,6 +471,11 @@
     "stampExpanded": "Штамп-кошторис, розгорнутий на телефоні",
     "stampUah": "Штамп-кошторис, гривня",
     "stampUahDesktop": "Штамп-кошторис, гривня, десктоп",
+    "stampDetailed": "Штамп-кошторис, з розбивкою",
+    "detailsLabel": "Складові базової вартості",
+    "detailWorks": "Чорнові роботи",
+    "detailMaterials": "Чорнові матеріали",
+    "detailDemolition": "Демонтаж покриттів",
     "totalLabel": "Разом за кресленням",
     "toggleLabel": "Показати розбивку",
     "announcement": "Сума тепер {total}",
@@ -643,6 +648,9 @@
   },
   "CostPanel": {
     "base": "Базова вартість",
+    "baseDetails": {
+      "label": "Складові базової вартості"
+    },
     "worksAndMaterials": "Роботи й матеріали",
     "materials": "Матеріали",
     "engineering": "Інженерія",
