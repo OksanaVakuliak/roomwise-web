@@ -989,7 +989,15 @@
     "removeLabel": "Remove {category} from {room}",
     "add": "Add",
     "addLabel": "Add {category} to {room}",
-    "option": "Engineering"
+    "option": "Engineering",
+    "share": "Share",
+    "shareLabel": "Share of {category} in {room}",
+    "shareDecrement": "Decrease share of {category} in {room}",
+    "shareIncrement": "Increase share of {category} in {room}",
+    "shareArea": "≈ {area}",
+    "shareOver": "Shares add up to {sum}% — over 100%",
+    "addCovering": "+ {category}",
+    "addCoveringLabel": "Add {category} covering for {room}"
   },
   "RoomOptions": {
     "title": "Engineering for this room"

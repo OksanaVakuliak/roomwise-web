@@ -989,7 +989,15 @@
     "removeLabel": "Прибрати {category} з приміщення {room}",
     "add": "Додати",
     "addLabel": "Додати {category} до приміщення {room}",
-    "option": "Інженерія"
+    "option": "Інженерія",
+    "share": "Частка",
+    "shareLabel": "Частка {category} у {room}",
+    "shareDecrement": "Зменшити частку {category} у {room}",
+    "shareIncrement": "Збільшити частку {category} у {room}",
+    "shareArea": "≈ {area}",
+    "shareOver": "Частки разом {sum} % — більше за 100 %",
+    "addCovering": "+ {category}",
+    "addCoveringLabel": "Додати покриття {category} для {room}"
   },
   "RoomOptions": {
     "title": "Інженерія для цього приміщення"
