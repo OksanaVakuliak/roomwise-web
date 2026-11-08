@@ -3,6 +3,7 @@ import { type ReactNode, useId } from 'react';
 import type { Money } from '@/lib/engine/sections';
 import { type Currency, displayMoney, type ExchangeRate } from '@/lib/format';
 import { LineRow } from '../LineRow/LineRow';
+import { LineWarnings } from '../LineWarnings/LineWarnings';
 import type { EstimateLineModel, EstimateModel } from '../model';
 import { SectionBlock } from '../SectionBlock/SectionBlock';
 import styles from './EstimateBreakdown.module.css';
@@ -106,6 +107,7 @@ export function EstimateBreakdown({
                 })}
               >
                 {lineList(room.lines, roomNumbers[index] ?? 0)}
+                <LineWarnings warnings={room.warnings} />
               </SectionBlock>
             ))}
             {materials.balcony ? (

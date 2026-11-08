@@ -28,6 +28,24 @@ describe('toSnapshotModel', () => {
     expect(model.additional.lines[0]?.title).toBe('Design project');
   });
 
+  it('carries the unallocated share warnings of the snapshot into the room', () => {
+    const base = makeVersionView();
+    const roomClientId = base.rooms[0]?.clientId ?? '';
+    const model = toSnapshotModel(
+      makeVersionView({
+        warnings: [
+          {
+            code: 'AREA_SHARE_UNALLOCATED',
+            params: { roomClientId, surface: 'FLOOR', percent: 20, sqm: 4 },
+          },
+        ],
+      }),
+    );
+
+    expect(model.materials.rooms[0]?.warnings).toHaveLength(1);
+    expect(model.materials.rooms[1]?.warnings).toEqual([]);
+  });
+
   it('numbers rooms of the same type and keeps custom names', () => {
     const base = makeVersionView();
     const [living] = base.rooms;

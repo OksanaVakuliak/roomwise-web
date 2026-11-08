@@ -188,6 +188,37 @@ describe('buildEstimateModel', () => {
     expect(flagged[0]?.warnings[0]?.code).toBe('HEATED_FLOOR_INCOMPATIBLE');
   });
 
+  it('attaches unallocated share warnings to their room', () => {
+    const draft = makeInteriorDraft();
+    const { estimate } = build(draft);
+    const patched: Estimate = {
+      ...estimate,
+      warnings: [
+        {
+          code: 'AREA_SHARE_UNALLOCATED',
+          params: {
+            roomClientId: livingId,
+            surface: 'WALLS',
+            percent: 30,
+            sqm: 12.5,
+          },
+        },
+        { code: 'ROOMS_AREA_MISMATCH' },
+      ],
+    };
+    const model = buildEstimateModel({
+      estimate: patched,
+      rooms: toEstimateRooms(draft.rooms, (code) => code),
+      catalog,
+    });
+    const [living, bathroom] = model.materials.rooms;
+
+    expect(living?.warnings.map((warning) => warning.code)).toEqual([
+      'AREA_SHARE_UNALLOCATED',
+    ]);
+    expect(bathroom?.warnings).toEqual([]);
+  });
+
   it('nulls amounts and subtotals of blocked lines', () => {
     const { estimate } = build(makeInteriorDraft());
     const blocked = new Set(
