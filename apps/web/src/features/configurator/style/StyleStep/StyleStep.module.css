@@ -47,21 +47,14 @@
   white-space: nowrap;
 }
 
-.error {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-6);
+.hint {
   margin: 0;
-  color: var(--heat);
-  font-family: var(--text-body-s-family);
-  font-weight: var(--text-button-default-weight);
   font-size: var(--text-body-s-size);
-  line-height: var(--text-body-s-line);
+  color: var(--line-2);
 }
 
-.error:focus-visible {
-  outline: var(--focus-ring-width) solid var(--line);
-  outline-offset: var(--focus-ring-offset);
+.clear {
+  align-self: flex-start;
 }
 
 @media (max-width: 767.98px) {

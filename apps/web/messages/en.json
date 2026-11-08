@@ -853,7 +853,8 @@
     "previewClose": "Close preview",
     "previewSelect": "Choose this style",
     "previewSelected": "Style chosen",
-    "required": "Choose a style to continue.",
+    "partialHint": "The style fills only the enabled categories.",
+    "clear": "No style",
     "applying": "Applying style…",
     "unavailable": "This style is unavailable right now. Choose another one.",
     "loadFailed": "Could not load the style materials. Try again.",
@@ -964,6 +965,7 @@
     "dismiss": "Dismiss",
     "categoryGone": "This category is no longer available. The catalog has been refreshed.",
     "finishLabel": "Finish type",
+    "fillFromStyle": "Fill from style",
     "enableHint": "Turn on the categories you will work with",
     "components": {
       "material": "Material",

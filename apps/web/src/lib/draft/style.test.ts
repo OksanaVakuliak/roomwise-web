@@ -111,6 +111,28 @@ describe('partial scope', () => {
     expect(selections[categoryIds.walls]?.disabled).toBe(true);
     expect(selections[categoryIds.walls]?.productId).toBeNull();
   });
+
+  it('applyStyle fills two enabled categories and leaves the third disabled', () => {
+    const next = applyStyle(
+      partialDraft({
+        [categoryIds.floor]: manual(null),
+        [categoryIds.walls]: manual(null),
+      }),
+      defaults,
+      roomTypes,
+    );
+    const selections = next.rooms[0]?.selections ?? {};
+
+    expect(selections[categoryIds.floor]).toEqual(
+      fromStyle(productIds.laminate),
+    );
+    expect(selections[categoryIds.walls]).toEqual(fromStyle(productIds.paint));
+    expect(selections[categoryIds.ceiling]).toEqual({
+      productId: null,
+      disabled: true,
+      source: 'style',
+    });
+  });
 });
 
 describe('applyStyle', () => {

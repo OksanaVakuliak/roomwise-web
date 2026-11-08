@@ -88,6 +88,7 @@ type DraftState = DraftV1 & {
   selectStyle: (
     defaultMaterials: DefaultMaterials,
     roomTypes: RoomTypesCatalog,
+    auto?: boolean,
   ) => void;
   clearStyle: () => void;
   addRoom: (catalog?: RoomCatalog) => string | null;
@@ -183,15 +184,25 @@ export const useDraft = create<DraftState>()(
       setScope: (scope) =>
         set((state) => ({
           object: { ...state.object, scope },
+          ...(scope === 'PARTIAL' &&
+            state.styleAuto === true && {
+              styleId: null,
+              styleAuto: undefined,
+            }),
           revision: state.revision + 1,
         })),
-      selectStyle: (defaultMaterials, roomTypes) =>
+      selectStyle: (defaultMaterials, roomTypes, auto = false) =>
         set((state) => ({
           ...applyStyle(pickDraft(state), defaultMaterials, roomTypes),
+          styleAuto: auto,
           revision: state.revision + 1,
         })),
       clearStyle: () =>
-        set((state) => ({ styleId: null, revision: state.revision + 1 })),
+        set((state) => ({
+          styleId: null,
+          styleAuto: false,
+          revision: state.revision + 1,
+        })),
       addRoom: (catalog) => {
         const draft = pickDraft(get());
         const created = createRoom(draft, undefined, catalog?.roomTypes);
