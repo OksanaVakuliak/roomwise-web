@@ -18,6 +18,7 @@ import { RoomList } from '../RoomList/RoomList';
 import styles from './ObjectStep.module.css';
 import {
   type FieldMessage,
+  isObjectValid,
   ROOMS_MESSAGE_DOM_ID,
   validateObject,
 } from './validate-object';
@@ -41,8 +42,10 @@ export function ObjectStep() {
     [object, rooms, limits],
   );
 
+  const complete = validation !== null && isObjectValid(validation);
+
   const missingSqm = useMemo(() => {
-    if (pricing === null || pricingVersion === null) {
+    if (!complete || pricing === null || pricingVersion === null) {
       return null;
     }
     const { estimate } = runEstimate({
@@ -57,7 +60,7 @@ export function ObjectStep() {
     );
     const missing = warning?.params?.missingSqm;
     return typeof missing === 'number' ? missing : null;
-  }, [draft, revision, pricing, pricingVersion]);
+  }, [complete, draft, revision, pricing, pricingVersion]);
 
   useStepValidation(() => {
     if (!limits) {

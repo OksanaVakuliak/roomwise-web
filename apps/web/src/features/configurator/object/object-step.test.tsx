@@ -268,6 +268,24 @@ describe('ObjectStep', () => {
     },
   );
 
+  it('does not hint at the missing area while a room is still incomplete', async () => {
+    await renderStep(
+      validObject(
+        { totalAreaSqm: 60 },
+        makeEmptyDraft({
+          rooms: [
+            fullRoom({ lengthM: 9, widthM: 5, heightM: 2.7 }),
+            fullRoom({ lengthM: 3, widthM: null, heightM: 2.7 }),
+          ],
+        }),
+      ),
+    );
+
+    expect(
+      screen.queryByText(/not all rooms are added/),
+    ).not.toBeInTheDocument();
+  });
+
   it('does not hint at the missing area for a partial renovation', async () => {
     const { step } = translators('en');
     await renderStep(
