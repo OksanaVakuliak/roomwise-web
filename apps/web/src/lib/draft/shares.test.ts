@@ -107,6 +107,36 @@ describe('addCovering', () => {
     expect(next.panels?.areaShare).toBe(25);
   });
 
+  it('gives the new covering the unallocated remainder', () => {
+    const next = add(
+      draftOf({
+        paint: on('p1', 30),
+        wallpaper: on('p2', 20),
+        panels: off(null),
+      }),
+      'panels',
+    );
+
+    expect(next.paint?.areaShare).toBe(30);
+    expect(next.wallpaper?.areaShare).toBe(20);
+    expect(next.panels?.areaShare).toBe(50);
+  });
+
+  it('splits the largest share when the shares already add up to 100 or more', () => {
+    const next = add(
+      draftOf({
+        paint: on('p1', 100),
+        wallpaper: on('p2', 1),
+        panels: off(null),
+      }),
+      'panels',
+    );
+
+    expect(next.paint?.areaShare).toBe(50);
+    expect(next.wallpaper?.areaShare).toBe(1);
+    expect(next.panels?.areaShare).toBe(50);
+  });
+
   it('keeps the sum of shares at 100', () => {
     const next = add(
       draftOf({

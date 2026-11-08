@@ -92,16 +92,26 @@ export function addCovering(
       result[categoryId] = { ...result[categoryId], areaShare: 50 };
       return result;
     }
-    const largest = shared.reduce((best, id) =>
-      (selections[id]?.areaShare ?? 0) > (selections[best]?.areaShare ?? 0)
-        ? id
-        : best,
-    );
-    const largestShare = selections[largest]?.areaShare ?? 2;
-    const taken = Math.max(1, Math.floor(largestShare / 2));
-    result[largest] = {
-      ...(selections[largest] as DraftSelection),
-      areaShare: Math.max(1, largestShare - taken),
+    const shareOf = (id: string) => selections[id]?.areaShare ?? 0;
+    const allocated = shared.reduce((sum, id) => sum + shareOf(id), 0);
+    if (allocated < 100) {
+      result[categoryId] = {
+        ...result[categoryId],
+        areaShare: 100 - allocated,
+      };
+      return result;
+    }
+    const donor = [...shared]
+      .sort((a, b) => shareOf(b) - shareOf(a))
+      .find((id) => shareOf(id) >= 2);
+    if (donor === undefined) {
+      result[categoryId] = { ...result[categoryId], areaShare: 1 };
+      return result;
+    }
+    const taken = Math.floor(shareOf(donor) / 2);
+    result[donor] = {
+      ...(selections[donor] as DraftSelection),
+      areaShare: shareOf(donor) - taken,
     };
     result[categoryId] = { ...result[categoryId], areaShare: taken };
     return result;
