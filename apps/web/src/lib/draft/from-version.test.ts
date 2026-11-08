@@ -6,6 +6,7 @@ import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import { makePricingData } from '@/test/fixtures/pricing-data';
 import { fromVersion } from './from-version';
 import { DraftV1Schema } from './schema';
+import { normalizeSelections } from './surfaces';
 
 const heatedFloorId = 'opt-heated-floor';
 
@@ -114,6 +115,33 @@ describe('fromVersion', () => {
       disabled: false,
       source: 'manual',
     });
+  });
+
+  it('leaves no lone share on a restored surface once normalized', () => {
+    const base = makeVersionView();
+    const [room] = base.configuration.rooms;
+    const version = versionWith({
+      rooms: [
+        {
+          ...(room as (typeof base.configuration.rooms)[number]),
+          selections: [
+            {
+              categoryId: categoryIds.floor,
+              productId: productIds.laminate,
+              areaShare: 100,
+            },
+          ],
+        },
+      ],
+    });
+
+    const restored = fromVersion(version, null).rooms[0]?.selections ?? {};
+    const normalized = normalizeSelections(restored, [
+      { id: categoryIds.floor, surface: 'FLOOR' },
+    ]);
+
+    expect(normalized[categoryIds.floor]?.areaShare).toBeUndefined();
+    expect(normalized[categoryIds.floor]?.disabled).toBe(false);
   });
 
   it('does not carry the heated floor option into options', () => {

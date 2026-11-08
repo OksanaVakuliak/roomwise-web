@@ -115,11 +115,16 @@ export function normalizeSelections(
       enabled[0];
     for (const category of enabled) {
       const selection = selections[category.id];
-      if (category.id !== winner?.id && selection) {
+      if (!selection) {
+        continue;
+      }
+      if (category.id !== winner?.id) {
         result = {
           ...result,
           [category.id]: { ...withoutShare(selection), disabled: true },
         };
+      } else if (selection.areaShare !== undefined) {
+        result = { ...result, [category.id]: withoutShare(selection) };
       }
     }
   }

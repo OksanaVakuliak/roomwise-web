@@ -217,8 +217,17 @@ describe('normalizeSelections with area shares', () => {
       categories,
     );
 
-    expect(result.paint).toEqual(shared('p1', 60));
+    expect(result.paint).toEqual(on('p1', 'manual'));
     expect(result.wallpaper).toEqual(off('p2', 'style'));
+  });
+
+  it('drops the share of a lone enabled covering', () => {
+    const result = normalizeSelections(
+      { paint: shared('p1', 60), wallpaper: off('p2') },
+      categories,
+    );
+
+    expect(result.paint).toEqual(on('p1', 'manual'));
   });
 });
 
@@ -283,6 +292,21 @@ describe('normalizeDraft', () => {
     });
 
     expect(normalizeDraft(draft, roomTypes)).toBe(draft);
+  });
+
+  it('drops the share left alone on a surface', () => {
+    const draft = makeEmptyDraft({
+      rooms: [
+        makeDraftRoom({
+          roomTypeCode: 'BEDROOM',
+          selections: { paint: { ...on('p'), areaShare: 100 } },
+        }),
+      ],
+    });
+
+    expect(normalizeDraft(draft, roomTypes).rooms[0].selections).toEqual({
+      paint: on('p'),
+    });
   });
 
   it('ignores a room whose type is unknown to the catalog', () => {
