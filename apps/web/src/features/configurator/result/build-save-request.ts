@@ -16,9 +16,6 @@ export function buildSaveRequest(
   pricing: PricingData,
 ): SaveRequest | null {
   const { styleId } = draft;
-  if (styleId === null) {
-    return null;
-  }
   try {
     const configuration = toConfiguration(draft, pricing, {
       mode: 'strict',

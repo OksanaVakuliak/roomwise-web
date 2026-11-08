@@ -210,6 +210,28 @@ describe('save calculation', () => {
     expect(checkPricingData).toHaveBeenCalled();
   });
 
+  it('saves a draft without a style', async () => {
+    await renderResult();
+    await act(async () => {
+      useDraft.setState((state) => ({
+        styleId: null,
+        styleAuto: false,
+        revision: state.revision + 1,
+      }));
+    });
+    post.mockResolvedValue(created(snapshot(clientTotal())));
+
+    await save();
+
+    expect(post).toHaveBeenCalledExactlyOnceWith(
+      '/api/v1/public/calculations',
+      expect.objectContaining({
+        body: expect.objectContaining({ styleId: null }),
+      }),
+    );
+    expect(screen.getByLabelText('Link to the estimate')).toBeInTheDocument();
+  });
+
   it('replaces the screen sums with the snapshot and notes the price change', async () => {
     await renderResult();
     const saved = clientTotal() + 12500;
