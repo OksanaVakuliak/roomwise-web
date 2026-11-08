@@ -56,7 +56,7 @@ export function selectProduct(
       productId,
       disabled: false,
       source: 'manual',
-      ...(shared && areaShare !== undefined && { areaShare }),
+      ...(shared && { areaShare }),
     })),
     roomClientId,
     toDisable,

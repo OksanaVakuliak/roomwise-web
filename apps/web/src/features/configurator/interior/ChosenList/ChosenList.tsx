@@ -1,6 +1,10 @@
 'use client';
 
-import type { EstimateLine } from '@roomwise/calc-engine';
+import {
+  type EstimateLine,
+  isShareSurface,
+  type ShareSurface,
+} from '@roomwise/calc-engine';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useId } from 'react';
 import {
@@ -85,7 +89,7 @@ function ShareField({
   const { clientId } = room;
   const percent = room.selections[category.id]?.areaShare ?? 100;
   const change = useCallback(
-    (value: number) => setAreaShare(clientId, category.id, Math.round(value)),
+    (value: number) => setAreaShare(clientId, category.id, value),
     [category.id, clientId, setAreaShare],
   );
   const context = { category: category.name, room: roomName };
@@ -361,7 +365,7 @@ function AddCoveringButton({
 }
 
 type ShareNoteProps = {
-  surface: 'WALLS' | 'FLOOR';
+  surface: ShareSurface;
   total: number;
   surfaceArea: number | null;
 };
@@ -415,7 +419,7 @@ function ChosenSection({
   const metrics = roomMetrics(room);
   const surfaces = groupCategories(listed).map((surfaceGroup) => {
     const { surface } = surfaceGroup;
-    const shareable = surface === 'WALLS' || surface === 'FLOOR';
+    const shareable = isShareSurface(surface);
     const sharedOnes = shareable
       ? surfaceGroup.categories.filter((item) =>
           isSharedCovering(room.selections[item.id]),

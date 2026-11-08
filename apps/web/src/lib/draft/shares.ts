@@ -1,11 +1,8 @@
+import { isShareSurface, type ShareSurface } from '@roomwise/calc-engine';
 import type { DraftRoom, DraftSelection, DraftV1 } from './schema';
 import type { SurfaceCategory } from './surfaces';
 
 type Selections = Record<string, DraftSelection>;
-
-export const SHARE_SURFACES = ['WALLS', 'FLOOR'] as const;
-
-export type ShareSurface = (typeof SHARE_SURFACES)[number];
 
 export function shareSurfaceOf(
   categories: readonly SurfaceCategory[],
@@ -14,7 +11,7 @@ export function shareSurfaceOf(
   const surface = categories.find(
     (category) => category.id === categoryId,
   )?.surface;
-  return surface === 'WALLS' || surface === 'FLOOR' ? surface : null;
+  return surface !== undefined && isShareSurface(surface) ? surface : null;
 }
 
 export function isSharedCovering(selection: DraftSelection | undefined) {
@@ -68,7 +65,7 @@ export function addCovering(
   return patchRoom(draft, roomClientId, (room) => {
     const { selections } = room;
     const current = selections[categoryId];
-    if (current?.disabled === false && current.areaShare !== undefined) {
+    if (isSharedCovering(current)) {
       return selections;
     }
     const others = enabledOnSurface(selections, categories, surface).filter(

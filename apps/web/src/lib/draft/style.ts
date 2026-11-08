@@ -120,7 +120,12 @@ function partialStyleSelections(
         categoryId,
         !previous || previous.disabled
           ? DISABLED
-          : styleSelection(roomTypeCode, categoryId, defaultMaterials),
+          : {
+              ...styleSelection(roomTypeCode, categoryId, defaultMaterials),
+              ...(previous.areaShare !== undefined && {
+                areaShare: previous.areaShare,
+              }),
+            },
       ];
     }),
   );
