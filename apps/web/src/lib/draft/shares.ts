@@ -75,7 +75,7 @@ export function addCovering(
       ...selections,
       [categoryId]: {
         productId: current?.productId ?? null,
-        source: current?.source ?? 'manual',
+        source: 'manual',
         disabled: false,
       },
     };
@@ -87,7 +87,11 @@ export function addCovering(
     );
     if (shared.length === 0) {
       for (const id of others) {
-        result[id] = { ...(selections[id] as DraftSelection), areaShare: 50 };
+        result[id] = {
+          ...(selections[id] as DraftSelection),
+          source: 'manual',
+          areaShare: 50,
+        };
       }
       result[categoryId] = { ...result[categoryId], areaShare: 50 };
       return result;
@@ -111,6 +115,7 @@ export function addCovering(
     const taken = Math.floor(shareOf(donor) / 2);
     result[donor] = {
       ...(selections[donor] as DraftSelection),
+      source: 'manual',
       areaShare: shareOf(donor) - taken,
     };
     result[categoryId] = { ...result[categoryId], areaShare: taken };
@@ -128,7 +133,10 @@ export function setAreaShare(
   return patchRoom(draft, roomClientId, (room) => {
     const current = room.selections[categoryId];
     return current
-      ? { ...room.selections, [categoryId]: { ...current, areaShare } }
+      ? {
+          ...room.selections,
+          [categoryId]: { ...current, source: 'manual', areaShare },
+        }
       : room.selections;
   });
 }

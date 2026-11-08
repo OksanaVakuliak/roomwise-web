@@ -8,6 +8,7 @@ import {
   setAreaShare,
   shareSurfaceOf,
 } from './shares';
+import { hasManualChanges } from './style';
 import type { SurfaceCategory } from './surfaces';
 
 const categories: SurfaceCategory[] = [
@@ -184,6 +185,47 @@ describe('addCovering', () => {
     expect(addCovering(draft, ROOM, 'wallpaper', categories).rooms[1]).toBe(
       other,
     );
+  });
+});
+
+describe('manual source after share edits', () => {
+  const styled = (productId: string | null, areaShare?: number) => ({
+    ...on(productId, areaShare),
+    source: 'style' as const,
+  });
+
+  it('marks an added covering and the one it splits with as manual', () => {
+    const draft = draftOf({
+      paint: styled('p1'),
+      wallpaper: { ...off('p2'), source: 'style' },
+    });
+    expect(hasManualChanges(draft)).toBe(false);
+
+    const next = addCovering(draft, ROOM, 'wallpaper', categories);
+
+    expect(hasManualChanges(next)).toBe(true);
+    expect(selectionsOf(next).paint?.source).toBe('manual');
+    expect(selectionsOf(next).wallpaper?.source).toBe('manual');
+  });
+
+  it('marks the donor of an added covering as manual', () => {
+    const draft = draftOf({
+      paint: styled('p1', 60),
+      wallpaper: styled('p2', 40),
+      panels: { ...off('p3'), source: 'style' },
+    });
+
+    const next = selectionsOf(addCovering(draft, ROOM, 'panels', categories));
+
+    expect(next.paint?.source).toBe('manual');
+  });
+
+  it('marks an edited share as manual', () => {
+    const draft = draftOf({ paint: styled('p1', 50) });
+
+    const next = setAreaShare(draft, ROOM, 'paint', 30);
+
+    expect(selectionsOf(next).paint?.source).toBe('manual');
   });
 });
 
