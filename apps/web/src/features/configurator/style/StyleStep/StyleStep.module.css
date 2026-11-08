@@ -53,6 +53,10 @@
   color: var(--line-2);
 }
 
+.clear {
+  align-self: flex-start;
+}
+
 @media (max-width: 767.98px) {
   .list {
     --style-card-min-width: var(--layout-style-card-min-width-phone);

@@ -101,6 +101,7 @@ export function StyleStep() {
   const styleId = useDraft((state) => state.styleId);
   const partial = useDraft((state) => state.object.scope === 'PARTIAL');
   const selectStyle = useDraft((state) => state.selectStyle);
+  const clearStyle = useDraft((state) => state.clearStyle);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
@@ -246,6 +247,11 @@ export function StyleStep() {
           />
         ))}
       </ul>
+      {styleId !== null && applyingId === null ? (
+        <Button kind="outline" className={styles.clear} onClick={clearStyle}>
+          {t('clear')}
+        </Button>
+      ) : null}
       <div id={APPLYING_STATUS_DOM_ID} role="status" tabIndex={-1}>
         {applyingId !== null ? (
           <VisuallyHidden>{t('applying')}</VisuallyHidden>

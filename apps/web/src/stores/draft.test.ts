@@ -426,6 +426,25 @@ describe('useDraft style actions', () => {
     expect(rooms()).toEqual(before);
   });
 
+  it('drops the automatic style when switching to partial renovation', () => {
+    useDraft.getState().selectStyle(defaults, roomTypes, true);
+
+    useDraft.getState().setScope('PARTIAL');
+
+    expect(useDraft.getState().styleId).toBeNull();
+    expect(useDraft.getState().styleAuto).toBeUndefined();
+  });
+
+  it('keeps the chosen style when switching to partial renovation', () => {
+    useDraft.getState().selectStyle(defaults, roomTypes);
+    const { styleId } = useDraft.getState();
+
+    useDraft.getState().setScope('PARTIAL');
+
+    expect(useDraft.getState().styleId).toBe(styleId);
+    expect(useDraft.getState().styleAuto).toBe(false);
+  });
+
   it('marks the style as automatic only when applied automatically', () => {
     useDraft.getState().selectStyle(defaults, roomTypes, true);
     expect(useDraft.getState().styleAuto).toBe(true);

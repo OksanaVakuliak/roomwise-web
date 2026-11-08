@@ -184,6 +184,11 @@ export const useDraft = create<DraftState>()(
       setScope: (scope) =>
         set((state) => ({
           object: { ...state.object, scope },
+          ...(scope === 'PARTIAL' &&
+            state.styleAuto === true && {
+              styleId: null,
+              styleAuto: undefined,
+            }),
           revision: state.revision + 1,
         })),
       selectStyle: (defaultMaterials, roomTypes, auto = false) =>

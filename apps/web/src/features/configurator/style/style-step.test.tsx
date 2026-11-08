@@ -421,6 +421,29 @@ describe('StyleStep', () => {
     expect(useDraft.getState().revision).toBe(revision);
   });
 
+  it.each(forEachLocale)(
+    'clears the style with the no-style button and keeps it cleared in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      await renderStep(unstyledDraft({ styleAuto: undefined }), locale);
+      await waitFor(() =>
+        expect(useDraft.getState().styleId).toBe(styleIds.modern),
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: step('clear') }));
+      await act(async () => {});
+
+      expect(useDraft.getState().styleId).toBeNull();
+      expect(useDraft.getState().styleAuto).toBe(false);
+      expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(
+        0,
+      );
+      expect(
+        screen.queryByRole('button', { name: step('clear') }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
   it('does not apply the default style after the style was cleared', async () => {
     await renderStep(unstyledDraft({ styleAuto: undefined }));
     await waitFor(() =>

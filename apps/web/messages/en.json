@@ -854,6 +854,7 @@
     "previewSelect": "Choose this style",
     "previewSelected": "Style chosen",
     "partialHint": "The style fills only the enabled categories.",
+    "clear": "No style",
     "applying": "Applying style…",
     "unavailable": "This style is unavailable right now. Choose another one.",
     "loadFailed": "Could not load the style materials. Try again.",
