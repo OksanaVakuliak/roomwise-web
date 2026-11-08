@@ -639,7 +639,7 @@
       "ROOMS_AREA_BELOW_TOTAL": "Rooms are {missingSqm} m² smaller than the total area",
       "LABOR_RATE_MISSING": "Labor price is not set",
       "EXCHANGE_RATE_UNAVAILABLE": "Exchange rate is unavailable, amounts are shown in USD",
-      "AREA_SHARE_UNALLOCATED": "{surface, select, WALLS {Walls} FLOOR {Floor} other {Surface}}: {percent}% not allocated (≈ {sqm} m²)",
+      "AREA_SHARE_UNALLOCATED": "{surface, select, WALLS {Walls} FLOOR {Floor} other {Surface}}: {percent}% not allocated (≈ {sqm, number} m²)",
       "generic": "Check the estimate: some values may be inaccurate"
     },
     "range": "from {min} to {max} {unit}",

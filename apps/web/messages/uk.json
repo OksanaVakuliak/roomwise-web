@@ -639,7 +639,7 @@
       "ROOMS_AREA_BELOW_TOTAL": "Площа приміщень менша за загальну на {missingSqm} м²",
       "LABOR_RATE_MISSING": "Ціну роботи не задано",
       "EXCHANGE_RATE_UNAVAILABLE": "Курс валют недоступний, суми показано в доларах",
-      "AREA_SHARE_UNALLOCATED": "{surface, select, WALLS {Стіни} FLOOR {Підлога} other {Поверхня}}: не розподілено {percent} % (≈ {sqm} м²)",
+      "AREA_SHARE_UNALLOCATED": "{surface, select, WALLS {Стіни} FLOOR {Підлога} other {Поверхня}}: не розподілено {percent} % (≈ {sqm, number} м²)",
       "generic": "Перевірте розрахунок: деякі значення можуть бути неточними"
     },
     "range": "від {min} до {max} {unit}",
@@ -991,13 +991,13 @@
     "addLabel": "Додати {category} до приміщення {room}",
     "option": "Інженерія",
     "share": "Частка",
-    "shareLabel": "Частка {category} у {room}",
-    "shareDecrement": "Зменшити частку {category} у {room}",
-    "shareIncrement": "Збільшити частку {category} у {room}",
+    "shareLabel": "Частка {category} у приміщенні {room}",
+    "shareDecrement": "Зменшити частку {category} у приміщенні {room}",
+    "shareIncrement": "Збільшити частку {category} у приміщенні {room}",
     "shareArea": "≈ {area}",
     "shareOver": "Частки разом {sum} % — більше за 100 %",
     "addCovering": "+ {category}",
-    "addCoveringLabel": "Додати покриття {category} для {room}"
+    "addCoveringLabel": "Додати покриття {category} до приміщення {room}"
   },
   "RoomOptions": {
     "title": "Інженерія для цього приміщення"
