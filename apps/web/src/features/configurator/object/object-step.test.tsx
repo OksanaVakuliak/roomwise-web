@@ -216,6 +216,93 @@ describe('ObjectStep', () => {
     },
   );
 
+  it.each(forEachLocale)(
+    'offers the hallway and the storage room from the catalog in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      await renderStep(validObject(), locale);
+
+      fireEvent.click(screen.getByRole('button', { name: step('rooms.add') }));
+      const [room] = roomItems(locale);
+      const names = within(
+        within(room).getByRole('combobox', { name: step('rooms.type') }),
+      )
+        .getAllByRole('option')
+        .map((option) => option.textContent);
+
+      expect(names).toEqual(
+        expect.arrayContaining([
+          roomTypeName('HALLWAY'),
+          roomTypeName('STORAGE'),
+        ]),
+      );
+    },
+  );
+
+  it.each(forEachLocale)(
+    'hints at the missing area when a full renovation has fewer room square metres than the total in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      const { location } = await renderStep(
+        validObject(
+          { totalAreaSqm: 60 },
+          makeEmptyDraft({
+            rooms: [fullRoom({ lengthM: 9, widthM: 5, heightM: 2.7 })],
+          }),
+        ),
+        locale,
+      );
+
+      expect(
+        screen.getByText(step('validation.roomsBelowTotal', { missing: 15 })),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(
+          step('validation.roomsExceedTotal', { difference: 15 }),
+        ),
+      ).not.toBeInTheDocument();
+
+      clickNext(locale);
+
+      expect(location().pathname).toBe(`/${locale}/configurator/engineering`);
+    },
+  );
+
+  it('does not hint at the missing area for a partial renovation', async () => {
+    const { step } = translators('en');
+    await renderStep(
+      validObject(
+        { scope: 'PARTIAL', totalAreaSqm: 60 },
+        makeEmptyDraft({
+          rooms: [fullRoom({ lengthM: 9, widthM: 5, heightM: 2.7 })],
+        }),
+      ),
+    );
+
+    expect(
+      screen.queryByText(step('validation.roomsBelowTotal', { missing: 15 })),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps the exceed warning and shows no missing-area hint when rooms exceed the total', async () => {
+    const { step } = translators('en');
+    await renderStep(
+      validObject(
+        { totalAreaSqm: limits.totalAreaSqm.min },
+        makeEmptyDraft({
+          rooms: [fullRoom({ lengthM: 5, widthM: 4, heightM: 2.7 })],
+        }),
+      ),
+    );
+
+    expect(
+      screen.getByText(step('validation.roomsExceedTotal', { difference: 5 })),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/not all rooms are added/),
+    ).not.toBeInTheDocument();
+  });
+
   it('sketches only rooms whose sides are inside the allowed range', async () => {
     const { step } = translators('en');
     await renderStep(
