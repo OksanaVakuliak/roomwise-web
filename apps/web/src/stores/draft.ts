@@ -120,7 +120,7 @@ type DraftState = DraftV1 & {
   disableCategory: (
     roomClientId: string,
     categoryId: string,
-    categories?: readonly SurfaceCategory[],
+    categories: readonly SurfaceCategory[],
   ) => void;
   enableCategory: (
     roomClientId: string,

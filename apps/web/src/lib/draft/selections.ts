@@ -67,7 +67,7 @@ export function disableCategory(
   draft: DraftV1,
   roomClientId: string,
   categoryId: string,
-  categories: readonly SurfaceCategory[] = [],
+  categories: readonly SurfaceCategory[],
 ): DraftV1 {
   const room = draft.rooms.find((item) => item.clientId === roomClientId);
   const previous = room?.selections[categoryId];

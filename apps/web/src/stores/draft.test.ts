@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDefaultDraft } from '@/lib/draft/schema';
+import type { SurfaceCategory } from '@/lib/draft/surfaces';
 import { breakStorage, resetThemeDom } from '@/lib/theme/test-utils';
 import {
   categoryIds,
@@ -11,6 +12,12 @@ import {
 import { makeDraftRoom, makeInteriorDraft } from '@/test/fixtures/draft';
 import { makePricingData } from '@/test/fixtures/pricing-data';
 import { DRAFT_STORAGE_KEY, pickDraft, useDraft } from './draft';
+
+const surfaceCategories: SurfaceCategory[] = [
+  { id: categoryIds.floor, surface: 'FLOOR' },
+  { id: categoryIds.walls, surface: 'WALLS' },
+  { id: categoryIds.ceiling, surface: 'CEILING' },
+];
 
 const stored = () => {
   const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
@@ -488,7 +495,9 @@ describe('useDraft selection actions', () => {
   });
 
   it('re-enables a disabled category when a product is selected', () => {
-    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft
+      .getState()
+      .disableCategory(roomId, categoryIds.floor, surfaceCategories);
     useDraft
       .getState()
       .selectProduct(roomId, categoryIds.floor, productIds.tile);
@@ -497,7 +506,9 @@ describe('useDraft selection actions', () => {
   });
 
   it('disables a category but keeps its product', () => {
-    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft
+      .getState()
+      .disableCategory(roomId, categoryIds.floor, surfaceCategories);
 
     expect(selection()).toEqual({
       productId: productIds.laminate,
@@ -510,7 +521,9 @@ describe('useDraft selection actions', () => {
     useDraft
       .getState()
       .selectProduct(roomId, categoryIds.floor, productIds.tile);
-    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft
+      .getState()
+      .disableCategory(roomId, categoryIds.floor, surfaceCategories);
     useDraft.getState().enableCategory(roomId, categoryIds.floor);
 
     expect(selection()).toEqual({
@@ -527,7 +540,9 @@ describe('useDraft selection actions', () => {
     useDraft
       .getState()
       .selectProduct('missing', categoryIds.floor, productIds.tile);
-    useDraft.getState().disableCategory('missing', categoryIds.floor);
+    useDraft
+      .getState()
+      .disableCategory('missing', categoryIds.floor, surfaceCategories);
     useDraft.getState().enableCategory('missing', categoryIds.floor);
 
     expect(useDraft.getState().rooms).toEqual(before);
@@ -540,7 +555,9 @@ describe('useDraft selection actions', () => {
     useDraft
       .getState()
       .selectProduct(roomId, categoryIds.floor, productIds.tile);
-    useDraft.getState().disableCategory(roomId, categoryIds.floor);
+    useDraft
+      .getState()
+      .disableCategory(roomId, categoryIds.floor, surfaceCategories);
     useDraft.getState().enableCategory(roomId, categoryIds.floor);
 
     expect(useDraft.getState().revision).toBe(revision + 3);
@@ -1078,7 +1095,9 @@ describe('useDraft setScope', () => {
     useDraft
       .getState()
       .selectProduct(roomId, categoryIds.floor, productIds.tile);
-    useDraft.getState().disableCategory(roomId, categoryIds.walls);
+    useDraft
+      .getState()
+      .disableCategory(roomId, categoryIds.walls, surfaceCategories);
     const before = pickDraft(useDraft.getState());
 
     useDraft.getState().setScope('PARTIAL');

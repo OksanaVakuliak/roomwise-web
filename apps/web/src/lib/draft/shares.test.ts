@@ -253,8 +253,8 @@ describe('disableCategory on a shared covering', () => {
     expect(next.paint).toEqual(on('p1'));
   });
 
-  it('drops only its own share without categories', () => {
-    const next = selectionsOf(disableCategory(shared, ROOM, 'wallpaper'));
+  it('drops only its own share when no categories are known', () => {
+    const next = selectionsOf(disableCategory(shared, ROOM, 'wallpaper', []));
 
     expect(next.wallpaper).toEqual(off('p2'));
     expect(next.paint).toEqual(on('p1', 60));
@@ -263,7 +263,12 @@ describe('disableCategory on a shared covering', () => {
   it('is unchanged for a plain covering', () => {
     expect(
       selectionsOf(
-        disableCategory(draftOf({ paint: on('p1') }), ROOM, 'paint'),
+        disableCategory(
+          draftOf({ paint: on('p1') }),
+          ROOM,
+          'paint',
+          categories,
+        ),
       ),
     ).toEqual({ paint: off('p1') });
   });
