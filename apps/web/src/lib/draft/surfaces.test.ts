@@ -160,6 +160,36 @@ describe('normalizeSelections', () => {
     expect(result.wallpaper).toEqual(on('w', 'manual'));
   });
 
+  it('keeps one covering and strips the share on a ceiling', () => {
+    const withCeilings: SurfaceCategory[] = [
+      { id: 'ceilingPaint', surface: 'CEILING' },
+      { id: 'ceilingPanels', surface: 'CEILING' },
+    ];
+    const result = normalizeSelections(
+      {
+        ceilingPaint: { ...on('a'), areaShare: 50 },
+        ceilingPanels: { ...on('b'), areaShare: 50 },
+      },
+      withCeilings,
+    );
+
+    expect(result.ceilingPaint).toEqual(on('a'));
+    expect(result.ceilingPanels).toEqual({ ...off('b') });
+  });
+
+  it('keeps every shared covering on walls', () => {
+    const result = normalizeSelections(
+      {
+        paint: { ...on('p'), areaShare: 60 },
+        wallpaper: { ...on('w'), areaShare: 40 },
+      },
+      categories,
+    );
+
+    expect(result.paint?.areaShare).toBe(60);
+    expect(result.wallpaper).toEqual({ ...on('w'), areaShare: 40 });
+  });
+
   it('leaves a fully excluded surface alone', () => {
     const selections = { paint: off('p'), wallpaper: off('w') };
 

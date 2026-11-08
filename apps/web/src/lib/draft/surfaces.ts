@@ -1,4 +1,4 @@
-import type { RoomTypeCode } from '@roomwise/calc-engine';
+import { isShareSurface, type RoomTypeCode } from '@roomwise/calc-engine';
 import type { DraftSelection, DraftV1 } from './schema';
 import { withoutShare } from './shares';
 import type { RoomTypesCatalog } from './style';
@@ -95,7 +95,12 @@ export function normalizeSelections(
     const shared = enabled.filter(
       (category) => selections[category.id]?.areaShare !== undefined,
     );
-    if (shared.length >= 2) {
+    const [first] = group;
+    if (
+      first !== undefined &&
+      isShareSurface(first.surface) &&
+      shared.length >= 2
+    ) {
       for (const category of enabled) {
         const selection = selections[category.id];
         if (selection && selection.areaShare === undefined) {
