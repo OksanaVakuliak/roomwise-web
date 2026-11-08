@@ -94,6 +94,9 @@ function reconcileRoom(
         productId: toProductId,
         disabled: current.disabled,
         source: 'style',
+        ...(current.areaShare !== undefined && {
+          areaShare: current.areaShare,
+        }),
       };
       if (!current.disabled) {
         replacements.push({

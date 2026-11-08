@@ -1,17 +1,24 @@
 'use client';
 
-import type { EstimateLine } from '@roomwise/calc-engine';
-import { useTranslations } from 'next-intl';
+import {
+  type EstimateLine,
+  isShareSurface,
+  type ShareSurface,
+} from '@roomwise/calc-engine';
+import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useId } from 'react';
 import {
   Button,
   ImageWithFallback,
   SectionHeader,
   SpecComponents,
+  Stepper,
 } from '@/components/ui';
 import { useCategoryProducts } from '@/lib/api/catalog';
 import { cx } from '@/lib/cx';
+import { roomMetrics } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
+import { isSharedCovering } from '@/lib/draft/shares';
 import {
   enabledCategoryOf,
   groupCategories,
@@ -19,6 +26,7 @@ import {
 } from '@/lib/draft/surfaces';
 import { optionRoomLine } from '@/lib/engine/card-cost';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
+import { area } from '@/lib/format';
 import { useDraft } from '@/stores/draft';
 import { useChosenRoomOptions } from '../../shell/use-room-options';
 import type { RoomPricing } from '../../shell/use-room-pricing';
@@ -52,19 +60,72 @@ type ChosenRowProps = {
   room: DraftRoom;
   roomName: string;
   category: ChosenListCategory;
+  categories: readonly ChosenListCategory[];
   siblingIds: readonly string[];
   active: boolean;
+  shared: boolean;
+  surfaceArea: number | null;
   pricing: RoomPricing | null;
   describe: (line: EstimateLine | null | undefined) => LineDetails;
   onSelect: (roomClientId: string, categoryId: string) => void;
 };
 
+type ShareFieldProps = {
+  room: DraftRoom;
+  roomName: string;
+  category: ChosenListCategory;
+  surfaceArea: number | null;
+};
+
+function ShareField({
+  room,
+  roomName,
+  category,
+  surfaceArea,
+}: ShareFieldProps) {
+  const t = useTranslations('ChosenList');
+  const locale = useLocale();
+  const setAreaShare = useDraft((state) => state.setAreaShare);
+  const { clientId } = room;
+  const percent = room.selections[category.id]?.areaShare ?? 100;
+  const change = useCallback(
+    (value: number) => setAreaShare(clientId, category.id, value),
+    [category.id, clientId, setAreaShare],
+  );
+  const context = { category: category.name, room: roomName };
+
+  return (
+    <Stepper
+      className={styles.share}
+      label={t('share')}
+      aria-label={t('shareLabel', context)}
+      unit="%"
+      decrementLabel={t('shareDecrement', context)}
+      incrementLabel={t('shareIncrement', context)}
+      hint={
+        surfaceArea === null
+          ? undefined
+          : t('shareArea', {
+              area: area((surfaceArea * percent) / 100, locale),
+            })
+      }
+      value={percent}
+      min={1}
+      max={100}
+      onValueChange={change}
+    />
+  );
+}
+
 function ChosenRow({
   room,
   roomName,
   category,
+  categories,
   siblingIds,
   active,
+  shared,
+  surfaceArea,
   pricing,
   describe,
   onSelect,
@@ -93,8 +154,8 @@ function ChosenRow({
     [category.id, clientId, onSelect],
   );
   const remove = useCallback(
-    () => disableCategory(clientId, category.id),
-    [category.id, clientId, disableCategory],
+    () => disableCategory(clientId, category.id, categories),
+    [categories, category.id, clientId, disableCategory],
   );
   const add = useCallback(() => {
     if (productId === null) {
@@ -162,7 +223,7 @@ function ChosenRow({
           <span className={`${styles.sum} num`}>{sum}</span>
         ) : null}
       </button>
-      {productId === null ? null : (
+      {productId === null && !shared ? null : (
         <Button
           kind="outline"
           className={styles.action}
@@ -172,6 +233,14 @@ function ChosenRow({
           {t('remove')}
         </Button>
       )}
+      {shared ? (
+        <ShareField
+          room={room}
+          roomName={roomName}
+          category={category}
+          surfaceArea={surfaceArea}
+        />
+      ) : null}
       {productId !== null && details.items.length > 0 ? (
         <div className={styles.details}>
           <SpecComponents items={details.items} />
@@ -255,6 +324,79 @@ function ChosenOptions({
   ));
 }
 
+type AddCoveringButtonProps = {
+  room: DraftRoom;
+  roomName: string;
+  candidate: ChosenListCategory;
+  categories: readonly ChosenListCategory[];
+  onSelect: (roomClientId: string, categoryId: string) => void;
+};
+
+function AddCoveringButton({
+  room,
+  roomName,
+  candidate,
+  categories,
+  onSelect,
+}: AddCoveringButtonProps) {
+  const t = useTranslations('ChosenList');
+  const addCovering = useDraft((state) => state.addCovering);
+  const { clientId } = room;
+  const add = useCallback(() => {
+    addCovering(clientId, candidate.id, categories);
+    onSelect(clientId, candidate.id);
+  }, [addCovering, candidate.id, categories, clientId, onSelect]);
+
+  return (
+    <li className={styles.addCovering}>
+      <Button
+        kind="outline"
+        className={styles.action}
+        aria-label={t('addCoveringLabel', {
+          category: candidate.name,
+          room: roomName,
+        })}
+        onClick={add}
+      >
+        {t('addCovering', { category: candidate.name })}
+      </Button>
+    </li>
+  );
+}
+
+type ShareNoteProps = {
+  surface: ShareSurface;
+  total: number;
+  surfaceArea: number | null;
+};
+
+function ShareNote({ surface, total, surfaceArea }: ShareNoteProps) {
+  const t = useTranslations('ChosenList');
+  const tWarning = useTranslations('Estimate.warning');
+  const left = 100 - total;
+
+  return (
+    <li className={styles.note}>
+      <p
+        className={cx(styles.noteText, left < 0 ? styles.warning : styles.hint)}
+        role="status"
+        aria-live="polite"
+      >
+        {left < 0
+          ? t('shareOver', { sum: total })
+          : tWarning('AREA_SHARE_UNALLOCATED', {
+              surface,
+              percent: left,
+              sqm:
+                surfaceArea === null
+                  ? 0
+                  : Math.round(((surfaceArea * left) / 100) * 10) / 10,
+            })}
+      </p>
+    </li>
+  );
+}
+
 type ChosenSectionProps = {
   group: ChosenListGroup;
   pricing: RoomPricing | null;
@@ -276,20 +418,65 @@ function ChosenSection({
   const { room, name, categories } = group;
   const describe = useSpecComponents(pricing, categories);
   const listed = categories.filter((category) => category.productCount > 0);
-  const rows = groupCategories(listed).map((group) => {
-    const category =
-      enabledCategoryOf(group, room.selections) ??
-      group.categories.find(
+  const metrics = roomMetrics(room);
+  const surfaces = groupCategories(listed).map((surfaceGroup) => {
+    const { surface } = surfaceGroup;
+    const shareable = isShareSurface(surface);
+    const sharedOnes = shareable
+      ? surfaceGroup.categories.filter((item) =>
+          isSharedCovering(room.selections[item.id]),
+        )
+      : [];
+    const multiple = sharedOnes.length >= 2;
+    const single =
+      enabledCategoryOf(surfaceGroup, room.selections) ??
+      surfaceGroup.categories.find(
         (item) => room.selections[item.id]?.productId != null,
       ) ??
-      group.categories[0];
+      surfaceGroup.categories[0];
+    const shown = multiple ? sharedOnes : [single];
+    const hasCovering = surfaceGroup.categories.some(
+      (item) => room.selections[item.id]?.disabled === false,
+    );
+    const surfaceArea =
+      surface === 'WALLS'
+        ? (metrics?.wallArea ?? null)
+        : surface === 'FLOOR'
+          ? (metrics?.floorArea ?? null)
+          : null;
     return {
-      key: group.key,
-      category,
-      siblingIds: surfaceSiblings(categories, category.id),
-      active: group.categories.some((item) => item.id === activeCategoryId),
+      key: surfaceGroup.key,
+      surface: shareable ? surface : null,
+      shown: shown.map((category) => ({
+        category,
+        siblingIds: surfaceSiblings(categories, category.id),
+        active: multiple
+          ? category.id === activeCategoryId
+          : surfaceGroup.categories.some(
+              (item) => item.id === activeCategoryId,
+            ),
+      })),
+      multiple,
+      hasProduct: sharedOnes.some(
+        (item) => room.selections[item.id]?.productId != null,
+      ),
+      surfaceArea,
+      total: sharedOnes.reduce(
+        (sum, item) =>
+          room.selections[item.id]?.productId != null
+            ? sum + (room.selections[item.id]?.areaShare ?? 0)
+            : sum,
+        0,
+      ),
+      candidates:
+        shareable && hasCovering
+          ? surfaceGroup.categories.filter(
+              (item) => room.selections[item.id]?.disabled !== false,
+            )
+          : [],
     };
   });
+  const rows = surfaces.flatMap((item) => item.shown);
   const chosenOptions = useChosenRoomOptions(room);
   const nothingOn =
     pricing?.partial === true &&
@@ -321,19 +508,47 @@ function ChosenSection({
       </h3>
       {nothingOn ? <p className={styles.hint}>{tSpec('enableHint')}</p> : null}
       <ul className={styles.list} aria-labelledby={headingId}>
-        {rows.map((row) => (
-          <ChosenRow
-            key={row.key}
-            room={room}
-            roomName={name}
-            category={row.category}
-            siblingIds={row.siblingIds}
-            active={current && row.active}
-            pricing={pricing}
-            describe={describe}
-            onSelect={onSelect}
-          />
-        ))}
+        {surfaces.flatMap((item) => [
+          ...item.shown.map((row) => (
+            <ChosenRow
+              key={row.category.id}
+              room={room}
+              roomName={name}
+              category={row.category}
+              categories={categories}
+              siblingIds={row.siblingIds}
+              active={current && row.active}
+              shared={item.multiple}
+              surfaceArea={item.surfaceArea}
+              pricing={pricing}
+              describe={describe}
+              onSelect={onSelect}
+            />
+          )),
+          ...item.candidates.map((candidate) => (
+            <AddCoveringButton
+              key={`add:${candidate.id}`}
+              room={room}
+              roomName={name}
+              candidate={candidate}
+              categories={categories}
+              onSelect={onSelect}
+            />
+          )),
+          ...(item.multiple &&
+          item.hasProduct &&
+          item.surface !== null &&
+          item.total !== 100
+            ? [
+                <ShareNote
+                  key={`note:${item.key}`}
+                  surface={item.surface}
+                  total={item.total}
+                  surfaceArea={item.surfaceArea}
+                />,
+              ]
+            : []),
+        ])}
         <ChosenOptions
           room={room}
           roomName={name}

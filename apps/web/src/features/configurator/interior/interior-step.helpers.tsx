@@ -91,15 +91,29 @@ export function makeKitchenLivingDraft(): DraftV1 {
 }
 
 export const wallpaperId = 'cat-wallpaper';
+export const panelsId = 'cat-panels';
 
-export function makeCatalog(withWallpaper = false): RoomTypesResponse {
+export function makeCatalog(
+  withWallpaper = false,
+  withPanels = false,
+): RoomTypesResponse {
   const base = makeRoomTypes();
   const [floor, walls, ceiling] = base.items[0].categories;
   const wallpaper = { ...walls, id: wallpaperId, name: 'Wallpaper' };
+  const panels = { ...walls, id: panelsId, name: 'Panels' };
   return {
     items: base.items.map((type) => {
       if (withWallpaper && type.code === 'LIVING_ROOM') {
-        return { ...type, categories: [floor, walls, wallpaper, ceiling] };
+        return {
+          ...type,
+          categories: [
+            floor,
+            walls,
+            wallpaper,
+            ...(withPanels ? [panels] : []),
+            ceiling,
+          ],
+        };
       }
       if (type.code === 'KITCHEN_LIVING') {
         return { ...type, categories: [walls, floor] };
@@ -121,6 +135,7 @@ export type StepOptions = NonNullable<
   viewport?: number;
   draft?: DraftV1;
   withWallpaper?: boolean;
+  withPanels?: boolean;
 };
 
 export async function renderStep(url: string, options: StepOptions = {}) {
@@ -128,6 +143,7 @@ export async function renderStep(url: string, options: StepOptions = {}) {
     viewport = 1024,
     draft = makeDraft(),
     withWallpaper = false,
+    withPanels = false,
     ...rest
   } = options;
   setViewport(viewport);
@@ -135,9 +151,16 @@ export async function renderStep(url: string, options: StepOptions = {}) {
   const locale = rest.locale ?? 'en';
   const queryClient = rest.queryClient ?? createTestQueryClient();
   seedCatalog(queryClient, locale);
-  queryClient.setQueryData(['room-types', locale], makeCatalog(withWallpaper));
+  queryClient.setQueryData(
+    ['room-types', locale],
+    makeCatalog(withWallpaper, withPanels),
+  );
   queryClient.setQueryData(
     ['products', wallpaperId, locale],
+    makeCategoryProducts(categoryIds.walls),
+  );
+  queryClient.setQueryData(
+    ['products', panelsId, locale],
     makeCategoryProducts(categoryIds.walls),
   );
   let result!: ReturnType<typeof renderWithProviders>;
@@ -160,7 +183,10 @@ export function categoryRows(name = 'Living room') {
   const list = within(roomSection(name)).getAllByRole('list')[0];
   return within(list)
     .getAllByRole('listitem')
-    .filter((item) => item.parentElement === list);
+    .filter(
+      (item) =>
+        item.parentElement === list && !item.textContent?.startsWith('+'),
+    );
 }
 
 export function rowButton(row: HTMLElement) {

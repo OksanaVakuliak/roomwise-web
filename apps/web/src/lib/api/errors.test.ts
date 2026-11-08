@@ -118,6 +118,7 @@ describe('estimate message keys', () => {
     expect(lineErrorKey('OPTION_SCOPE_NOT_ALLOWED')).toBe(
       'OPTION_SCOPE_NOT_ALLOWED',
     );
+    expect(lineErrorKey('AREA_SHARE_MISSING')).toBe('AREA_SHARE_MISSING');
     expect(lineErrorKey('FORMULA_DIVISION_BY_ZERO')).toBe('generic');
   });
 
@@ -127,6 +128,7 @@ describe('estimate message keys', () => {
     );
     expect(warningKey('ROOMS_AREA_BELOW_TOTAL')).toBe('ROOMS_AREA_BELOW_TOTAL');
     expect(warningKey('LABOR_RATE_MISSING')).toBe('LABOR_RATE_MISSING');
+    expect(warningKey('AREA_SHARE_UNALLOCATED')).toBe('AREA_SHARE_UNALLOCATED');
     expect(warningKey('SOMETHING_NEW')).toBe('generic');
   });
 

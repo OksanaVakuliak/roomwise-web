@@ -53,6 +53,7 @@ export type EstimateRoomModel = {
   name: string;
   subtotal: Money | null;
   lines: readonly EstimateLineModel[];
+  warnings: readonly EstimateMessage[];
 };
 
 export type EstimateMaterialsModel = {
@@ -242,11 +243,23 @@ function toLineModels(
   });
 }
 
+function roomWarningsOf(
+  estimate: Estimate,
+  roomClientId: string,
+): EstimateMessage[] {
+  return estimate.warnings.filter(
+    (warning) =>
+      warning.code === 'AREA_SHARE_UNALLOCATED' &&
+      warning.params?.roomClientId === roomClientId,
+  );
+}
+
 function roomModelOf(
   roomClientId: string,
   input: EstimateRoomInput | undefined,
   rawLines: readonly LineView[],
   catalog: EstimateCatalog,
+  warnings: readonly EstimateMessage[] = [],
 ): EstimateRoomModel | null {
   const disabledIds = new Set(input?.disabledCategoryIds);
   const lines = rawLines.map((line) =>
@@ -273,6 +286,7 @@ function roomModelOf(
     name: input?.name ?? '',
     subtotal: subtotalOf(lines),
     lines,
+    warnings,
   };
 }
 
@@ -307,6 +321,7 @@ export function buildEstimateModel({
       inputs.get(roomClientId),
       rawByRoom.get(roomClientId) ?? [],
       catalog,
+      roomWarningsOf(estimate, roomClientId),
     );
     if (model) {
       roomModels.push(model);

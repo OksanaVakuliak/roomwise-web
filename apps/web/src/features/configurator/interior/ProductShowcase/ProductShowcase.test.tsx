@@ -196,6 +196,7 @@ describe('ProductShowcase', () => {
         .disableCategory(
           useDraft.getState().rooms[0].clientId,
           categoryIds.floor,
+          [{ id: categoryIds.floor, surface: 'FLOOR' }],
         );
     });
 

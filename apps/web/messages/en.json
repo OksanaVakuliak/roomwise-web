@@ -627,6 +627,9 @@
       "PRODUCT_UNAVAILABLE": "The product is unavailable",
       "RULE_NOT_FOUND": "No pricing rule for this item",
       "OPTION_SCOPE_NOT_ALLOWED": "Not available for this renovation type",
+      "AREA_SHARE_NOT_ALLOWED": "An area share can only be set for walls and floor",
+      "AREA_SHARE_MISSING": "Set an area share for every covering",
+      "AREA_SHARE_EXCEEDS_SURFACE": "Area shares add up to more than 100%",
       "generic": "Could not be calculated"
     },
     "warning": {
@@ -636,6 +639,7 @@
       "ROOMS_AREA_BELOW_TOTAL": "Rooms are {missingSqm} m² smaller than the total area",
       "LABOR_RATE_MISSING": "Labor price is not set",
       "EXCHANGE_RATE_UNAVAILABLE": "Exchange rate is unavailable, amounts are shown in USD",
+      "AREA_SHARE_UNALLOCATED": "{surface, select, WALLS {Walls} FLOOR {Floor} other {Surface}}: {percent}% not allocated (≈ {sqm, number} m²)",
       "generic": "Check the estimate: some values may be inaccurate"
     },
     "range": "from {min} to {max} {unit}",
@@ -985,7 +989,15 @@
     "removeLabel": "Remove {category} from {room}",
     "add": "Add",
     "addLabel": "Add {category} to {room}",
-    "option": "Engineering"
+    "option": "Engineering",
+    "share": "Share",
+    "shareLabel": "Share of {category} in {room}",
+    "shareDecrement": "Decrease share of {category} in {room}",
+    "shareIncrement": "Increase share of {category} in {room}",
+    "shareArea": "≈ {area}",
+    "shareOver": "Shares add up to {sum}% — over 100%",
+    "addCovering": "+ {category}",
+    "addCoveringLabel": "Add {category} covering for {room}"
   },
   "RoomOptions": {
     "title": "Engineering for this room"

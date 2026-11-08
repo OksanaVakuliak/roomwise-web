@@ -143,3 +143,41 @@ describe('salvage', () => {
     expect(draft?.furthestStep).toBe('object');
   });
 });
+
+describe('DraftV1Schema area share', () => {
+  it('parses a draft saved before area shares existed', () => {
+    const draft = makeInteriorDraft();
+    const parsed = DraftV1Schema.parse(JSON.parse(JSON.stringify(draft)));
+    for (const room of parsed.rooms) {
+      for (const selection of Object.values(room.selections)) {
+        expect(selection.areaShare).toBeUndefined();
+      }
+    }
+    expect(parsed).toEqual(draft);
+  });
+
+  it('accepts shares from 1 to 100 and rejects others', () => {
+    const withShare = (areaShare: number) =>
+      DraftV1Schema.safeParse(
+        makeInteriorDraft({
+          rooms: [
+            makeDraftRoom({
+              selections: {
+                a: {
+                  productId: 'p',
+                  disabled: false,
+                  source: 'manual',
+                  areaShare,
+                },
+              },
+            }),
+          ],
+        }),
+      ).success;
+    expect(withShare(1)).toBe(true);
+    expect(withShare(100)).toBe(true);
+    expect(withShare(0)).toBe(false);
+    expect(withShare(101)).toBe(false);
+    expect(withShare(50.5)).toBe(false);
+  });
+});

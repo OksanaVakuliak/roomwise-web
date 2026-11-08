@@ -7,6 +7,8 @@ import {
   styleIds,
 } from '@/test/fixtures/catalog';
 import { makeDraftRoom, makeEmptyDraft } from '@/test/fixtures/draft';
+import { makePricingData } from '@/test/fixtures/pricing-data';
+import { toConfiguration } from '../engine/to-configuration';
 import {
   applyStyle,
   hasManualChanges,
@@ -132,6 +134,97 @@ describe('partial scope', () => {
       disabled: true,
       source: 'style',
     });
+  });
+});
+
+describe('applyStyle with area shares at partial scope', () => {
+  const wallpaper = {
+    id: 'cat-wallpaper',
+    name: 'Wallpaper',
+    surface: 'WALLS' as const,
+    wastePercent: 10,
+    productCount: 1,
+  };
+  const catalog = {
+    items: roomTypes.items.map((type) => ({
+      ...type,
+      categories: [...type.categories, wallpaper],
+    })),
+  };
+  const withWallpaper = {
+    ...defaults,
+    items: [
+      ...defaults.items,
+      {
+        roomTypeCode: 'BEDROOM' as const,
+        categoryId: wallpaper.id,
+        productId: 'p-wallpaper',
+      },
+    ],
+  };
+  const shared = (productId: string | null) => ({
+    productId,
+    disabled: false,
+    source: 'manual' as const,
+    areaShare: 50,
+  });
+
+  it('keeps both shares and prices each covering once', () => {
+    const draft = makeEmptyDraft({
+      object: { ...makeEmptyDraft().object, scope: 'PARTIAL' },
+      rooms: [
+        makeDraftRoom({
+          clientId: 'a',
+          roomTypeCode: 'BEDROOM',
+          selections: {
+            [categoryIds.walls]: shared(productIds.paint),
+            [wallpaper.id]: shared('p-wallpaper'),
+          },
+        }),
+      ],
+    });
+
+    const next = applyStyle(draft, withWallpaper, catalog);
+    const selections = next.rooms[0]?.selections ?? {};
+
+    expect(selections[categoryIds.walls]).toEqual({
+      ...fromStyle(productIds.paint),
+      areaShare: 50,
+    });
+    expect(selections[wallpaper.id]).toEqual({
+      ...fromStyle('p-wallpaper'),
+      areaShare: 50,
+    });
+
+    const pricing = makePricingData({
+      categories: [
+        ...makePricingData().categories,
+        {
+          id: wallpaper.id,
+          wastePercent: 10,
+          surface: 'WALLS',
+          requiresPutty: false,
+        },
+      ],
+    });
+    const configuration = toConfiguration(
+      { ...next, object: { ...next.object, finishLevel: 'PRE_FINISH' } },
+      pricing,
+      { mode: 'preview', currency: 'USD' },
+    );
+
+    expect(
+      configuration?.rooms[0]?.selections.filter(
+        (item) => item.productId !== null,
+      ),
+    ).toEqual([
+      {
+        categoryId: categoryIds.walls,
+        productId: productIds.paint,
+        areaShare: 50,
+      },
+      { categoryId: wallpaper.id, productId: 'p-wallpaper', areaShare: 50 },
+    ]);
   });
 });
 

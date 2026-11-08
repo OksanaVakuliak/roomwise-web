@@ -9,6 +9,7 @@ import {
   buildEstimateModel,
   type EstimateCatalog,
   type EstimateModel,
+  type EstimateRoomModel,
   toEstimateRooms,
 } from '../model';
 import { EstimateBreakdown } from './EstimateBreakdown';
@@ -126,6 +127,7 @@ describe('EstimateBreakdown', () => {
             roomClientId: room?.roomClientId ?? '',
             name: room?.name ?? '',
             subtotal: room?.subtotal ?? null,
+            warnings: [],
             lines: [
               {
                 ...first,
@@ -153,5 +155,40 @@ describe('EstimateBreakdown', () => {
       screen.getByText('Heated floor is not compatible with the chosen floor'),
     ).toBeInTheDocument();
     expect(screen.getByText('Warning')).toBeInTheDocument();
+  });
+
+  it('renders unallocated share warnings inside the room', () => {
+    const model = makeModel();
+    const [room, ...rest] = model.materials.rooms;
+    const edited: EstimateModel = {
+      ...model,
+      materials: {
+        ...model.materials,
+        rooms: [
+          {
+            ...(room as EstimateRoomModel),
+            warnings: [
+              {
+                code: 'AREA_SHARE_UNALLOCATED',
+                params: {
+                  roomClientId: room?.roomClientId,
+                  surface: 'WALLS',
+                  percent: 30,
+                  sqm: 12.5,
+                },
+              },
+            ],
+          },
+          ...rest,
+        ],
+      },
+    };
+    renderWithProviders(
+      <EstimateBreakdown model={edited} currency="USD" locale="en" />,
+    );
+
+    expect(
+      screen.getByText('Walls: 30% not allocated (≈ 12.5 m²)'),
+    ).toBeInTheDocument();
   });
 });

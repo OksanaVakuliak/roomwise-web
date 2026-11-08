@@ -20,6 +20,7 @@ export const DraftSelectionSchema = z.object({
   productId: id.nullable(),
   disabled: z.boolean(),
   source: z.enum(['style', 'manual']),
+  areaShare: z.number().int().min(1).max(100).optional(),
 });
 
 export const DraftRoomSchema = z.object({

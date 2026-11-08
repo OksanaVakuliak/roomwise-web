@@ -17,9 +17,14 @@ function toDraftRoom(room: VersionConfiguration['rooms'][number]): DraftRoom {
     heightM: room.heightM,
     heatedFloor: room.heatedFloor,
     selections: Object.fromEntries(
-      room.selections.map(({ categoryId, productId }) => [
+      room.selections.map(({ categoryId, productId, areaShare }) => [
         categoryId,
-        { productId, disabled: false, source: 'manual' as const },
+        {
+          productId,
+          disabled: false,
+          source: 'manual' as const,
+          ...(areaShare !== undefined && { areaShare }),
+        },
       ]),
     ),
   };
@@ -61,10 +66,13 @@ function toSavedConfiguration(source: VersionConfiguration): Configuration {
         widthM: room.widthM,
         heightM: room.heightM,
         heatedFloor: room.heatedFloor,
-        selections: room.selections.map(({ categoryId, productId }) => ({
-          categoryId,
-          productId,
-        })),
+        selections: room.selections.map(
+          ({ categoryId, productId, areaShare }) => ({
+            categoryId,
+            productId,
+            ...(areaShare !== undefined && { areaShare }),
+          }),
+        ),
       };
     }),
     options: source.options.map((option) => ({

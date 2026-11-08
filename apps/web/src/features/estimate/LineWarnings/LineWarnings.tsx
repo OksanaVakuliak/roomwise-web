@@ -1,5 +1,6 @@
 import type { EstimateMessage } from '@roomwise/calc-engine';
 import { useTranslations } from 'next-intl';
+import { lineErrorKey, warningKey } from '@/lib/api/errors';
 import styles from './LineWarnings.module.css';
 
 export type LineWarningsProps = {
@@ -8,28 +9,6 @@ export type LineWarningsProps = {
 };
 
 type Values = Record<string, string | number>;
-
-const WARNING_CODES = [
-  'HEATED_FLOOR_INCOMPATIBLE',
-  'OPTION_ROOM_TYPE_NOT_ALLOWED',
-  'ROOMS_AREA_EXCEEDS_TOTAL',
-  'ROOMS_AREA_BELOW_TOTAL',
-  'LABOR_RATE_MISSING',
-  'EXCHANGE_RATE_UNAVAILABLE',
-] as const;
-const ERROR_CODES = [
-  'PRODUCT_UNAVAILABLE',
-  'RULE_NOT_FOUND',
-  'OPTION_SCOPE_NOT_ALLOWED',
-] as const;
-
-function isWarningCode(code: string): code is (typeof WARNING_CODES)[number] {
-  return (WARNING_CODES as readonly string[]).includes(code);
-}
-
-function isErrorCode(code: string): code is (typeof ERROR_CODES)[number] {
-  return (ERROR_CODES as readonly string[]).includes(code);
-}
 
 function valuesOf(params: EstimateMessage['params']): Values {
   const values: Values = {};
@@ -53,9 +32,7 @@ export function LineWarnings({
   }
 
   const warningText = (warning: EstimateMessage) =>
-    isWarningCode(warning.code)
-      ? t(`warning.${warning.code}`, valuesOf(warning.params))
-      : t('warning.generic');
+    t(`warning.${warningKey(warning.code)}`, valuesOf(warning.params));
 
   return (
     <ul className={styles.root} aria-label={tBreakdown('notesLabel')}>
@@ -65,9 +42,7 @@ export function LineWarnings({
             !
           </span>
           <span className={styles.kind}>{tBreakdown('error')}</span>
-          {isErrorCode(errorCode)
-            ? t(`lineError.${errorCode}`)
-            : t('lineError.generic')}
+          {t(`lineError.${lineErrorKey(errorCode)}`)}
         </li>
       )}
       {warnings.map((warning) => (
