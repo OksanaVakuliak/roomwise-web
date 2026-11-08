@@ -146,6 +146,10 @@
   border-bottom: var(--stroke-1) solid var(--hair);
 }
 
+.noteText {
+  margin: 0;
+}
+
 .hint {
   margin: 0;
   font-size: var(--text-body-s-size);

@@ -376,21 +376,23 @@ function ShareNote({ surface, total, surfaceArea }: ShareNoteProps) {
   const left = 100 - total;
 
   return (
-    <li
-      className={cx(styles.note, left < 0 ? styles.warning : styles.hint)}
-      role="status"
-      aria-live="polite"
-    >
-      {left < 0
-        ? t('shareOver', { sum: total })
-        : tWarning('AREA_SHARE_UNALLOCATED', {
-            surface,
-            percent: left,
-            sqm:
-              surfaceArea === null
-                ? 0
-                : Math.round(((surfaceArea * left) / 100) * 10) / 10,
-          })}
+    <li className={styles.note}>
+      <p
+        className={cx(styles.noteText, left < 0 ? styles.warning : styles.hint)}
+        role="status"
+        aria-live="polite"
+      >
+        {left < 0
+          ? t('shareOver', { sum: total })
+          : tWarning('AREA_SHARE_UNALLOCATED', {
+              surface,
+              percent: left,
+              sqm:
+                surfaceArea === null
+                  ? 0
+                  : Math.round(((surfaceArea * left) / 100) * 10) / 10,
+            })}
+      </p>
     </li>
   );
 }

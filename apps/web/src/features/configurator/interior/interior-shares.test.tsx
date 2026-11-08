@@ -160,6 +160,24 @@ describe('InteriorStep area shares', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps the note inside a plain list item', async () => {
+    await renderStep(url, { withWallpaper: true });
+    await addWallpaper();
+    setWallpaperProduct(productIds.paint);
+    const [first] = screen.getAllByRole('spinbutton');
+
+    await act(async () => {
+      fireEvent.change(first, { target: { value: '20' } });
+      fireEvent.blur(first);
+    });
+
+    const status = screen.getByText(/^Walls: 30% not allocated/);
+    expect(status).toHaveAttribute('role', 'status');
+    expect(status.closest('li')).not.toBe(status);
+    expect(status.closest('li')).not.toHaveAttribute('role');
+    expect(status.closest('li')).not.toHaveAttribute('aria-live');
+  });
+
   it('shows the share area as a hint', async () => {
     await renderStep(url, { withWallpaper: true });
     await addWallpaper();
