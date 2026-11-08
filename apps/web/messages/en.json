@@ -941,7 +941,8 @@
       "range": "From {min, number} to {max, number} {unit, select, m {m} sqm {m²} pcs {pcs} other {}}",
       "roomsRequired": "At least one room is required",
       "roomTypeRequired": "Choose the room type",
-      "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue."
+      "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue.",
+      "roomsBelowTotal": "It looks like not all rooms are added ({missing, number} m² missing)."
     },
     "plan": "Plan of the apartment",
     "planCount": "{count, plural, one {# room} other {# rooms}}",

@@ -941,7 +941,8 @@
       "range": "Від {min, number} до {max, number} {unit, select, m {м} sqm {м²} pcs {шт.} other {}}",
       "roomsRequired": "Потрібне хоча б одне приміщення",
       "roomTypeRequired": "Оберіть тип приміщення",
-      "roomsExceedTotal": "Сума площ приміщень перевищує загальну площу на {difference, number} м². Ви можете продовжити."
+      "roomsExceedTotal": "Сума площ приміщень перевищує загальну площу на {difference, number} м². Ви можете продовжити.",
+      "roomsBelowTotal": "Схоже, не всі приміщення додано (бракує {missing, number} м²)."
     },
     "plan": "План квартири",
     "planCount": "{count, plural, one {# приміщення} few {# приміщення} many {# приміщень} other {# приміщення}}",
