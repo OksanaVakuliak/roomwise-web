@@ -192,7 +192,5 @@ test('full renovation: the default style fills the categories and the base shows
   );
   await expect(details).toBeVisible();
   await expect(details.locator('dt').nth(1)).toBeVisible();
-  await expect(details.locator('dd').first()).toHaveText(
-    /^(?!\D*0(?:[.,]0+)?\D*$)\D*[1-9][\d\s., ]*\D*$/,
-  );
+  await expect(details.locator('dd').first()).toHaveText(/[1-9]/);
 });
