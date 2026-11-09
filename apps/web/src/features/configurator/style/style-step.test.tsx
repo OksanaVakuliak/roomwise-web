@@ -472,6 +472,37 @@ describe('StyleStep', () => {
     },
   );
 
+  it.each(forEachLocale)(
+    'has no axe violations with the default style, the no-style button and the partial hint in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      const { container, unmount } = await renderStep(
+        unstyledDraft({ styleAuto: undefined }),
+        locale,
+      );
+      await waitFor(() =>
+        expect(useDraft.getState().styleId).toBe(styleIds.modern),
+      );
+
+      expect(
+        screen.getByRole('button', { name: step('clear') }),
+      ).toBeInTheDocument();
+      expect(await axe(container)).toHaveNoViolations();
+
+      fireEvent.click(screen.getByRole('button', { name: step('clear') }));
+      await act(async () => {});
+      expect(await axe(container)).toHaveNoViolations();
+      unmount();
+
+      const partial = await renderStep(
+        partialDraft({ styleAuto: undefined }),
+        locale,
+      );
+      expect(screen.getByText(step('partialHint'))).toBeInTheDocument();
+      expect(await axe(partial.container)).toHaveNoViolations();
+    },
+  );
+
   it('stops treating the style as automatic when the visitor picks one', async () => {
     await renderStep(unstyledDraft({ styleAuto: undefined }));
     await waitFor(() => expect(useDraft.getState().styleAuto).toBe(true));
