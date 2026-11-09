@@ -7,6 +7,7 @@ import { clearEstimateCache } from '@/lib/engine/run-estimate';
 import { installMemoryStorage } from '@/lib/theme/test-utils';
 import { resetWarmup } from '@/lib/warmup/warmup';
 import { useDraft } from '@/stores/draft';
+import { axe } from '@/test/axe';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import { forEachLocale } from '@/test/render-with-providers';
 import en from '../../../../messages/en.json';
@@ -14,6 +15,7 @@ import {
   catalogs,
   currentDraft,
   livingId,
+  noLandmarkRule,
   panelsId,
   renderStep,
   wallpaperId,
@@ -197,6 +199,33 @@ describe('InteriorStep area shares', () => {
     expect(status.closest('li')).not.toHaveAttribute('role');
     expect(status.closest('li')).not.toHaveAttribute('aria-live');
   });
+
+  it.each(forEachLocale)(
+    'has no accessibility violations with shares in %s',
+    async (locale) => {
+      await renderStep(url, { withWallpaper: true, locale });
+      expect(await axe(document.body, noLandmarkRule)).toHaveNoViolations();
+
+      await addWallpaper(locale);
+      setWallpaperProduct(productIds.paint);
+      expect(await axe(document.body, noLandmarkRule)).toHaveNoViolations();
+
+      const [first] = screen.getAllByRole('spinbutton');
+      await act(async () => {
+        fireEvent.change(first, { target: { value: '20' } });
+        fireEvent.blur(first);
+      });
+      expect(screen.getAllByRole('status').length).toBeGreaterThan(0);
+      expect(await axe(document.body, noLandmarkRule)).toHaveNoViolations();
+
+      await act(async () => {
+        fireEvent.change(first, { target: { value: '70' } });
+        fireEvent.blur(first);
+      });
+      expect(await axe(document.body, noLandmarkRule)).toHaveNoViolations();
+    },
+    30_000,
+  );
 
   it('shows the share area as a hint', async () => {
     await renderStep(url, { withWallpaper: true });

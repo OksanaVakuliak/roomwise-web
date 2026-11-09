@@ -88,6 +88,19 @@ describe('InteriorStep at partial scope', () => {
   );
 
   it.each(forEachLocale)(
+    'has no accessibility violations with every category disabled in %s',
+    async (locale) => {
+      await renderStep(url, { draft: makePartialRoomDraft(), locale });
+
+      expect(
+        screen.getByText(catalogs[locale].Specification.enableHint),
+      ).toBeVisible();
+      expect(await axe(document.body, noLandmarkRule)).toHaveNoViolations();
+    },
+    30_000,
+  );
+
+  it.each(forEachLocale)(
     'lists material, labor and preparation of the chosen floor in %s',
     async (locale) => {
       await renderStep(url, { draft: makePartialRoomDraft('ROUGH'), locale });
