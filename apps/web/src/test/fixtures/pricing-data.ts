@@ -74,6 +74,8 @@ const reference = {
     labor_floor_tile: 9,
     prep_screed: 8.3,
     mat_screed: 14.8,
+    prep_floor_demolition: 3.5,
+    mat_demolition_disposal: 2.8,
     smart_panel: 120,
     eng_electrics_sqm: 9.2,
     mat_electrics_sqm: 11,
@@ -156,7 +158,7 @@ const reference = {
       name: { en: 'Floor preparation', uk: 'Підготовка підлоги' },
       quantityFormula: null,
       costFormula:
-        "surfaceArea * (finishLevel == 'ROUGH' ? coef.prep_screed + coef.mat_screed : 0)",
+        "surfaceArea * (finishLevel == 'ROUGH' ? coef.prep_screed + coef.mat_screed : finishLevel == 'LIVED_IN' ? coef.prep_floor_demolition + coef.mat_demolition_disposal : 0)",
       sortOrder: 0,
       surface: 'FLOOR',
       laborFormula: null,
