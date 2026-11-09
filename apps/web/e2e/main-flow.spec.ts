@@ -124,7 +124,7 @@ test('keyboard-only main flow', async ({ page, browser }) => {
   await press(page, lead.form.submit);
   const [before, after] = lead.confirmation.title
     .split('{number}')
-    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    .map(escapeRegExp);
   await expect(
     page.getByText(new RegExp(`^${before}\\d+${after}$`)),
   ).toBeVisible();
