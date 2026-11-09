@@ -22,6 +22,7 @@ const catalog: EstimateCatalog = {
   option: (id) => `Option ${id}`,
   packageItem: (id) => `Package ${id}`,
   rule: (id) => `Rule ${id}`,
+  accessory: (key) => pricing.accessories?.[key]?.en,
 };
 
 function run(draft: DraftV1) {
@@ -243,7 +244,10 @@ describe('buildEstimateModel', () => {
     const stripped: Estimate = {
       ...estimate,
       lines: estimate.lines.map(
-        (line): EstimateLine => ({ ...line, amountUahKopecks: null }),
+        (line): EstimateLine => ({
+          ...line,
+          amountUahKopecks: null,
+        }),
       ),
     };
     const model = buildEstimateModel({
@@ -253,5 +257,61 @@ describe('buildEstimateModel', () => {
     });
     expect(model.base.subtotal?.uahKopecks).toBeNull();
     expect(model.base.subtotal?.usdCents).toBeGreaterThan(0);
+  });
+
+  describe('accessories', () => {
+    function floorLines(model: ReturnType<typeof build>['model']) {
+      return model.materials.rooms.flatMap((room) =>
+        room.lines.filter((line) => line.categoryId === categoryIds.floor),
+      );
+    }
+
+    it('lists accessory components by name in engine order', () => {
+      const { model } = build(makeInteriorDraft());
+      expect(floorLines(model).map((line) => line.accessories)).toEqual([
+        [
+          {
+            key: 'laminate_underlay',
+            name: 'Laminate underlay',
+            amountCents: 4200,
+          },
+        ],
+        [
+          {
+            key: 'tile_glue_heated',
+            name: 'Heated floor tile glue',
+            amountCents: 9240,
+          },
+        ],
+      ]);
+    });
+
+    it('adds up with the product to the line amount to the cent', () => {
+      const { estimate, model } = build(makeInteriorDraft());
+      const components = new Map(
+        estimate.lines.map((line) => [line.id, line.components ?? []]),
+      );
+      for (const line of floorLines(model)) {
+        const material = (components.get(line.id) ?? [])
+          .filter((component) => component.kind === 'MATERIAL')
+          .reduce((total, component) => total + component.amountCents, 0);
+        const accessories = line.accessories.reduce(
+          (total, accessory) => total + accessory.amountCents,
+          0,
+        );
+        expect(material + accessories).toBe(line.amountCents);
+      }
+    });
+
+    it('skips an accessory whose name is unknown', () => {
+      const { estimate } = run(makeInteriorDraft());
+      const model = buildEstimateModel({
+        estimate: estimate as Estimate,
+        rooms: [],
+        catalog: { ...catalog, accessory: () => undefined },
+      });
+      const lines = model.materials.rooms.flatMap((room) => room.lines);
+      expect(lines.every((line) => line.accessories.length === 0)).toBe(true);
+    });
   });
 });

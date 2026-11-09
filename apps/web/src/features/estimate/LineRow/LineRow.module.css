@@ -5,3 +5,13 @@
 .disabled {
   color: var(--line-2);
 }
+
+.accessories {
+  margin: 0;
+  padding: var(--space-4) 0 0
+    calc(var(--result-position-width) + var(--space-8));
+  list-style: none;
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-s-size);
+  color: var(--line-2);
+}

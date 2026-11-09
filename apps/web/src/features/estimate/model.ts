@@ -41,6 +41,13 @@ export type EstimateLineModel = {
   warnings: readonly EstimateMessage[];
   errorCode: string | null;
   disabled: boolean;
+  accessories: readonly EstimateAccessoryModel[];
+};
+
+export type EstimateAccessoryModel = {
+  key: string;
+  name: string;
+  amountCents: number;
 };
 
 export type EstimateFlatSectionModel = {
@@ -77,6 +84,7 @@ export type EstimateCatalog = {
   option: (id: string) => string | undefined;
   packageItem: (id: string) => string | undefined;
   rule: (id: string) => string | undefined;
+  accessory: (coefficientKey: string) => string | undefined;
 };
 
 export type EstimateRoomInput = {
@@ -162,6 +170,22 @@ function titleOf(
   }
 }
 
+function accessoriesOf(
+  line: LineView,
+  catalog: EstimateCatalog,
+): EstimateAccessoryModel[] {
+  return (line.components ?? []).flatMap((component) => {
+    const key = component.coefficientKey;
+    const name =
+      component.kind === 'ACCESSORY' && key !== undefined
+        ? catalog.accessory(key)
+        : undefined;
+    return key === undefined || name === undefined
+      ? []
+      : [{ key, name, amountCents: component.amountCents }];
+  });
+}
+
 function toLineModel(
   line: LineView,
   catalog: EstimateCatalog,
@@ -193,6 +217,7 @@ function toLineModel(
     warnings: line.warnings,
     errorCode: line.error?.code ?? null,
     disabled,
+    accessories: accessoriesOf(line, catalog),
   };
 }
 
@@ -220,6 +245,7 @@ function disabledLine(
     warnings: [],
     errorCode: null,
     disabled: true,
+    accessories: [],
   };
 }
 
