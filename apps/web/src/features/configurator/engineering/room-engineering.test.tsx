@@ -315,6 +315,23 @@ describe('engineering step at partial scope', () => {
     ).not.toBeInTheDocument();
   });
 
+  it.each(forEachLocale)(
+    'has no accessibility violations with priced options in %s',
+    async (locale) => {
+      const { container } = await renderEngineering(locale, partialDraft());
+      expect(await axe(container, noLandmarkRule)).toHaveNoViolations();
+
+      await act(async () => {
+        fireEvent.click(
+          sectionOf('Living room').getByRole('switch', {
+            name: ELECTRICS,
+          }),
+        );
+      });
+      expect(await axe(container, noLandmarkRule)).toHaveNoViolations();
+    },
+  );
+
   it('does not offer the replacement options at full scope', async () => {
     await renderEngineering();
 

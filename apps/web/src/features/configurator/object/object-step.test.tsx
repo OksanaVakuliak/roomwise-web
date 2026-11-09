@@ -286,6 +286,27 @@ describe('ObjectStep', () => {
     ).not.toBeInTheDocument();
   });
 
+  it.each(forEachLocale)(
+    'has no accessibility violations with the missing area hint in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      const { container } = await renderStep(
+        validObject(
+          { totalAreaSqm: 60 },
+          makeEmptyDraft({
+            rooms: [fullRoom({ lengthM: 9, widthM: 5, heightM: 2.7 })],
+          }),
+        ),
+        locale,
+      );
+
+      expect(
+        screen.getByText(step('validation.roomsBelowTotal', { missing: 15 })),
+      ).toBeInTheDocument();
+      expect(await axe(container)).toHaveNoViolations();
+    },
+  );
+
   it('does not hint at the missing area for a partial renovation', async () => {
     const { step } = translators('en');
     await renderStep(
