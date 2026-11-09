@@ -656,6 +656,13 @@ describe('result step', () => {
         draft: { ...draft, object: { ...draft.object, scope: 'PARTIAL' } },
       });
 
+      expect(
+        screen.queryByText(catalogs[locale].CostPanel.base),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getAllByText(catalogs[locale].CostPanel.worksAndMaterials)
+          .length,
+      ).toBeGreaterThan(1);
       expect(await axe(container, noLandmarkRule)).toHaveNoViolations();
     },
   );
