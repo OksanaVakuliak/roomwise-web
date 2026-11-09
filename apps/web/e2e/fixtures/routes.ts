@@ -37,6 +37,27 @@ type Route = {
   reply: (match: RegExpMatchArray, request: { store: MockStore }) => MockReply;
 };
 
+const LIVED_IN_FLOOR_PREP =
+  "surfaceArea * (finishLevel == 'ROUGH' ? coef.prep_screed + coef.mat_screed : finishLevel == 'LIVED_IN' ? coef.prep_floor_demolition + coef.mat_demolition_disposal : 0)";
+
+export const DEMOLITION_RATES = {
+  prep_floor_demolition: 3.5,
+  mat_demolition_disposal: 2.8,
+};
+
+function makeE2ePricingData() {
+  const pricing = makePricingData();
+  return {
+    ...pricing,
+    coefficients: { ...pricing.coefficients, ...DEMOLITION_RATES },
+    rules: pricing.rules.map((rule) =>
+      rule.id === 'rule-floor-prep'
+        ? { ...rule, costFormula: LIVED_IN_FLOOR_PREP }
+        : rule,
+    ),
+  };
+}
+
 const ok = (body: Json): MockReply => ({ status: 200, body, etag: true });
 
 const notFound = (): MockReply => ({
@@ -52,7 +73,7 @@ export const routes: Route[] = [
   {
     method: 'GET',
     pattern: /^\/public\/pricing-data$/,
-    reply: () => ok(makePricingData()),
+    reply: () => ok(makeE2ePricingData()),
   },
   {
     method: 'GET',
