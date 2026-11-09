@@ -1,7 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 import { moneyMinor } from '@/lib/format';
 import { categoryIds, makePricingData, productIds } from '@/test/fixtures';
-import { DEMOLITION_RATES } from './fixtures/routes';
 import {
   catalogs,
   escapeRegExp,
@@ -11,7 +10,7 @@ import {
   tabTo,
   templateToRegExp,
 } from './keyboard';
-import { installMockApi } from './mock-api';
+import { installMockApi, isLive } from './mock-api';
 
 const ROOM = { length: 4, width: 3, height: 2.7 };
 const AREA = ROOM.length * ROOM.width;
@@ -28,14 +27,13 @@ const { coefficients } = pricing;
 const toCents = (dollars: number) => Math.round(dollars * 100);
 const materialCents = toCents(
   AREA *
-    (1 + (floor?.wastePercent ?? 0) / 100) *
+    (1 + (laminate?.wastePercentOverride ?? floor?.wastePercent ?? 0) / 100) *
     ((laminate?.priceCents ?? 0) / 100 + coefficients.laminate_underlay),
 );
 const laborCents = toCents(AREA * coefficients.labor_laminate);
 const demolitionCents = toCents(
   AREA *
-    (DEMOLITION_RATES.prep_floor_demolition +
-      DEMOLITION_RATES.mat_demolition_disposal),
+    (coefficients.prep_floor_demolition + coefficients.mat_demolition_disposal),
 );
 const lineCents = materialCents + laborCents + demolitionCents;
 
@@ -64,14 +62,22 @@ async function openBreakdown(page: Page, locale: Locale) {
   const toggle = page.getByRole('button', {
     name: catalogs[locale].Configurator.toggleLabel,
   });
-  if ((await toggle.getAttribute('aria-expanded')) !== 'true') {
-    await toggle.click();
-  }
+  await expect(toggle).toBeVisible();
+  await expect(toggle).toBeEnabled();
+  await expect(async () => {
+    if ((await toggle.getAttribute('aria-expanded')) === 'false') {
+      await toggle.click();
+    }
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true', {
+      timeout: 1000,
+    });
+  }).toPass();
 }
 
 test('separate works: one enabled floor is priced from its components', async ({
   page,
 }) => {
+  test.skip(isLive(), 'relies on the mocked catalog');
   const locale = test.info().project.name as Locale;
   const messages = catalogs[locale];
   const object = messages.ObjectStep;
@@ -123,8 +129,15 @@ test('separate works: one enabled floor is priced from its components', async ({
   await expect(page.getByRole('dialog')).toBeHidden();
 
   const components = messages.Specification.components;
+  const floorLine = page
+    .getByRole('listitem')
+    .filter({ hasText: components.material })
+    .filter({ hasText: components.labor })
+    .last();
   const row = (label: string) =>
-    page.getByRole('listitem').filter({ hasText: label }).last();
+    floorLine.getByRole('listitem').filter({
+      has: page.getByText(label, { exact: true }),
+    });
   await expect(row(components.material)).toContainText(
     dollars(materialCents, locale),
   );
@@ -151,6 +164,7 @@ test('separate works: one enabled floor is priced from its components', async ({
 test('full renovation: the default style fills the categories and the base shows its breakdown', async ({
   page,
 }) => {
+  test.skip(isLive(), 'relies on the mocked catalog');
   const locale = test.info().project.name as Locale;
   const messages = catalogs[locale];
   const object = messages.ObjectStep;
@@ -177,6 +191,8 @@ test('full renovation: the default style fills the categories and the base shows
     `dl[aria-label="${messages.CostPanel.baseDetails.label}"]`,
   );
   await expect(details).toBeVisible();
-  expect(await details.locator('dt').count()).toBeGreaterThan(1);
-  await expect(details.locator('dd').first()).toHaveText(/\d/);
+  await expect(details.locator('dt').nth(1)).toBeVisible();
+  await expect(details.locator('dd').first()).toHaveText(
+    /^(?!\D*0(?:[.,]0+)?\D*$)\D*[1-9][\d\s., ]*\D*$/,
+  );
 });
