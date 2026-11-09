@@ -194,7 +194,9 @@ export function rowButton(row: HTMLElement) {
 }
 
 export function productCards(root: HTMLElement) {
-  return within(root).getAllByRole('listitem');
+  return within(root)
+    .getAllByRole('listitem')
+    .filter((card) => !card.parentElement?.closest('li'));
 }
 
 export function showcase(name: string) {

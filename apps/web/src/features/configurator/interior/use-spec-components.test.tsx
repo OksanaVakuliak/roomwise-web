@@ -1,7 +1,13 @@
-import { type EstimateLine, estimate } from '@roomwise/calc-engine';
+import {
+  type EstimateLine,
+  estimate,
+  type PricingData,
+} from '@roomwise/calc-engine';
 import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import type { DraftV1 } from '@/lib/draft/schema';
 import { toConfiguration } from '@/lib/engine/to-configuration';
+import { makeInteriorDraft } from '@/test/fixtures';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import { makePricingData } from '@/test/fixtures/pricing-data';
 import {
@@ -79,10 +85,19 @@ function lines() {
   };
 }
 
-function Probe({ line }: { line: ReturnType<typeof lines>['first'] }) {
+function Probe({
+  line,
+  partial = true,
+  data = pricing,
+}: {
+  line: ReturnType<typeof lines>['first'];
+  partial?: boolean;
+  data?: PricingData;
+}) {
   const describe = useSpecComponents(
     {
-      partial: true,
+      partial,
+      pricing: data,
       formatParts: (line: EstimateLine) =>
         (line.components ?? []).map((part) => `#${part.amountCents}`),
     } as unknown as RoomPricing,
@@ -128,4 +143,152 @@ describe('useSpecComponents', () => {
       ).toBeInTheDocument();
     },
   );
+});
+
+const bathId = '00000000-0000-4000-8000-000000000302';
+const wallTileGlue = {
+  ...pricing,
+  rules: pricing.rules.map((rule) =>
+    rule.id === 'rule-wall-tile'
+      ? { ...rule, costFormula: 'quantity * (price + coef.tile_glue)' }
+      : rule,
+  ),
+};
+
+function lineOf(
+  draft: DraftV1,
+  data: PricingData,
+  roomId: string,
+  categoryId: string,
+) {
+  const configuration = toConfiguration(draft, data, {
+    mode: 'preview',
+    currency: 'USD',
+  });
+  return estimate(configuration!, data).lines.find(
+    (line) => line.id === `MATERIALS:${roomId}:${categoryId}`,
+  );
+}
+
+function bathDraft(heatedFloor: boolean): DraftV1 {
+  const draft = makeInteriorDraft();
+  return {
+    ...draft,
+    rooms: draft.rooms.map((room) =>
+      room.clientId === bathId ? { ...room, heatedFloor } : room,
+    ),
+  };
+}
+
+function labels() {
+  return screen.getAllByRole('listitem').map((item) => item.textContent);
+}
+
+describe('useSpecComponents accessories', () => {
+  it.each(forEachLocale)(
+    'shows the underlay under laminate in full mode in %s',
+    (locale) => {
+      const line = lineOf(
+        makeInteriorDraft(),
+        pricing,
+        livingId,
+        categoryIds.floor,
+      );
+      renderWithProviders(<Probe line={line} partial={false} />, { locale });
+
+      const name = pricing.accessories?.laminate_underlay?.[locale];
+      expect(labels()).toEqual([
+        `${{ en, uk }[locale].Specification.components.material}#${line?.components?.[0].amountCents}`,
+        `${name}#${line?.components?.[1].amountCents}`,
+      ]);
+    },
+  );
+
+  it.each(forEachLocale)(
+    'names the glue by heated floor under floor tile in %s',
+    (locale) => {
+      const names = pricing.accessories!;
+      const heated = lineOf(
+        bathDraft(true),
+        pricing,
+        bathId,
+        categoryIds.floor,
+      );
+      const view = renderWithProviders(
+        <Probe line={heated} partial={false} />,
+        {
+          locale,
+        },
+      );
+      expect(labels().join('|')).toContain(names.tile_glue_heated![locale]);
+      expect(labels().join('|')).not.toContain(`${names.tile_glue![locale]}#`);
+      view.unmount();
+
+      const plain = lineOf(
+        bathDraft(false),
+        pricing,
+        bathId,
+        categoryIds.floor,
+      );
+      renderWithProviders(<Probe line={plain} partial={false} />, { locale });
+      expect(labels().join('|')).toContain(`${names.tile_glue![locale]}#`);
+      expect(labels().join('|')).not.toContain(names.tile_glue_heated![locale]);
+    },
+  );
+
+  it('shows the glue under wall tile', () => {
+    const draft = makePartialRoomDraft('PRE_FINISH', {
+      [tileId]: styleSelection('p-wall-tile'),
+    });
+    const line = lineOf(draft, wallTileGlue, livingId, tileId);
+    renderWithProviders(<Probe line={line} data={wallTileGlue} />);
+
+    expect(labels().join('|')).toContain('Tile glue#');
+  });
+
+  it('hides line details in full mode without accessories', () => {
+    const draft = makeInteriorDraft();
+    const line = lineOf(draft, pricing, livingId, categoryIds.walls);
+    const { container } = renderWithProviders(
+      <Probe line={line} partial={false} />,
+    );
+
+    expect(container.querySelectorAll('li')).toHaveLength(0);
+  });
+
+  it('skips an accessory whose name is missing and keeps the line total', () => {
+    const line = lineOf(
+      makeInteriorDraft(),
+      pricing,
+      livingId,
+      categoryIds.floor,
+    );
+    renderWithProviders(
+      <Probe
+        line={line}
+        partial={false}
+        data={{ ...pricing, accessories: {} }}
+      />,
+    );
+
+    expect(labels()).toHaveLength(1);
+    expect(
+      line?.components?.reduce((sum, part) => sum + part.amountCents, 0),
+    ).toBe(line?.amountCents);
+  });
+
+  it('adds up the product and the accessories to the line amount', () => {
+    for (const [draft, room] of [
+      [makeInteriorDraft(), livingId],
+      [bathDraft(true), bathId],
+      [bathDraft(false), bathId],
+    ] as const) {
+      const line = lineOf(draft, pricing, room, categoryIds.floor);
+      const parts = line?.components ?? [];
+      expect(parts.map((part) => part.kind)).toEqual(['MATERIAL', 'ACCESSORY']);
+      expect(parts.reduce((sum, part) => sum + part.amountCents, 0)).toBe(
+        line?.amountCents,
+      );
+    }
+  });
 });

@@ -83,6 +83,7 @@ describe('productCardLine', () => {
 
     expect(line?.components?.map((component) => component.kind)).toEqual([
       'MATERIAL',
+      'ACCESSORY',
       'LABOR',
       'PREP',
     ]);
@@ -91,14 +92,35 @@ describe('productCardLine', () => {
     expect(line?.amountCents).toBeGreaterThan(material);
   });
 
+  it('adds the accompanying material to the product in the card cost', () => {
+    const line = productCardLine(
+      context(),
+      living,
+      categoryIds.floor,
+      productIds.laminate,
+    );
+    const [material, accessory] = line?.components ?? [];
+
+    expect(material.kind).toBe('MATERIAL');
+    expect(accessory.kind).toBe('ACCESSORY');
+    expect(accessory.amountCents).toBeGreaterThan(0);
+    expect(line?.amountCents).toBe(
+      material.amountCents + accessory.amountCents,
+    );
+  });
+
   it('drops preparation when the finish level changes', () => {
     const rough = makePartialDraft({
       object: { ...makePartialDraft().object, finishLevel: 'ROUGH' },
     });
     const pre = makePartialDraft();
     const args = [living, categoryIds.floor, productIds.laminate] as const;
-    const roughPrep = productCardLine(context(rough), ...args)?.components?.[2];
-    const prePrep = productCardLine(context(pre), ...args)?.components?.[2];
+    const prepOf = (draft: ReturnType<typeof makePartialDraft>) =>
+      productCardLine(context(draft), ...args)?.components?.find(
+        (component) => component.kind === 'PREP',
+      );
+    const roughPrep = prepOf(rough);
+    const prePrep = prepOf(pre);
 
     expect(roughPrep?.amountCents).toBeGreaterThan(0);
     expect(prePrep?.amountCents).toBe(0);
