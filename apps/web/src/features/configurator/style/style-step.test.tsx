@@ -491,6 +491,7 @@ describe('StyleStep', () => {
 
       fireEvent.click(screen.getByRole('button', { name: step('clear') }));
       await act(async () => {});
+      expect(useDraft.getState().styleId).toBeNull();
       expect(await axe(container)).toHaveNoViolations();
       unmount();
 
