@@ -25,17 +25,17 @@ const floor = pricing.categories.find(
 const { coefficients } = pricing;
 
 const toCents = (dollars: number) => Math.round(dollars * 100);
-const materialCents = toCents(
+const quantity =
   AREA *
-    (1 + (laminate?.wastePercentOverride ?? floor?.wastePercent ?? 0) / 100) *
-    ((laminate?.priceCents ?? 0) / 100 + coefficients.laminate_underlay),
-);
+  (1 + (laminate?.wastePercentOverride ?? floor?.wastePercent ?? 0) / 100);
+const materialCents = toCents(quantity * ((laminate?.priceCents ?? 0) / 100));
+const underlayCents = toCents(quantity * coefficients.laminate_underlay);
 const laborCents = toCents(AREA * coefficients.labor_laminate);
 const demolitionCents = toCents(
   AREA *
     (coefficients.prep_floor_demolition + coefficients.mat_demolition_disposal),
 );
-const lineCents = materialCents + laborCents + demolitionCents;
+const lineCents = materialCents + underlayCents + laborCents + demolitionCents;
 
 const dollars = (cents: number, locale: Locale) =>
   moneyMinor(cents, 'USD', locale);
@@ -141,6 +141,9 @@ test('separate works: one enabled floor is priced from its components', async ({
   await expect(row(components.material)).toContainText(
     dollars(materialCents, locale),
   );
+  await expect(
+    row(pricing.accessories?.laminate_underlay?.[locale] ?? ''),
+  ).toContainText(dollars(underlayCents, locale));
   await expect(row(components.labor)).toContainText(
     dollars(laborCents, locale),
   );
