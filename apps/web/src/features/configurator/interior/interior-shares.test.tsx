@@ -215,13 +215,22 @@ describe('InteriorStep area shares', () => {
         fireEvent.change(first, { target: { value: '20' } });
         fireEvent.blur(first);
       });
-      expect(screen.getAllByRole('status').length).toBeGreaterThan(0);
+      expect(
+        screen
+          .getAllByRole('status')
+          .some((note) => /(^|\D)30(\D|$)/.test(note.textContent ?? '')),
+      ).toBe(true);
       expect(await axe(document.body, noLandmarkRule)).toHaveNoViolations();
 
       await act(async () => {
         fireEvent.change(first, { target: { value: '70' } });
         fireEvent.blur(first);
       });
+      expect(
+        screen.getByText(
+          catalogs[locale].ChosenList.shareOver.replace('{sum}', '120'),
+        ),
+      ).toBeInTheDocument();
       expect(await axe(document.body, noLandmarkRule)).toHaveNoViolations();
     },
     30_000,
