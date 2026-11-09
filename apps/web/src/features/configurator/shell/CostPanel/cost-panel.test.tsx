@@ -150,6 +150,19 @@ describe('CostPanel', () => {
     expect(row(en.CostPanel.materials)).toHaveTextContent('—');
   });
 
+  it.each(forEachLocale)(
+    'has no accessibility violations with the dash for empty materials in %s',
+    async (locale) => {
+      const { container } = renderPanel(
+        makeInteriorDraft({ rooms: [makeDraftRoom()] }),
+        locale,
+      );
+
+      expect(row(catalogs[locale].CostPanel.materials)).toHaveTextContent('—');
+      expect(await axe(container)).toHaveNoViolations();
+    },
+  );
+
   it('switches the currency without recalculating', () => {
     useDraft.setState({ ...makeInteriorDraft(), revision: 1 });
     renderWithProviders(<CostPanel />);

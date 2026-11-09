@@ -512,6 +512,22 @@ describe('result step', () => {
       },
     );
 
+    it.each(forEachLocale)(
+      'has no accessibility violations with the disabled buttons in %s',
+      async (locale) => {
+        const { container } = await renderResult({
+          locale,
+          draft: emptyDraft(),
+          pricingData: freePricing,
+        });
+
+        expect(
+          screen.getByText(catalogs[locale].ResultStep.emptyEstimate),
+        ).toBeInTheDocument();
+        expect(await axe(container, noLandmarkRule)).toHaveNoViolations();
+      },
+    );
+
     it('keeps the buttons enabled when the estimate has positions', async () => {
       await renderResult();
 
@@ -629,6 +645,20 @@ describe('result step', () => {
     expect(toggle).toBeChecked();
     expect(totalHeading().textContent).not.toBe(before);
   });
+
+  it.each(forEachLocale)(
+    'has no accessibility violations for separate works in %s',
+    async (locale) => {
+      const draft = withOptions(makeDraft());
+      const { container } = await renderResult({
+        locale,
+        currency: 'UAH',
+        draft: { ...draft, object: { ...draft.object, scope: 'PARTIAL' } },
+      });
+
+      expect(await axe(container, noLandmarkRule)).toHaveNoViolations();
+    },
+  );
 
   it.each(forEachLocale)(
     'has no accessibility violations in %s',
