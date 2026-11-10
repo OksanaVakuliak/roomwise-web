@@ -13,6 +13,7 @@ import {
   useRoomTypes,
   useStyles,
 } from '@/lib/api/catalog';
+import { ownName } from '@/lib/engine/accessory-component';
 import { useDraft } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
 
@@ -120,7 +121,7 @@ export function useEstimateCatalog(): EstimateCatalogState {
       option: (id) => names.options.get(id),
       packageItem: (id) => names.packageItems.get(id),
       rule: (id) => rules?.find((rule) => rule.id === id)?.name[lang],
-      accessory: (key) => accessories?.[key]?.[lang],
+      accessory: (key) => ownName(accessories, key)?.[lang],
     },
     rooms: toEstimateRooms(
       draftRooms,

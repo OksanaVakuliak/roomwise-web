@@ -8,6 +8,7 @@ import {
 } from '@/features/estimate';
 import type { VersionView } from '@/lib/api/calculations';
 import { roomOrdinal } from '@/lib/draft/rooms';
+import { ownName } from '@/lib/engine/accessory-component';
 
 type Line = VersionView['lines'][number];
 
@@ -68,7 +69,7 @@ export function snapshotCatalog(
     option: (id) => options.get(id),
     packageItem: (id) => packageItems.get(id),
     rule: (id) => rules.get(id),
-    accessory: (key) => accessories[key],
+    accessory: (key) => ownName(accessories, key),
   };
 }
 
