@@ -55,9 +55,15 @@ function unstyledDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
     step: 'style',
     furthestStep: 'style',
     styleId: null,
+    styleAuto: false,
     rooms: base.rooms.map((room) => ({ ...room, selections: {} })),
     ...overrides,
   };
+}
+
+function partialDraft(overrides: Partial<DraftV1> = {}): DraftV1 {
+  const draft = unstyledDraft(overrides);
+  return { ...draft, object: { ...draft.object, scope: 'PARTIAL' } };
 }
 
 function withManualChoice(draft: DraftV1): DraftV1 {
@@ -372,19 +378,141 @@ describe('StyleStep', () => {
     expect(useDraft.getState().styleId).toBeNull();
   });
 
+  it.each([
+    { scope: 'FULL', make: unstyledDraft },
+    { scope: 'PARTIAL', make: partialDraft },
+  ])('lets Next through without a style at $scope scope', async ({ make }) => {
+    const { shell } = translators('en');
+    const { location } = await renderStep(make());
+
+    fireEvent.click(screen.getByRole('button', { name: shell('next') }));
+
+    expect(location().pathname).toBe('/en/configurator/interior');
+    expect(useDraft.getState().styleId).toBeNull();
+  });
+
   it.each(forEachLocale)(
-    'blocks Next without a style and points to the message in %s',
+    'marks the first style as chosen on a new full draft in %s',
     async (locale) => {
-      const { step, shell } = translators(locale);
-      const { location } = await renderStep(unstyledDraft(), locale);
+      await renderStep(unstyledDraft({ styleAuto: undefined }), locale);
 
-      fireEvent.click(screen.getByRole('button', { name: shell('next') }));
-
-      expect(screen.getByText(step('required'))).toHaveFocus();
-      expect(location().pathname).toBe(`/${locale}/configurator/style`);
-      expect(useDraft.getState().step).toBe('style');
+      await waitFor(() =>
+        expect(useDraft.getState().styleId).toBe(styleIds.modern),
+      );
+      expect(useDraft.getState().styleAuto).toBe(true);
+      const pressed = screen.getAllByRole('button', { pressed: true });
+      expect(pressed).toHaveLength(2);
+      for (const button of pressed) {
+        expect(button.closest('li')).toHaveTextContent('Modern');
+      }
+      expect(selectionsOf(0)[categoryIds.floor].source).toBe('style');
     },
   );
+
+  it('does not apply the default style again once a style is set', async () => {
+    await renderStep(
+      unstyledDraft({ styleId: styleIds.classic, styleAuto: true }),
+    );
+    const { revision } = useDraft.getState();
+
+    await act(async () => {});
+
+    expect(useDraft.getState().styleId).toBe(styleIds.classic);
+    expect(useDraft.getState().revision).toBe(revision);
+  });
+
+  it.each(forEachLocale)(
+    'clears the style with the no-style button and keeps it cleared in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      await renderStep(unstyledDraft({ styleAuto: undefined }), locale);
+      await waitFor(() =>
+        expect(useDraft.getState().styleId).toBe(styleIds.modern),
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: step('clear') }));
+      await act(async () => {});
+
+      expect(useDraft.getState().styleId).toBeNull();
+      expect(useDraft.getState().styleAuto).toBe(false);
+      expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(
+        0,
+      );
+      expect(
+        screen.queryByRole('button', { name: step('clear') }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
+  it('does not apply the default style after the style was cleared', async () => {
+    await renderStep(unstyledDraft({ styleAuto: undefined }));
+    await waitFor(() =>
+      expect(useDraft.getState().styleId).toBe(styleIds.modern),
+    );
+
+    act(() => useDraft.getState().clearStyle());
+    await act(async () => {});
+
+    expect(useDraft.getState().styleId).toBeNull();
+    expect(useDraft.getState().styleAuto).toBe(false);
+  });
+
+  it.each(forEachLocale)(
+    'marks nothing and shows the partial hint at partial scope in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      await renderStep(partialDraft({ styleAuto: undefined }), locale);
+
+      expect(screen.getByText(step('partialHint'))).toBeInTheDocument();
+      expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(
+        0,
+      );
+      await act(async () => {});
+      expect(useDraft.getState().styleId).toBeNull();
+    },
+  );
+
+  it.each(forEachLocale)(
+    'has no axe violations with the default style, the no-style button and the partial hint in %s',
+    async (locale) => {
+      const { step } = translators(locale);
+      const { container, unmount } = await renderStep(
+        unstyledDraft({ styleAuto: undefined }),
+        locale,
+      );
+      await waitFor(() =>
+        expect(useDraft.getState().styleId).toBe(styleIds.modern),
+      );
+
+      expect(
+        screen.getByRole('button', { name: step('clear') }),
+      ).toBeInTheDocument();
+      expect(await axe(container)).toHaveNoViolations();
+
+      fireEvent.click(screen.getByRole('button', { name: step('clear') }));
+      await act(async () => {});
+      expect(useDraft.getState().styleId).toBeNull();
+      expect(await axe(container)).toHaveNoViolations();
+      unmount();
+
+      const partial = await renderStep(
+        partialDraft({ styleAuto: undefined }),
+        locale,
+      );
+      expect(screen.getByText(step('partialHint'))).toBeInTheDocument();
+      expect(await axe(partial.container)).toHaveNoViolations();
+    },
+  );
+
+  it('stops treating the style as automatic when the visitor picks one', async () => {
+    await renderStep(unstyledDraft({ styleAuto: undefined }));
+    await waitFor(() => expect(useDraft.getState().styleAuto).toBe(true));
+
+    await chooseCard('Classic');
+
+    expect(useDraft.getState().styleId).toBe(styleIds.classic);
+    expect(useDraft.getState().styleAuto).toBe(false);
+  });
 
   it('moves on to the next step once a style is chosen', async () => {
     const { shell } = translators('en');
@@ -541,7 +669,6 @@ describe('StyleStep', () => {
       fireEvent.click(screen.getByRole('button', { name: shell('next') }));
 
       expect(status).toHaveFocus();
-      expect(screen.queryByText(step('required'))).toBeNull();
       expect(location().pathname).toBe(`/${locale}/configurator/style`);
 
       await act(async () => {

@@ -6,8 +6,9 @@ import { createPortal, flushSync } from 'react-dom';
 import { Banner, Icon } from '@/components/ui';
 import { useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName } from '@/lib/draft/rooms';
+import { runEstimate } from '@/lib/engine/run-estimate';
 import { useIsDesktop } from '@/lib/media';
-import { useDraft } from '@/stores/draft';
+import { useDraft, useDraftValue } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
 import { useShowcaseSlot } from '../../shell/ShowcaseSlot/showcase-slot-context';
 import { useStepValidation } from '../../shell/StepValidation/step-validation-context';
@@ -17,6 +18,7 @@ import { RoomList } from '../RoomList/RoomList';
 import styles from './ObjectStep.module.css';
 import {
   type FieldMessage,
+  isObjectValid,
   ROOMS_MESSAGE_DOM_ID,
   validateObject,
 } from './validate-object';
@@ -25,7 +27,11 @@ export function ObjectStep() {
   const t = useTranslations('ObjectStep');
   const object = useDraft((state) => state.object);
   const rooms = useDraft((state) => state.rooms);
-  const limits = usePricingData((state) => state.data?.limits ?? null);
+  const draft = useDraftValue();
+  const revision = useDraft((state) => state.revision);
+  const pricing = usePricingData((state) => state.data);
+  const pricingVersion = usePricingData((state) => state.version);
+  const limits = pricing?.limits ?? null;
   const roomTypes = useRoomTypes().data?.items;
   const showcaseSlot = useShowcaseSlot();
   const desktop = useIsDesktop();
@@ -35,6 +41,26 @@ export function ObjectStep() {
     () => (limits ? validateObject({ object, rooms }, limits) : null),
     [object, rooms, limits],
   );
+
+  const complete = validation !== null && isObjectValid(validation);
+
+  const missingSqm = useMemo(() => {
+    if (!complete || pricing === null || pricingVersion === null) {
+      return null;
+    }
+    const { estimate } = runEstimate({
+      draft,
+      draftRevision: revision,
+      pricing,
+      pricingVersion,
+      currency: 'UAH',
+    });
+    const warning = estimate?.warnings.find(
+      (item) => item.code === 'ROOMS_AREA_BELOW_TOTAL',
+    );
+    const missing = warning?.params?.missingSqm;
+    return typeof missing === 'number' ? missing : null;
+  }, [complete, draft, revision, pricing, pricingVersion]);
 
   useStepValidation(() => {
     if (!limits) {
@@ -111,6 +137,11 @@ export function ObjectStep() {
       {excess === null ? null : (
         <Banner variant="warning">
           {t('validation.roomsExceedTotal', { difference: excess })}
+        </Banner>
+      )}
+      {missingSqm === null ? null : (
+        <Banner variant="info">
+          {t('validation.roomsBelowTotal', { missing: missingSqm })}
         </Banner>
       )}
       {showcaseSlot

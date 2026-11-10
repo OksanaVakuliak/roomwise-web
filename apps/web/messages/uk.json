@@ -340,6 +340,10 @@
     },
     "forRoom": "для приміщення (6 м²)",
     "warning": "Не для теплої підлоги, вибір не заблоковано",
+    "componentMaterial": "Матеріал",
+    "componentLabor": "Робота",
+    "componentAccessory": "Підкладка під ламінат",
+    "componentPrep": "Підготовка",
     "unavailable": "тимчасово недоступно",
     "gallery": "Галерея",
     "galleryNote": "Стрілки, Home та End перемикають мініатюри.",
@@ -468,6 +472,11 @@
     "stampExpanded": "Штамп-кошторис, розгорнутий на телефоні",
     "stampUah": "Штамп-кошторис, гривня",
     "stampUahDesktop": "Штамп-кошторис, гривня, десктоп",
+    "stampDetailed": "Штамп-кошторис, з розбивкою",
+    "detailsLabel": "Складові базової вартості",
+    "detailWorks": "Чорнові роботи",
+    "detailMaterials": "Чорнові матеріали",
+    "detailDemolition": "Демонтаж покриттів",
     "totalLabel": "Разом за кресленням",
     "toggleLabel": "Показати розбивку",
     "announcement": "Сума тепер {total}",
@@ -619,6 +628,9 @@
       "PRODUCT_UNAVAILABLE": "Товар недоступний",
       "RULE_NOT_FOUND": "Немає правила розрахунку для цієї позиції",
       "OPTION_SCOPE_NOT_ALLOWED": "Недоступно для цього виду ремонту",
+      "AREA_SHARE_NOT_ALLOWED": "Частку площі можна задати лише для стін і підлоги",
+      "AREA_SHARE_MISSING": "Вкажіть частку площі для кожного покриття",
+      "AREA_SHARE_EXCEEDS_SURFACE": "Частки площі разом перевищують 100 %",
       "generic": "Не вдалося розрахувати"
     },
     "warning": {
@@ -628,6 +640,7 @@
       "ROOMS_AREA_BELOW_TOTAL": "Площа приміщень менша за загальну на {missingSqm} м²",
       "LABOR_RATE_MISSING": "Ціну роботи не задано",
       "EXCHANGE_RATE_UNAVAILABLE": "Курс валют недоступний, суми показано в доларах",
+      "AREA_SHARE_UNALLOCATED": "{surface, select, WALLS {Стіни} FLOOR {Підлога} other {Поверхня}}: не розподілено {percent} % (≈ {sqm, number} м²)",
       "generic": "Перевірте розрахунок: деякі значення можуть бути неточними"
     },
     "range": "від {min} до {max} {unit}",
@@ -640,6 +653,10 @@
   },
   "CostPanel": {
     "base": "Базова вартість",
+    "baseDetails": {
+      "label": "Складові базової вартості"
+    },
+    "worksAndMaterials": "Роботи й матеріали",
     "materials": "Матеріали",
     "engineering": "Інженерія",
     "additional": "Додаткові опції",
@@ -736,6 +753,7 @@
     "pageTitle": "Об'єкт. Roomwise",
     "base": "База",
     "materials": "Матеріали",
+    "worksAndMaterials": "Роботи й матеріали",
     "engineering": "Інженерія",
     "options": "Опції",
     "back": "Назад",
@@ -753,6 +771,7 @@
       "later": "попереду"
     },
     "announcement": "Разом тепер {total}",
+    "barLabelPartial": "Розподіл кошторису: роботи й матеріали {materials}%, інженерія {engineering}%, опції {options}%",
     "barLabel": "Розподіл кошторису: база {base}%, матеріали {materials}%, інженерія {engineering}%, опції {options}%",
     "totalLabel": "Разом за кресленням",
     "toggleLabel": "Показати розбивку",
@@ -839,7 +858,8 @@
     "previewClose": "Закрити перегляд",
     "previewSelect": "Обрати цей стиль",
     "previewSelected": "Стиль обрано",
-    "required": "Оберіть стиль, щоб продовжити.",
+    "partialHint": "Стиль заповнить лише увімкнені категорії.",
+    "clear": "Без стилю",
     "applying": "Застосовуємо стиль…",
     "unavailable": "Цей стиль зараз недоступний. Оберіть інший.",
     "loadFailed": "Не вдалося завантажити матеріали стилю. Спробуйте ще раз.",
@@ -886,7 +906,15 @@
       "finishLevel": "Стан здачі",
       "finishRough": "Чорнова",
       "finishPre": "Передчистова",
-      "finishLivedIn": "Житловий стан",
+      "finishLivedIn": "Житлова (з ремонтом)",
+      "finishRoughHint": "Голі стіни, без стяжки й штукатурки",
+      "finishPreHint": "Стіни вирівняні, готові під оздоблення",
+      "finishLivedInHint": "Ремонт уже є, його потрібно оновити",
+      "scope": "Обсяг ремонту",
+      "scopeFull": "Повний ремонт",
+      "scopeFullHint": "Усі приміщення: від чорнових робіт до оздоблення",
+      "scopePartial": "Окремі роботи",
+      "scopePartialHint": "Лише ті роботи й матеріали, які ви оберете",
       "totalArea": "Загальна площа",
       "balcony": "Балкон",
       "balconyArea": "Площа балкона",
@@ -919,14 +947,16 @@
       "range": "Від {min, number} до {max, number} {unit, select, m {м} sqm {м²} pcs {шт.} other {}}",
       "roomsRequired": "Потрібне хоча б одне приміщення",
       "roomTypeRequired": "Оберіть тип приміщення",
-      "roomsExceedTotal": "Сума площ приміщень перевищує загальну площу на {difference, number} м². Ви можете продовжити."
+      "roomsExceedTotal": "Сума площ приміщень перевищує загальну площу на {difference, number} м². Ви можете продовжити.",
+      "roomsBelowTotal": "Схоже, не всі приміщення додано (бракує {missing, number} м²)."
     },
     "plan": "План квартири",
     "planCount": "{count, plural, one {# приміщення} few {# приміщення} many {# приміщень} other {# приміщення}}",
     "planEmpty": "Додайте приміщення — тут з'явиться план квартири",
     "planSummary": {
       "roomsOfTotal": "Приміщення: {rooms} м² із {total} м²",
-      "roomsOnly": "Приміщення: {rooms} м²"
+      "roomsOnly": "Приміщення: {rooms} м²",
+      "roomsArea": "Площа приміщень: {rooms} м²"
     },
     "planCost": {
       "objectLine": "{name}: {amount}"
@@ -939,7 +969,16 @@
     "emptyText": "У цій категорії поки немає з чого обирати.",
     "dismiss": "Закрити",
     "categoryGone": "Цієї категорії більше немає. Каталог оновлено.",
-    "finishLabel": "Тип оздоблення"
+    "finishLabel": "Тип оздоблення",
+    "fillFromStyle": "Заповнити за стилем",
+    "enableHint": "Увімкніть категорії, з якими працюватимете",
+    "components": {
+      "material": "Матеріал",
+      "labor": "Робота",
+      "prep": "Підготовка"
+    },
+    "prepShared": "Підготовка {surface} — у рядку «{name}»",
+    "laborMissing": "Ціну роботи не задано"
   },
   "ChosenList": {
     "title": "Обрано",
@@ -951,7 +990,15 @@
     "removeLabel": "Прибрати {category} з приміщення {room}",
     "add": "Додати",
     "addLabel": "Додати {category} до приміщення {room}",
-    "option": "Інженерія"
+    "option": "Інженерія",
+    "share": "Частка",
+    "shareLabel": "Частка {category} у приміщенні {room}",
+    "shareDecrement": "Зменшити частку {category} у приміщенні {room}",
+    "shareIncrement": "Збільшити частку {category} у приміщенні {room}",
+    "shareArea": "≈ {area}",
+    "shareOver": "Частки разом {sum} % — більше за 100 %",
+    "addCovering": "+ {category}",
+    "addCoveringLabel": "Додати покриття {category} до приміщення {room}"
   },
   "RoomOptions": {
     "title": "Інженерія для цього приміщення"
@@ -1019,6 +1066,7 @@
       "base": "Базовий ремонт",
       "balcony": "Балкон",
       "materials": "Матеріали",
+      "worksAndMaterials": "Роботи й матеріали",
       "engineering": "Інженерія",
       "additional": "Додатково"
     },
@@ -1037,6 +1085,7 @@
     "error": "Помилка"
   },
   "ResultStep": {
+    "emptyEstimate": "Додайте хоча б одну роботу, щоб зберегти розрахунок або надіслати заявку.",
     "additionalTitle": "Додаткові послуги",
     "loading": "Завантаження кошторису",
     "preliminary": "Кошторис попередній і не є офертою. Остаточну ціну назвемо на об'єкті після замірів.",
@@ -1060,6 +1109,7 @@
     "totalIncreased": "Сума зросла на {diff}. Вище показано збережені суми.",
     "totalDecreased": "Сума зменшилась на {diff}. Вище показано збережені суми.",
     "failure": {
+      "emptyEstimate": "Додайте хоча б одну роботу, щоб зберегти розрахунок.",
       "incomplete": "Деякі значення не заповнені або виходять за межі допустимого, тому розрахунок поки не зберегти.",
       "incompleteLink": "Перевірити об'єкт",
       "outOfBounds": "Деякі значення виходять за межі допустимого. Перевірте поля об'єкта й збережіть знову.",
@@ -1110,6 +1160,7 @@
       "consent": "Щоб надіслати заявку, погодьтеся на обробку персональних даних."
     },
     "failure": {
+      "emptyEstimate": "Додайте хоча б одну роботу, щоб надіслати заявку.",
       "incomplete": "Деякі значення не заповнені або виходять за межі допустимого, тому розрахунок поки не надіслати.",
       "incompleteLink": "Перевірити об'єкт",
       "outOfBounds": "Деякі значення виходять за межі допустимого. Перевірте поля об'єкта й надішліть заявку знову.",
@@ -1196,7 +1247,9 @@
       "UNKNOWN": "ціну не задано"
     },
     "unavailable": "Більше недоступно",
-    "quantity": "Кількість: {name}",
+    "quantity": "Кількість",
+    "quantityOf": "Кількість: {name}",
+    "unit": "шт.",
     "decrement": "Зменшити кількість: {name}",
     "increment": "Збільшити кількість: {name}",
     "quantityRange": "Допустимо від {min} до {max}",

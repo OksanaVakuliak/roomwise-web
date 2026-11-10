@@ -6,6 +6,7 @@ import {
   MAX_ROOMS_STORED,
   ROOM_NAME_MAX,
 } from './schema';
+import { disabledSelections, type RoomTypesCatalog } from './style';
 
 export function normalizeRoomName(text: string): string {
   return text.trim().slice(0, ROOM_NAME_MAX);
@@ -81,16 +82,21 @@ export function roomMetrics(room: DraftRoom): RoomMetrics | null {
 export function createRoom(
   draft: DraftV1,
   clientId: string = crypto.randomUUID(),
+  roomTypes?: RoomTypesCatalog,
 ): DraftRoom {
+  const roomTypeCode = 'LIVING_ROOM';
   return {
     clientId,
-    roomTypeCode: 'LIVING_ROOM',
+    roomTypeCode,
     name: null,
     lengthM: null,
     widthM: null,
     heightM: draft.rooms.at(-1)?.heightM ?? null,
     heatedFloor: false,
-    selections: {},
+    selections:
+      draft.object.scope === 'PARTIAL' && roomTypes
+        ? disabledSelections(roomTypeCode, roomTypes)
+        : {},
   };
 }
 

@@ -13,6 +13,7 @@ import {
   useRoomTypes,
   useStyles,
 } from '@/lib/api/catalog';
+import { ownName } from '@/lib/engine/accessory-component';
 import { useDraft } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
 
@@ -33,6 +34,7 @@ export function useEstimateCatalog(): EstimateCatalogState {
   const draftRooms = useDraft((state) => state.rooms);
   const styleId = useDraft((state) => state.styleId);
   const rules = usePricingData((state) => state.data?.rules);
+  const accessories = usePricingData((state) => state.data?.accessories);
   const roomTypes = useRoomTypes();
   const engineering = useEngineering();
   const styles = useStyles();
@@ -119,6 +121,7 @@ export function useEstimateCatalog(): EstimateCatalogState {
       option: (id) => names.options.get(id),
       packageItem: (id) => names.packageItems.get(id),
       rule: (id) => rules?.find((rule) => rule.id === id)?.name[lang],
+      accessory: (key) => ownName(accessories, key)?.[lang],
     },
     rooms: toEstimateRooms(
       draftRooms,

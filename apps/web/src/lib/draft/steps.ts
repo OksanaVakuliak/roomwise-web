@@ -53,13 +53,17 @@ export function objectComplete(draft: DraftV1, context: StepContext): boolean {
   if (object.finishLevel === null) {
     return false;
   }
-  if (!inRange(object.totalAreaSqm, limits.totalAreaSqm)) {
+  const full = object.scope === 'FULL';
+  if (full && !inRange(object.totalAreaSqm, limits.totalAreaSqm)) {
     return false;
   }
   const { balcony } = object;
+  const balconyMax = full
+    ? (object.totalAreaSqm ?? limits.totalAreaSqm.max)
+    : limits.totalAreaSqm.max;
   if (
     balcony.present &&
-    !inRange(balcony.areaSqm, { min: 0, max: object.totalAreaSqm })
+    !inRange(balcony.areaSqm, { min: 0, max: balconyMax })
   ) {
     return false;
   }
@@ -70,21 +74,14 @@ export function objectComplete(draft: DraftV1, context: StepContext): boolean {
 }
 
 export function styleComplete(draft: DraftV1, context: StepContext): boolean {
-  return (
-    objectComplete(draft, context) &&
-    draft.styleId !== null &&
-    context.styleIds.includes(draft.styleId)
-  );
+  return objectComplete(draft, context);
 }
 
 export function firstIncomplete(
   draft: DraftV1,
   context: StepContext,
 ): StepId | null {
-  if (!objectComplete(draft, context)) {
-    return 'object';
-  }
-  return styleComplete(draft, context) ? null : 'style';
+  return objectComplete(draft, context) ? null : 'object';
 }
 
 export function isStepComplete(

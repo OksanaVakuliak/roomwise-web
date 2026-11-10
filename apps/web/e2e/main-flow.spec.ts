@@ -1,46 +1,14 @@
-import { expect, type Locator, type Page, test } from '@playwright/test';
-import en from '../messages/en.json';
-import uk from '../messages/uk.json';
+import { expect, test } from '@playwright/test';
+import {
+  catalogs,
+  escapeRegExp,
+  fillField,
+  type Locale,
+  press,
+  tabTo,
+  templateToRegExp,
+} from './keyboard';
 import { installMockApi } from './mock-api';
-
-const catalogs = { en, uk };
-type Locale = keyof typeof catalogs;
-
-async function pressTabUntil(page: Page, reached: () => Promise<boolean>) {
-  for (let attempt = 0; attempt < 120; attempt += 1) {
-    if (await reached()) {
-      return;
-    }
-    await page.keyboard.press('Tab');
-  }
-  throw new Error('The control was not reachable with Tab');
-}
-
-const isFocused = (locator: Locator) => () =>
-  locator.evaluate((element) => element === document.activeElement);
-
-async function tabTo(page: Page, locator: Locator) {
-  await pressTabUntil(page, isFocused(locator));
-}
-
-async function fillField(page: Page, label: string, value: string) {
-  await tabTo(page, page.getByRole('textbox', { name: label, exact: true }));
-  await page.keyboard.type(value);
-}
-
-async function press(page: Page, name: string | RegExp) {
-  await tabTo(
-    page,
-    page.getByRole('button', { name, exact: typeof name === 'string' }).first(),
-  );
-  await page.keyboard.press('Enter');
-}
-
-const escapeRegExp = (text: string) =>
-  text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-const templateToRegExp = (template: string) =>
-  new RegExp(`^${template.split('{name}').map(escapeRegExp).join('(.+)')}$`);
 
 test('keyboard-only main flow', async ({ page, browser }) => {
   const locale = test.info().project.name as Locale;
@@ -156,7 +124,7 @@ test('keyboard-only main flow', async ({ page, browser }) => {
   await press(page, lead.form.submit);
   const [before, after] = lead.confirmation.title
     .split('{number}')
-    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    .map(escapeRegExp);
   await expect(
     page.getByText(new RegExp(`^${before}\\d+${after}$`)),
   ).toBeVisible();

@@ -8,6 +8,7 @@ import { useDraft } from '@/stores/draft';
 import { usePricingData } from '@/stores/pricing-data';
 import { axe } from '@/test/axe';
 import { makeEngineering } from '@/test/fixtures/catalog';
+import { makePartialDraft } from '@/test/fixtures/draft';
 import {
   createTestQueryClient,
   forEachLocale,
@@ -247,4 +248,102 @@ describe('engineering step rooms', () => {
       expect(await axe(container, noLandmarkRule)).toHaveNoViolations();
     },
   );
+});
+
+describe('engineering step at partial scope', () => {
+  const ELECTRICS = 'Replace wiring in the room';
+  const PIPES = 'Replace pipes in the room';
+
+  function partialDraft() {
+    return { ...makeDraft(), object: makePartialDraft().object };
+  }
+
+  beforeEach(() => {
+    installMemoryStorage();
+    clearEstimateCache();
+    clearCardCostCache();
+    resetWarmup();
+  });
+
+  it('offers the wiring replacement in every room with a room-area price', async () => {
+    await renderEngineering('en', partialDraft());
+
+    for (const name of ['Living room', 'Bathroom', 'Bedroom']) {
+      expect(
+        sectionOf(name).getByRole('switch', { name: ELECTRICS }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it('offers the pipe replacement in wet rooms only', async () => {
+    await renderEngineering('en', partialDraft());
+
+    expect(
+      sectionOf('Bathroom').getByRole('switch', { name: PIPES }),
+    ).toBeInTheDocument();
+    for (const name of ['Living room', 'Bedroom']) {
+      expect(
+        sectionOf(name).queryByRole('switch', { name: PIPES }),
+      ).not.toBeInTheDocument();
+    }
+  });
+
+  it('prices the wiring replacement by the area of the room', async () => {
+    await renderEngineering('en', partialDraft());
+    const living = sectionOf('Living room');
+    const bedroom = sectionOf('Bedroom');
+    const livingCost = living
+      .getByRole('switch', { name: ELECTRICS })
+      .closest('li')?.textContent;
+    const bedroomCost = bedroom
+      .getByRole('switch', { name: ELECTRICS })
+      .closest('li')?.textContent;
+
+    expect(livingCost).toMatch(/\d/);
+    expect(bedroomCost).toMatch(/\d/);
+    expect(livingCost).not.toBe(bedroomCost);
+  });
+
+  it('hides the whole package for separate works', async () => {
+    await renderEngineering('en', partialDraft());
+
+    expect(
+      screen.queryByRole('region', { name: catalogs.en.PackageList.title }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Ventilation' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it.each(forEachLocale)(
+    'has no accessibility violations with priced options in %s',
+    async (locale) => {
+      const { container } = await renderEngineering(locale, partialDraft());
+      expect(await axe(container, noLandmarkRule)).toHaveNoViolations();
+
+      await act(async () => {
+        fireEvent.click(
+          sectionOf('Living room').getByRole('switch', {
+            name: ELECTRICS,
+          }),
+        );
+      });
+      expect(await axe(container, noLandmarkRule)).toHaveNoViolations();
+    },
+  );
+
+  it('does not offer the replacement options at full scope', async () => {
+    await renderEngineering();
+
+    for (const name of ['Living room', 'Bathroom', 'Bedroom']) {
+      for (const option of [ELECTRICS, PIPES]) {
+        expect(
+          sectionOf(name).queryByRole('switch', { name: option }),
+        ).not.toBeInTheDocument();
+      }
+    }
+    expect(
+      screen.getAllByText(catalogs.en.PackageList.included),
+    ).not.toHaveLength(0);
+  });
 });

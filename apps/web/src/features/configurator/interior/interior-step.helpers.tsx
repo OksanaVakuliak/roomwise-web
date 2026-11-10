@@ -13,6 +13,7 @@ import {
   type DraftV1,
   makeDraftRoom,
   makeInteriorDraft,
+  makePartialDraft,
 } from '@/test/fixtures/draft';
 import { makePricingData } from '@/test/fixtures/pricing-data';
 import {
@@ -90,15 +91,29 @@ export function makeKitchenLivingDraft(): DraftV1 {
 }
 
 export const wallpaperId = 'cat-wallpaper';
+export const panelsId = 'cat-panels';
 
-export function makeCatalog(withWallpaper = false): RoomTypesResponse {
+export function makeCatalog(
+  withWallpaper = false,
+  withPanels = false,
+): RoomTypesResponse {
   const base = makeRoomTypes();
   const [floor, walls, ceiling] = base.items[0].categories;
   const wallpaper = { ...walls, id: wallpaperId, name: 'Wallpaper' };
+  const panels = { ...walls, id: panelsId, name: 'Panels' };
   return {
     items: base.items.map((type) => {
       if (withWallpaper && type.code === 'LIVING_ROOM') {
-        return { ...type, categories: [floor, walls, wallpaper, ceiling] };
+        return {
+          ...type,
+          categories: [
+            floor,
+            walls,
+            wallpaper,
+            ...(withPanels ? [panels] : []),
+            ceiling,
+          ],
+        };
       }
       if (type.code === 'KITCHEN_LIVING') {
         return { ...type, categories: [walls, floor] };
@@ -120,6 +135,7 @@ export type StepOptions = NonNullable<
   viewport?: number;
   draft?: DraftV1;
   withWallpaper?: boolean;
+  withPanels?: boolean;
 };
 
 export async function renderStep(url: string, options: StepOptions = {}) {
@@ -127,6 +143,7 @@ export async function renderStep(url: string, options: StepOptions = {}) {
     viewport = 1024,
     draft = makeDraft(),
     withWallpaper = false,
+    withPanels = false,
     ...rest
   } = options;
   setViewport(viewport);
@@ -134,9 +151,16 @@ export async function renderStep(url: string, options: StepOptions = {}) {
   const locale = rest.locale ?? 'en';
   const queryClient = rest.queryClient ?? createTestQueryClient();
   seedCatalog(queryClient, locale);
-  queryClient.setQueryData(['room-types', locale], makeCatalog(withWallpaper));
+  queryClient.setQueryData(
+    ['room-types', locale],
+    makeCatalog(withWallpaper, withPanels),
+  );
   queryClient.setQueryData(
     ['products', wallpaperId, locale],
+    makeCategoryProducts(categoryIds.walls),
+  );
+  queryClient.setQueryData(
+    ['products', panelsId, locale],
     makeCategoryProducts(categoryIds.walls),
   );
   let result!: ReturnType<typeof renderWithProviders>;
@@ -156,9 +180,13 @@ export function roomSection(name: string) {
 }
 
 export function categoryRows(name = 'Living room') {
-  return within(within(roomSection(name)).getByRole('list')).getAllByRole(
-    'listitem',
-  );
+  const list = within(roomSection(name)).getAllByRole('list')[0];
+  return within(list)
+    .getAllByRole('listitem')
+    .filter(
+      (item) =>
+        item.parentElement === list && !item.textContent?.startsWith('+'),
+    );
 }
 
 export function rowButton(row: HTMLElement) {
@@ -166,7 +194,9 @@ export function rowButton(row: HTMLElement) {
 }
 
 export function productCards(root: HTMLElement) {
-  return within(root).getAllByRole('listitem');
+  return within(root)
+    .getAllByRole('listitem')
+    .filter((card) => !card.parentElement?.closest('li'));
 }
 
 export function showcase(name: string) {
@@ -212,4 +242,34 @@ export function usd(cents: number | undefined) {
 export function costRow(label: string) {
   const term = screen.getByText(label, { selector: 'dt' });
   return within(term.parentElement as HTMLElement).getByRole('definition');
+}
+
+export function offSelection(productId: string | null = null) {
+  return { productId, disabled: true, source: 'manual' as const };
+}
+
+export function makePartialRoomDraft(
+  finishLevel: 'ROUGH' | 'PRE_FINISH' | 'LIVED_IN' = 'ROUGH',
+  selections: DraftV1['rooms'][number]['selections'] = {
+    [categoryIds.floor]: offSelection(),
+    [categoryIds.walls]: offSelection(),
+    [categoryIds.ceiling]: offSelection(),
+  },
+): DraftV1 {
+  const base = makePartialDraft();
+  return {
+    ...base,
+    object: { ...base.object, finishLevel },
+    rooms: [makeDraftRoom({ clientId: livingId, selections })],
+  };
+}
+
+export function estimateLine(draft: DraftV1, lineId: string) {
+  return runEstimate({
+    draft,
+    draftRevision: 1,
+    pricing,
+    pricingVersion: pricing.version,
+    currency: 'UAH',
+  }).estimate?.lines.find((line) => line.id === lineId);
 }

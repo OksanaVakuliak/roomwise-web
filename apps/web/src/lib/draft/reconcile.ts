@@ -57,6 +57,7 @@ function reconcileRoom(
   catalog: ReconcileCatalog,
   available: Set<string>,
   styled: boolean,
+  partial: boolean,
 ): { room: DraftRoom; replacements: Replacement[] } {
   const categories = categoriesOfRoomType(room.roomTypeCode, catalog.roomTypes);
   if (categories.length === 0) {
@@ -70,6 +71,10 @@ function reconcileRoom(
   for (const { id } of categories) {
     const current = room.selections[id];
     if (!current) {
+      if (partial) {
+        selections[id] = { productId: null, disabled: true, source: 'style' };
+        continue;
+      }
       if (!styled) {
         continue;
       }
@@ -89,6 +94,9 @@ function reconcileRoom(
         productId: toProductId,
         disabled: current.disabled,
         source: 'style',
+        ...(current.areaShare !== undefined && {
+          areaShare: current.areaShare,
+        }),
       };
       if (!current.disabled) {
         replacements.push({
@@ -159,7 +167,13 @@ export function reconcile(
         : null,
   };
   const results = draft.rooms.map((room) =>
-    reconcileRoom(room, scoped, available, styleId !== null),
+    reconcileRoom(
+      room,
+      scoped,
+      available,
+      styleId !== null,
+      draft.object.scope === 'PARTIAL',
+    ),
   );
   const rooms = results.every(
     (result, index) => result.room === draft.rooms[index],

@@ -122,6 +122,7 @@ export function ResultStep() {
   const tRate = useTranslations('ExchangeRate');
   const locale: Locale = useLocale();
   const totalId = useId();
+  const emptyNoteId = useId();
   const draft = useDraftValue();
   const revision = useDraft((state) => state.revision);
   const pricing = usePricingData((state) => state.data);
@@ -178,6 +179,7 @@ export function ResultStep() {
       ? snapshotPanel(snapshot.totals)
       : estimatedPanel;
   const { catalog, rooms, styleName } = catalogState;
+  const emptyEstimate = !estimate.lines.some((line) => line.amountCents > 0);
   const model = buildEstimateModel({
     estimate,
     rooms,
@@ -198,11 +200,16 @@ export function ResultStep() {
     return moneyMinor(value.usdCents, 'USD', locale);
   };
 
+  const partial = draft.object.scope === 'PARTIAL';
   const bars = [
-    { key: 'base', label: tConfigurator('base'), money: panel.base },
+    ...(partial
+      ? []
+      : [{ key: 'base', label: tConfigurator('base'), money: panel.base }]),
     {
       key: 'materials',
-      label: tConfigurator('materials'),
+      label: partial
+        ? tConfigurator('worksAndMaterials')
+        : tConfigurator('materials'),
       money: panel.materials,
     },
     {
@@ -227,14 +234,18 @@ export function ResultStep() {
       : tForm(FINISH_LABEL[object.finishLevel]);
   const objectItems = [
     { key: 'finish', label: tForm('finishLevel'), value: finishLabel },
-    {
-      key: 'area',
-      label: tForm('totalArea'),
-      value:
-        object.totalAreaSqm === null
-          ? EMPTY_VALUE
-          : area(object.totalAreaSqm, locale),
-    },
+    ...(partial
+      ? []
+      : [
+          {
+            key: 'area',
+            label: tForm('totalArea'),
+            value:
+              object.totalAreaSqm === null
+                ? EMPTY_VALUE
+                : area(object.totalAreaSqm, locale),
+          },
+        ]),
     ...(object.balcony.present && object.balcony.areaSqm !== null
       ? [
           {
@@ -284,6 +295,7 @@ export function ResultStep() {
         currency={currency}
         locale={locale}
         rate={rate}
+        partial={partial}
         renderAction={changeAction}
       />
       {roomPricing ? (
@@ -306,9 +318,22 @@ export function ResultStep() {
       >
         <KeyValueGrid items={objectItems} />
       </SectionBlock>
+      {emptyEstimate ? (
+        <p id={emptyNoteId} className={styles.empty}>
+          {t('emptyEstimate')}
+        </p>
+      ) : null}
       <div className={styles.final}>
-        <SaveCalculation onSaved={handleSaved} />
-        <LeadAction target={DRAFT_TARGET} />
+        <SaveCalculation
+          onSaved={handleSaved}
+          blocked={emptyEstimate}
+          blockedNoteId={emptyNoteId}
+        />
+        <LeadAction
+          target={DRAFT_TARGET}
+          blocked={emptyEstimate}
+          blockedNoteId={emptyNoteId}
+        />
       </div>
     </div>
   );

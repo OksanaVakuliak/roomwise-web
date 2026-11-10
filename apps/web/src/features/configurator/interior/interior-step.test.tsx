@@ -8,7 +8,7 @@ import { resetWarmup, useWarmup } from '@/lib/warmup/warmup';
 import { useDraft } from '@/stores/draft';
 import { axe } from '@/test/axe';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
-import { makeInteriorDraft } from '@/test/fixtures/draft';
+import { makeDraftRoom, makeInteriorDraft } from '@/test/fixtures/draft';
 import { forEachLocale } from '@/test/render-with-providers';
 import en from '../../../../messages/en.json';
 import {
@@ -31,6 +31,7 @@ import {
   roomSection,
   rowButton,
   showcase,
+  styleSelection,
   usd,
   wallpaperId,
 } from './interior-step.helpers';
@@ -66,6 +67,44 @@ describe('InteriorStep integration', () => {
     expect(rowButton(rows[0]).textContent).toMatch(/Flooring/);
     expect(rowButton(rows[1]).textContent).toMatch(/Walls/);
     expect(within(rows[0]).getByText(en.ChosenList.choose)).toBeInTheDocument();
+  });
+
+  it('fills the hallway categories from the style and counts its materials', async () => {
+    const hallwayId = '00000000-0000-4000-8000-000000000305';
+    const base = makeInteriorDraft();
+    const draft = {
+      ...base,
+      rooms: [
+        makeDraftRoom({
+          clientId: hallwayId,
+          roomTypeCode: 'HALLWAY',
+          lengthM: 5,
+          widthM: 1.5,
+          selections: {
+            [categoryIds.floor]: styleSelection(productIds.laminate),
+            [categoryIds.walls]: styleSelection(productIds.paint),
+            [categoryIds.ceiling]: styleSelection(productIds.ceilingPaint),
+          },
+        }),
+      ],
+    };
+    await renderStep(`/configurator/interior?room=${hallwayId}`, { draft });
+
+    const rows = categoryRows('Hallway');
+    expect(rows.map((row) => rowButton(row).textContent)).toEqual([
+      expect.stringMatching(/Flooring/),
+      expect.stringMatching(/Walls/),
+      expect.stringMatching(/Ceiling/),
+    ]);
+    expect(rows[0]).toHaveTextContent('Oak Natural Laminate');
+    expect(rows[1]).not.toHaveTextContent(en.ChosenList.choose);
+    expect(rows[2]).not.toHaveTextContent(en.ChosenList.choose);
+
+    const { materials } = panelOf(currentDraft());
+    expect(materials?.usdCents).toBeGreaterThan(0);
+    expect(costRow(en.CostPanel.materials)).toHaveTextContent(
+      usd(materials?.usdCents),
+    );
   });
 
   it('shows cards with the cost for the bedroom area', async () => {

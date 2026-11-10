@@ -30,6 +30,7 @@ export type LeadFailureReason =
   | 'outOfBounds'
   | 'unknownReference'
   | 'styleMissing'
+  | 'emptyEstimate'
   | 'resave'
   | 'notFound'
   | 'generic';

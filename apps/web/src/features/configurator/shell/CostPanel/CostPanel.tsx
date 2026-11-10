@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ExchangeRateNote } from '@/components/layout';
 import { ErrorState, ZoneSkeleton } from '@/components/system';
 import { EstimateStamp } from '@/components/ui';
+import { useLang } from '@/lib/api/catalog';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import type { Money } from '@/lib/engine/sections';
@@ -20,6 +21,7 @@ export function CostPanel() {
   const tWarning = useTranslations('Estimate.warning');
   const tConfigurator = useTranslations('Configurator');
   const locale = useLocale();
+  const lang = useLang();
   const draft = useDraftValue();
   const revision = useDraft((state) => state.revision);
   const pricing = usePricingData((state) => state.data);
@@ -41,7 +43,7 @@ export function CostPanel() {
     return <ZoneSkeleton kind="estimate" />;
   }
 
-  const { panel, estimate } = runEstimate({
+  const { panel, estimate, blockedLineIds } = runEstimate({
     draft,
     draftRevision: revision,
     pricing,
@@ -60,12 +62,52 @@ export function CostPanel() {
     return moneyMinor(value.usdCents, 'USD', locale);
   };
 
+  const partial = draft.object.scope === 'PARTIAL';
+  const baseDetails =
+    partial || panel.base === null || estimate === null
+      ? []
+      : estimate.lines.flatMap((line) => {
+          const rule =
+            line.section === 'BASE'
+              ? pricing.rules.find((item) => item.id === line.ruleId)
+              : undefined;
+          if (rule === undefined) {
+            return [];
+          }
+          const priced = line.status === 'OK' && !blockedLineIds.has(line.id);
+          return [
+            {
+              key: line.id,
+              label: rule.name[lang],
+              value: priced
+                ? format({
+                    usdCents: line.amountCents,
+                    uahKopecks: line.amountUahKopecks,
+                  })
+                : EMPTY_VALUE,
+            },
+          ];
+        });
   const rows = [
-    { key: 'base', label: t('base'), money: panel.base },
-    { key: 'materials', label: t('materials'), money: panel.materials },
+    ...(partial
+      ? []
+      : [
+          {
+            key: 'base',
+            label: t('base'),
+            money: panel.base,
+            details: baseDetails.length > 1 ? baseDetails : undefined,
+            detailsLabel: t('baseDetails.label'),
+          },
+        ]),
+    {
+      key: 'materials',
+      label: partial ? t('worksAndMaterials') : t('materials'),
+      money: panel.materials,
+    },
     { key: 'engineering', label: t('engineering'), money: panel.engineering },
     { key: 'additional', label: t('additional'), money: panel.additional },
-  ] as const;
+  ];
   const sum = rows.reduce((acc, row) => acc + (row.money?.usdCents ?? 0), 0);
   const share = (value: Money | null) =>
     sum > 0 && value ? (value.usdCents / sum) * 100 : 0;
@@ -88,7 +130,7 @@ export function CostPanel() {
           </>
         ) : undefined
       }
-      barLabel={tConfigurator('barLabel', {
+      barLabel={tConfigurator(partial ? 'barLabelPartial' : 'barLabel', {
         base: Math.round(share(panel.base)),
         materials: Math.round(share(panel.materials)),
         engineering: Math.round(share(panel.engineering)),
@@ -101,6 +143,8 @@ export function CostPanel() {
         label: row.label,
         value: format(row.money),
         share: share(row.money),
+        details: row.details,
+        detailsLabel: row.detailsLabel,
       }))}
     />
   );

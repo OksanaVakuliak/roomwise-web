@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeDraftRoom, makeEmptyDraft } from '@/test/fixtures';
+import { categoryIds, makeRoomTypes } from '@/test/fixtures/catalog';
 import {
   addRoom,
   createRoom,
@@ -61,6 +62,25 @@ describe('createRoom and addRoom', () => {
       heatedFloor: false,
       selections: {},
     });
+  });
+
+  it('disables every category of a new room in a partial draft', () => {
+    const draft = makeEmptyDraft({
+      object: { ...makeEmptyDraft().object, scope: 'PARTIAL' },
+    });
+    const room = createRoom(draft, 'new', makeRoomTypes());
+
+    expect(Object.keys(room.selections).length).toBeGreaterThan(0);
+    expect(Object.values(room.selections).every((item) => item.disabled)).toBe(
+      true,
+    );
+    expect(room.selections[categoryIds.floor]?.productId).toBeNull();
+  });
+
+  it('leaves selections empty for a full draft', () => {
+    expect(
+      createRoom(makeEmptyDraft(), 'new', makeRoomTypes()).selections,
+    ).toEqual({});
   });
 
   it('starts with the living room type', () => {

@@ -9,6 +9,7 @@ export type WriteFailureReason =
   | 'outOfBounds'
   | 'unknownReference'
   | 'styleMissing'
+  | 'emptyEstimate'
   | 'resave'
   | 'notFound'
   | 'generic';

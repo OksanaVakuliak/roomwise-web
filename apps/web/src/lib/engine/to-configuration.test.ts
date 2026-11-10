@@ -496,3 +496,91 @@ describe('toConfiguration strict', () => {
     }
   });
 });
+
+describe('toConfiguration area shares', () => {
+  const extra = makePricingData({
+    categories: [
+      ...pricing.categories,
+      {
+        id: 'cat-wallpaper',
+        wastePercent: 10,
+        surface: 'WALLS',
+        requiresPutty: false,
+      },
+    ],
+  });
+  const roomId = '00000000-0000-4000-8000-000000000301';
+  const selectionsFor = (
+    selections: NonNullable<DraftV1['rooms'][number]['selections']>,
+  ) =>
+    toConfiguration(
+      makeInteriorDraft({
+        rooms: [makeDraftRoom({ clientId: roomId, selections })],
+      }),
+      extra,
+      preview,
+    )?.rooms[0]?.selections;
+  const sel = (
+    productId: string | null,
+    areaShare?: number,
+    disabled = false,
+  ) => ({
+    productId,
+    disabled,
+    source: 'manual' as const,
+    ...(areaShare !== undefined && { areaShare }),
+  });
+
+  it('passes shares of a shared surface', () => {
+    expect(
+      selectionsFor({
+        [categoryIds.walls]: sel(productIds.paint, 60),
+        'cat-wallpaper': sel('p-wallpaper', 40),
+      }),
+    ).toEqual([
+      { categoryId: 'cat-walls', productId: 'p-paint', areaShare: 60 },
+      { categoryId: 'cat-wallpaper', productId: 'p-wallpaper', areaShare: 40 },
+    ]);
+  });
+
+  it('sends no shares in legacy mode', () => {
+    expect(
+      selectionsFor({
+        [categoryIds.floor]: sel(productIds.laminate),
+        [categoryIds.walls]: sel(productIds.paint),
+      }),
+    ).toEqual([
+      { categoryId: 'cat-floor', productId: 'p-laminate' },
+      { categoryId: 'cat-walls', productId: 'p-paint' },
+    ]);
+  });
+
+  it('never sends a share for a disabled or product-less selection', () => {
+    expect(
+      selectionsFor({
+        [categoryIds.walls]: sel(productIds.paint, 60),
+        'cat-wallpaper': sel('p-wallpaper', 40, true),
+      }),
+    ).toEqual([
+      { categoryId: 'cat-walls', productId: 'p-paint', areaShare: 60 },
+      { categoryId: 'cat-wallpaper', productId: null },
+    ]);
+    expect(
+      selectionsFor({
+        [categoryIds.walls]: sel(productIds.paint, 60),
+        'cat-wallpaper': sel(null, 40),
+      }),
+    ).toEqual([
+      { categoryId: 'cat-walls', productId: 'p-paint', areaShare: 60 },
+      { categoryId: 'cat-wallpaper', productId: null },
+    ]);
+  });
+
+  it('never sends a share for a ceiling', () => {
+    expect(
+      selectionsFor({
+        [categoryIds.ceiling]: sel(productIds.ceilingPaint, 50),
+      }),
+    ).toEqual([{ categoryId: 'cat-ceiling', productId: 'p-ceiling-paint' }]);
+  });
+});

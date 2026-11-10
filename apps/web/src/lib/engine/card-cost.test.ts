@@ -1,6 +1,11 @@
 import { estimate } from '@roomwise/calc-engine';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { makeInteriorDraft, makePricingData } from '@/test/fixtures';
+import type { DraftRoom } from '@/lib/draft/schema';
+import {
+  makeInteriorDraft,
+  makePartialDraft,
+  makePricingData,
+} from '@/test/fixtures';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import {
   cardCostContext,
@@ -45,6 +50,80 @@ describe('productCardLine', () => {
       expect(line?.amountCents).toBe(expected?.amountCents);
       expect(line?.amountCents).toBeGreaterThan(0);
     }
+  });
+
+  it('includes labor and preparation at partial scope', () => {
+    const draft = makePartialDraft({
+      object: { ...makePartialDraft().object, finishLevel: 'ROUGH' },
+    });
+    const line = productCardLine(
+      context(draft),
+      living,
+      categoryIds.floor,
+      productIds.laminate,
+    );
+    const expected = fullLine(
+      {
+        ...draft,
+        rooms: draft.rooms.map((room) => ({
+          ...room,
+          selections: (room.clientId === living
+            ? {
+                [categoryIds.floor]: {
+                  productId: productIds.laminate,
+                  disabled: false,
+                  source: 'manual' as const,
+                },
+              }
+            : {}) as DraftRoom['selections'],
+        })),
+      },
+      `MATERIALS:${living}:${categoryIds.floor}`,
+    );
+
+    expect(line?.components?.map((component) => component.kind)).toEqual([
+      'MATERIAL',
+      'ACCESSORY',
+      'LABOR',
+      'PREP',
+    ]);
+    expect(line?.amountCents).toBe(expected?.amountCents);
+    const material = line?.components?.[0].amountCents ?? 0;
+    expect(line?.amountCents).toBeGreaterThan(material);
+  });
+
+  it('adds the accompanying material to the product in the card cost', () => {
+    const line = productCardLine(
+      context(),
+      living,
+      categoryIds.floor,
+      productIds.laminate,
+    );
+    const [material, accessory] = line?.components ?? [];
+
+    expect(material.kind).toBe('MATERIAL');
+    expect(accessory.kind).toBe('ACCESSORY');
+    expect(accessory.amountCents).toBeGreaterThan(0);
+    expect(line?.amountCents).toBe(
+      material.amountCents + accessory.amountCents,
+    );
+  });
+
+  it('drops preparation when the finish level changes', () => {
+    const rough = makePartialDraft({
+      object: { ...makePartialDraft().object, finishLevel: 'ROUGH' },
+    });
+    const pre = makePartialDraft();
+    const args = [living, categoryIds.floor, productIds.laminate] as const;
+    const prepOf = (draft: ReturnType<typeof makePartialDraft>) =>
+      productCardLine(context(draft), ...args)?.components?.find(
+        (component) => component.kind === 'PREP',
+      );
+    const roughPrep = prepOf(rough);
+    const prePrep = prepOf(pre);
+
+    expect(roughPrep?.amountCents).toBeGreaterThan(0);
+    expect(prePrep?.amountCents).toBe(0);
   });
 
   it('returns the memoized line on a repeated call', () => {

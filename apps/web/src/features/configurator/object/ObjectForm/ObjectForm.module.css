@@ -8,8 +8,12 @@
   gap: var(--space-12) var(--space-24);
 }
 
+.wide,
 .balcony {
   grid-column: 1 / -1;
+}
+
+.balcony {
   display: flex;
   flex-direction: column;
   gap: var(--space-12);

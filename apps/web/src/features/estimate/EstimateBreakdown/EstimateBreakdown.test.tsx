@@ -9,6 +9,7 @@ import {
   buildEstimateModel,
   type EstimateCatalog,
   type EstimateModel,
+  type EstimateRoomModel,
   toEstimateRooms,
 } from '../model';
 import { EstimateBreakdown } from './EstimateBreakdown';
@@ -21,9 +22,10 @@ const catalog: EstimateCatalog = {
   option: (id) => `Option ${id}`,
   packageItem: (id) => `Package ${id}`,
   rule: (id) => `Rule ${id}`,
+  accessory: (key) => pricing.accessories?.[key]?.en,
 };
 
-function makeModel(): EstimateModel {
+function makeModel(accessoryCatalog: EstimateCatalog = catalog): EstimateModel {
   const draft = makeInteriorDraft();
   const { estimate } = runEstimate({
     draft,
@@ -38,7 +40,7 @@ function makeModel(): EstimateModel {
   return buildEstimateModel({
     estimate,
     rooms: toEstimateRooms(draft.rooms, (code) => code),
-    catalog,
+    catalog: accessoryCatalog,
   });
 }
 
@@ -126,6 +128,7 @@ describe('EstimateBreakdown', () => {
             roomClientId: room?.roomClientId ?? '',
             name: room?.name ?? '',
             subtotal: room?.subtotal ?? null,
+            warnings: [],
             lines: [
               {
                 ...first,
@@ -153,5 +156,89 @@ describe('EstimateBreakdown', () => {
       screen.getByText('Heated floor is not compatible with the chosen floor'),
     ).toBeInTheDocument();
     expect(screen.getByText('Warning')).toBeInTheDocument();
+  });
+
+  it('renders unallocated share warnings inside the room', () => {
+    const model = makeModel();
+    const [room, ...rest] = model.materials.rooms;
+    const edited: EstimateModel = {
+      ...model,
+      materials: {
+        ...model.materials,
+        rooms: [
+          {
+            ...(room as EstimateRoomModel),
+            warnings: [
+              {
+                code: 'AREA_SHARE_UNALLOCATED',
+                params: {
+                  roomClientId: room?.roomClientId,
+                  surface: 'WALLS',
+                  percent: 30,
+                  sqm: 12.5,
+                },
+              },
+            ],
+          },
+          ...rest,
+        ],
+      },
+    };
+    renderWithProviders(
+      <EstimateBreakdown model={edited} currency="USD" locale="en" />,
+    );
+
+    expect(
+      screen.getByText('Walls: 30% not allocated (≈ 12.5 m²)'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows each accessory under its product line in both currencies', () => {
+    const model = makeModel();
+    const { unmount } = renderWithProviders(
+      <EstimateBreakdown model={model} currency="USD" locale="en" />,
+    );
+    const underlay = screen.getByText(/Laminate underlay/);
+    expect(underlay.closest('li')).toHaveTextContent('Laminate underlay · $42');
+    expect(screen.getByText(/Heated floor tile glue/)).toHaveTextContent(
+      'Heated floor tile glue · $92.40',
+    );
+    unmount();
+    renderWithProviders(
+      <EstimateBreakdown
+        model={model}
+        currency="UAH"
+        locale="uk"
+        rate={{ uahPerUsd: 44.55 }}
+      />,
+    );
+    const kopecks = model.materials.rooms
+      .flatMap((room) => room.lines)
+      .flatMap((line) => line.accessories)
+      .find(
+        (accessory) => accessory.key === 'laminate_underlay',
+      )?.amountUahKopecks;
+    expect(kopecks).toBeTypeOf('number');
+    const expected = moneyMinor(kopecks as number, 'UAH', 'uk').replace(
+      /\s/g,
+      ' ',
+    );
+    expect(
+      (screen.getByText(/Laminate underlay/).textContent ?? '').replace(
+        /\s/g,
+        ' ',
+      ),
+    ).toBe(`Laminate underlay · ${expected}`);
+  });
+
+  it('shows no accessory line when the name is unknown', () => {
+    renderWithProviders(
+      <EstimateBreakdown
+        model={makeModel({ ...catalog, accessory: () => undefined })}
+        currency="USD"
+        locale="en"
+      />,
+    );
+    expect(screen.queryByText(/underlay/i)).not.toBeInTheDocument();
   });
 });

@@ -22,6 +22,7 @@ const catalog: EstimateCatalog = {
   option: (id) => `Option ${id}`,
   packageItem: (id) => `Package ${id}`,
   rule: (id) => `Rule ${id}`,
+  accessory: (key) => pricing.accessories?.[key]?.en,
 };
 
 function run(draft: DraftV1) {
@@ -188,6 +189,37 @@ describe('buildEstimateModel', () => {
     expect(flagged[0]?.warnings[0]?.code).toBe('HEATED_FLOOR_INCOMPATIBLE');
   });
 
+  it('attaches unallocated share warnings to their room', () => {
+    const draft = makeInteriorDraft();
+    const { estimate } = build(draft);
+    const patched: Estimate = {
+      ...estimate,
+      warnings: [
+        {
+          code: 'AREA_SHARE_UNALLOCATED',
+          params: {
+            roomClientId: livingId,
+            surface: 'WALLS',
+            percent: 30,
+            sqm: 12.5,
+          },
+        },
+        { code: 'ROOMS_AREA_MISMATCH' },
+      ],
+    };
+    const model = buildEstimateModel({
+      estimate: patched,
+      rooms: toEstimateRooms(draft.rooms, (code) => code),
+      catalog,
+    });
+    const [living, bathroom] = model.materials.rooms;
+
+    expect(living?.warnings.map((warning) => warning.code)).toEqual([
+      'AREA_SHARE_UNALLOCATED',
+    ]);
+    expect(bathroom?.warnings).toEqual([]);
+  });
+
   it('nulls amounts and subtotals of blocked lines', () => {
     const { estimate } = build(makeInteriorDraft());
     const blocked = new Set(
@@ -212,7 +244,10 @@ describe('buildEstimateModel', () => {
     const stripped: Estimate = {
       ...estimate,
       lines: estimate.lines.map(
-        (line): EstimateLine => ({ ...line, amountUahKopecks: null }),
+        (line): EstimateLine => ({
+          ...line,
+          amountUahKopecks: null,
+        }),
       ),
     };
     const model = buildEstimateModel({
@@ -222,5 +257,112 @@ describe('buildEstimateModel', () => {
     });
     expect(model.base.subtotal?.uahKopecks).toBeNull();
     expect(model.base.subtotal?.usdCents).toBeGreaterThan(0);
+  });
+
+  describe('accessories', () => {
+    function floorLines(model: ReturnType<typeof build>['model']) {
+      return model.materials.rooms.flatMap((room) =>
+        room.lines.filter((line) => line.categoryId === categoryIds.floor),
+      );
+    }
+
+    it('lists accessory components by name in engine order', () => {
+      const { model } = build(makeInteriorDraft());
+      expect(floorLines(model).map((line) => line.accessories)).toEqual([
+        [
+          {
+            id: expect.any(String),
+            key: 'laminate_underlay',
+            name: 'Laminate underlay',
+            amountCents: 4200,
+            amountUahKopecks: expect.any(Number),
+          },
+        ],
+        [
+          {
+            id: expect.any(String),
+            key: 'tile_glue_heated',
+            name: 'Heated floor tile glue',
+            amountCents: 9240,
+            amountUahKopecks: expect.any(Number),
+          },
+        ],
+      ]);
+    });
+
+    it('adds up with the product to the line amount to the cent', () => {
+      const { estimate, model } = build(makeInteriorDraft());
+      const components = new Map(
+        estimate.lines.map((line) => [line.id, line.components ?? []]),
+      );
+      for (const line of floorLines(model)) {
+        const material = (components.get(line.id) ?? [])
+          .filter((component) => component.kind === 'MATERIAL')
+          .reduce((total, component) => total + component.amountCents, 0);
+        const accessories = line.accessories.reduce(
+          (total, accessory) => total + accessory.amountCents,
+          0,
+        );
+        expect(material + accessories).toBe(line.amountCents);
+      }
+    });
+
+    it('skips an accessory whose name is unknown', () => {
+      const { estimate } = run(makeInteriorDraft());
+      const model = buildEstimateModel({
+        estimate: estimate as Estimate,
+        rooms: [],
+        catalog: { ...catalog, accessory: () => undefined },
+      });
+      const lines = model.materials.rooms.flatMap((room) => room.lines);
+      expect(lines.every((line) => line.accessories.length === 0)).toBe(true);
+    });
+
+    it('hides accessories of a blocked line', () => {
+      const { estimate } = run(makeInteriorDraft());
+      const blocked = new Set(estimate?.lines.map((line) => line.id));
+      const { model } = build(makeInteriorDraft(), blocked);
+      expect(
+        floorLines(model).every((line) => line.accessories.length === 0),
+      ).toBe(true);
+    });
+
+    it('skips an accessory with a zero amount', () => {
+      const { estimate } = run(makeInteriorDraft());
+      const zeroed: Estimate = {
+        ...(estimate as Estimate),
+        lines: (estimate as Estimate).lines.map((line) => ({
+          ...line,
+          components: line.components?.map((component) =>
+            component.kind === 'ACCESSORY'
+              ? { ...component, amountCents: 0 }
+              : component,
+          ),
+        })),
+      };
+      const model = buildEstimateModel({
+        estimate: zeroed,
+        rooms: [],
+        catalog,
+      });
+      const lines = model.materials.rooms.flatMap((room) => room.lines);
+      expect(lines.every((line) => line.accessories.length === 0)).toBe(true);
+    });
+
+    it('splits the line kopecks across the accessory and the other parts', () => {
+      const { estimate, model } = build(makeInteriorDraft());
+      const raw = new Map(estimate.lines.map((line) => [line.id, line]));
+      for (const line of floorLines(model)) {
+        const components = raw.get(line.id)?.components ?? [];
+        const others = components
+          .filter((component) => component.kind !== 'ACCESSORY')
+          .reduce((total, component) => total + component.amountCents, 0);
+        expect(others + line.accessories[0].amountCents).toBe(line.amountCents);
+        expect(line.accessories[0].amountUahKopecks).not.toBeNull();
+        expect(line.accessories[0].amountUahKopecks).toBeLessThanOrEqual(
+          line.amountUahKopecks ?? 0,
+        );
+      }
+    });
   });
 });

@@ -1,5 +1,59 @@
 import { type PricingData, PricingDataSchema } from '@roomwise/calc-engine';
 
+function tiers(small: number, medium: number, large: number): string {
+  return `(totalArea < 55 ? ${small} : totalArea < 70 ? ${medium} : ${large})`;
+}
+
+function baseRule(
+  id: string,
+  sortOrder: number,
+  name: { en: string; uk: string },
+  rate: { rough: string; preFinish: string; livedIn: string },
+) {
+  return {
+    id,
+    level: 'OBJECT' as const,
+    categoryId: null,
+    materialTypeId: null,
+    name,
+    quantityFormula: null,
+    costFormula: `totalArea * (finishLevel == 'ROUGH' ? ${rate.rough} : finishLevel == 'PRE_FINISH' ? ${rate.preFinish} : ${rate.livedIn})`,
+    baseComponent: true,
+    sortOrder,
+    surface: null,
+    laborFormula: null,
+  };
+}
+
+const baseComponents = [
+  baseRule(
+    'rule-base',
+    0,
+    { en: 'Rough works', uk: 'Чорнові роботи' },
+    {
+      rough: tiers(50, 47, 44),
+      preFinish: tiers(70, 60, 55),
+      livedIn: tiers(65, 55, 50),
+    },
+  ),
+  baseRule(
+    'rule-base-materials',
+    1,
+    { en: 'Rough materials', uk: 'Чорнові матеріали' },
+    {
+      rough: tiers(40, 38, 36),
+      preFinish: tiers(70, 58.5, 54),
+      livedIn: tiers(65, 53.5, 49),
+    },
+  ),
+  baseRule(
+    'rule-base-demolition',
+    2,
+    { en: 'Demolition of coverings', uk: 'Демонтаж покриттів' },
+    { rough: '0', preFinish: '0', livedIn: '10' },
+  ),
+];
+
 const reference = {
   version: '0123456789abcdef',
   exchangeRate: { rate: '44.5483', date: '2026-09-14', source: 'NBU' },
@@ -16,7 +70,25 @@ const reference = {
     tile_glue_heated: 21,
     balcony_tile: 75,
     wall_prep: 3,
+    labor_laminate: 7,
+    labor_floor_tile: 9,
+    prep_screed: 8.3,
+    mat_screed: 14.8,
+    prep_floor_demolition: 3.5,
+    mat_demolition_disposal: 2.8,
     smart_panel: 120,
+    eng_electrics_sqm: 9.2,
+    mat_electrics_sqm: 11,
+    eng_plumbing_room: 113,
+    mat_plumbing_room: 56,
+  },
+  accessories: {
+    laminate_underlay: { en: 'Laminate underlay', uk: 'Підкладка під ламінат' },
+    tile_glue: { en: 'Tile glue', uk: 'Клей для плитки' },
+    tile_glue_heated: {
+      en: 'Heated floor tile glue',
+      uk: 'Клей для теплої підлоги',
+    },
   },
   rules: [
     {
@@ -29,7 +101,7 @@ const reference = {
       costFormula: 'quantity * (price + coef.laminate_underlay)',
       sortOrder: 0,
       surface: null,
-      laborFormula: null,
+      laborFormula: 'floorArea * coef.labor_laminate',
       baseComponent: false,
     },
     {
@@ -43,7 +115,7 @@ const reference = {
         'quantity * (price + (heatedFloor ? coef.tile_glue_heated : coef.tile_glue))',
       sortOrder: 0,
       surface: null,
-      laborFormula: null,
+      laborFormula: 'floorArea * coef.labor_floor_tile',
       baseComponent: false,
     },
     {
@@ -72,20 +144,7 @@ const reference = {
       laborFormula: null,
       baseComponent: false,
     },
-    {
-      id: 'rule-base',
-      level: 'OBJECT',
-      categoryId: null,
-      materialTypeId: null,
-      name: { en: 'Base cost', uk: 'Базова вартість' },
-      quantityFormula: null,
-      costFormula:
-        "totalArea * (finishLevel == 'ROUGH' ? (totalArea < 55 ? 90 : totalArea < 70 ? 85 : 80) : (totalArea < 55 ? 140 : totalArea < 70 ? 118.5 : 109))",
-      baseComponent: true,
-      sortOrder: 0,
-      surface: null,
-      laborFormula: null,
-    },
+    ...baseComponents,
     {
       id: 'rule-walls-prep',
       level: 'SURFACE',
@@ -96,6 +155,20 @@ const reference = {
       costFormula: 'surfaceArea * coef.wall_prep',
       sortOrder: 0,
       surface: 'WALLS',
+      laborFormula: null,
+      baseComponent: false,
+    },
+    {
+      id: 'rule-floor-prep',
+      level: 'SURFACE',
+      categoryId: null,
+      materialTypeId: null,
+      name: { en: 'Floor preparation', uk: 'Підготовка підлоги' },
+      quantityFormula: null,
+      costFormula:
+        "surfaceArea * (finishLevel == 'ROUGH' ? coef.prep_screed + coef.mat_screed : finishLevel == 'LIVED_IN' ? coef.prep_floor_demolition + coef.mat_demolition_disposal : 0)",
+      sortOrder: 0,
+      surface: 'FLOOR',
       laborFormula: null,
       baseComponent: false,
     },
@@ -240,6 +313,32 @@ const reference = {
       scopes: ['FULL', 'PARTIAL'],
       unit: 'ROOM',
       roomTypeCodes: [],
+      minQuantity: null,
+      maxQuantity: null,
+      available: true,
+    },
+    {
+      id: 'opt-replace-electrics',
+      code: null,
+      kind: 'ENGINEERING',
+      priceCents: null,
+      priceCoefficientKeys: ['eng_electrics_sqm', 'mat_electrics_sqm'],
+      scopes: ['PARTIAL'],
+      unit: 'ROOM_SQM',
+      roomTypeCodes: [],
+      minQuantity: null,
+      maxQuantity: null,
+      available: true,
+    },
+    {
+      id: 'opt-replace-pipes',
+      code: null,
+      kind: 'ENGINEERING',
+      priceCents: null,
+      priceCoefficientKeys: ['eng_plumbing_room', 'mat_plumbing_room'],
+      scopes: ['PARTIAL'],
+      unit: 'ROOM',
+      roomTypeCodes: ['BATHROOM', 'KITCHEN', 'KITCHEN_LIVING'],
       minQuantity: null,
       maxQuantity: null,
       available: true,

@@ -134,6 +134,19 @@ describe('save calculation', () => {
     expect(captureMessage).not.toHaveBeenCalled();
   });
 
+  it('shows the empty estimate message after 422 EMPTY_ESTIMATE', async () => {
+    await renderResult();
+    post.mockResolvedValue(failure(422, 'EMPTY_ESTIMATE'));
+
+    await save();
+
+    expect(
+      screen.getByText('Add at least one work to save the estimate.'),
+    ).toBeInTheDocument();
+    expect(captureException).not.toHaveBeenCalled();
+    expect(saveButton()).toBeEnabled();
+  });
+
   it('shows the saved link without a request when the configuration is already saved', async () => {
     await renderResult();
     const request = buildSaveRequest(pickDraft(useDraft.getState()), pricing);
@@ -195,6 +208,28 @@ describe('save calculation', () => {
       screen.getByRole('link', { name: 'Відкрити розрахунок' }),
     ).toHaveAttribute('href', `/uk/calculations/${publicId}/v/3`);
     expect(checkPricingData).toHaveBeenCalled();
+  });
+
+  it('saves a draft without a style', async () => {
+    await renderResult();
+    await act(async () => {
+      useDraft.setState((state) => ({
+        styleId: null,
+        styleAuto: false,
+        revision: state.revision + 1,
+      }));
+    });
+    post.mockResolvedValue(created(snapshot(clientTotal())));
+
+    await save();
+
+    expect(post).toHaveBeenCalledExactlyOnceWith(
+      '/api/v1/public/calculations',
+      expect.objectContaining({
+        body: expect.objectContaining({ styleId: null }),
+      }),
+    );
+    expect(screen.getByLabelText('Link to the estimate')).toBeInTheDocument();
   });
 
   it('replaces the screen sums with the snapshot and notes the price change', async () => {

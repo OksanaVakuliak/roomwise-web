@@ -91,6 +91,7 @@ export function CalculationPage({
         currency={currency}
         locale={locale}
         rate={rate}
+        partial={version.configuration.scope === 'PARTIAL'}
         readOnly
       />
       {versions}

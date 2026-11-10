@@ -1,9 +1,10 @@
 'use client';
 
-import type { EstimateLine, PricingData } from '@roomwise/calc-engine';
+import { type EstimateLine, type PricingData } from '@roomwise/calc-engine';
 import { type Locale, useLocale } from 'next-intl';
 import { useMemo } from 'react';
 import { type CardCostContext, cardCostContext } from '@/lib/engine/card-cost';
+import { partKopecks } from '@/lib/engine/part-kopecks';
 import { runEstimate } from '@/lib/engine/run-estimate';
 import { displayMoney, type ExchangeRate, unitPrice } from '@/lib/format';
 import { useDraft, useDraftValue } from '@/stores/draft';
@@ -14,6 +15,7 @@ export type RoomPricing = {
   pricing: PricingData;
   productsById: ReadonlyMap<string, PricingData['products'][number]>;
   context: CardCostContext;
+  partial: boolean;
   rate: ExchangeRate | undefined;
   materialsLine: (
     roomClientId: string,
@@ -23,6 +25,7 @@ export type RoomPricing = {
   formatLine: (line: EstimateLine) => string;
   formatTotal: (lines: readonly EstimateLine[]) => string;
   formatUnitPrice: (cents: number) => string;
+  formatParts: (line: EstimateLine) => string[];
 };
 
 export function useRoomPricing(): RoomPricing | null {
@@ -59,6 +62,7 @@ export function useRoomPricing(): RoomPricing | null {
     return {
       pricing,
       context: cardCostContext(draft, pricing, version, 'UAH'),
+      partial: draft.object.scope === 'PARTIAL',
       productsById,
       rate,
       materialsLine: (roomClientId, categoryId) =>
@@ -78,6 +82,22 @@ export function useRoomPricing(): RoomPricing | null {
         return displayMoney(cents, kopecks, currency, locale);
       },
       formatUnitPrice: (cents) => unitPrice(cents, currency, locale, rate),
+      formatParts: (line) => {
+        const parts = line.components ?? [];
+        const kopecks = partKopecks(
+          parts.map((part) => part.amountCents),
+          line.amountUahKopecks,
+          pricing.exchangeRate?.rate ?? null,
+        );
+        return parts.map((part, index) =>
+          displayMoney(
+            part.amountCents,
+            kopecks[index] ?? null,
+            currency,
+            locale,
+          ),
+        );
+      },
     };
   }, [pricing, version, lines, draft, productsById, currency, rate, locale]);
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { type ChangeEvent, useCallback, useId, useMemo, useState } from 'react';
 import {
   Banner,
@@ -15,12 +15,14 @@ import {
 } from '@/components/ui';
 import { catalogRoots } from '@/lib/api/catalog';
 import type { DraftRoom } from '@/lib/draft/schema';
+import { isSharedCovering } from '@/lib/draft/shares';
 import {
   enabledCategoryOf,
   groupCategories,
   surfaceSiblings,
 } from '@/lib/draft/surfaces';
 import type { RoomPricing } from '../../shell/use-room-pricing';
+import { FillFromStyle } from '../FillFromStyle/FillFromStyle';
 import { HeatedFloorNote } from '../HeatedFloorNote/HeatedFloorNote';
 import {
   ProductShowcase,
@@ -61,6 +63,7 @@ export function Specification({
   onOpenDetail,
 }: SpecificationProps) {
   const t = useTranslations('Specification');
+  const format = useFormatter();
   const tSurface = useTranslations('Surface');
   const tShowcase = useTranslations('ProductShowcase');
   const headingId = useId();
@@ -133,9 +136,21 @@ export function Specification({
     activeGroup && surfaceKey !== 'NONE'
       ? enabledCategoryOf(activeGroup, room.selections)
       : undefined;
+  const sharedNames = activeGroup
+    ? activeGroup.categories
+        .filter((category) => isSharedCovering(room.selections[category.id]))
+        .map((category) => category.name)
+    : [];
   const replaces =
-    replaced && surfaceKey !== 'NONE' && replaced.id !== active?.id
-      ? { surface: tSurface(`for.${surfaceKey}`), name: replaced.name }
+    replaced &&
+    surfaceKey !== 'NONE' &&
+    replaced.id !== active?.id &&
+    !isSharedCovering(active ? room.selections[active.id] : undefined)
+      ? {
+          surface: tSurface(`for.${surfaceKey}`),
+          name:
+            sharedNames.length >= 2 ? format.list(sharedNames) : replaced.name,
+        }
       : undefined;
 
   const sortable = active !== undefined && active.productCount > 0;
@@ -155,6 +170,7 @@ export function Specification({
         />
       )}
       {hideTitle && sortable ? sort : null}
+      <FillFromStyle />
       {unavailable ? (
         <Banner
           variant="warning"

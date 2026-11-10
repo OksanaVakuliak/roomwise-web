@@ -340,6 +340,10 @@
     },
     "forRoom": "for the room (6 m²)",
     "warning": "Not for heated floor, selection stays available",
+    "componentMaterial": "Material",
+    "componentLabor": "Labor",
+    "componentAccessory": "Laminate underlay",
+    "componentPrep": "Preparation",
     "unavailable": "temporarily unavailable",
     "gallery": "Gallery",
     "galleryNote": "Arrow keys, Home and End move between thumbnails.",
@@ -468,6 +472,11 @@
     "stampExpanded": "Estimate stamp, expanded on a phone",
     "stampUah": "Estimate stamp, hryvnia",
     "stampUahDesktop": "Estimate stamp, hryvnia, desktop",
+    "stampDetailed": "Estimate stamp, with a breakdown",
+    "detailsLabel": "Base cost breakdown",
+    "detailWorks": "Rough works",
+    "detailMaterials": "Rough materials",
+    "detailDemolition": "Demolition of coverings",
     "totalLabel": "Total on the drawing",
     "toggleLabel": "Show breakdown",
     "announcement": "Total is now {total}",
@@ -619,6 +628,9 @@
       "PRODUCT_UNAVAILABLE": "The product is unavailable",
       "RULE_NOT_FOUND": "No pricing rule for this item",
       "OPTION_SCOPE_NOT_ALLOWED": "Not available for this renovation type",
+      "AREA_SHARE_NOT_ALLOWED": "An area share can only be set for walls and floor",
+      "AREA_SHARE_MISSING": "Set an area share for every covering",
+      "AREA_SHARE_EXCEEDS_SURFACE": "Area shares add up to more than 100%",
       "generic": "Could not be calculated"
     },
     "warning": {
@@ -628,6 +640,7 @@
       "ROOMS_AREA_BELOW_TOTAL": "Rooms are {missingSqm} m² smaller than the total area",
       "LABOR_RATE_MISSING": "Labor price is not set",
       "EXCHANGE_RATE_UNAVAILABLE": "Exchange rate is unavailable, amounts are shown in USD",
+      "AREA_SHARE_UNALLOCATED": "{surface, select, WALLS {Walls} FLOOR {Floor} other {Surface}}: {percent}% not allocated (≈ {sqm, number} m²)",
       "generic": "Check the estimate: some values may be inaccurate"
     },
     "range": "from {min} to {max} {unit}",
@@ -640,6 +653,10 @@
   },
   "CostPanel": {
     "base": "Base cost",
+    "baseDetails": {
+      "label": "Base cost breakdown"
+    },
+    "worksAndMaterials": "Works and materials",
     "materials": "Materials",
     "engineering": "Engineering",
     "additional": "Additional options",
@@ -736,6 +753,7 @@
     "pageTitle": "Object. Roomwise",
     "base": "Base",
     "materials": "Materials",
+    "worksAndMaterials": "Works and materials",
     "engineering": "Engineering",
     "options": "Options",
     "back": "Back",
@@ -753,6 +771,7 @@
       "later": "upcoming"
     },
     "announcement": "Total is now {total}",
+    "barLabelPartial": "Estimate split: works and materials {materials}%, engineering {engineering}%, options {options}%",
     "barLabel": "Estimate split: base {base}%, materials {materials}%, engineering {engineering}%, options {options}%",
     "totalLabel": "Total on the drawing",
     "toggleLabel": "Show breakdown",
@@ -839,7 +858,8 @@
     "previewClose": "Close preview",
     "previewSelect": "Choose this style",
     "previewSelected": "Style chosen",
-    "required": "Choose a style to continue.",
+    "partialHint": "The style fills only the enabled categories.",
+    "clear": "No style",
     "applying": "Applying style…",
     "unavailable": "This style is unavailable right now. Choose another one.",
     "loadFailed": "Could not load the style materials. Try again.",
@@ -886,7 +906,15 @@
       "finishLevel": "Finish level",
       "finishRough": "Rough",
       "finishPre": "Pre-finish",
-      "finishLivedIn": "Lived-in",
+      "finishLivedIn": "Lived-in (renovated)",
+      "finishRoughHint": "Bare walls, no screed or plaster",
+      "finishPreHint": "Walls levelled and ready for finishing",
+      "finishLivedInHint": "Already renovated, needs updating",
+      "scope": "Renovation scope",
+      "scopeFull": "Full renovation",
+      "scopeFullHint": "Every room, from rough work to finishing",
+      "scopePartial": "Separate works",
+      "scopePartialHint": "Only the works and materials you choose",
       "totalArea": "Total area",
       "balcony": "Balcony",
       "balconyArea": "Balcony area",
@@ -919,14 +947,16 @@
       "range": "From {min, number} to {max, number} {unit, select, m {m} sqm {m²} pcs {pcs} other {}}",
       "roomsRequired": "At least one room is required",
       "roomTypeRequired": "Choose the room type",
-      "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue."
+      "roomsExceedTotal": "The rooms add up to {difference, number} m² more than the total area. You can still continue.",
+      "roomsBelowTotal": "It looks like not all rooms are added ({missing, number} m² missing)."
     },
     "plan": "Plan of the apartment",
     "planCount": "{count, plural, one {# room} other {# rooms}}",
     "planEmpty": "Add a room and the apartment plan will appear here",
     "planSummary": {
       "roomsOfTotal": "Rooms: {rooms} m² of {total} m²",
-      "roomsOnly": "Rooms: {rooms} m²"
+      "roomsOnly": "Rooms: {rooms} m²",
+      "roomsArea": "Rooms area: {rooms} m²"
     },
     "planCost": {
       "objectLine": "{name}: {amount}"
@@ -939,7 +969,16 @@
     "emptyText": "This category has nothing to choose from yet.",
     "dismiss": "Dismiss",
     "categoryGone": "This category is no longer available. The catalog has been refreshed.",
-    "finishLabel": "Finish type"
+    "finishLabel": "Finish type",
+    "fillFromStyle": "Fill from style",
+    "enableHint": "Turn on the categories you will work with",
+    "components": {
+      "material": "Material",
+      "labor": "Labor",
+      "prep": "Preparation"
+    },
+    "prepShared": "Preparation of {surface} is in the row “{name}”",
+    "laborMissing": "Labor price is not set"
   },
   "ChosenList": {
     "title": "Chosen",
@@ -951,7 +990,15 @@
     "removeLabel": "Remove {category} from {room}",
     "add": "Add",
     "addLabel": "Add {category} to {room}",
-    "option": "Engineering"
+    "option": "Engineering",
+    "share": "Share",
+    "shareLabel": "Share of {category} in {room}",
+    "shareDecrement": "Decrease share of {category} in {room}",
+    "shareIncrement": "Increase share of {category} in {room}",
+    "shareArea": "≈ {area}",
+    "shareOver": "Shares add up to {sum}% — over 100%",
+    "addCovering": "+ {category}",
+    "addCoveringLabel": "Add {category} covering for {room}"
   },
   "RoomOptions": {
     "title": "Engineering for this room"
@@ -1019,6 +1066,7 @@
       "base": "Base renovation",
       "balcony": "Balcony",
       "materials": "Materials",
+      "worksAndMaterials": "Works and materials",
       "engineering": "Engineering",
       "additional": "Additional"
     },
@@ -1037,6 +1085,7 @@
     "error": "Error"
   },
   "ResultStep": {
+    "emptyEstimate": "Add at least one work to save the estimate or send a request.",
     "additionalTitle": "Additional services",
     "loading": "Loading the estimate",
     "preliminary": "This estimate is preliminary and is not an offer. The final price is confirmed on site after measuring.",
@@ -1060,6 +1109,7 @@
     "totalIncreased": "The total has increased by {diff}. The amounts above are the saved ones.",
     "totalDecreased": "The total has decreased by {diff}. The amounts above are the saved ones.",
     "failure": {
+      "emptyEstimate": "Add at least one work to save the estimate.",
       "incomplete": "Some values are missing or outside the allowed range, so the estimate cannot be saved yet.",
       "incompleteLink": "Check the object",
       "outOfBounds": "Some values are outside the allowed range. Check the object fields and save again.",
@@ -1110,6 +1160,7 @@
       "consent": "To send the request, agree to the processing of your personal data."
     },
     "failure": {
+      "emptyEstimate": "Add at least one work to send a request.",
       "incomplete": "Some values are missing or outside the allowed range, so the estimate cannot be sent yet.",
       "incompleteLink": "Check the object",
       "outOfBounds": "Some values are outside the allowed range. Check the object fields and send the request again.",
@@ -1196,7 +1247,9 @@
       "UNKNOWN": "price not set"
     },
     "unavailable": "No longer available",
-    "quantity": "Quantity: {name}",
+    "quantity": "Quantity",
+    "quantityOf": "Quantity: {name}",
+    "unit": "pcs",
     "decrement": "Decrease quantity: {name}",
     "increment": "Increase quantity: {name}",
     "quantityRange": "Allowed from {min} to {max}",

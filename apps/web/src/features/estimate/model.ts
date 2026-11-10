@@ -6,6 +6,8 @@ import type {
 } from '@roomwise/calc-engine';
 import { roomDisplayName } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
+import { visibleAccessory } from '@/lib/engine/accessory-component';
+import { partKopecks } from '@/lib/engine/part-kopecks';
 import {
   groupLines,
   type LineView,
@@ -41,6 +43,15 @@ export type EstimateLineModel = {
   warnings: readonly EstimateMessage[];
   errorCode: string | null;
   disabled: boolean;
+  accessories: readonly EstimateAccessoryModel[];
+};
+
+export type EstimateAccessoryModel = {
+  id: string;
+  key: string;
+  name: string;
+  amountCents: number;
+  amountUahKopecks: number | null;
 };
 
 export type EstimateFlatSectionModel = {
@@ -53,6 +64,7 @@ export type EstimateRoomModel = {
   name: string;
   subtotal: Money | null;
   lines: readonly EstimateLineModel[];
+  warnings: readonly EstimateMessage[];
 };
 
 export type EstimateMaterialsModel = {
@@ -76,6 +88,7 @@ export type EstimateCatalog = {
   option: (id: string) => string | undefined;
   packageItem: (id: string) => string | undefined;
   rule: (id: string) => string | undefined;
+  accessory: (coefficientKey: string) => string | undefined;
 };
 
 export type EstimateRoomInput = {
@@ -161,9 +174,44 @@ function titleOf(
   }
 }
 
+function accessoriesOf(
+  line: LineView,
+  catalog: EstimateCatalog,
+  rate: string | null,
+): EstimateAccessoryModel[] {
+  if (
+    line.status !== 'OK' ||
+    line.error !== null ||
+    line.amountCents === null
+  ) {
+    return [];
+  }
+  const components = line.components ?? [];
+  const kopecks = partKopecks(
+    components.map((component) => component.amountCents),
+    line.amountUahKopecks,
+    rate,
+  );
+  return components.flatMap((component, index) => {
+    const accessory = visibleAccessory(component, catalog.accessory);
+    return accessory === undefined
+      ? []
+      : [
+          {
+            id: `${accessory.key}-${index}`,
+            key: accessory.key,
+            name: accessory.name,
+            amountCents: component.amountCents,
+            amountUahKopecks: kopecks[index] ?? null,
+          },
+        ];
+  });
+}
+
 function toLineModel(
   line: LineView,
   catalog: EstimateCatalog,
+  rate: string | null,
   disabled: boolean,
   roomNames: readonly string[] = [],
 ): EstimateLineModel {
@@ -192,6 +240,7 @@ function toLineModel(
     warnings: line.warnings,
     errorCode: line.error?.code ?? null,
     disabled,
+    accessories: disabled ? [] : accessoriesOf(line, catalog, rate),
   };
 }
 
@@ -219,12 +268,14 @@ function disabledLine(
     warnings: [],
     errorCode: null,
     disabled: true,
+    accessories: [],
   };
 }
 
 function toLineModels(
   lines: readonly LineView[],
   catalog: EstimateCatalog,
+  rate: string | null,
   roomNames: ReadonlyMap<string, string>,
   optionRoomIds: ReadonlyMap<string, readonly string[]>,
 ): EstimateLineModel[] {
@@ -236,10 +287,22 @@ function toLineModels(
     return toLineModel(
       line,
       catalog,
+      rate,
       false,
       ids.flatMap((id) => roomNames.get(id) ?? []),
     );
   });
+}
+
+function roomWarningsOf(
+  estimate: Estimate,
+  roomClientId: string,
+): EstimateMessage[] {
+  return estimate.warnings.filter(
+    (warning) =>
+      warning.code === 'AREA_SHARE_UNALLOCATED' &&
+      warning.params?.roomClientId === roomClientId,
+  );
 }
 
 function roomModelOf(
@@ -247,12 +310,15 @@ function roomModelOf(
   input: EstimateRoomInput | undefined,
   rawLines: readonly LineView[],
   catalog: EstimateCatalog,
+  rate: string | null,
+  warnings: readonly EstimateMessage[] = [],
 ): EstimateRoomModel | null {
   const disabledIds = new Set(input?.disabledCategoryIds);
   const lines = rawLines.map((line) =>
     toLineModel(
       line,
       catalog,
+      rate,
       line.categoryId !== null && disabledIds.has(line.categoryId),
     ),
   );
@@ -273,6 +339,7 @@ function roomModelOf(
     name: input?.name ?? '',
     subtotal: subtotalOf(lines),
     lines,
+    warnings,
   };
 }
 
@@ -288,6 +355,7 @@ export function buildEstimateModel({
     rooms.map((room) => room.clientId),
     blockedLineIds,
   );
+  const rate = estimate.exchangeRate?.rate ?? null;
   const inputs = new Map(rooms.map((room) => [room.clientId, room]));
   const roomNames = new Map(rooms.map((room) => [room.clientId, room.name]));
   const rawByRoom = new Map(
@@ -307,6 +375,8 @@ export function buildEstimateModel({
       inputs.get(roomClientId),
       rawByRoom.get(roomClientId) ?? [],
       catalog,
+      rate,
+      roomWarningsOf(estimate, roomClientId),
     );
     if (model) {
       roomModels.push(model);
@@ -318,22 +388,26 @@ export function buildEstimateModel({
     undefined,
     rawByRoom.get(OBJECT_GROUP_ID) ?? [],
     catalog,
+    rate,
   );
   const baseLines = toLineModels(
     grouped.base,
     catalog,
+    rate,
     roomNames,
     optionRoomIds,
   );
   const engineering = toLineModels(
     grouped.engineering,
     catalog,
+    rate,
     roomNames,
     optionRoomIds,
   );
   const additional = toLineModels(
     grouped.additional,
     catalog,
+    rate,
     roomNames,
     optionRoomIds,
   );

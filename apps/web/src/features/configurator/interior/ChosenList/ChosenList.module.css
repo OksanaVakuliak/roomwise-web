@@ -124,6 +124,38 @@
   color: var(--heat);
 }
 
+.details {
+  grid-column: 1 / -1;
+  padding-bottom: var(--space-4);
+}
+
+.share {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: var(--layout-aside-width-tablet);
+  padding-bottom: var(--space-6);
+}
+
+.addCovering {
+  padding: var(--space-4) 0;
+  border-bottom: var(--stroke-1) solid var(--hair);
+}
+
+.note {
+  padding: var(--space-4) 0;
+  border-bottom: var(--stroke-1) solid var(--hair);
+}
+
+.noteText {
+  margin: 0;
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--text-body-s-size);
+  color: var(--line-2);
+}
+
 .sum {
   font-size: var(--text-body-s-size);
   white-space: nowrap;

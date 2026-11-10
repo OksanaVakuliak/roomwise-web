@@ -7,6 +7,8 @@ import {
   styleIds,
 } from '@/test/fixtures/catalog';
 import { makeDraftRoom, makeEmptyDraft } from '@/test/fixtures/draft';
+import { makePricingData } from '@/test/fixtures/pricing-data';
+import { toConfiguration } from '../engine/to-configuration';
 import {
   applyStyle,
   hasManualChanges,
@@ -65,6 +67,164 @@ describe('materialsForRoom', () => {
 
   it('returns nothing for a type missing from the catalog', () => {
     expect(materialsForRoom('BEDROOM', defaults, { items: [] })).toEqual({});
+  });
+});
+
+describe('partial scope', () => {
+  const partialDraft = (selections = {}) =>
+    makeEmptyDraft({
+      object: { ...makeEmptyDraft().object, scope: 'PARTIAL' },
+      rooms: [
+        makeDraftRoom({ clientId: 'a', roomTypeCode: 'BEDROOM', selections }),
+      ],
+    });
+
+  it('materialsForRoom disables every category', () => {
+    const result = materialsForRoom('BEDROOM', defaults, roomTypes, 'PARTIAL');
+
+    expect(Object.keys(result)).toHaveLength(3);
+    expect(Object.values(result).every((item) => item.disabled)).toBe(true);
+    expect(Object.values(result).every((item) => item.productId === null)).toBe(
+      true,
+    );
+  });
+
+  it('applyStyle keeps disabled categories disabled', () => {
+    const next = applyStyle(partialDraft(), defaults, roomTypes);
+
+    expect(
+      Object.values(next.rooms[0]?.selections ?? {}).every(
+        (item) => item.disabled,
+      ),
+    ).toBe(true);
+  });
+
+  it('applyStyle fills only enabled categories', () => {
+    const next = applyStyle(
+      partialDraft({ [categoryIds.floor]: manual(null) }),
+      defaults,
+      roomTypes,
+    );
+    const selections = next.rooms[0]?.selections ?? {};
+
+    expect(selections[categoryIds.floor]).toEqual(
+      fromStyle(productIds.laminate),
+    );
+    expect(selections[categoryIds.walls]?.disabled).toBe(true);
+    expect(selections[categoryIds.walls]?.productId).toBeNull();
+  });
+
+  it('applyStyle fills two enabled categories and leaves the third disabled', () => {
+    const next = applyStyle(
+      partialDraft({
+        [categoryIds.floor]: manual(null),
+        [categoryIds.walls]: manual(null),
+      }),
+      defaults,
+      roomTypes,
+    );
+    const selections = next.rooms[0]?.selections ?? {};
+
+    expect(selections[categoryIds.floor]).toEqual(
+      fromStyle(productIds.laminate),
+    );
+    expect(selections[categoryIds.walls]).toEqual(fromStyle(productIds.paint));
+    expect(selections[categoryIds.ceiling]).toEqual({
+      productId: null,
+      disabled: true,
+      source: 'style',
+    });
+  });
+});
+
+describe('applyStyle with area shares at partial scope', () => {
+  const wallpaper = {
+    id: 'cat-wallpaper',
+    name: 'Wallpaper',
+    surface: 'WALLS' as const,
+    wastePercent: 10,
+    productCount: 1,
+  };
+  const catalog = {
+    items: roomTypes.items.map((type) => ({
+      ...type,
+      categories: [...type.categories, wallpaper],
+    })),
+  };
+  const withWallpaper = {
+    ...defaults,
+    items: [
+      ...defaults.items,
+      {
+        roomTypeCode: 'BEDROOM' as const,
+        categoryId: wallpaper.id,
+        productId: 'p-wallpaper',
+      },
+    ],
+  };
+  const shared = (productId: string | null) => ({
+    productId,
+    disabled: false,
+    source: 'manual' as const,
+    areaShare: 50,
+  });
+
+  it('keeps both shares and prices each covering once', () => {
+    const draft = makeEmptyDraft({
+      object: { ...makeEmptyDraft().object, scope: 'PARTIAL' },
+      rooms: [
+        makeDraftRoom({
+          clientId: 'a',
+          roomTypeCode: 'BEDROOM',
+          selections: {
+            [categoryIds.walls]: shared(productIds.paint),
+            [wallpaper.id]: shared('p-wallpaper'),
+          },
+        }),
+      ],
+    });
+
+    const next = applyStyle(draft, withWallpaper, catalog);
+    const selections = next.rooms[0]?.selections ?? {};
+
+    expect(selections[categoryIds.walls]).toEqual({
+      ...fromStyle(productIds.paint),
+      areaShare: 50,
+    });
+    expect(selections[wallpaper.id]).toEqual({
+      ...fromStyle('p-wallpaper'),
+      areaShare: 50,
+    });
+
+    const pricing = makePricingData({
+      categories: [
+        ...makePricingData().categories,
+        {
+          id: wallpaper.id,
+          wastePercent: 10,
+          surface: 'WALLS',
+          requiresPutty: false,
+        },
+      ],
+    });
+    const configuration = toConfiguration(
+      { ...next, object: { ...next.object, finishLevel: 'PRE_FINISH' } },
+      pricing,
+      { mode: 'preview', currency: 'USD' },
+    );
+
+    expect(
+      configuration?.rooms[0]?.selections.filter(
+        (item) => item.productId !== null,
+      ),
+    ).toEqual([
+      {
+        categoryId: categoryIds.walls,
+        productId: productIds.paint,
+        areaShare: 50,
+      },
+      { categoryId: wallpaper.id, productId: 'p-wallpaper', areaShare: 50 },
+    ]);
   });
 });
 
@@ -145,6 +305,41 @@ describe('retypeSelections', () => {
     expect(retypeSelections(previous, 'BATHROOM', null, narrowTypes)).toEqual({
       [categoryIds.floor]: manual(productIds.tile),
     });
+  });
+
+  it('keeps new categories disabled at partial scope without a style', () => {
+    const next = retypeSelections(
+      { [categoryIds.floor]: manual(productIds.tile) },
+      'BEDROOM',
+      null,
+      roomTypes,
+      'PARTIAL',
+    );
+
+    expect(next[categoryIds.floor]).toEqual(manual(productIds.tile));
+    expect(
+      Object.entries(next)
+        .filter(([id]) => id !== categoryIds.floor)
+        .every(([, selection]) => selection.disabled),
+    ).toBe(true);
+    expect(Object.keys(next).length).toBeGreaterThan(1);
+  });
+
+  it('keeps an enabled style category at partial scope', () => {
+    const floor = {
+      productId: productIds.laminate,
+      disabled: false,
+      source: 'style' as const,
+    };
+    const next = retypeSelections(
+      { [categoryIds.floor]: floor },
+      'BEDROOM',
+      defaults,
+      roomTypes,
+      'PARTIAL',
+    );
+
+    expect(next[categoryIds.floor]).toEqual(floor);
   });
 
   it('adds style defaults for new categories only', () => {

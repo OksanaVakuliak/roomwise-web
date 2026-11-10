@@ -111,6 +111,7 @@ export function ApartmentPlan({ rooms, size }: ApartmentPlanProps) {
   const format = useFormatter();
   const headingId = useId();
   const totalAreaSqm = useDraft((state) => state.object.totalAreaSqm);
+  const scope = useDraft((state) => state.object.scope);
   const costLines = useCostLines();
 
   const roomsArea = rooms.reduce(
@@ -118,12 +119,14 @@ export function ApartmentPlan({ rooms, size }: ApartmentPlanProps) {
     0,
   );
   const areaText =
-    totalAreaSqm === null
-      ? t('planSummary.roomsOnly', { rooms: format.number(roomsArea) })
-      : t('planSummary.roomsOfTotal', {
-          rooms: format.number(roomsArea),
-          total: format.number(totalAreaSqm),
-        });
+    scope === 'PARTIAL'
+      ? t('planSummary.roomsArea', { rooms: format.number(roomsArea) })
+      : totalAreaSqm === null
+        ? t('planSummary.roomsOnly', { rooms: format.number(roomsArea) })
+        : t('planSummary.roomsOfTotal', {
+            rooms: format.number(roomsArea),
+            total: format.number(totalAreaSqm),
+          });
 
   return (
     <section className={styles.root} aria-labelledby={headingId}>
