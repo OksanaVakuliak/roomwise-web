@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useCallback } from 'react';
 import type { SpecComponentsItem } from '@/components/ui';
 import { useLang } from '@/lib/api/catalog';
-import { accessoryKey, ownName } from '@/lib/engine/accessory-component';
+import { ownName, visibleAccessory } from '@/lib/engine/accessory-component';
 import type { RoomPricing } from '../shell/use-room-pricing';
 
 const KEYS = {
@@ -38,8 +38,10 @@ export function useSpecComponents(
       if (!pricing || !line?.components) {
         return { items: [], laborMissing: false };
       }
+      const nameOf = (key: string) =>
+        ownName(pricing.pricing.accessories, key)?.[lang];
       const hasAccessory = line.components.some(
-        (component) => component.kind === 'ACCESSORY',
+        (component) => visibleAccessory(component, nameOf) !== undefined,
       );
       if (!pricing.partial && !hasAccessory) {
         return { items: [], laborMissing: false };
@@ -64,12 +66,10 @@ export function useSpecComponents(
             : [];
         }
         if (component.kind === 'ACCESSORY') {
-          const key = accessoryKey(component);
-          const name =
-            key === undefined
-              ? undefined
-              : ownName(pricing.pricing.accessories, key)?.[lang];
-          return name ? [{ id, label: name, amount: amounts[index] }] : [];
+          const accessory = visibleAccessory(component, nameOf);
+          return accessory
+            ? [{ id, label: accessory.name, amount: amounts[index] }]
+            : [];
         }
         if (component.kind !== 'MATERIAL' && component.amountCents === 0) {
           return [];

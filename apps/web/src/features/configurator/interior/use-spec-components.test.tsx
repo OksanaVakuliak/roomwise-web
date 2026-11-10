@@ -256,14 +256,14 @@ describe('useSpecComponents accessories', () => {
     expect(container.querySelectorAll('li')).toHaveLength(0);
   });
 
-  it('skips an accessory whose name is missing and keeps the line total', () => {
+  it('hides line details in full mode when the accessory has no name', () => {
     const line = lineOf(
       makeInteriorDraft(),
       pricing,
       livingId,
       categoryIds.floor,
     );
-    renderWithProviders(
+    const { container } = renderWithProviders(
       <Probe
         line={line}
         partial={false}
@@ -271,10 +271,7 @@ describe('useSpecComponents accessories', () => {
       />,
     );
 
-    expect(labels()).toHaveLength(1);
-    expect(
-      line?.components?.reduce((sum, part) => sum + part.amountCents, 0),
-    ).toBe(line?.amountCents);
+    expect(container.querySelectorAll('li')).toHaveLength(0);
   });
 
   it('adds up the product and the accessories to the line amount', () => {

@@ -16,3 +16,12 @@ export function ownName<T>(
     ? names[key]
     : undefined;
 }
+
+export function visibleAccessory<T>(
+  component: Component,
+  nameOf: (key: string) => T | undefined,
+): { key: string; name: T } | undefined {
+  const key = accessoryKey(component);
+  const name = key === undefined ? undefined : nameOf(key);
+  return key === undefined || name === undefined ? undefined : { key, name };
+}
