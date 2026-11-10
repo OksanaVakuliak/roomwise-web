@@ -1,9 +1,11 @@
 'use client';
 
 import type { EstimateLine } from '@roomwise/calc-engine';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useCallback } from 'react';
 import type { SpecComponentsItem } from '@/components/ui';
+import { useLang } from '@/lib/api/catalog';
+import { accessoryKey, ownName } from '@/lib/engine/accessory-component';
 import type { RoomPricing } from '../shell/use-room-pricing';
 
 const KEYS = {
@@ -11,8 +13,6 @@ const KEYS = {
   LABOR: 'labor',
   PREP: 'prep',
 } as const;
-
-type SpecLocale = 'en' | 'uk';
 
 export type SpecCategory = {
   id: string;
@@ -31,7 +31,7 @@ export function useSpecComponents(
 ): (line: EstimateLine | null | undefined) => LineDetails {
   const t = useTranslations('Specification');
   const tSurface = useTranslations('Surface');
-  const locale = useLocale() as SpecLocale;
+  const lang = useLang();
 
   return useCallback(
     (line) => {
@@ -64,12 +64,12 @@ export function useSpecComponents(
             : [];
         }
         if (component.kind === 'ACCESSORY') {
-          const name = component.coefficientKey
-            ? pricing.pricing.accessories?.[component.coefficientKey]?.[locale]
-            : undefined;
-          return name && component.amountCents > 0
-            ? [{ id, label: name, amount: amounts[index] }]
-            : [];
+          const key = accessoryKey(component);
+          const name =
+            key === undefined
+              ? undefined
+              : ownName(pricing.pricing.accessories, key)?.[lang];
+          return name ? [{ id, label: name, amount: amounts[index] }] : [];
         }
         if (component.kind !== 'MATERIAL' && component.amountCents === 0) {
           return [];
@@ -89,6 +89,6 @@ export function useSpecComponents(
         ),
       };
     },
-    [pricing, categories, t, tSurface, locale],
+    [pricing, categories, t, tSurface, lang],
   );
 }
