@@ -6,7 +6,7 @@ import type {
 } from '@roomwise/calc-engine';
 import { roomDisplayName } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
-import { accessoryKey } from '@/lib/engine/accessory-component';
+import { visibleAccessory } from '@/lib/engine/accessory-component';
 import { partKopecks } from '@/lib/engine/part-kopecks';
 import {
   groupLines,
@@ -179,7 +179,11 @@ function accessoriesOf(
   catalog: EstimateCatalog,
   rate: string | null,
 ): EstimateAccessoryModel[] {
-  if (line.status !== 'OK' || line.amountCents === null) {
+  if (
+    line.status !== 'OK' ||
+    line.error !== null ||
+    line.amountCents === null
+  ) {
     return [];
   }
   const components = line.components ?? [];
@@ -189,15 +193,14 @@ function accessoriesOf(
     rate,
   );
   return components.flatMap((component, index) => {
-    const key = accessoryKey(component);
-    const name = key === undefined ? undefined : catalog.accessory(key);
-    return key === undefined || name === undefined
+    const accessory = visibleAccessory(component, catalog.accessory);
+    return accessory === undefined
       ? []
       : [
           {
-            id: `${key}-${index}`,
-            key,
-            name,
+            id: `${accessory.key}-${index}`,
+            key: accessory.key,
+            name: accessory.name,
             amountCents: component.amountCents,
             amountUahKopecks: kopecks[index] ?? null,
           },
@@ -237,7 +240,7 @@ function toLineModel(
     warnings: line.warnings,
     errorCode: line.error?.code ?? null,
     disabled,
-    accessories: accessoriesOf(line, catalog, rate),
+    accessories: disabled ? [] : accessoriesOf(line, catalog, rate),
   };
 }
 

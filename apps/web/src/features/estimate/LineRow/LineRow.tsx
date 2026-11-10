@@ -88,7 +88,7 @@ export function LineRow({
         value={value}
         className={line.disabled ? styles.disabled : undefined}
       />
-      {line.disabled || line.accessories.length === 0 ? null : (
+      {line.accessories.length === 0 ? null : (
         <ul className={styles.accessories}>
           {line.accessories.map((accessory) => (
             <li key={accessory.id}>

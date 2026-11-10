@@ -238,6 +238,38 @@ describe('saved calculation page', () => {
       expect(await axe(container)).toHaveNoViolations();
     });
 
+    it('hides accessory sub-lines of an item that is no longer available', async () => {
+      const version = withAccessories(locale);
+      const priceStatus = version.priceStatus;
+      if (!priceStatus) {
+        throw new Error('price status expected');
+      }
+      get.mockResolvedValue(
+        ok({
+          ...version,
+          priceStatus: {
+            ...priceStatus,
+            unavailableItems: [
+              {
+                lineId: 'MATERIALS:living:cat-floor',
+                productId: null,
+                optionId: null,
+              },
+            ],
+          },
+        }),
+      );
+      await renderSaved(locale);
+
+      const names = accessoryNames[locale];
+      expect(
+        await screen.findByText(new RegExp(names.tile_glue)),
+      ).toBeVisible();
+      expect(
+        screen.queryByText(new RegExp(names.laminate_underlay)),
+      ).not.toBeInTheDocument();
+    });
+
     it('offers to recalculate when prices changed and opens the new version', async () => {
       const version = makeChangedPriceVersionView();
       get.mockResolvedValue(ok(version));
