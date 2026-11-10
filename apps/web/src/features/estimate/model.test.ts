@@ -271,16 +271,20 @@ describe('buildEstimateModel', () => {
       expect(floorLines(model).map((line) => line.accessories)).toEqual([
         [
           {
+            id: expect.any(String),
             key: 'laminate_underlay',
             name: 'Laminate underlay',
             amountCents: 4200,
+            amountUahKopecks: expect.any(Number),
           },
         ],
         [
           {
+            id: expect.any(String),
             key: 'tile_glue_heated',
             name: 'Heated floor tile glue',
             amountCents: 9240,
+            amountUahKopecks: expect.any(Number),
           },
         ],
       ]);
@@ -312,6 +316,53 @@ describe('buildEstimateModel', () => {
       });
       const lines = model.materials.rooms.flatMap((room) => room.lines);
       expect(lines.every((line) => line.accessories.length === 0)).toBe(true);
+    });
+
+    it('hides accessories of a blocked line', () => {
+      const { estimate } = run(makeInteriorDraft());
+      const blocked = new Set(estimate?.lines.map((line) => line.id));
+      const { model } = build(makeInteriorDraft(), blocked);
+      expect(
+        floorLines(model).every((line) => line.accessories.length === 0),
+      ).toBe(true);
+    });
+
+    it('skips an accessory with a zero amount', () => {
+      const { estimate } = run(makeInteriorDraft());
+      const zeroed: Estimate = {
+        ...(estimate as Estimate),
+        lines: (estimate as Estimate).lines.map((line) => ({
+          ...line,
+          components: line.components?.map((component) =>
+            component.kind === 'ACCESSORY'
+              ? { ...component, amountCents: 0 }
+              : component,
+          ),
+        })),
+      };
+      const model = buildEstimateModel({
+        estimate: zeroed,
+        rooms: [],
+        catalog,
+      });
+      const lines = model.materials.rooms.flatMap((room) => room.lines);
+      expect(lines.every((line) => line.accessories.length === 0)).toBe(true);
+    });
+
+    it('splits the line kopecks across the accessory and the other parts', () => {
+      const { estimate, model } = build(makeInteriorDraft());
+      const raw = new Map(estimate.lines.map((line) => [line.id, line]));
+      for (const line of floorLines(model)) {
+        const components = raw.get(line.id)?.components ?? [];
+        const others = components
+          .filter((component) => component.kind !== 'ACCESSORY')
+          .reduce((total, component) => total + component.amountCents, 0);
+        expect(others + line.accessories[0].amountCents).toBe(line.amountCents);
+        expect(line.accessories[0].amountUahKopecks).not.toBeNull();
+        expect(line.accessories[0].amountUahKopecks).toBeLessThanOrEqual(
+          line.amountUahKopecks ?? 0,
+        );
+      }
     });
   });
 });

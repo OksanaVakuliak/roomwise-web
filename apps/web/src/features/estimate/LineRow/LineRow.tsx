@@ -91,12 +91,15 @@ export function LineRow({
       {line.disabled || line.accessories.length === 0 ? null : (
         <ul className={styles.accessories}>
           {line.accessories.map((accessory) => (
-            <li key={accessory.key}>
+            <li key={accessory.id}>
               {accessory.name} ·{' '}
               <span className="num">
-                {currency === 'UAH' && rate
-                  ? unitPrice(accessory.amountCents, 'UAH', locale, rate)
-                  : unitPrice(accessory.amountCents, 'USD', locale)}
+                {displayMoney(
+                  accessory.amountCents,
+                  accessory.amountUahKopecks,
+                  currency,
+                  locale,
+                )}
               </span>
             </li>
           ))}

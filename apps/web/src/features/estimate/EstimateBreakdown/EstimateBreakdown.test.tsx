@@ -212,7 +212,17 @@ describe('EstimateBreakdown', () => {
         rate={{ uahPerUsd: 44.55 }}
       />,
     );
-    const expected = moneyMinor(187110, 'UAH', 'uk').replace(/\s/g, ' ');
+    const kopecks = model.materials.rooms
+      .flatMap((room) => room.lines)
+      .flatMap((line) => line.accessories)
+      .find(
+        (accessory) => accessory.key === 'laminate_underlay',
+      )?.amountUahKopecks;
+    expect(kopecks).toBeTypeOf('number');
+    const expected = moneyMinor(kopecks as number, 'UAH', 'uk').replace(
+      /\s/g,
+      ' ',
+    );
     expect(
       (screen.getByText(/Laminate underlay/).textContent ?? '').replace(
         /\s/g,
