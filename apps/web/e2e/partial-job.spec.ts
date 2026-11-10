@@ -141,9 +141,11 @@ test('separate works: one enabled floor is priced from its components', async ({
   await expect(row(components.material)).toContainText(
     dollars(materialCents, locale),
   );
-  await expect(
-    row(pricing.accessories?.laminate_underlay?.[locale] ?? ''),
-  ).toContainText(dollars(underlayCents, locale));
+  const underlayName = pricing.accessories?.laminate_underlay?.[locale];
+  expect(underlayName).toBeDefined();
+  await expect(row(underlayName as string)).toContainText(
+    dollars(underlayCents, locale),
+  );
   await expect(row(components.labor)).toContainText(
     dollars(laborCents, locale),
   );
