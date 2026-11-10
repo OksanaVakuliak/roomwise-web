@@ -2112,6 +2112,12 @@ export interface components {
             coefficients: {
                 [key: string]: number;
             };
+            accessories?: {
+                [key: string]: {
+                    en: string;
+                    uk: string;
+                };
+            };
             rules: {
                 id: string;
                 /** @enum {string} */
@@ -2245,10 +2251,11 @@ export interface components {
                     amountUahKopecks: number | null;
                     components?: {
                         /** @enum {string} */
-                        kind: "MATERIAL" | "LABOR" | "PREP";
+                        kind: "MATERIAL" | "ACCESSORY" | "LABOR" | "PREP";
                         ruleId: string;
                         amountCents: number;
                         sharedWithCategoryId?: string;
+                        coefficientKey?: string;
                     }[];
                     warnings: {
                         code: string;
@@ -2725,10 +2732,11 @@ export interface components {
                     amountUahKopecks: number | null;
                     components?: {
                         /** @enum {string} */
-                        kind: "MATERIAL" | "LABOR" | "PREP";
+                        kind: "MATERIAL" | "ACCESSORY" | "LABOR" | "PREP";
                         ruleId: string;
                         amountCents: number;
                         sharedWithCategoryId?: string;
+                        coefficientKey?: string;
                     }[];
                     warnings: {
                         code: string;
@@ -2765,6 +2773,9 @@ export interface components {
                         } | null;
                     } | null;
                 }[];
+                accessories: {
+                    [key: string]: string;
+                };
                 totals: {
                     usdCents: number;
                     uahKopecks: number | null;
@@ -2895,10 +2906,11 @@ export interface components {
                 amountUahKopecks: number | null;
                 components?: {
                     /** @enum {string} */
-                    kind: "MATERIAL" | "LABOR" | "PREP";
+                    kind: "MATERIAL" | "ACCESSORY" | "LABOR" | "PREP";
                     ruleId: string;
                     amountCents: number;
                     sharedWithCategoryId?: string;
+                    coefficientKey?: string;
                 }[];
                 warnings: {
                     code: string;
@@ -2935,6 +2947,9 @@ export interface components {
                     } | null;
                 } | null;
             }[];
+            accessories: {
+                [key: string]: string;
+            };
             totals: {
                 usdCents: number;
                 uahKopecks: number | null;
@@ -3224,10 +3239,11 @@ export interface components {
                     amountUahKopecks: number | null;
                     components?: {
                         /** @enum {string} */
-                        kind: "MATERIAL" | "LABOR" | "PREP";
+                        kind: "MATERIAL" | "ACCESSORY" | "LABOR" | "PREP";
                         ruleId: string;
                         amountCents: number;
                         sharedWithCategoryId?: string;
+                        coefficientKey?: string;
                     }[];
                     warnings: {
                         code: string;
@@ -3264,6 +3280,9 @@ export interface components {
                         } | null;
                     } | null;
                 }[];
+                accessories: {
+                    [key: string]: string;
+                };
                 totals: {
                     usdCents: number;
                     uahKopecks: number | null;

@@ -88,6 +88,23 @@ export function LineRow({
         value={value}
         className={line.disabled ? styles.disabled : undefined}
       />
+      {line.accessories.length === 0 ? null : (
+        <ul className={styles.accessories}>
+          {line.accessories.map((accessory) => (
+            <li key={accessory.id}>
+              {accessory.name} ·{' '}
+              <span className="num">
+                {displayMoney(
+                  accessory.amountCents,
+                  accessory.amountUahKopecks,
+                  currency,
+                  locale,
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
       {line.disabled ? null : (
         <LineWarnings warnings={line.warnings} errorCode={line.errorCode} />
       )}

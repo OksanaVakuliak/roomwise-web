@@ -82,6 +82,14 @@ const reference = {
     eng_plumbing_room: 113,
     mat_plumbing_room: 56,
   },
+  accessories: {
+    laminate_underlay: { en: 'Laminate underlay', uk: 'Підкладка під ламінат' },
+    tile_glue: { en: 'Tile glue', uk: 'Клей для плитки' },
+    tile_glue_heated: {
+      en: 'Heated floor tile glue',
+      uk: 'Клей для теплої підлоги',
+    },
+  },
   rules: [
     {
       id: 'rule-floor',

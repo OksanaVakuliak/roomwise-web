@@ -69,6 +69,11 @@ function SpecRow({ item, size }: { item: Item; size: (typeof SIZES)[number] }) {
                 amount: money(item.cents * ROOM_AREA, 'USD', locale),
               },
               {
+                id: 'accessory',
+                label: t('componentAccessory'),
+                amount: money(200 * ROOM_AREA, 'USD', locale),
+              },
+              {
                 id: 'labor',
                 label: t('componentLabor'),
                 amount: money(420 * ROOM_AREA, 'USD', locale),

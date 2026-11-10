@@ -8,6 +8,7 @@ import {
 } from '@/features/estimate';
 import type { VersionView } from '@/lib/api/calculations';
 import { roomOrdinal } from '@/lib/draft/rooms';
+import { ownName } from '@/lib/engine/accessory-component';
 
 type Line = VersionView['lines'][number];
 
@@ -29,7 +30,10 @@ function indexNames(
   return names;
 }
 
-export function snapshotCatalog(lines: readonly Line[]): EstimateCatalog {
+export function snapshotCatalog(
+  lines: readonly Line[],
+  accessories: Readonly<Record<string, string>> = {},
+): EstimateCatalog {
   const products = new Map<string, EstimateProductName>();
   for (const line of lines) {
     if (line.productId !== null && line.product !== null) {
@@ -65,6 +69,7 @@ export function snapshotCatalog(lines: readonly Line[]): EstimateCatalog {
     option: (id) => options.get(id),
     packageItem: (id) => packageItems.get(id),
     rule: (id) => rules.get(id),
+    accessory: (key) => ownName(accessories, key),
   };
 }
 
@@ -108,6 +113,7 @@ export function snapshotEstimate(version: VersionView): Estimate {
       unitPriceCents: line.unitPriceCents,
       amountCents: line.amountCents,
       amountUahKopecks: line.amountUahKopecks,
+      components: line.components,
       warnings: line.warnings,
       error:
         line.error ??
@@ -123,6 +129,6 @@ export function toSnapshotModel(version: VersionView): EstimateModel {
   return buildEstimateModel({
     estimate: snapshotEstimate(version),
     rooms: snapshotRooms(version),
-    catalog: snapshotCatalog(version.lines),
+    catalog: snapshotCatalog(version.lines, version.accessories),
   });
 }

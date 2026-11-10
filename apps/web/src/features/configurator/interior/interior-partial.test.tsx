@@ -21,6 +21,7 @@ import {
   makePartialRoomDraft,
   noLandmarkRule,
   offSelection,
+  pricing,
   renderStep,
   showcase,
   styleSelection,
@@ -111,6 +112,7 @@ describe('InteriorStep at partial scope', () => {
       const line = estimateLine(currentDraft(), floorLineId);
       expect(line?.components?.map((component) => component.kind)).toEqual([
         'MATERIAL',
+        'ACCESSORY',
         'LABOR',
         'PREP',
       ]);
@@ -119,6 +121,7 @@ describe('InteriorStep at partial scope', () => {
       );
       expect(items.map((item) => item.firstElementChild?.textContent)).toEqual([
         text.material,
+        pricing.accessories?.laminate_underlay?.[locale],
         text.labor,
         text.prep,
       ]);
@@ -190,7 +193,7 @@ describe('InteriorStep at partial scope', () => {
     const material = alone?.components?.find((c) => c.kind === 'MATERIAL');
     expect(card).toHaveTextContent(usd(alone?.amountCents));
     expect(alone?.amountCents).toBeGreaterThan(material?.amountCents ?? 0);
-    expect(within(card).getAllByRole('listitem')).toHaveLength(3);
+    expect(within(card).getAllByRole('listitem')).toHaveLength(4);
   });
 
   describe('fill from style', () => {

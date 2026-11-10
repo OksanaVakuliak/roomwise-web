@@ -116,6 +116,54 @@ async function click(element: HTMLElement) {
   });
 }
 
+const accessoryNames = {
+  en: { laminate_underlay: 'Laminate underlay', tile_glue: 'Tile glue' },
+  uk: {
+    laminate_underlay: 'Підкладка під ламінат',
+    tile_glue: 'Клей для плитки',
+  },
+} as const;
+
+function withAccessories(locale: 'en' | 'uk') {
+  const base = makeVersionView();
+  const lines = base.lines.map((line) => {
+    if (line.id === 'MATERIALS:living:cat-floor') {
+      return {
+        ...line,
+        components: [
+          {
+            kind: 'MATERIAL' as const,
+            ruleId: 'rule-floor',
+            amountCents: 37800,
+          },
+          {
+            kind: 'ACCESSORY' as const,
+            ruleId: 'rule-floor',
+            coefficientKey: 'laminate_underlay',
+            amountCents: 4200,
+          },
+        ],
+      };
+    }
+    if (line.id === 'MATERIALS:bath:cat-floor') {
+      return {
+        ...line,
+        components: [
+          { kind: 'MATERIAL' as const, ruleId: 'rule-tile', amountCents: 9900 },
+          {
+            kind: 'ACCESSORY' as const,
+            ruleId: 'rule-tile',
+            coefficientKey: 'tile_glue',
+            amountCents: 9240,
+          },
+        ],
+      };
+    }
+    return line;
+  });
+  return makeVersionView({ lines, accessories: accessoryNames[locale] });
+}
+
 describe('saved calculation page', () => {
   beforeEach(() => {
     get.mockReset();
@@ -160,6 +208,66 @@ describe('saved calculation page', () => {
       expect(screen.queryByText(t.expired)).not.toBeInTheDocument();
       expect(screen.queryByText(t.recalculate)).not.toBeInTheDocument();
       expect(await axe(container)).toHaveNoViolations();
+    });
+
+    it('shows accessory sub-lines under the product line', async () => {
+      const version = withAccessories(locale);
+      get.mockResolvedValue(ok(version));
+      const { container } = await renderSaved(locale);
+
+      const names = accessoryNames[locale];
+      const sublines = [
+        [names.laminate_underlay, 4200],
+        [names.tile_glue, 9240],
+      ] as const;
+      for (const [name, cents] of sublines) {
+        const item = (await screen.findByText(new RegExp(name))).closest('li');
+        expect(normalize(item?.textContent ?? '')).toBe(
+          `${name} · ${normalize(moneyMinor(cents, 'USD', locale))}`,
+        );
+      }
+      for (const line of version.lines) {
+        if (line.components) {
+          const sum = line.components.reduce(
+            (total, component) => total + component.amountCents,
+            0,
+          );
+          expect(sum).toBe(line.amountCents);
+        }
+      }
+      expect(await axe(container)).toHaveNoViolations();
+    });
+
+    it('hides accessory sub-lines of an item that is no longer available', async () => {
+      const version = withAccessories(locale);
+      const priceStatus = version.priceStatus;
+      if (!priceStatus) {
+        throw new Error('price status expected');
+      }
+      get.mockResolvedValue(
+        ok({
+          ...version,
+          priceStatus: {
+            ...priceStatus,
+            unavailableItems: [
+              {
+                lineId: 'MATERIALS:living:cat-floor',
+                productId: null,
+                optionId: null,
+              },
+            ],
+          },
+        }),
+      );
+      await renderSaved(locale);
+
+      const names = accessoryNames[locale];
+      expect(
+        await screen.findByText(new RegExp(names.tile_glue)),
+      ).toBeVisible();
+      expect(
+        screen.queryByText(new RegExp(names.laminate_underlay)),
+      ).not.toBeInTheDocument();
     });
 
     it('offers to recalculate when prices changed and opens the new version', async () => {
@@ -281,6 +389,25 @@ describe('saved calculation page', () => {
       expect(useDraft.getState().lastSaved).toBeNull();
     });
   });
+
+  it.each([
+    ['an empty map', {}],
+    ['no map', undefined],
+  ])(
+    'opens an old snapshot with %s without accessory lines',
+    async (_, accessories) => {
+      const version = withAccessories('en');
+      const { accessories: _drop, ...rest } = version;
+      get.mockResolvedValue(
+        ok(accessories === undefined ? rest : { ...version, accessories }),
+      );
+      await renderSaved();
+
+      await screen.findByText('Oak Natural Laminate');
+      expect(screen.queryByText(/Laminate underlay/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Tile glue/)).not.toBeInTheDocument();
+    },
+  );
 
   it('titles the saved separate works as works and materials', async () => {
     const base = makeVersionView();

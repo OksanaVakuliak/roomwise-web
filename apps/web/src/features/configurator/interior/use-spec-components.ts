@@ -4,6 +4,8 @@ import type { EstimateLine } from '@roomwise/calc-engine';
 import { useTranslations } from 'next-intl';
 import { useCallback } from 'react';
 import type { SpecComponentsItem } from '@/components/ui';
+import { useLang } from '@/lib/api/catalog';
+import { ownName, visibleAccessory } from '@/lib/engine/accessory-component';
 import type { RoomPricing } from '../shell/use-room-pricing';
 
 const KEYS = {
@@ -29,10 +31,19 @@ export function useSpecComponents(
 ): (line: EstimateLine | null | undefined) => LineDetails {
   const t = useTranslations('Specification');
   const tSurface = useTranslations('Surface');
+  const lang = useLang();
 
   return useCallback(
     (line) => {
-      if (!pricing?.partial || !line?.components) {
+      if (!pricing || !line?.components) {
+        return { items: [], laborMissing: false };
+      }
+      const nameOf = (key: string) =>
+        ownName(pricing.pricing.accessories, key)?.[lang];
+      const hasAccessory = line.components.some(
+        (component) => visibleAccessory(component, nameOf) !== undefined,
+      );
+      if (!pricing.partial && !hasAccessory) {
         return { items: [], laborMissing: false };
       }
       const amounts = pricing.formatParts(line);
@@ -54,6 +65,12 @@ export function useSpecComponents(
               ]
             : [];
         }
+        if (component.kind === 'ACCESSORY') {
+          const accessory = visibleAccessory(component, nameOf);
+          return accessory
+            ? [{ id, label: accessory.name, amount: amounts[index] }]
+            : [];
+        }
         if (component.kind !== 'MATERIAL' && component.amountCents === 0) {
           return [];
         }
@@ -72,6 +89,6 @@ export function useSpecComponents(
         ),
       };
     },
-    [pricing, categories, t, tSurface],
+    [pricing, categories, t, tSurface, lang],
   );
 }

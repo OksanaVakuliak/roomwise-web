@@ -342,6 +342,7 @@
     "warning": "Not for heated floor, selection stays available",
     "componentMaterial": "Material",
     "componentLabor": "Labor",
+    "componentAccessory": "Laminate underlay",
     "componentPrep": "Preparation",
     "unavailable": "temporarily unavailable",
     "gallery": "Gallery",

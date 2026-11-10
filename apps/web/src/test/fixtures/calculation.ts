@@ -295,6 +295,7 @@ export function makeVersionView(
       unavailableItems: [],
       currentPricingVersion: pricing.version,
     },
+    accessories: {},
     versions: makeVersions(),
     ...overrides,
   };

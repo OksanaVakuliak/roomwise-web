@@ -190,6 +190,46 @@ describe('result step', () => {
     },
   );
 
+  it.each(forEachLocale)(
+    'shows accessory sub-lines that add up with the product to the line total in %s',
+    async (locale) => {
+      const draft = withOptions(makeDraft());
+      const { estimate } = estimateOf(draft);
+      const { container } = await renderResult({ locale, draft });
+
+      const lang = locale === 'uk' ? 'uk' : 'en';
+      const items = screen
+        .getAllByRole('listitem')
+        .map((item) => (item.textContent ?? '').replace(/\s/g, ' '));
+      let shown = 0;
+      for (const line of estimate.lines) {
+        const components = line.components ?? [];
+        const accessories = components.filter(
+          (component) => component.kind === 'ACCESSORY',
+        );
+        const product = components
+          .filter((component) => component.kind === 'MATERIAL')
+          .reduce((total, component) => total + component.amountCents, 0);
+        const sum = accessories.reduce(
+          (total, component) => total + component.amountCents,
+          0,
+        );
+        if (accessories.length > 0) {
+          expect(product + sum).toBe(line.amountCents);
+        }
+        for (const component of accessories) {
+          const name =
+            pricing.accessories?.[component.coefficientKey ?? '']?.[lang];
+          const expected = `${name} · ${moneyMinor(component.amountCents, 'USD', locale)}`;
+          expect(items).toContain(expected.replace(/\s/g, ' '));
+          shown += 1;
+        }
+      }
+      expect(shown).toBeGreaterThan(0);
+      expect(await axe(container)).toHaveNoViolations();
+    },
+  );
+
   it('shows the engine total once, without the cost panel', async () => {
     await renderResult({ draft: withOptions(makeDraft()), shell: true });
     const { estimate } = estimateOf(useDraft.getState());

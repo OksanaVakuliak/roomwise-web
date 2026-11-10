@@ -13,7 +13,7 @@
     "api:types": "node scripts/api-types.mjs"
   },
   "dependencies": {
-    "@roomwise/calc-engine": "0.8.0",
+    "@roomwise/calc-engine": "0.9.0",
     "@sentry/nextjs": "^11.8.0",
     "@serwist/turbopack": "^9.5.13",
     "@tabler/icons-react": "^3.49.0",
