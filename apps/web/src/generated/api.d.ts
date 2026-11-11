@@ -1100,11 +1100,15 @@ export interface components {
                     id: string;
                     /** Format: uri */
                     url: string;
+                    /** Format: uri */
+                    previewUrl: string;
+                    realSizeMm: number | null;
                 };
                 tileWidthMm: number;
                 tileLengthMm: number;
                 fallbackColor: string;
             } | null;
+            surfaceColor: string | null;
         };
         PublicDefaultMaterialsResponseDto_Output: {
             /** Format: uuid */
@@ -1483,6 +1487,9 @@ export interface components {
                 id: string;
                 /** Format: uri */
                 url: string;
+                /** Format: uri */
+                previewUrl: string;
+                realSizeMm: number | null;
             } | null;
             /** @enum {string} */
             status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
@@ -1663,6 +1670,9 @@ export interface components {
                 id: string;
                 /** Format: uri */
                 url: string;
+                /** Format: uri */
+                previewUrl: string;
+                realSizeMm: number | null;
             } | null;
             /** @enum {string} */
             status: "DRAFT" | "PUBLISHED" | "ARCHIVED";

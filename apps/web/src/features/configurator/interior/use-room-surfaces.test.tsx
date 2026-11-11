@@ -20,7 +20,12 @@ type DraftRoom = ReturnType<typeof makeDraftRoom>;
 function surface(color: string) {
   return {
     kind: 'FLOOR' as const,
-    texture: { id: 't', url: `https://cdn.test/${color}.jpg` },
+    texture: {
+      id: 't',
+      url: `https://cdn.test/${color}.jpg`,
+      previewUrl: `https://cdn.test/${color}-512.jpg`,
+      realSizeMm: null,
+    },
     tileWidthMm: 190,
     tileLengthMm: 1200,
     fallbackColor: color,

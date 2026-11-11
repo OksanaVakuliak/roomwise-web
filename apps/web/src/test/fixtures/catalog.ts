@@ -278,7 +278,89 @@ export function makeProductDetails(
       { name: 'Class', value: '32' },
     ],
     surface: null,
+    surfaceColor: null,
     ...overrides,
+  };
+}
+
+type Surface = NonNullable<ProductDetails['surface']>;
+
+export function makeSurface(overrides: Partial<Surface> = {}): Surface {
+  return {
+    kind: 'FLOOR',
+    texture: {
+      id: 'tx-floor-tile',
+      url: 'https://cdn.test/textures/floor-tile.jpg',
+      previewUrl: 'https://cdn.test/textures/floor-tile-512.jpg',
+      realSizeMm: 1500,
+    },
+    tileWidthMm: 600,
+    tileLengthMm: 600,
+    fallbackColor: '#9a9a9a',
+    ...overrides,
+  };
+}
+
+export function makeSurfaceProducts() {
+  return {
+    floorTile: makeProductDetails(productIds.tile, {
+      surface: makeSurface(),
+      surfaceColor: '#9a9a9a',
+    }),
+    wallPaint: makeProductDetails(productIds.paint, {
+      surface: makeSurface({
+        kind: 'WALLS',
+        texture: {
+          id: 'tx-wall-paint',
+          url: 'https://cdn.test/textures/wall-paint.jpg',
+          previewUrl: 'https://cdn.test/textures/wall-paint-512.jpg',
+          realSizeMm: null,
+        },
+        tileWidthMm: 1000,
+        tileLengthMm: 1000,
+        fallbackColor: '#f2efe9',
+      }),
+      surfaceColor: '#f2efe9',
+    }),
+    wallWallpaper: makeProductDetails(productIds.paintPremium, {
+      name: 'Linen Wallpaper',
+      surface: makeSurface({
+        kind: 'WALLS',
+        texture: {
+          id: 'tx-wallpaper',
+          url: 'https://cdn.test/textures/wallpaper.jpg',
+          previewUrl: 'https://cdn.test/textures/wallpaper-512.jpg',
+          realSizeMm: 530,
+        },
+        tileWidthMm: 530,
+        tileLengthMm: 10050,
+        fallbackColor: '#d8c9ae',
+      }),
+      surfaceColor: '#d8c9ae',
+    }),
+    ceiling: makeProductDetails(productIds.ceilingPaint, {
+      surface: makeSurface({
+        kind: 'CEILING',
+        texture: {
+          id: 'tx-ceiling',
+          url: 'https://cdn.test/textures/ceiling.jpg',
+          previewUrl: 'https://cdn.test/textures/ceiling-512.jpg',
+          realSizeMm: null,
+        },
+        tileWidthMm: 1000,
+        tileLengthMm: 1000,
+        fallbackColor: '#ffffff',
+      }),
+      surfaceColor: '#ffffff',
+    }),
+    colorOnly: makeProductDetails(productIds.laminatePremium, {
+      surface: null,
+      surfaceColor: '#6b4a2f',
+    }),
+    bare: makeProductDetails(productIds.laminate, {
+      surface: null,
+      surfaceColor: null,
+    }),
   };
 }
 
