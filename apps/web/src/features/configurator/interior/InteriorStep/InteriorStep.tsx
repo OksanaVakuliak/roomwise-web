@@ -21,9 +21,8 @@ import { useRoomPricing } from '../../shell/use-room-pricing';
 import { ChosenList } from '../ChosenList/ChosenList';
 import { ProductDetail } from '../ProductDetail/ProductDetail';
 import { RoomPlans } from '../RoomPlans/RoomPlans';
-import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
+import { RoomPreview } from '../RoomPreview/RoomPreview';
 import { Specification } from '../Specification/Specification';
-import { toSceneSurfaces, useRoomSurfaces } from '../use-room-surfaces';
 import styles from './InteriorStep.module.css';
 
 function InteriorContent() {
@@ -49,7 +48,6 @@ function InteriorContent() {
   const current =
     rooms.find((room) => room.clientId === requestedRoom) ?? rooms[0] ?? null;
   const needsRedirect = current !== null && current.clientId !== requestedRoom;
-  const surfaces = toSceneSurfaces(useRoomSurfaces(current));
   const pricing = useRoomPricing();
 
   const navigate = useCallback(
@@ -178,18 +176,6 @@ function InteriorContent() {
     };
   });
   const metrics = roomMetrics(current);
-  const { lengthM, widthM, heightM } = current;
-  const scene =
-    lengthM === null || widthM === null || heightM === null ? null : (
-      <ScenePlaceholder
-        name={roomName}
-        lengthM={lengthM}
-        widthM={widthM}
-        heightM={heightM}
-        surfaces={surfaces}
-      />
-    );
-
   return (
     <div className={styles.root}>
       <RoomPlans
@@ -234,7 +220,12 @@ function InteriorContent() {
         onChoose={chooseFromDetail}
         onClose={closeDetail}
       />
-      {sceneSlot && scene ? createPortal(scene, sceneSlot) : null}
+      {sceneSlot
+        ? createPortal(
+            <RoomPreview room={current} name={roomName} />,
+            sceneSlot,
+          )
+        : null}
       {pickerSlot && desktop
         ? createPortal(
             <Specification

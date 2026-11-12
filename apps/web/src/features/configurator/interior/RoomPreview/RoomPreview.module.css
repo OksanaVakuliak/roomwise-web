@@ -1,0 +1,18 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.stage {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--paper);
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
