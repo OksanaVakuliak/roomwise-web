@@ -69,6 +69,11 @@ export function SpecItem({
     unavailable && styles.unavailable,
   );
 
+  const toggleLabel = open ? hideDetailsLabel : showDetailsLabel;
+  const collapsible =
+    toggleLabel !== undefined &&
+    Boolean(brand || dimensions || color || fit || components || roomCost);
+
   const extra = (
     <>
       {brand || dimensions || color ? (
@@ -97,10 +102,6 @@ export function SpecItem({
       {roomCost}
     </span>
   ) : null;
-  const toggleLabel = open ? hideDetailsLabel : showDetailsLabel;
-  const collapsible =
-    toggleLabel !== undefined &&
-    Boolean(brand || dimensions || color || fit || components || roomCost);
 
   return (
     <div className={classes}>
