@@ -2,6 +2,11 @@
   animation: slide-up var(--duration-slow) var(--ease-enter);
 }
 
+.root.full {
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
 @keyframes slide-up {
   from {
     transform: translateY(100%);

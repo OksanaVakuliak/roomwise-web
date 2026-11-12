@@ -247,6 +247,7 @@ function InteriorContent() {
           onClose={closePicker}
           title={tSpec('title')}
           closeLabel={t('closePicker')}
+          full
         >
           <Specification
             room={current}
