@@ -74,6 +74,10 @@ function create(reducedMotion = true) {
   controller.mount(container);
 }
 
+function press(key: string, times = 1) {
+  for (let i = 0; i < times; i += 1) controller.handleKey(key);
+}
+
 function lastFrame(): { scene: Scene; camera: Camera } {
   const [scene, camera] = mocks.render.mock.calls.at(-1) as [Scene, Camera];
   return { scene, camera };
@@ -157,7 +161,8 @@ describe('room scene controller', () => {
     create();
     controller.setInput(input);
     const start = lastFrame().camera.position.clone();
-    controller.rotate(0.5, 0.2);
+    press('ArrowRight', 2);
+    press('ArrowDown', 2);
     expect(lastFrame().camera.position.distanceTo(start)).toBeGreaterThan(0.1);
 
     controller.setInput({ ...input, lengthM: 6 });
@@ -178,13 +183,13 @@ describe('room scene controller', () => {
     controller.setInput(input);
     const limits = cameraLimits(input, 800 / 600);
 
-    controller.zoom(1000);
+    press('-', 50);
     expect(polarAndDistance(input).distance).toBeCloseTo(limits.maxDistance, 3);
-    controller.zoom(0.0001);
+    press('+', 50);
     expect(polarAndDistance(input).distance).toBeCloseTo(limits.minDistance, 3);
-    controller.rotate(0, 10);
+    press('ArrowDown', 50);
     expect(polarAndDistance(input).polar).toBeCloseTo(limits.maxPolar, 3);
-    controller.rotate(0, -10);
+    press('ArrowUp', 50);
     expect(polarAndDistance(input).polar).toBeCloseTo(limits.minPolar, 3);
   });
 
@@ -216,7 +221,7 @@ describe('room scene controller', () => {
     controller.setActive(false);
     const paused = mocks.render.mock.calls.length;
     controller.setColors(colors);
-    controller.rotate(0.2, 0);
+    expect(controller.handleKey('ArrowLeft')).toBe(false);
     expect(mocks.render).toHaveBeenCalledTimes(paused);
     controller.setActive(true);
     expect(mocks.render).toHaveBeenCalledTimes(paused + 1);
@@ -229,7 +234,7 @@ describe('room scene controller', () => {
     const floor = () => find(lastFrame().scene, 'floor-edges').visible;
     expect(ceiling()).toBe(false);
     expect(floor()).toBe(true);
-    controller.rotate(0, 10);
+    press('ArrowDown', 50);
     expect(ceiling()).toBe(true);
   });
 
@@ -237,7 +242,8 @@ describe('room scene controller', () => {
     create(true);
     controller.setInput(input);
     const start = lastFrame().camera.position.clone();
-    controller.rotate(0.6, 0.3);
+    press('ArrowRight', 3);
+    press('ArrowDown', 2);
     controller.resetView();
     expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
     controller.topView();
@@ -250,7 +256,8 @@ describe('room scene controller', () => {
     create(false);
     controller.setInput(input);
     const start = lastFrame().camera.position.clone();
-    controller.rotate(0.6, 0.3);
+    press('ArrowRight', 3);
+    press('ArrowDown', 2);
     controller.resetView();
     const turned = lastFrame().camera.position.distanceTo(start);
     expect(turned).toBeGreaterThan(0.1);
@@ -260,6 +267,27 @@ describe('room scene controller', () => {
     expect(mid).toBeLessThan(turned);
     vi.advanceTimersByTime(300);
     expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
+  });
+
+  it('handles known keys and ignores unknown ones without rendering', () => {
+    create();
+    controller.setInput(input);
+    for (const key of [
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      '+',
+      '=',
+      '-',
+      '−',
+    ]) {
+      expect(controller.handleKey(key)).toBe(true);
+    }
+    const before = mocks.render.mock.calls.length;
+    expect(controller.handleKey('a')).toBe(false);
+    expect(controller.handleKey('Enter')).toBe(false);
+    expect(mocks.render).toHaveBeenCalledTimes(before);
   });
 
   it('removes the canvas on dispose', () => {

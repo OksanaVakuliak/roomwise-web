@@ -7,6 +7,7 @@ import {
   clampView,
   defaultView,
   fovDegrees,
+  stepView,
   topView as toTopView,
   visibleFaces,
 } from '../camera';
@@ -38,8 +39,7 @@ export type RoomSceneController = {
   resize(width: number, height: number): void;
   resetView(): void;
   topView(): void;
-  rotate(deltaAzimuth: number, deltaPolar: number): void;
-  zoom(factor: number): void;
+  handleKey(key: string): boolean;
   setActive(active: boolean): void;
   setReducedMotion(reduced: boolean): void;
   dispose(): void;
@@ -249,22 +249,17 @@ export function createRoomSceneController({
       if (!input) return;
       moveTo(toTopView(currentView(roomSize(input))), true);
     },
-    rotate(deltaAzimuth, deltaPolar) {
-      if (!input || !active) return;
-      const view = currentView(roomSize(input));
-      moveTo(
-        {
-          ...view,
-          azimuth: view.azimuth + deltaAzimuth,
-          polar: view.polar + deltaPolar,
-        },
-        false,
+    handleKey(key) {
+      if (!input || !active) return false;
+      const room = roomSize(input);
+      const next = stepView(
+        currentView(room),
+        key,
+        cameraLimits(room, aspect()),
       );
-    },
-    zoom(factor) {
-      if (!input || !active) return;
-      const view = currentView(roomSize(input));
-      moveTo({ ...view, distance: view.distance * factor }, false);
+      if (!next) return false;
+      moveTo(next, false);
+      return true;
     },
     setActive(next) {
       active = next;
