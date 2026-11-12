@@ -31,6 +31,8 @@ describe('room mesh', () => {
       expect(mesh.geometry.parameters.height).toBe(spec.heightM);
       expect(mesh.material.type).toBe('MeshBasicMaterial');
       expect(mesh.material.side).toBe(FrontSide);
+      expect(mesh.material.polygonOffset).toBe(true);
+      expect(mesh.material.polygonOffsetFactor).toBeGreaterThan(0);
     }
   });
 

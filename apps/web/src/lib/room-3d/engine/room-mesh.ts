@@ -48,7 +48,13 @@ function createPlane(spec: PlaneSpec, colors: SceneColors): PlaneEntry {
   const geometry = new PlaneGeometry(spec.widthM, spec.heightM);
   const mesh = new Mesh(
     geometry,
-    new MeshBasicMaterial({ color: colors.neutral, side: FrontSide }),
+    new MeshBasicMaterial({
+      color: colors.neutral,
+      side: FrontSide,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
+    }),
   );
   const edges = new LineSegments(
     new EdgesGeometry(geometry),
