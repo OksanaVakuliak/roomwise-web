@@ -903,6 +903,7 @@
     "reset": "Reset view",
     "top": "Top view",
     "loading": "Preparing the 3D view…",
+    "description": "{name}, {length} × {width}, height {height}, area {area}",
     "cut": "A",
     "fallbackDescription": "{name} {length} by {width}, height {height}, section line A–A through the floor"
   },

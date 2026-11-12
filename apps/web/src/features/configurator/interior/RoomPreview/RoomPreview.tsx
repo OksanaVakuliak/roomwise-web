@@ -1,16 +1,24 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   RoomCanvas,
   RoomScene,
   SceneToolbar,
   type SceneToolbarAction,
   Skeleton,
+  VisuallyHidden,
 } from '@/components/ui';
 import type { DraftRoom } from '@/lib/draft/schema';
-import { dimension } from '@/lib/format';
+import { area, dimension } from '@/lib/format';
 import { usePrefersReducedMotion } from '@/lib/media';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import { isWebGlSupported } from '@/lib/room-3d/support';
@@ -40,6 +48,7 @@ function readColors(element: HTMLElement): SceneColors {
 export function RoomPreview({ room, name }: RoomPreviewProps) {
   const t = useTranslations('RoomPreview');
   const locale = useLocale();
+  const descriptionId = useId();
   const reducedMotion = usePrefersReducedMotion();
   const surfaces = useRoomSurfaces(room);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -124,10 +133,22 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             reducedMotion={reducedMotion}
             onStatus={setStatus}
             label={t('label', { name })}
+            describedBy={descriptionId}
             roleDescription={t('roleDescription')}
             controllerRef={controllerRef}
           />
         ) : null}
+        <VisuallyHidden>
+          <span id={descriptionId}>
+            {t('description', {
+              name,
+              length: dimension(lengthM, locale),
+              width: dimension(widthM, locale),
+              height: dimension(heightM, locale),
+              area: area(lengthM * widthM, locale),
+            })}
+          </span>
+        </VisuallyHidden>
         {colors === null || status === 'loading' ? (
           <div
             className={styles.loading}

@@ -2,6 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { type MutableRefObject, useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RoomCanvasProps } from '@/components/ui';
+import { area, dimension } from '@/lib/format';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import type { SceneStatus } from '@/lib/room-3d/types';
 import { makeDraftRoom } from '@/test/fixtures/draft';
@@ -75,6 +76,28 @@ describe('RoomPreview', () => {
     });
     expect(canvas.props?.label).toBe('Living room in 3D');
     expect(canvas.props?.roleDescription).toBe('3D view');
+  });
+
+  it('describes the room dimensions to screen readers', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+
+    const id = canvas.props?.describedBy as string;
+    const description = document.getElementById(id);
+    expect(description).toHaveTextContent('Living room');
+    expect(description).toHaveTextContent(
+      dimension(first.lengthM as number, 'en'),
+    );
+    expect(description).toHaveTextContent(
+      dimension(first.widthM as number, 'en'),
+    );
+    expect(description).toHaveTextContent(
+      dimension(first.heightM as number, 'en'),
+    );
+    expect(description).toHaveTextContent(
+      area((first.lengthM as number) * (first.widthM as number), 'en'),
+    );
   });
 
   it('calls the controller from the toolbar buttons', async () => {
