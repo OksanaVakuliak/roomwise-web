@@ -295,6 +295,8 @@
     "fitOk": "можна над кабелем",
     "fitNo": "не над кабелем",
     "perSquare": "за м²",
+    "showDetails": "Показати деталі",
+    "hideDetails": "Сховати деталі",
     "items": {
       "oak": {
         "name": "Ламінат «Дуб Карпатський»",
@@ -1030,6 +1032,8 @@
     "forRoom": "для приміщення",
     "detail": "Детальніше",
     "detailLabel": "Детальніше: {name}",
+    "showDetails": "Показати склад ціни: {name}",
+    "hideDetails": "Сховати склад ціни: {name}",
     "choose": "Обрати",
     "chosen": "Обрано",
     "chooseLabel": "Обрати: {name}",

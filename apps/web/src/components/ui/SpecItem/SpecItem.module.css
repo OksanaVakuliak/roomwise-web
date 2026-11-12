@@ -149,9 +149,30 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-8);
   grid-column: 2 / -1;
   margin-top: var(--space-4);
+}
+
+.inline {
+  flex-wrap: nowrap;
+}
+
+.inline > :not(.toggle) {
+  min-width: 0;
+}
+
+.toggle {
+  margin-inline-start: auto;
+}
+
+.collapse {
+  grid-column: 2 / -1;
+}
+
+.extra {
+  padding-top: var(--space-4);
 }
 
 @container (max-width: 20rem) {
