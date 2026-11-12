@@ -892,14 +892,17 @@
     "switcherLabel": "Rooms",
     "loading": "Loading rooms",
     "roomFallback": "Room",
-    "scene": {
-      "cut": "A",
-      "description": "{name} {length} by {width}, height {height}, section line A–A through the floor"
-    },
     "unitM": "m",
     "wallsMobile": "walls {walls}",
     "perimeter": "perimeter {perimeter}",
     "closePicker": "Close"
+  },
+  "RoomPreview": {
+    "roleDescription": "3D view",
+    "label": "{name} in 3D",
+    "reset": "Reset view",
+    "top": "Top view",
+    "loading": "Preparing the 3D view…"
   },
   "ObjectStep": {
     "form": {
