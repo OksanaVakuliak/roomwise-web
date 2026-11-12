@@ -35,11 +35,11 @@ describe('SceneToolbar', () => {
           {
             id: 'toggle',
             label: 'Toggle',
-            icon: 'scene3d',
+            icon: 'resetView',
             onClick: vi.fn(),
             pressed: true,
           },
-          { id: 'plain', label: 'Plain', icon: 'expand', onClick: vi.fn() },
+          { id: 'plain', label: 'Plain', icon: 'topView', onClick: vi.fn() },
         ]}
       />,
     );
@@ -50,6 +50,29 @@ describe('SceneToolbar', () => {
     expect(screen.getByRole('button', { name: 'Plain' })).not.toHaveAttribute(
       'aria-pressed',
     );
+  });
+
+  it('disables only the actions marked as disabled', () => {
+    const onClick = vi.fn();
+    render(
+      <SceneToolbar
+        actions={[
+          {
+            id: 'reset',
+            label: 'Reset',
+            icon: 'resetView',
+            onClick,
+            disabled: true,
+          },
+          { id: 'top', label: 'Top', icon: 'topView', onClick: vi.fn() },
+        ]}
+      />,
+    );
+    const reset = screen.getByRole('button', { name: 'Reset' });
+    expect(reset).toBeDisabled();
+    fireEvent.click(reset);
+    expect(onClick).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Top' })).toBeEnabled();
   });
 
   it('has no accessibility violations', async () => {

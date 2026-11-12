@@ -78,9 +78,16 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     return null;
   }
 
+  const disabled = status !== 'ready';
   const actions: SceneToolbarAction[] = [
-    { id: 'reset', label: t('reset'), icon: 'resetView', onClick: resetView },
-    { id: 'top', label: t('top'), icon: 'topView', onClick: topView },
+    {
+      id: 'reset',
+      label: t('reset'),
+      icon: 'resetView',
+      onClick: resetView,
+      disabled,
+    },
+    { id: 'top', label: t('top'), icon: 'topView', onClick: topView, disabled },
   ];
 
   if (webGl === false || status === 'error' || status === 'lost') {

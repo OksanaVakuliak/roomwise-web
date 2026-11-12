@@ -8,6 +8,7 @@ export type SceneToolbarAction = {
   icon: IconName;
   onClick: () => void;
   pressed?: boolean;
+  disabled?: boolean;
 };
 
 export type SceneToolbarProps = {
@@ -17,12 +18,13 @@ export type SceneToolbarProps = {
 export function SceneToolbar({ actions }: SceneToolbarProps) {
   return (
     <div className={styles.root}>
-      {actions.map(({ id, label, icon, onClick, pressed }) => (
+      {actions.map(({ id, label, icon, onClick, pressed, disabled }) => (
         <IconButton
           key={id}
           label={label}
           icon={icon}
           onClick={onClick}
+          disabled={disabled}
           aria-pressed={pressed}
         />
       ))}

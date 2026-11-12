@@ -81,12 +81,28 @@ describe('RoomPreview', () => {
     await act(async () => {
       renderPreview();
     });
+    setStatus('ready');
 
     fireEvent.click(screen.getByRole('button', { name: en.RoomPreview.reset }));
     fireEvent.click(screen.getByRole('button', { name: en.RoomPreview.top }));
 
     expect(controller.resetView).toHaveBeenCalledTimes(1);
     expect(controller.topView).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the toolbar disabled until the scene is ready', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    const reset = screen.getByRole('button', { name: en.RoomPreview.reset });
+    const top = screen.getByRole('button', { name: en.RoomPreview.top });
+    expect(reset).toBeDisabled();
+    expect(top).toBeDisabled();
+
+    setStatus('ready');
+
+    expect(reset).toBeEnabled();
+    expect(top).toBeEnabled();
   });
 
   it('gives the canvas a new room key when the room changes', async () => {
