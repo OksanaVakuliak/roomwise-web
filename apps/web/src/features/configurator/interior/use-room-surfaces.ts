@@ -44,15 +44,18 @@ export function useRoomSurfaces(room: DraftRoom | null): SurfaceMaterials {
       ...productQuery(productId, lang),
       enabled: ready,
     })),
+    combine: (results) => results.map(({ data }) => data),
   });
 
-  const loaded = new Map<string, SurfaceProduct>();
-  for (const { data } of products) {
-    if (data) {
-      loaded.set(data.id, data);
+  return useMemo(() => {
+    const loaded = new Map<string, SurfaceProduct>();
+    for (const data of products) {
+      if (data) {
+        loaded.set(data.id, data);
+      }
     }
-  }
-  return resolveSceneMaterials(selections, categories, loaded);
+    return resolveSceneMaterials(selections, categories, loaded);
+  }, [products, selections, categories]);
 }
 
 export function toSceneSurfaces({

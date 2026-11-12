@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   RoomCanvas,
   RoomScene,
@@ -58,20 +58,26 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     }
   }, [hasDimensions]);
 
+  const input = useMemo<RoomSceneInput | null>(
+    () =>
+      lengthM === null || widthM === null || heightM === null
+        ? null
+        : { roomKey: room.clientId, lengthM, widthM, heightM, surfaces },
+    [room.clientId, lengthM, widthM, heightM, surfaces],
+  );
+
   const resetView = useCallback(() => controllerRef.current?.resetView(), []);
   const topView = useCallback(() => controllerRef.current?.topView(), []);
 
-  if (lengthM === null || widthM === null || heightM === null) {
+  if (
+    input === null ||
+    lengthM === null ||
+    widthM === null ||
+    heightM === null
+  ) {
     return null;
   }
 
-  const input: RoomSceneInput = {
-    roomKey: room.clientId,
-    lengthM,
-    widthM,
-    heightM,
-    surfaces,
-  };
   const actions: SceneToolbarAction[] = [
     { id: 'reset', label: t('reset'), icon: 'resetView', onClick: resetView },
     { id: 'top', label: t('top'), icon: 'topView', onClick: topView },
