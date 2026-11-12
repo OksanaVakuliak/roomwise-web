@@ -902,6 +902,8 @@
     "label": "{name} in 3D",
     "reset": "Reset view",
     "top": "Top view",
+    "expand": "Expand",
+    "collapse": "Close",
     "loading": "Preparing the 3D view…",
     "description": "{name}, {length} × {width}, height {height}, area {area}",
     "cut": "A",

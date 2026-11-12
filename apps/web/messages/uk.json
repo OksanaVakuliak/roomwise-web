@@ -902,6 +902,8 @@
     "label": "{name} у 3D",
     "reset": "Скинути вигляд",
     "top": "Вигляд зверху",
+    "expand": "Розгорнути",
+    "collapse": "Закрити",
     "loading": "Готуємо 3D-перегляд…",
     "description": "{name}, {length} × {width}, висота {height}, площа {area}",
     "cut": "А",

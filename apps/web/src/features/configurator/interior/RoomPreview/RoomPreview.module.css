@@ -1,3 +1,11 @@
+.slot {
+  min-width: 0;
+}
+
+.held {
+  height: var(--slot-height);
+}
+
 .root {
   display: flex;
   flex-direction: column;
@@ -15,4 +23,43 @@
   position: absolute;
   inset: 0;
   display: flex;
+}
+
+.floating {
+  position: fixed;
+  top: var(--expand-top);
+  left: var(--expand-left);
+  z-index: var(--z-panel);
+  width: var(--expand-width);
+  height: var(--expand-height);
+  padding: var(--space-16);
+  background: var(--sheet);
+  transform-origin: 0 0;
+}
+
+.floating .stage {
+  flex: 1 1 0;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+.floating[data-mode="enter"],
+.floating[data-mode="leave"] {
+  transform: translate(var(--flip-x), var(--flip-y))
+    scale(var(--flip-sx), var(--flip-sy));
+}
+
+.floating[data-mode="open"] {
+  transform: none;
+}
+
+.floating[data-mode="open"],
+.floating[data-mode="leave"] {
+  transition: transform var(--duration-slow) var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating {
+    transition: none;
+  }
 }
