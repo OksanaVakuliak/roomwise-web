@@ -1,0 +1,33 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--size-compact);
+  height: var(--size-compact);
+  padding: 0;
+  border: var(--stroke-1-5) solid var(--line);
+  background: transparent;
+  color: var(--line);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.root:hover {
+  background: var(--fill-a);
+}
+
+.root > svg {
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+
+.expanded > svg {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .root > svg {
+    transition: none;
+  }
+}

@@ -1,0 +1,28 @@
+.root {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows var(--duration-base) var(--ease-standard),
+    visibility 0s linear var(--duration-base);
+}
+
+.open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows var(--duration-base) var(--ease-standard),
+    visibility 0s;
+}
+
+.inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .open {
+    transition: none;
+  }
+}
