@@ -101,4 +101,44 @@ describe('textureRepeat', () => {
       );
     }
   });
+
+  it('orients every wall the same way: U follows the step width, V its length', () => {
+    const narrow = { lengthM: 5, widthM: 1, heightM: 2.7 };
+    const step = { widthMm: 300, lengthMm: 600 };
+    const walls = ['wallBack', 'wallFront', 'wallLeft', 'wallRight'] as const;
+
+    for (const id of walls) {
+      const plane = roomPlane(id, narrow);
+      const [u, v] = textureRepeat(id, narrow, step);
+
+      expect(u).toBeCloseTo((plane.widthM * 1000) / 300, 10);
+      expect(v).toBeCloseTo((plane.heightM * 1000) / 600, 10);
+    }
+  });
+
+  it('orients floor and ceiling identically, with the step length along the longer room side', () => {
+    const step = { widthMm: 130, lengthMm: 1200 };
+    const wide = { lengthM: 3, widthM: 5, heightM: 2.7 };
+
+    expect(textureRepeat('ceiling', room, step)).toEqual(
+      textureRepeat('floor', room, step),
+    );
+    expect(textureRepeat('ceiling', wide, step)).toEqual(
+      textureRepeat('floor', wide, step),
+    );
+
+    const [u, v] = textureRepeat('floor', wide, step);
+    expect(u).toBeCloseTo(3000 / 130, 10);
+    expect(v).toBeCloseTo(5000 / 1200, 10);
+  });
+
+  it('runs the step length along the room length axis on a square room', () => {
+    const [u, v] = textureRepeat('floor', square, {
+      widthMm: 300,
+      lengthMm: 600,
+    });
+
+    expect(u).toBeCloseTo(3000 / 600, 10);
+    expect(v).toBeCloseTo(3000 / 300, 10);
+  });
 });

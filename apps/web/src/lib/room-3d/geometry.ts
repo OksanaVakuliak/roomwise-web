@@ -21,78 +21,65 @@ export type PlaneSpec = {
   normal: Vec3;
 };
 
-export const planeIds: readonly PlaneId[] = [
-  'floor',
-  'ceiling',
-  'wallBack',
-  'wallFront',
-  'wallLeft',
-  'wallRight',
-];
+const planeBuilders: Record<PlaneId, (room: RoomSize) => PlaneSpec> = {
+  floor: ({ lengthM, widthM }) => ({
+    id: 'floor',
+    surface: 'floor',
+    widthM: lengthM,
+    heightM: widthM,
+    position: [0, 0, 0],
+    normal: [0, 1, 0],
+  }),
+  ceiling: ({ lengthM, widthM, heightM }) => ({
+    id: 'ceiling',
+    surface: 'ceiling',
+    widthM: lengthM,
+    heightM: widthM,
+    position: [0, heightM, 0],
+    normal: [0, -1, 0],
+  }),
+  wallBack: ({ lengthM, widthM, heightM }) => ({
+    id: 'wallBack',
+    surface: 'walls',
+    widthM: lengthM,
+    heightM,
+    position: [0, heightM / 2, -widthM / 2],
+    normal: [0, 0, 1],
+  }),
+  wallFront: ({ lengthM, widthM, heightM }) => ({
+    id: 'wallFront',
+    surface: 'walls',
+    widthM: lengthM,
+    heightM,
+    position: [0, heightM / 2, widthM / 2],
+    normal: [0, 0, -1],
+  }),
+  wallLeft: ({ lengthM, widthM, heightM }) => ({
+    id: 'wallLeft',
+    surface: 'walls',
+    widthM,
+    heightM,
+    position: [-lengthM / 2, heightM / 2, 0],
+    normal: [1, 0, 0],
+  }),
+  wallRight: ({ lengthM, widthM, heightM }) => ({
+    id: 'wallRight',
+    surface: 'walls',
+    widthM,
+    heightM,
+    position: [lengthM / 2, heightM / 2, 0],
+    normal: [-1, 0, 0],
+  }),
+};
 
-export function roomPlanes({
-  lengthM,
-  widthM,
-  heightM,
-}: RoomSize): PlaneSpec[] {
-  return [
-    {
-      id: 'floor',
-      surface: 'floor',
-      widthM: lengthM,
-      heightM: widthM,
-      position: [0, 0, 0],
-      normal: [0, 1, 0],
-    },
-    {
-      id: 'ceiling',
-      surface: 'ceiling',
-      widthM: lengthM,
-      heightM: widthM,
-      position: [0, heightM, 0],
-      normal: [0, -1, 0],
-    },
-    {
-      id: 'wallBack',
-      surface: 'walls',
-      widthM: lengthM,
-      heightM,
-      position: [0, heightM / 2, -widthM / 2],
-      normal: [0, 0, 1],
-    },
-    {
-      id: 'wallFront',
-      surface: 'walls',
-      widthM: lengthM,
-      heightM,
-      position: [0, heightM / 2, widthM / 2],
-      normal: [0, 0, -1],
-    },
-    {
-      id: 'wallLeft',
-      surface: 'walls',
-      widthM: widthM,
-      heightM,
-      position: [-lengthM / 2, heightM / 2, 0],
-      normal: [1, 0, 0],
-    },
-    {
-      id: 'wallRight',
-      surface: 'walls',
-      widthM: widthM,
-      heightM,
-      position: [lengthM / 2, heightM / 2, 0],
-      normal: [-1, 0, 0],
-    },
-  ];
-}
+export const planeIds = Object.keys(planeBuilders) as PlaneId[];
 
 export function roomPlane(plane: PlaneId, room: RoomSize): PlaneSpec {
-  const found = roomPlanes(room).find((candidate) => candidate.id === plane);
-  if (!found) {
-    throw new Error(`Unknown plane ${plane}`);
-  }
-  return found;
+  return planeBuilders[plane](room);
+}
+
+export function roomPlanes(room: RoomSize): PlaneSpec[] {
+  return planeIds.map((id) => roomPlane(id, room));
 }
 
 export function textureRepeat(
@@ -101,8 +88,9 @@ export function textureRepeat(
   step: TextureStep,
 ): [number, number] {
   const { widthM, heightM } = roomPlane(plane, room);
-  const longAlongWidth = widthM >= heightM;
-  const stepU = longAlongWidth ? step.lengthMm : step.widthMm;
-  const stepV = longAlongWidth ? step.widthMm : step.lengthMm;
+  const isHorizontal = plane === 'floor' || plane === 'ceiling';
+  const horizontalIsLong = isHorizontal && room.lengthM >= room.widthM;
+  const stepU = horizontalIsLong ? step.lengthMm : step.widthMm;
+  const stepV = horizontalIsLong ? step.widthMm : step.lengthMm;
   return [(widthM * 1000) / stepU, (heightM * 1000) / stepV];
 }
