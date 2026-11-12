@@ -295,6 +295,20 @@ describe('room scene controller', () => {
     expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
   });
 
+  it('lets a running transition finish when the canvas is resized', () => {
+    vi.useFakeTimers();
+    create(false);
+    controller.setInput(input);
+    const start = lastFrame().camera.position.clone();
+    press('ArrowRight', 3);
+    press('ArrowDown', 2);
+    controller.resetView();
+    vi.advanceTimersByTime(100);
+    controller.resize(640, 480);
+    vi.advanceTimersByTime(400);
+    expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
+  });
+
   it('handles known keys and ignores unknown ones without rendering', () => {
     create();
     controller.setInput(input);

@@ -247,6 +247,7 @@ export function createRoomSceneController({
       if (!input) return;
       const room = roomSize(input);
       applyLimits(room);
+      if (frame !== null) return;
       moveTo(currentView(room), false);
     },
     resetView() {
