@@ -134,6 +134,10 @@ test('separate works: one enabled floor is priced from its components', async ({
     .filter({ hasText: components.material })
     .filter({ hasText: components.labor })
     .last();
+  const [showBreakdown] = messages.ChosenList.showDetails.split('{category}');
+  await floorLine
+    .getByRole('button', { name: new RegExp(`^${showBreakdown}`) })
+    .click();
   const row = (label: string) =>
     floorLine.getByRole('listitem').filter({
       has: page.getByText(label, { exact: true }),

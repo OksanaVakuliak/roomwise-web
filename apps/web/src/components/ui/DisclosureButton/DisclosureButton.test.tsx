@@ -34,9 +34,13 @@ describe('DisclosureButton', () => {
   });
 
   it('has no axe violations', async () => {
+    const region = document.createElement('div');
+    region.id = 'details';
+    document.body.append(region);
     const { container } = render(
       <DisclosureButton expanded controls="details" label="Hide" />,
     );
     expect(await axe(container)).toHaveNoViolations();
+    region.remove();
   });
 });
