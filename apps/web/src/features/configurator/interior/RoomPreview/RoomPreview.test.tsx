@@ -41,6 +41,8 @@ vi.mock('@/components/ui', async (importActual) => {
 const first = makeDraftRoom({ clientId: 'room-a' });
 const second = makeDraftRoom({ clientId: 'room-b', lengthM: 6, widthM: 3 });
 
+const normalized = (text: string) => text.replace(/\s+/g, ' ');
+
 function renderPreview(room = first, locale: 'en' | 'uk' = 'en') {
   return renderWithProviders(<RoomPreview room={room} name="Living room" />, {
     locale,
@@ -85,18 +87,13 @@ describe('RoomPreview', () => {
 
     const id = canvas.props?.describedBy as string;
     const description = document.getElementById(id);
-    expect(description).toHaveTextContent('Living room');
+    const lengthM = first.lengthM as number;
+    const widthM = first.widthM as number;
+    const heightM = first.heightM as number;
     expect(description).toHaveTextContent(
-      dimension(first.lengthM as number, 'en'),
-    );
-    expect(description).toHaveTextContent(
-      dimension(first.widthM as number, 'en'),
-    );
-    expect(description).toHaveTextContent(
-      dimension(first.heightM as number, 'en'),
-    );
-    expect(description).toHaveTextContent(
-      area((first.lengthM as number) * (first.widthM as number), 'en'),
+      normalized(
+        `Living room, ${dimension(lengthM, 'en')} × ${dimension(widthM, 'en')}, height ${dimension(heightM, 'en')}, area ${area(lengthM * widthM, 'en')}`,
+      ),
     );
   });
 
