@@ -902,7 +902,9 @@
     "label": "{name} у 3D",
     "reset": "Скинути вигляд",
     "top": "Вигляд зверху",
-    "loading": "Готуємо 3D-перегляд…"
+    "loading": "Готуємо 3D-перегляд…",
+    "cut": "А",
+    "fallbackDescription": "{name} {length} на {width}, висота {height}, лінія розрізу А–А через підлогу"
   },
   "ObjectStep": {
     "form": {

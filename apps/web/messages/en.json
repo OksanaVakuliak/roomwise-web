@@ -902,7 +902,9 @@
     "label": "{name} in 3D",
     "reset": "Reset view",
     "top": "Top view",
-    "loading": "Preparing the 3D view…"
+    "loading": "Preparing the 3D view…",
+    "cut": "A",
+    "fallbackDescription": "{name} {length} by {width}, height {height}, section line A–A through the floor"
   },
   "ObjectStep": {
     "form": {

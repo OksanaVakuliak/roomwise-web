@@ -3,6 +3,7 @@ import { type MutableRefObject, useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RoomCanvasProps } from '@/components/ui';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
+import type { SceneStatus } from '@/lib/room-3d/types';
 import { makeDraftRoom } from '@/test/fixtures/draft';
 import { renderWithProviders } from '@/test/render-with-providers';
 import en from '../../../../../messages/en.json';
@@ -15,6 +16,11 @@ const controller = vi.hoisted(() => ({
 }));
 const canvas = vi.hoisted(() => ({
   props: null as RoomCanvasProps | null,
+}));
+const support = vi.hoisted(() => ({ webGl: true }));
+
+vi.mock('@/lib/room-3d/support', () => ({
+  isWebGlSupported: () => support.webGl,
 }));
 
 vi.mock('@/components/ui', async (importActual) => {
@@ -40,13 +46,14 @@ function renderPreview(room = first, locale: 'en' | 'uk' = 'en') {
   });
 }
 
-function setStatus(status: 'loading' | 'ready') {
+function setStatus(status: SceneStatus) {
   act(() => canvas.props?.onStatus(status));
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   canvas.props = null;
+  support.webGl = true;
 });
 
 describe('RoomPreview', () => {
@@ -153,4 +160,37 @@ describe('RoomPreview', () => {
     ).toBeInTheDocument();
     expect(canvas.props?.roleDescription).toBe(uk.RoomPreview.roleDescription);
   });
+
+  it('draws the 2D room instead of the canvas when WebGL is unsupported', async () => {
+    support.webGl = false;
+    await act(async () => {
+      renderPreview();
+    });
+
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: en.RoomPreview.reset }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('img')).toHaveAccessibleName(
+      expect.stringContaining('Living room'),
+    );
+  });
+
+  it.each(['error', 'lost'] as const)(
+    'falls back to the 2D room when the canvas reports %s',
+    async (status) => {
+      await act(async () => {
+        renderPreview();
+      });
+      expect(screen.getByTestId('canvas')).toBeInTheDocument();
+
+      setStatus(status);
+
+      expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
+      expect(screen.getByRole('img')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: en.RoomPreview.top }),
+      ).not.toBeInTheDocument();
+    },
+  );
 });
