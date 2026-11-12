@@ -220,8 +220,9 @@ export function createRoomSceneController({
     },
     setInput(next) {
       const keyChanged = !input || input.roomKey !== next.roomKey;
+      const sizeChanged = !input || !sameSize(input, next);
       input = next;
-      sync(keyChanged);
+      if (keyChanged || sizeChanged) sync(keyChanged);
     },
     setColors(next) {
       colors = next;

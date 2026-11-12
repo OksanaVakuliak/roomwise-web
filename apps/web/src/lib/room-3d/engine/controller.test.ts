@@ -210,6 +210,21 @@ describe('room scene controller', () => {
     expect(mocks.render).toHaveBeenCalledTimes(afterChange);
   });
 
+  it('ignores a repeated input for the same room and size', () => {
+    vi.useFakeTimers();
+    create(false);
+    controller.setInput(input);
+    const start = lastFrame().camera.position.clone();
+    press('ArrowRight', 3);
+    controller.resetView();
+    vi.advanceTimersByTime(100);
+    const before = mocks.render.mock.calls.length;
+    controller.setInput({ ...input, surfaces: { ...input.surfaces } });
+    expect(mocks.render).toHaveBeenCalledTimes(before);
+    vi.advanceTimersByTime(400);
+    expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
+  });
+
   it('renders on colour changes and resizes, and not while inactive', () => {
     create();
     controller.setInput(input);
