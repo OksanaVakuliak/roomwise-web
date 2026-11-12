@@ -240,6 +240,7 @@ export function createRoomSceneController({
     },
     resize(width, height) {
       if (width <= 0 || height <= 0) return;
+      const previousAspect = aspect();
       size = { width, height };
       if (!renderer) return;
       renderer.setSize(width, height);
@@ -248,7 +249,11 @@ export function createRoomSceneController({
       const room = roomSize(input);
       applyLimits(room);
       if (frame !== null) return;
-      moveTo(currentView(room), false);
+      const view = currentView(room);
+      const fit =
+        defaultView(room, aspect()).distance /
+        defaultView(room, previousAspect).distance;
+      moveTo({ ...view, distance: view.distance * fit }, false);
     },
     resetView() {
       if (!input) return;

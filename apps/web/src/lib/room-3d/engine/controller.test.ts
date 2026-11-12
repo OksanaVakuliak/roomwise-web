@@ -228,6 +228,15 @@ describe('room scene controller', () => {
     expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
   });
 
+  it('refits the room into a narrower frame after a resize', () => {
+    create();
+    controller.setInput(input);
+    controller.resize(200, 540);
+    const [x, y, z] = cameraTarget(input);
+    const distance = lastFrame().camera.position.distanceTo({ x, y, z });
+    expect(distance).toBeCloseTo(defaultView(input, 200 / 540).distance, 3);
+  });
+
   it('renders on colour changes and resizes, and not while inactive', () => {
     create();
     controller.setInput(input);
