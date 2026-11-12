@@ -282,6 +282,7 @@ export function createRoomSceneController({
       }
       if (renderer) {
         renderer.domElement.remove();
+        renderer.forceContextLoss();
         renderer.dispose();
         renderer = null;
       }

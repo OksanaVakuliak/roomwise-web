@@ -15,6 +15,7 @@ import {
 
 const mocks = vi.hoisted(() => ({
   render: vi.fn(),
+  forceContextLoss: vi.fn(),
   created: 0,
   fail: false,
 }));
@@ -32,6 +33,7 @@ vi.mock('three', async (importOriginal) => {
     setClearColor = vi.fn();
     render = mocks.render;
     dispose = vi.fn();
+    forceContextLoss = mocks.forceContextLoss;
   }
   return { ...actual, WebGLRenderer };
 });
@@ -108,6 +110,7 @@ function polarAndDistance(room: RoomSceneInput) {
 
 beforeEach(() => {
   mocks.render.mockClear();
+  mocks.forceContextLoss.mockClear();
   mocks.created = 0;
   mocks.fail = false;
   statuses = [];
@@ -310,5 +313,11 @@ describe('room scene controller', () => {
     controller.setInput(input);
     controller.dispose();
     expect(container.querySelector('canvas')).toBeNull();
+  });
+
+  it('releases the WebGL context on dispose', () => {
+    create();
+    controller.dispose();
+    expect(mocks.forceContextLoss).toHaveBeenCalledTimes(1);
   });
 });
