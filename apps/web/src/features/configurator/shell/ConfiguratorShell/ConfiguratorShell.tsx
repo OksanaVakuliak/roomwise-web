@@ -5,6 +5,7 @@ import { StepLayout } from '@/components/layout';
 import { ZoneSkeleton } from '@/components/system';
 import { usePathname } from '@/i18n/navigation';
 import type { StepId } from '@/lib/draft/schema';
+import { useIsWide } from '@/lib/media';
 import { useDraftHydration } from '@/stores/use-draft-hydration';
 import { useDraftTabSync } from '@/stores/use-draft-tab-sync';
 import { CostPanel } from '../CostPanel/CostPanel';
@@ -40,6 +41,7 @@ function ConfiguratorFrame({
   const [sceneSlot, setSceneSlot] = useState<HTMLElement | null>(null);
   const [showcaseSlot, setShowcaseSlot] = useState<HTMLElement | null>(null);
   const [pickerSlot, setPickerSlot] = useState<HTMLElement | null>(null);
+  const wide = useIsWide();
 
   useDraftTabSync();
   useSurfaceNormalization(hydrated);
@@ -69,7 +71,9 @@ function ConfiguratorFrame({
                 )
               }
               picker={
-                step === 'interior' ? <div ref={setPickerSlot} /> : undefined
+                step === 'interior' && wide ? (
+                  <div ref={setPickerSlot} />
+                ) : undefined
               }
               scene={<div ref={setSceneSlot} />}
               showcase={
