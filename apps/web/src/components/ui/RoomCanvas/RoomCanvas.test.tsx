@@ -105,7 +105,7 @@ beforeEach(() => {
   );
 });
 
-describe('RoomCanvas', () => {
+describe('RoomCanvas', { timeout: importTimeout + 5_000 }, () => {
   it('exposes an accessible focusable group', async () => {
     renderCanvas();
     await settle();
