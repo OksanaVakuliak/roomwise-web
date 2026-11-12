@@ -8,7 +8,11 @@ function probe(): boolean {
     const context =
       canvas.getContext('webgl2', options) ??
       canvas.getContext('webgl', options);
-    return context !== null;
+    if (context === null) return false;
+    (context as WebGLRenderingContext)
+      .getExtension('WEBGL_lose_context')
+      ?.loseContext();
+    return true;
   } catch {
     return false;
   }

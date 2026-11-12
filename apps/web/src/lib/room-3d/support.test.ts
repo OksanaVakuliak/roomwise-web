@@ -1,8 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const loseContext = vi.fn();
+
 function stubContexts(supported: string[]) {
+  const context = {
+    getExtension: vi.fn((name: string) =>
+      name === 'WEBGL_lose_context' ? { loseContext } : null,
+    ),
+  };
   const getContext = vi.fn((type: string) =>
-    supported.includes(type) ? {} : null,
+    supported.includes(type) ? context : null,
   );
   vi.spyOn(document, 'createElement').mockReturnValue({
     getContext,
@@ -16,6 +23,7 @@ async function load() {
 
 beforeEach(() => {
   vi.resetModules();
+  loseContext.mockClear();
 });
 
 afterEach(() => {
@@ -39,6 +47,14 @@ describe('isWebGlSupported', () => {
     expect(getContext).toHaveBeenCalledWith('webgl', {
       failIfMajorPerformanceCaveat: true,
     });
+  });
+
+  it('releases the probe context after checking', async () => {
+    stubContexts(['webgl2']);
+
+    (await load())();
+
+    expect(loseContext).toHaveBeenCalledTimes(1);
   });
 
   it('rejects when neither context is available', async () => {
