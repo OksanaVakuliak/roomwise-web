@@ -105,7 +105,11 @@ describe('InteriorStep at partial scope', () => {
     'lists material, labor and preparation of the chosen floor in %s',
     async (locale) => {
       await renderStep(url, { draft: makePartialRoomDraft('ROUGH'), locale });
-      const text = catalogs[locale].Specification.components;
+      const text = {
+        ...catalogs[locale].Specification.components,
+        showDetailsPrefix:
+          catalogs[locale].ChosenList.showDetails.split(':')[0],
+      };
 
       await enableFloorWithLaminate(locale);
 
@@ -116,6 +120,11 @@ describe('InteriorStep at partial scope', () => {
         'LABOR',
         'PREP',
       ]);
+      fireEvent.click(
+        within(floorRow()).getByRole('button', {
+          name: new RegExp(`^${text.showDetailsPrefix}`),
+        }),
+      );
       const items = within(within(floorRow()).getByRole('list')).getAllByRole(
         'listitem',
       );
@@ -193,7 +202,35 @@ describe('InteriorStep at partial scope', () => {
     const material = alone?.components?.find((c) => c.kind === 'MATERIAL');
     expect(card).toHaveTextContent(usd(alone?.amountCents));
     expect(alone?.amountCents).toBeGreaterThan(material?.amountCents ?? 0);
+    expect(within(card).queryAllByRole('listitem')).toHaveLength(0);
+    fireEvent.click(
+      within(card).getByRole('button', {
+        name: /^Show price breakdown/,
+      }),
+    );
     expect(within(card).getAllByRole('listitem')).toHaveLength(4);
+  });
+
+  it('toggles the price breakdown of a chosen row', async () => {
+    await renderStep(url, { draft: makePartialRoomDraft('ROUGH') });
+    await enableFloorWithLaminate();
+    const row = floorRow();
+    const name = en.ChosenList.showDetails.replace('{category}', 'Flooring');
+
+    expect(within(row).queryByRole('list')).toBeNull();
+    const toggle = within(row).getByRole('button', { name });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(
+      within(row).getByRole('button', { name: /^Remove Flooring/ }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(within(row).getByRole('list')).toBeInTheDocument();
+    expect(
+      within(row).getByRole('button', {
+        name: en.ChosenList.hideDetails.replace('{category}', 'Flooring'),
+      }),
+    ).toHaveAttribute('aria-expanded', 'true');
   });
 
   describe('fill from style', () => {

@@ -6,9 +6,11 @@ import {
   type ShareSurface,
 } from '@roomwise/calc-engine';
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useId } from 'react';
+import { useCallback, useId, useState } from 'react';
 import {
   Button,
+  Collapse,
+  DisclosureButton,
   ImageWithFallback,
   SectionHeader,
   SpecComponents,
@@ -132,6 +134,9 @@ function ChosenRow({
 }: ChosenRowProps) {
   const t = useTranslations('ChosenList');
   const tSpec = useTranslations('Specification');
+  const [open, setOpen] = useState(false);
+  const toggleDetails = useCallback(() => setOpen((current) => !current), []);
+  const detailsId = useId();
   const enableCategory = useDraft((state) => state.enableCategory);
   const disableCategory = useDraft((state) => state.disableCategory);
   const { clientId } = room;
@@ -166,6 +171,8 @@ function ChosenRow({
   }, [category.id, clientId, enableCategory, onSelect, productId, siblingIds]);
   const shown = !disabled && product !== undefined;
   const context = { category: category.name, room: roomName };
+  const hasRemove = !(productId === null && !shared);
+  const hasDetails = productId !== null && details.items.length > 0;
 
   if (disabled) {
     return (
@@ -223,16 +230,30 @@ function ChosenRow({
           <span className={`${styles.sum} num`}>{sum}</span>
         ) : null}
       </button>
-      {productId === null && !shared ? null : (
-        <Button
-          kind="outline"
-          className={styles.action}
-          aria-label={t('removeLabel', context)}
-          onClick={remove}
-        >
-          {t('remove')}
-        </Button>
-      )}
+      {hasRemove || hasDetails ? (
+        <div className={styles.controls}>
+          {hasRemove ? (
+            <Button
+              kind="outline"
+              className={styles.action}
+              aria-label={t('removeLabel', context)}
+              onClick={remove}
+            >
+              {t('remove')}
+            </Button>
+          ) : null}
+          {hasDetails ? (
+            <DisclosureButton
+              expanded={open}
+              controls={detailsId}
+              label={t(open ? 'hideDetails' : 'showDetails', {
+                category: category.name,
+              })}
+              onClick={toggleDetails}
+            />
+          ) : null}
+        </div>
+      ) : null}
       {shared ? (
         <ShareField
           room={room}
@@ -241,10 +262,12 @@ function ChosenRow({
           surfaceArea={surfaceArea}
         />
       ) : null}
-      {productId !== null && details.items.length > 0 ? (
-        <div className={styles.details}>
-          <SpecComponents items={details.items} />
-        </div>
+      {hasDetails ? (
+        <Collapse id={detailsId} open={open} className={styles.details}>
+          <div className={styles.detailsBody}>
+            <SpecComponents items={details.items} />
+          </div>
+        </Collapse>
       ) : null}
     </li>
   );

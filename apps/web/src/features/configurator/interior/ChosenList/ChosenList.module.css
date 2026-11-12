@@ -126,7 +126,16 @@
 
 .details {
   grid-column: 1 / -1;
+}
+
+.detailsBody {
   padding-bottom: var(--space-4);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
 }
 
 .share {
@@ -196,7 +205,8 @@
     grid-column: 1;
   }
 
-  .action {
+  .action,
+  .controls {
     justify-self: start;
   }
 }
