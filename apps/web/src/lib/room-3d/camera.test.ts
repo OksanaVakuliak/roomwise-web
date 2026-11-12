@@ -176,6 +176,21 @@ describe('stepView', () => {
     );
   });
 
+  it('keeps the azimuth within one turn however often it rotates', () => {
+    let current: CameraView = view;
+    for (let press = 0; press < 30; press++) {
+      const next = stepView(current, 'ArrowLeft', limits);
+      expect(next).not.toBeNull();
+      current = next as CameraView;
+      expect(current.azimuth).toBeGreaterThanOrEqual(0);
+      expect(current.azimuth).toBeLessThan(Math.PI * 2);
+    }
+
+    const turn = Math.PI * 2;
+    const expected = (((0.5 - 30 * (Math.PI / 12)) % turn) + turn) % turn;
+    expect(current.azimuth).toBeCloseTo(expected, 8);
+  });
+
   it('ignores other keys', () => {
     expect(stepView(view, 'a', limits)).toBeNull();
   });

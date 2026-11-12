@@ -51,9 +51,14 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function normalizeAzimuth(azimuth: number): number {
+  const turn = Math.PI * 2;
+  return ((azimuth % turn) + turn) % turn;
+}
+
 export function clampView(view: CameraView, limits: CameraLimits): CameraView {
   return {
-    azimuth: view.azimuth,
+    azimuth: normalizeAzimuth(view.azimuth),
     polar: clamp(view.polar, limits.minPolar, limits.maxPolar),
     distance: clamp(view.distance, limits.minDistance, limits.maxDistance),
   };
