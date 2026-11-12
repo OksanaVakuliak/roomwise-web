@@ -64,16 +64,16 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(
         var(--layout-aside-width-tablet),
-        0.49fr
+        0.5fr
       );
     align-items: stretch;
   }
 
   .withPicker {
     grid-template-columns:
-      minmax(var(--layout-picker-min-width), 4.3fr)
-      minmax(0, 4.5fr)
-      minmax(var(--layout-aside-min-width), 4.2fr);
+      minmax(var(--layout-picker-min-width), 1fr)
+      minmax(0, 2fr)
+      minmax(var(--layout-aside-min-width), 1fr);
   }
 
   .picker {
