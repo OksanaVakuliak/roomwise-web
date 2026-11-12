@@ -5,10 +5,9 @@ export function pickTextureUrl(
   canvasWidth: number,
   devicePixelRatio: number,
 ): string {
-  const useLight =
-    texture.previewUrl !== null &&
-    canvasWidth * devicePixelRatio < PREVIEW_PIXEL_LIMIT;
-  return useLight && texture.previewUrl
-    ? texture.previewUrl
-    : texture.textureUrl;
+  const { previewUrl, textureUrl } = texture;
+  if (previewUrl && canvasWidth * devicePixelRatio < PREVIEW_PIXEL_LIMIT) {
+    return previewUrl;
+  }
+  return textureUrl;
 }
