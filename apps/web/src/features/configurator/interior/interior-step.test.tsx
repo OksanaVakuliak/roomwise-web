@@ -396,6 +396,23 @@ describe('InteriorStep integration', () => {
     ).toBeInTheDocument();
   });
 
+  it('opens the picker in a bottom sheet on a 768 px tablet', async () => {
+    await renderStep(
+      `/configurator/interior?room=${livingId}&category=${categoryIds.floor}`,
+      { viewport: 768 },
+    );
+
+    expect(screen.queryByRole('list', { name: 'Flooring' })).toBeNull();
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: en.ChosenList.openPicker }),
+      );
+    });
+    expect(
+      screen.getByRole('dialog', { name: en.Specification.title }),
+    ).toBeInTheDocument();
+  });
+
   it('opens the picker in a bottom sheet at 390 px and closes it on choice', async () => {
     await renderStep(
       `/configurator/interior?room=${livingId}&category=${categoryIds.floor}`,
