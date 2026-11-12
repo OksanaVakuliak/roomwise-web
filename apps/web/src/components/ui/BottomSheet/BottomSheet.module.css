@@ -3,8 +3,8 @@
 }
 
 .root.full {
-  height: 100dvh;
-  max-height: 100dvh;
+  height: var(--overlay-sheet-full-height);
+  max-height: var(--overlay-sheet-full-height);
 }
 
 @keyframes slide-up {
