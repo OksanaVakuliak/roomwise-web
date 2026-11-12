@@ -95,11 +95,23 @@ describe('resolveSceneMaterials', () => {
 
   it('marks disabled categories as neutral and disabled', () => {
     const result = resolveSceneMaterials(
-      { [categoryIds.floor]: pick(productIds.tile, { disabled: true }) },
+      {
+        [categoryIds.floor]: pick(productIds.laminate, { disabled: true }),
+        'cat-tile': pick(productIds.tile, { disabled: true }),
+      },
       categories,
       productMap(fixtures.floorTile),
     );
     expect(result.floor).toEqual({ kind: 'neutral', reason: 'disabled' });
+  });
+
+  it('treats a category without a selection as enabled but empty', () => {
+    const result = resolveSceneMaterials(
+      { 'cat-tile': pick(productIds.tile, { disabled: true }) },
+      categories,
+      productMap(fixtures.floorTile),
+    );
+    expect(result.floor).toEqual({ kind: 'neutral', reason: 'unselected' });
   });
 
   it('marks missing selections and empty products as unselected', () => {

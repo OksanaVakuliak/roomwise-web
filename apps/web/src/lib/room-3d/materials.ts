@@ -44,6 +44,7 @@ function pickPrimary(
   for (const category of categories) {
     const selection = selections[category.id];
     if (!selection) {
+      anyEnabledEmpty = true;
       continue;
     }
     if (selection.disabled) {
