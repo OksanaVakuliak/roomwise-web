@@ -48,6 +48,23 @@ function sameFrame(a: Frame, b: Frame): boolean {
   );
 }
 
+export function slotVariables({ origin }: Geometry): CSSProperties {
+  return { '--slot-height': `${origin.height}px` } as CSSProperties;
+}
+
+export function expandVariables({ origin, target }: Geometry): CSSProperties {
+  return {
+    '--expand-left': `${target.left}px`,
+    '--expand-top': `${target.top}px`,
+    '--expand-width': `${target.width}px`,
+    '--expand-height': `${target.height}px`,
+    '--flip-x': `${origin.left - target.left}px`,
+    '--flip-y': `${origin.top - target.top}px`,
+    '--flip-sx': ratio(origin.width, target.width),
+    '--flip-sy': ratio(origin.height, target.height),
+  } as CSSProperties;
+}
+
 function ratio(value: number, base: number): number {
   return base === 0 ? 1 : value / base;
 }
@@ -133,30 +150,11 @@ export function useSceneExpand(
     }
   }, []);
 
-  const { origin, target } = geometry;
-  const active = mode !== 'idle';
-  const slotStyle = active
-    ? ({ '--slot-height': `${origin.height}px` } as CSSProperties)
-    : undefined;
-  const rootStyle = active
-    ? ({
-        '--expand-left': `${target.left}px`,
-        '--expand-top': `${target.top}px`,
-        '--expand-width': `${target.width}px`,
-        '--expand-height': `${target.height}px`,
-        '--flip-x': `${origin.left - target.left}px`,
-        '--flip-y': `${origin.top - target.top}px`,
-        '--flip-sx': ratio(origin.width, target.width),
-        '--flip-sy': ratio(origin.height, target.height),
-      } as CSSProperties)
-    : undefined;
-
   return {
     mode,
     expanded: mode === 'enter' || mode === 'open',
     available: isDesktop,
-    slotStyle,
-    rootStyle,
+    geometry,
     toggle,
     onTransitionEnd,
   };

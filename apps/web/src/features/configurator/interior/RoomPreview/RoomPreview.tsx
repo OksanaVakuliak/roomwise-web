@@ -30,7 +30,11 @@ import type {
 } from '@/lib/room-3d/types';
 import { toSceneSurfaces, useRoomSurfaces } from '../use-room-surfaces';
 import styles from './RoomPreview.module.css';
-import { useSceneExpand } from './use-scene-expand';
+import {
+  expandVariables,
+  slotVariables,
+  useSceneExpand,
+} from './use-scene-expand';
 
 export type RoomPreviewProps = {
   room: DraftRoom;
@@ -153,14 +157,14 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     <div
       ref={slotRef}
       className={cx(styles.slot, expand.mode !== 'idle' && styles.held)}
-      style={expand.slotStyle}
+      style={slotVariables(expand.geometry)}
     >
       <div
         ref={rootRef}
         className={cx(styles.root, expand.mode !== 'idle' && styles.floating)}
         data-mode={expand.mode}
         data-expanded={expand.expanded}
-        style={expand.rootStyle}
+        style={expandVariables(expand.geometry)}
         onTransitionEnd={expand.onTransitionEnd}
       >
         <div ref={stageRef} className={styles.stage}>
