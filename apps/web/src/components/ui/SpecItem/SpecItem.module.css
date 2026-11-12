@@ -181,6 +181,10 @@
     grid-template-columns: var(--spec-image) minmax(0, 1fr);
   }
 
+  .media {
+    grid-row: span 2;
+  }
+
   .price {
     grid-column: 2;
     text-align: left;
