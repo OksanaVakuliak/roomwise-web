@@ -37,6 +37,15 @@ export type SpecItemProps = {
   hideDetailsLabel?: string;
 };
 
+function RoomCost({ value, label }: { value: ReactNode; label?: ReactNode }) {
+  return (
+    <span className={`${styles.roomCost} num`}>
+      {label ? <span className={styles.roomCostLabel}>{label}</span> : null}
+      {value}
+    </span>
+  );
+}
+
 export function SpecItem({
   size = 'mobile',
   image,
@@ -94,14 +103,6 @@ export function SpecItem({
       {components ? <SpecComponents items={components} /> : null}
     </>
   );
-  const cost = roomCost ? (
-    <span className={`${styles.roomCost} num`}>
-      {roomCostLabel ? (
-        <span className={styles.roomCostLabel}>{roomCostLabel}</span>
-      ) : null}
-      {roomCost}
-    </span>
-  ) : null;
 
   return (
     <div className={classes}>
@@ -126,7 +127,9 @@ export function SpecItem({
         <span className={`${styles.price} num`}>
           {price}
           {unit ? <span className={styles.unit}>{unit}</span> : null}
-          {collapsible ? null : <>{cost}</>}
+          {collapsible || !roomCost ? null : (
+            <RoomCost value={roomCost} label={roomCostLabel} />
+          )}
         </span>
         {actions || collapsible ? (
           <div className={cx(styles.actions, collapsible && styles.inline)}>
@@ -146,7 +149,9 @@ export function SpecItem({
           <Collapse id={detailsId} open={open} className={styles.collapse}>
             <div className={styles.extra}>
               {extra}
-              {cost}
+              {roomCost ? (
+                <RoomCost value={roomCost} label={roomCostLabel} />
+              ) : null}
             </div>
           </Collapse>
         ) : null}
