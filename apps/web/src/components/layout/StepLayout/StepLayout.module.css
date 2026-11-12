@@ -86,6 +86,14 @@
     border-right: var(--stroke-1-5) solid var(--line);
   }
 
+  .scene {
+    position: sticky;
+    top: var(--space-16);
+    z-index: var(--z-sticky);
+    align-self: start;
+    background: var(--paper);
+  }
+
   .aside {
     padding: var(--space-16) var(--space-16) var(--space-16);
   }
