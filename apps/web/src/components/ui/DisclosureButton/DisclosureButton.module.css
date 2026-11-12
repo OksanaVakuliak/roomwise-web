@@ -3,8 +3,9 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  align-self: stretch;
   width: var(--size-compact);
-  height: var(--size-compact);
+  min-height: var(--size-compact);
   padding: 0;
   border: var(--stroke-1-5) solid var(--line);
   background: transparent;

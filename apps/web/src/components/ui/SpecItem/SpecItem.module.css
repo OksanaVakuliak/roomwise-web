@@ -149,7 +149,7 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-8);
   grid-column: 2 / -1;
   margin-top: var(--space-4);
@@ -157,10 +157,11 @@
 
 .inline {
   flex-wrap: nowrap;
+  grid-column: 1 / -1;
 }
 
 .inline > :not(.toggle) {
-  min-width: 0;
+  white-space: nowrap;
 }
 
 .toggle {
