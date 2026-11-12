@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { type MutableRefObject, useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RoomCanvasProps } from '@/components/ui';
@@ -187,6 +187,37 @@ describe('RoomPreview', () => {
       neutral: expect.any(String),
       edge: expect.any(String),
     });
+  });
+
+  it('re-reads the colours when the theme changes', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    const before = canvas.props?.colors;
+    const tokens: Record<string, string> = {
+      '--paper': '#101010',
+      '--paint': '#202020',
+      '--line': '#303030',
+    };
+    const style = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+      getPropertyValue: (name: string) => tokens[name] ?? '',
+    } as unknown as CSSStyleDeclaration);
+
+    document.documentElement.setAttribute('data-theme', 'dark');
+
+    try {
+      await waitFor(() =>
+        expect(canvas.props?.colors).toEqual({
+          background: '#101010',
+          neutral: '#202020',
+          edge: '#303030',
+        }),
+      );
+      expect(canvas.props?.colors).not.toEqual(before);
+    } finally {
+      style.mockRestore();
+      document.documentElement.removeAttribute('data-theme');
+    }
   });
 
   it('localises the texts', async () => {

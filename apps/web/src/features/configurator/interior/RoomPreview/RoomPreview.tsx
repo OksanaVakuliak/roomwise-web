@@ -75,6 +75,18 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     [room.clientId, lengthM, widthM, heightM, surfaces],
   );
 
+  useEffect(() => {
+    if (!hasDimensions) return;
+    const observer = new MutationObserver(() => {
+      if (stageRef.current) setColors(readColors(stageRef.current));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+    return () => observer.disconnect();
+  }, [hasDimensions]);
+
   const resetView = useCallback(() => controllerRef.current?.resetView(), []);
   const topView = useCallback(() => controllerRef.current?.topView(), []);
 
