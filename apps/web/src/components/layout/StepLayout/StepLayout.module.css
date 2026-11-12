@@ -90,7 +90,6 @@
     position: sticky;
     top: var(--space-16);
     z-index: var(--z-sticky);
-    align-self: start;
     background: var(--sheet);
   }
 
