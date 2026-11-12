@@ -245,6 +245,14 @@ describe('room scene controller', () => {
     expect(mocks.render).toHaveBeenCalledTimes(paused + 1);
   });
 
+  it('does not render when the colours are unchanged', () => {
+    create();
+    controller.setInput(input);
+    const before = mocks.render.mock.calls.length;
+    controller.setColors({ ...colors });
+    expect(mocks.render).toHaveBeenCalledTimes(before);
+  });
+
   it('hides the ceiling from the default view and shows it from a low one', () => {
     create();
     controller.setInput(tallInput);

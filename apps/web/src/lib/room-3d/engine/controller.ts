@@ -225,6 +225,13 @@ export function createRoomSceneController({
       if (keyChanged || sizeChanged) sync(keyChanged);
     },
     setColors(next) {
+      if (
+        next.background === colors.background &&
+        next.neutral === colors.neutral &&
+        next.edge === colors.edge
+      ) {
+        return;
+      }
       colors = next;
       if (!renderer) return;
       renderer.setClearColor(next.background);
