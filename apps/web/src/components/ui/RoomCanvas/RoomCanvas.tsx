@@ -103,6 +103,7 @@ export function RoomCanvas({
   }, [controllerRef]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (instanceRef.current?.handleKey(event.key)) event.preventDefault();
   }, []);
 

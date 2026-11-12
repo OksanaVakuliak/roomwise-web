@@ -211,6 +211,19 @@ describe('RoomCanvas', () => {
     expect(controller.handleKey).toHaveBeenLastCalledWith('Tab');
   });
 
+  it.each([
+    ['Ctrl', { key: '=', ctrlKey: true }],
+    ['Meta', { key: '-', metaKey: true }],
+    ['Alt', { key: 'ArrowLeft', altKey: true }],
+  ])('leaves %s shortcuts to the browser', async (_name, init) => {
+    renderCanvas();
+    await settle();
+    controller.handleKey.mockClear();
+
+    expect(fireEvent.keyDown(screen.getByRole('group'), init)).toBe(true);
+    expect(controller.handleKey).not.toHaveBeenCalled();
+  });
+
   it('reports an error when the engine chunk fails to load', async () => {
     vi.resetModules();
     vi.doMock('@/lib/room-3d/engine/controller', () => {
