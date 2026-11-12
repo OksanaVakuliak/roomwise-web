@@ -23,7 +23,7 @@ import { ProductDetail } from '../ProductDetail/ProductDetail';
 import { RoomPlans } from '../RoomPlans/RoomPlans';
 import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
 import { Specification } from '../Specification/Specification';
-import { useRoomSurfaces } from '../use-room-surfaces';
+import { toSceneSurfaces, useRoomSurfaces } from '../use-room-surfaces';
 import styles from './InteriorStep.module.css';
 
 function InteriorContent() {
@@ -49,7 +49,7 @@ function InteriorContent() {
   const current =
     rooms.find((room) => room.clientId === requestedRoom) ?? rooms[0] ?? null;
   const needsRedirect = current !== null && current.clientId !== requestedRoom;
-  const surfaces = useRoomSurfaces(current);
+  const surfaces = toSceneSurfaces(useRoomSurfaces(current));
   const pricing = useRoomPricing();
 
   const navigate = useCallback(

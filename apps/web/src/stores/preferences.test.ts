@@ -20,7 +20,12 @@ beforeEach(() => {
   vi.unstubAllGlobals();
   resetThemeDom();
   stubMatchMedia(false);
-  usePreferences.setState({ locale: 'en', currency: 'USD', theme: 'system' });
+  usePreferences.setState({
+    locale: 'en',
+    currency: 'USD',
+    scene3d: true,
+    theme: 'system',
+  });
 });
 
 describe('usePreferences', () => {
@@ -33,24 +38,29 @@ describe('usePreferences', () => {
     });
   });
 
-  it('persists only locale and currency', () => {
+  it('persists locale, currency and the 3D switch but not the theme', () => {
     usePreferences.getState().setLocale('uk');
     usePreferences.getState().setCurrency('UAH');
+    usePreferences.getState().setScene3d(false);
     usePreferences.getState().setTheme('dark');
 
     expect(stored()).toEqual({
-      state: { locale: 'uk', currency: 'UAH' },
-      version: 1,
+      state: { locale: 'uk', currency: 'UAH', scene3d: false },
+      version: 2,
     });
   });
 
   it('restores persisted values on rehydrate', async () => {
-    seed({ state: { locale: 'uk', currency: 'UAH' }, version: 1 });
+    seed({
+      state: { locale: 'uk', currency: 'UAH', scene3d: false },
+      version: 2,
+    });
 
     await usePreferences.persist.rehydrate();
 
     expect(usePreferences.getState().locale).toBe('uk');
     expect(usePreferences.getState().currency).toBe('UAH');
+    expect(usePreferences.getState().scene3d).toBe(false);
     expect(usePreferences.persist.hasHydrated()).toBe(true);
   });
 
@@ -65,12 +75,31 @@ describe('usePreferences', () => {
   });
 
   it('falls back per field for invalid values', async () => {
-    seed({ state: { locale: 'fr', currency: 'UAH' }, version: 1 });
+    seed({
+      state: { locale: 'fr', currency: 'UAH', scene3d: 'no' },
+      version: 2,
+    });
 
     await usePreferences.persist.rehydrate();
 
     expect(usePreferences.getState().locale).toBe('en');
     expect(usePreferences.getState().currency).toBe('UAH');
+    expect(usePreferences.getState().scene3d).toBe(true);
+  });
+
+  it('migrates v1 to v2 keeping values and enabling 3D', async () => {
+    usePreferences.setState({ scene3d: false });
+    seed({ state: { locale: 'uk', currency: 'UAH' }, version: 1 });
+
+    await usePreferences.persist.rehydrate();
+
+    expect(usePreferences.getState().locale).toBe('uk');
+    expect(usePreferences.getState().currency).toBe('UAH');
+    expect(usePreferences.getState().scene3d).toBe(true);
+    expect(stored()).toEqual({
+      state: { locale: 'uk', currency: 'UAH', scene3d: true },
+      version: 2,
+    });
   });
 
   it('falls back to defaults for an invalid shape', async () => {
@@ -89,7 +118,7 @@ describe('usePreferences', () => {
 
     expect(usePreferences.getState().locale).toBe('en');
     expect(usePreferences.getState().currency).toBe('USD');
-    expect(stored().version).toBe(1);
+    expect(stored().version).toBe(2);
   });
 
   it('does not throw when storage throws', async () => {
