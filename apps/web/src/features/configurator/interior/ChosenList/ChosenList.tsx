@@ -244,6 +244,7 @@ function ChosenRow({
           ) : null}
           {hasDetails ? (
             <DisclosureButton
+              className={styles.toggle}
               expanded={open}
               controls={detailsId}
               label={t(open ? 'hideDetails' : 'showDetails', {

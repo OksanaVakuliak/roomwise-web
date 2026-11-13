@@ -138,6 +138,10 @@
   gap: var(--space-6);
 }
 
+.toggle {
+  margin-inline-start: auto;
+}
+
 .share {
   grid-column: 1 / -1;
   width: 100%;
@@ -206,8 +210,11 @@
     grid-column: 1;
   }
 
-  .action,
-  .controls {
+  .action {
     justify-self: start;
+  }
+
+  .controls {
+    justify-self: stretch;
   }
 }
