@@ -1000,6 +1000,8 @@
     "removeLabel": "Remove {category} from {room}",
     "showDetails": "Show price breakdown: {category}",
     "hideDetails": "Hide price breakdown: {category}",
+    "collapseRoom": "Collapse {room}",
+    "expandRoom": "Expand {room}",
     "option": "Engineering",
     "share": "Share",
     "shareLabel": "Share of {category} in {room}",

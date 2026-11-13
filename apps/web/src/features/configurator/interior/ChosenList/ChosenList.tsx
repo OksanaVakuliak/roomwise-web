@@ -397,6 +397,9 @@ function ChosenSection({
   const t = useTranslations('ChosenList');
   const tSpec = useTranslations('Specification');
   const headingId = useId();
+  const contentId = useId();
+  const [open, setOpen] = useState(true);
+  const toggleRoom = useCallback(() => setOpen((current) => !current), []);
   const { room, name, categories } = group;
   const describe = useSpecComponents(pricing, categories);
   const listed = categories.filter((category) => category.productCount > 0);
@@ -479,66 +482,81 @@ function ChosenSection({
 
   return (
     <section className={styles.section} aria-labelledby={headingId}>
-      <h3 id={headingId} className={styles.room}>
-        <span className={styles.roomName}>{name}</span>
-        {current ? (
-          <span className={styles.current}>{t('current')}</span>
-        ) : null}
-        {pricing && lines.length > 0 ? (
-          <span className={`${styles.roomSum} num`}>
-            {pricing.formatTotal(lines)}
-          </span>
-        ) : null}
-      </h3>
-      {nothingOn ? <p className={styles.hint}>{tSpec('enableHint')}</p> : null}
-      <ul className={styles.list} aria-labelledby={headingId}>
-        {surfaces.flatMap((item) => [
-          ...item.shown.map((row) => (
-            <ChosenRow
-              key={row.category.id}
-              room={room}
-              roomName={name}
-              category={row.category}
-              categories={categories}
-              active={current && row.active}
-              shared={item.multiple}
-              surfaceArea={item.surfaceArea}
-              pricing={pricing}
-              describe={describe}
-              onSelect={onSelect}
-            />
-          )),
-          ...item.candidates.map((candidate) => (
-            <AddCoveringButton
-              key={`add:${candidate.id}`}
-              room={room}
-              roomName={name}
-              candidate={candidate}
-              categories={categories}
-              onSelect={onSelect}
-            />
-          )),
-          ...(item.multiple &&
-          item.hasProduct &&
-          item.surface !== null &&
-          item.total !== 100
-            ? [
-                <ShareNote
-                  key={`note:${item.key}`}
-                  surface={item.surface}
-                  total={item.total}
-                  surfaceArea={item.surfaceArea}
-                />,
-              ]
-            : []),
-        ])}
-        <ChosenOptions
-          room={room}
-          roomName={name}
-          pricing={pricing}
-          chosen={chosenOptions}
+      <div className={styles.header}>
+        <h3 id={headingId} className={styles.room}>
+          <span className={styles.roomName}>{name}</span>
+          {current ? (
+            <span className={styles.current}>{t('current')}</span>
+          ) : null}
+          {pricing && lines.length > 0 ? (
+            <span className={`${styles.roomSum} num`}>
+              {pricing.formatTotal(lines)}
+            </span>
+          ) : null}
+        </h3>
+        <DisclosureButton
+          className={styles.toggle}
+          expanded={open}
+          controls={contentId}
+          label={t(open ? 'collapseRoom' : 'expandRoom', { room: name })}
+          onClick={toggleRoom}
         />
-      </ul>
+      </div>
+      <Collapse id={contentId} open={open}>
+        <div className={styles.content}>
+          {nothingOn ? (
+            <p className={styles.hint}>{tSpec('enableHint')}</p>
+          ) : null}
+          <ul className={styles.list} aria-labelledby={headingId}>
+            {surfaces.flatMap((item) => [
+              ...item.shown.map((row) => (
+                <ChosenRow
+                  key={row.category.id}
+                  room={room}
+                  roomName={name}
+                  category={row.category}
+                  categories={categories}
+                  active={current && row.active}
+                  shared={item.multiple}
+                  surfaceArea={item.surfaceArea}
+                  pricing={pricing}
+                  describe={describe}
+                  onSelect={onSelect}
+                />
+              )),
+              ...item.candidates.map((candidate) => (
+                <AddCoveringButton
+                  key={`add:${candidate.id}`}
+                  room={room}
+                  roomName={name}
+                  candidate={candidate}
+                  categories={categories}
+                  onSelect={onSelect}
+                />
+              )),
+              ...(item.multiple &&
+              item.hasProduct &&
+              item.surface !== null &&
+              item.total !== 100
+                ? [
+                    <ShareNote
+                      key={`note:${item.key}`}
+                      surface={item.surface}
+                      total={item.total}
+                      surfaceArea={item.surfaceArea}
+                    />,
+                  ]
+                : []),
+            ])}
+            <ChosenOptions
+              room={room}
+              roomName={name}
+              pricing={pricing}
+              chosen={chosenOptions}
+            />
+          </ul>
+        </div>
+      </Collapse>
     </section>
   );
 }

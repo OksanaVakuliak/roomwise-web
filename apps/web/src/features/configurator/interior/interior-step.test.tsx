@@ -320,6 +320,36 @@ describe('InteriorStep integration', () => {
     expect(categoryRows()[0]).toHaveTextContent('Stone Grey Porcelain Tile');
   });
 
+  it('collapses and expands the rows of a room', async () => {
+    await renderStep(
+      `/configurator/interior?room=${livingId}&category=${categoryIds.floor}`,
+    );
+    const section = roomSection('Living room');
+    const toggle = within(section).getByRole('button', {
+      name: /^Collapse Living room/,
+    });
+    const list = within(section).getAllByRole('list')[0];
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(list.closest('[inert]')).toBeNull();
+
+    fireEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveAccessibleName(/^Expand Living room/);
+    expect(list.closest('[inert]')).not.toBeNull();
+    expect(
+      within(roomSection('Bathroom'))
+        .getAllByRole('list')[0]
+        .closest('[inert]'),
+    ).toBeNull();
+
+    fireEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(list.closest('[inert]')).toBeNull();
+  });
+
   it('groups the chosen list by room and opens another room from a row', async () => {
     const { location } = await renderStep(
       `/configurator/interior?room=${livingId}&category=${categoryIds.floor}`,
