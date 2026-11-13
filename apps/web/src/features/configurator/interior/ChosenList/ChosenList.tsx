@@ -21,11 +21,7 @@ import { cx } from '@/lib/cx';
 import { roomMetrics } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { isSharedCovering } from '@/lib/draft/shares';
-import {
-  enabledCategoryOf,
-  groupCategories,
-  surfaceSiblings,
-} from '@/lib/draft/surfaces';
+import { enabledCategoryOf, groupCategories } from '@/lib/draft/surfaces';
 import { optionRoomLine } from '@/lib/engine/card-cost';
 import { hasHeatedFloorWarning } from '@/lib/engine/heated-floor';
 import { area } from '@/lib/format';
@@ -63,7 +59,6 @@ type ChosenRowProps = {
   roomName: string;
   category: ChosenListCategory;
   categories: readonly ChosenListCategory[];
-  siblingIds: readonly string[];
   active: boolean;
   shared: boolean;
   surfaceArea: number | null;
@@ -124,7 +119,6 @@ function ChosenRow({
   roomName,
   category,
   categories,
-  siblingIds,
   active,
   shared,
   surfaceArea,
@@ -137,12 +131,10 @@ function ChosenRow({
   const [open, setOpen] = useState(false);
   const toggleDetails = useCallback(() => setOpen((current) => !current), []);
   const detailsId = useId();
-  const enableCategory = useDraft((state) => state.enableCategory);
   const disableCategory = useDraft((state) => state.disableCategory);
   const { clientId } = room;
   const selection = room.selections[category.id];
   const productId = selection?.productId ?? null;
-  const disabled = selection?.disabled ?? false;
   const productsQuery = useCategoryProducts(
     productId === null ? null : category.id,
   );
@@ -162,44 +154,10 @@ function ChosenRow({
     () => disableCategory(clientId, category.id, categories),
     [categories, category.id, clientId, disableCategory],
   );
-  const add = useCallback(() => {
-    if (productId === null) {
-      onSelect(clientId, category.id);
-    } else {
-      enableCategory(clientId, category.id, siblingIds);
-    }
-  }, [category.id, clientId, enableCategory, onSelect, productId, siblingIds]);
-  const shown = !disabled && product !== undefined;
+  const shown = product !== undefined;
   const context = { category: category.name, room: roomName };
   const hasRemove = !(productId === null && !shared);
   const hasDetails = productId !== null && details.items.length > 0;
-
-  if (disabled) {
-    return (
-      <li className={cx(styles.item, styles.excluded)}>
-        <button
-          type="button"
-          className={cx(styles.row, active && styles.active)}
-          aria-current={active ? 'true' : undefined}
-          onClick={select}
-        >
-          <span className={styles.body}>
-            <span className={cx(styles.category, styles.muted)}>
-              {category.name}
-            </span>
-          </span>
-        </button>
-        <Button
-          kind="outline"
-          className={styles.action}
-          aria-label={t('addLabel', context)}
-          onClick={add}
-        >
-          {t('add')}
-        </Button>
-      </li>
-    );
-  }
 
   return (
     <li className={styles.item}>
@@ -458,7 +416,9 @@ function ChosenSection({
         (item) => room.selections[item.id]?.productId != null,
       ) ??
       surfaceGroup.categories[0];
-    const shown = multiple ? sharedOnes : [single];
+    const shown = (multiple ? sharedOnes : [single]).filter(
+      (item) => room.selections[item.id]?.disabled !== true,
+    );
     const hasCovering = surfaceGroup.categories.some(
       (item) => room.selections[item.id]?.disabled === false,
     );
@@ -473,7 +433,6 @@ function ChosenSection({
       surface: shareable ? surface : null,
       shown: shown.map((category) => ({
         category,
-        siblingIds: surfaceSiblings(categories, category.id),
         active: multiple
           ? category.id === activeCategoryId
           : surfaceGroup.categories.some(
@@ -505,7 +464,8 @@ function ChosenSection({
   const nothingOn =
     pricing?.partial === true &&
     listed.length > 0 &&
-    listed.every((category) => room.selections[category.id]?.disabled);
+    listed.every((category) => room.selections[category.id]?.disabled) &&
+    chosenOptions.length === 0;
   const lines = pricing
     ? [
         ...rows.map(({ category }) =>
@@ -540,7 +500,6 @@ function ChosenSection({
               roomName={name}
               category={row.category}
               categories={categories}
-              siblingIds={row.siblingIds}
               active={current && row.active}
               shared={item.multiple}
               surfaceArea={item.surfaceArea}

@@ -23,6 +23,7 @@ import {
   offSelection,
   pricing,
   renderStep,
+  roomSection,
   showcase,
   styleSelection,
   usd,
@@ -39,13 +40,6 @@ function floorRow() {
 
 async function enableFloorWithLaminate(locale: 'en' | 'uk' = 'en') {
   const text = catalogs[locale];
-  await act(async () => {
-    fireEvent.click(
-      within(floorRow()).getByRole('button', {
-        name: new RegExp(`^${text.ChosenList.add}`),
-      }),
-    );
-  });
   await act(async () => {
     fireEvent.click(
       within(showcase('Flooring')).getByRole('button', {
@@ -80,10 +74,8 @@ describe('InteriorStep at partial scope', () => {
         }),
       ).toBeNull();
       expect(
-        within(floorRow()).getByRole('button', {
-          name: new RegExp(`^${text.ChosenList.add}`),
-        }),
-      ).toBeInTheDocument();
+        within(roomSection('Living room')).queryAllByRole('listitem'),
+      ).toHaveLength(0);
       expect(costRow(text.CostPanel.worksAndMaterials)).toHaveTextContent('—');
     },
   );
@@ -180,10 +172,8 @@ describe('InteriorStep at partial scope', () => {
       });
       const { laborMissing } = catalogs[locale].Specification;
 
-      expect(categoryRows('Living room')[2]).toHaveTextContent(laborMissing);
-      expect(categoryRows('Living room')[0]).not.toHaveTextContent(
-        laborMissing,
-      );
+      expect(categoryRows('Living room')).toHaveLength(1);
+      expect(categoryRows('Living room')[0]).toHaveTextContent(laborMissing);
     },
   );
 

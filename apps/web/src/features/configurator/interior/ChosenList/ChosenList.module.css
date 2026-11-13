@@ -70,10 +70,6 @@
   cursor: pointer;
 }
 
-.excluded .row {
-  grid-template-columns: minmax(0, 1fr);
-}
-
 .option .row {
   grid-template-columns: minmax(0, 1fr) auto;
 }
@@ -197,7 +193,6 @@
     grid-template-columns: var(--chosen-image) minmax(0, 1fr);
   }
 
-  .excluded .row,
   .option .row {
     grid-template-columns: minmax(0, 1fr);
   }

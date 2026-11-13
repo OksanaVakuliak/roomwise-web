@@ -272,20 +272,22 @@ describe('InteriorStep integration', () => {
       );
     });
 
-    const ceilingRow = categoryRows()[2];
+    expect(categoryRows()).toHaveLength(2);
     expect(
-      within(ceilingRow).queryByText(/does not count|excluded/i),
+      screen.queryByRole('button', { name: /Add Ceiling to Living room/ }),
     ).not.toBeInTheDocument();
-    expect(ceilingRow).not.toHaveTextContent('Matt Ceiling Paint');
+    expect(
+      categoryRows()
+        .map((row) => row.textContent)
+        .join(),
+    ).not.toContain('Matt Ceiling Paint');
     expect(screen.getByText(en.ProductShowcase.excluded)).toBeInTheDocument();
     expect(panelOf(currentDraft()).materials?.usdCents).toBeLessThan(
       before.materials?.usdCents ?? 0,
     );
 
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole('button', { name: /Add Ceiling to Living room/ }),
-      );
+      fireEvent.click(chooseButton(showcase('Ceiling'), 'Matt Ceiling Paint'));
     });
 
     expect(categoryRows()[2]).toHaveTextContent('Matt Ceiling Paint');

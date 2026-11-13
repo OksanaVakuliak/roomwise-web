@@ -1000,8 +1000,6 @@
     "removeLabel": "Прибрати {category} з приміщення {room}",
     "showDetails": "Показати склад ціни: {category}",
     "hideDetails": "Сховати склад ціни: {category}",
-    "add": "Додати",
-    "addLabel": "Додати {category} до приміщення {room}",
     "option": "Інженерія",
     "share": "Частка",
     "shareLabel": "Частка {category} у приміщенні {room}",

@@ -1000,8 +1000,6 @@
     "removeLabel": "Remove {category} from {room}",
     "showDetails": "Show price breakdown: {category}",
     "hideDetails": "Hide price breakdown: {category}",
-    "add": "Add",
-    "addLabel": "Add {category} to {room}",
     "option": "Engineering",
     "share": "Share",
     "shareLabel": "Share of {category} in {room}",
