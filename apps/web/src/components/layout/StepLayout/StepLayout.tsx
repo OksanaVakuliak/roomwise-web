@@ -44,6 +44,7 @@ export function StepLayout({
     <div className={cx(styles.root, className)}>
       <div className={styles.steps}>{steps}</div>
       <div
+        data-layout-body=""
         className={cx(styles.body, picker !== undefined && styles.withPicker)}
       >
         {picker ? (

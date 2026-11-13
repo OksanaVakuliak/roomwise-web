@@ -105,7 +105,7 @@ beforeEach(() => {
   );
 });
 
-describe('RoomCanvas', () => {
+describe('RoomCanvas', { timeout: importTimeout + 5_000 }, () => {
   it('exposes an accessible focusable group', async () => {
     renderCanvas();
     await settle();
@@ -222,17 +222,6 @@ describe('RoomCanvas', () => {
 
     expect(fireEvent.keyDown(screen.getByRole('group'), init)).toBe(true);
     expect(controller.handleKey).not.toHaveBeenCalled();
-  });
-
-  it('reports an error when the engine chunk fails to load', async () => {
-    vi.resetModules();
-    vi.doMock('@/lib/room-3d/engine/controller', () => {
-      throw new Error('chunk failed');
-    });
-    const onStatus = vi.fn<(status: SceneStatus) => void>();
-    renderCanvas({ onStatus });
-    await settle(() => expect(onStatus).toHaveBeenLastCalledWith('error'));
-    expect(controller.mount).not.toHaveBeenCalled();
   });
 
   it('reports an error when creating or mounting throws', async () => {

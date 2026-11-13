@@ -181,7 +181,7 @@
   --breakpoint-phone-max: 767px;
   --breakpoint-tablet-max: 1199px;
 
-  --layout-aside-width-tablet: 21.25rem;
+  --layout-aside-width-tablet: 16rem;
   --layout-picker-min-width: 14rem;
   --layout-aside-min-width: 10rem;
   --layout-single-width: 60rem;
@@ -196,6 +196,7 @@
   --overlay-modal-width: 30rem;
   --overlay-panel-width: 26.25rem;
   --overlay-sheet-height: 85dvh;
+  --overlay-sheet-full-height: 100dvh;
   --overlay-tooltip-width: 15rem;
   --overlay-toast-width: 26.25rem;
   --overlay-shadow: 0.375rem 0.375rem 0;

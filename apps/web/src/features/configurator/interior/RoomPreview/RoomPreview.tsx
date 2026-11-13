@@ -17,6 +17,7 @@ import {
   Skeleton,
   VisuallyHidden,
 } from '@/components/ui';
+import { cx } from '@/lib/cx';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { area, dimension } from '@/lib/format';
 import { usePrefersReducedMotion } from '@/lib/media';
@@ -29,6 +30,11 @@ import type {
 } from '@/lib/room-3d/types';
 import { toSceneSurfaces, useRoomSurfaces } from '../use-room-surfaces';
 import styles from './RoomPreview.module.css';
+import {
+  expandVariables,
+  slotVariables,
+  useSceneExpand,
+} from './use-scene-expand';
 
 export type RoomPreviewProps = {
   room: DraftRoom;
@@ -52,6 +58,9 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const reducedMotion = usePrefersReducedMotion();
   const surfaces = useRoomSurfaces(room);
   const stageRef = useRef<HTMLDivElement>(null);
+  const slotRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const expand = useSceneExpand(slotRef, rootRef);
   const controllerRef = useRef<RoomSceneController | null>(null);
   const [colors, setColors] = useState<SceneColors | null>(null);
   const [status, setStatus] = useState<SceneStatus>('loading');
@@ -110,6 +119,15 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     },
     { id: 'top', label: t('top'), icon: 'topView', onClick: topView, disabled },
   ];
+  if (expand.available) {
+    actions.push({
+      id: 'expand',
+      label: expand.expanded ? t('collapse') : t('expand'),
+      icon: expand.expanded ? 'collapse' : 'expand',
+      onClick: expand.toggle,
+      disabled,
+    });
+  }
 
   if (webGl === false || status === 'error' || status === 'lost') {
     const lengthLabel = dimension(lengthM, locale);
@@ -136,42 +154,55 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   }
 
   return (
-    <div className={styles.root}>
-      <div ref={stageRef} className={styles.stage}>
-        {colors ? (
-          <RoomCanvas
-            input={input}
-            colors={colors}
-            reducedMotion={reducedMotion}
-            onStatus={setStatus}
-            label={t('label', { name })}
-            describedBy={descriptionId}
-            roleDescription={t('roleDescription')}
-            controllerRef={controllerRef}
-          />
-        ) : null}
-        <VisuallyHidden>
-          <span id={descriptionId}>
-            {t('description', {
-              name,
-              length: dimension(lengthM, locale),
-              width: dimension(widthM, locale),
-              height: dimension(heightM, locale),
-              area: area(lengthM * widthM, locale),
-            })}
-          </span>
-        </VisuallyHidden>
-        {colors === null || status === 'loading' ? (
-          <div
-            className={styles.loading}
-            role="status"
-            aria-label={t('loading')}
-          >
-            <Skeleton variant="block" width="100%" height="100%" />
-          </div>
-        ) : null}
+    <div
+      ref={slotRef}
+      className={cx(styles.slot, expand.mode !== 'idle' && styles.held)}
+      style={slotVariables(expand.geometry)}
+    >
+      <div
+        ref={rootRef}
+        className={cx(styles.root, expand.mode !== 'idle' && styles.floating)}
+        data-mode={expand.mode}
+        data-expanded={expand.expanded}
+        style={expandVariables(expand.geometry)}
+        onTransitionEnd={expand.onTransitionEnd}
+      >
+        <div ref={stageRef} className={styles.stage}>
+          {colors ? (
+            <RoomCanvas
+              input={input}
+              colors={colors}
+              reducedMotion={reducedMotion}
+              onStatus={setStatus}
+              label={t('label', { name })}
+              describedBy={descriptionId}
+              roleDescription={t('roleDescription')}
+              controllerRef={controllerRef}
+            />
+          ) : null}
+          <VisuallyHidden>
+            <span id={descriptionId}>
+              {t('description', {
+                name,
+                length: dimension(lengthM, locale),
+                width: dimension(widthM, locale),
+                height: dimension(heightM, locale),
+                area: area(lengthM * widthM, locale),
+              })}
+            </span>
+          </VisuallyHidden>
+          {colors === null || status === 'loading' ? (
+            <div
+              className={styles.loading}
+              role="status"
+              aria-label={t('loading')}
+            >
+              <Skeleton variant="block" width="100%" height="100%" />
+            </div>
+          ) : null}
+        </div>
+        <SceneToolbar actions={actions} />
       </div>
-      <SceneToolbar actions={actions} />
     </div>
   );
 }

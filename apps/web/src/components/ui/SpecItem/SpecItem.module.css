@@ -149,14 +149,40 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: stretch;
   gap: var(--space-8);
   grid-column: 2 / -1;
   margin-top: var(--space-4);
 }
 
+.inline {
+  flex-wrap: nowrap;
+  grid-column: 1 / -1;
+}
+
+.inline > :not(.toggle) {
+  white-space: nowrap;
+}
+
+.toggle {
+  margin-inline-start: auto;
+}
+
+.collapse {
+  grid-column: 2 / -1;
+}
+
+.extra {
+  padding-top: var(--space-4);
+}
+
 @container (max-width: 20rem) {
   .grid {
     grid-template-columns: var(--spec-image) minmax(0, 1fr);
+  }
+
+  .media {
+    grid-row: span 2;
   }
 
   .price {

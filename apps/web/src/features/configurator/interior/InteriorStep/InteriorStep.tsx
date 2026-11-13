@@ -12,7 +12,7 @@ import { roomDisplayName, roomMetrics } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { surfaceSiblings } from '@/lib/draft/surfaces';
 import { area, dimension } from '@/lib/format';
-import { useIsDesktop } from '@/lib/media';
+import { useIsDesktop, useIsWide } from '@/lib/media';
 import { useDraft } from '@/stores/draft';
 import { usePickerSlot } from '../../shell/PickerSlot/picker-slot-context';
 import { useSceneSlot } from '../../shell/SceneSlot/scene-slot-context';
@@ -39,6 +39,7 @@ function InteriorContent() {
   const pickerSlot = usePickerSlot();
   const showcaseSlot = useShowcaseSlot();
   const desktop = useIsDesktop();
+  const inlinePicker = useIsWide();
   const selectProduct = useDraft((state) => state.selectProduct);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -88,11 +89,11 @@ function InteriorContent() {
         { room: roomClientId, category: id },
         roomClientId === current?.clientId ? 'replace' : 'push',
       );
-      if (!desktop) {
+      if (!inlinePicker) {
         setPickerOpen(true);
       }
     },
-    [current?.clientId, desktop, navigate],
+    [current?.clientId, inlinePicker, navigate],
   );
   const roomTypeItems = roomTypesQuery.data?.items;
   const currentCategories = useMemo(
@@ -226,7 +227,7 @@ function InteriorContent() {
             sceneSlot,
           )
         : null}
-      {pickerSlot && desktop
+      {pickerSlot && inlinePicker
         ? createPortal(
             <Specification
               room={current}
@@ -240,12 +241,13 @@ function InteriorContent() {
             pickerSlot,
           )
         : null}
-      {desktop ? null : (
+      {inlinePicker ? null : (
         <BottomSheet
           open={pickerOpen}
           onClose={closePicker}
           title={tSpec('title')}
           closeLabel={t('closePicker')}
+          full
         >
           <Specification
             room={current}
@@ -269,7 +271,7 @@ function InteriorContent() {
               activeCategoryId={activeCategory?.id ?? null}
               size={size}
               onSelect={chooseFromList}
-              onOpenPicker={desktop ? undefined : openPicker}
+              onOpenPicker={inlinePicker ? undefined : openPicker}
             />,
             showcaseSlot,
           )

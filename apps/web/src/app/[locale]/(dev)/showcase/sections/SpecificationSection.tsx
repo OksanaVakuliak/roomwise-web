@@ -109,6 +109,8 @@ function SpecRow({ item, size }: { item: Item; size: (typeof SIZES)[number] }) {
         />
       }
       roomCostLabel={t('forRoom')}
+      showDetailsLabel={t('showDetails')}
+      hideDetailsLabel={t('hideDetails')}
       actions={
         <Button
           kind={selected ? 'outline' : 'fill'}

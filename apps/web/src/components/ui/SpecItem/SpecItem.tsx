@@ -1,5 +1,9 @@
-import type { ReactNode } from 'react';
+'use client';
+
+import { type ReactNode, useCallback, useId, useState } from 'react';
 import { cx } from '@/lib/cx';
+import { Collapse } from '../Collapse/Collapse';
+import { DisclosureButton } from '../DisclosureButton/DisclosureButton';
 import { PickedBadge } from '../PickedBadge/PickedBadge';
 import {
   SpecComponents,
@@ -29,7 +33,18 @@ export type SpecItemProps = {
   roomCost?: ReactNode;
   roomCostLabel?: ReactNode;
   actions?: ReactNode;
+  showDetailsLabel?: string;
+  hideDetailsLabel?: string;
 };
+
+function RoomCost({ value, label }: { value: ReactNode; label?: ReactNode }) {
+  return (
+    <span className={`${styles.roomCost} num`}>
+      {label ? <span className={styles.roomCostLabel}>{label}</span> : null}
+      {value}
+    </span>
+  );
+}
 
 export function SpecItem({
   size = 'mobile',
@@ -51,11 +66,42 @@ export function SpecItem({
   roomCost,
   roomCostLabel,
   actions,
+  showDetailsLabel,
+  hideDetailsLabel,
 }: SpecItemProps) {
+  const [open, setOpen] = useState(false);
+  const toggle = useCallback(() => setOpen((current) => !current), []);
+  const detailsId = useId();
   const classes = cx(
     styles.root,
     styles[size],
     unavailable && styles.unavailable,
+  );
+
+  const toggleLabel = open ? hideDetailsLabel : showDetailsLabel;
+  const collapsible =
+    toggleLabel !== undefined &&
+    Boolean(brand || dimensions || color || fit || components || roomCost);
+
+  const extra = (
+    <>
+      {brand || dimensions || color ? (
+        <span className={styles.details}>
+          {brand ? <span className={styles.brand}>{brand}</span> : null}
+          {dimensions || color ? (
+            <span>
+              {dimensions}
+              {dimensions && color ? ', ' : null}
+              {color}
+            </span>
+          ) : null}
+        </span>
+      ) : null}
+      {fit && fitLabel ? (
+        <span className={cx(styles.fit, styles[fit])}>{fitLabel}</span>
+      ) : null}
+      {components ? <SpecComponents items={components} /> : null}
+    </>
   );
 
   return (
@@ -72,22 +118,7 @@ export function SpecItem({
         </div>
         <div className={styles.body}>
           <span className={styles.name}>{name}</span>
-          {brand || dimensions || color ? (
-            <span className={styles.details}>
-              {brand ? <span className={styles.brand}>{brand}</span> : null}
-              {dimensions || color ? (
-                <span>
-                  {dimensions}
-                  {dimensions && color ? ', ' : null}
-                  {color}
-                </span>
-              ) : null}
-            </span>
-          ) : null}
-          {fit && fitLabel ? (
-            <span className={cx(styles.fit, styles[fit])}>{fitLabel}</span>
-          ) : null}
-          {components ? <SpecComponents items={components} /> : null}
+          {collapsible ? null : <>{extra}</>}
           {warning ? <span className={styles.warning}>{warning}</span> : null}
           {unavailable && unavailableLabel ? (
             <span className={styles.unavailableNote}>{unavailableLabel}</span>
@@ -96,16 +127,34 @@ export function SpecItem({
         <span className={`${styles.price} num`}>
           {price}
           {unit ? <span className={styles.unit}>{unit}</span> : null}
-          {roomCost ? (
-            <span className={styles.roomCost}>
-              {roomCostLabel ? (
-                <span className={styles.roomCostLabel}>{roomCostLabel}</span>
-              ) : null}
-              {roomCost}
-            </span>
-          ) : null}
+          {collapsible || !roomCost ? null : (
+            <RoomCost value={roomCost} label={roomCostLabel} />
+          )}
         </span>
-        {actions ? <div className={styles.actions}>{actions}</div> : null}
+        {actions || collapsible ? (
+          <div className={cx(styles.actions, collapsible && styles.inline)}>
+            {actions}
+            {collapsible ? (
+              <DisclosureButton
+                className={styles.toggle}
+                expanded={open}
+                controls={detailsId}
+                label={toggleLabel}
+                onClick={toggle}
+              />
+            ) : null}
+          </div>
+        ) : null}
+        {collapsible ? (
+          <Collapse id={detailsId} open={open} className={styles.collapse}>
+            <div className={styles.extra}>
+              {extra}
+              {roomCost ? (
+                <RoomCost value={roomCost} label={roomCostLabel} />
+              ) : null}
+            </div>
+          </Collapse>
+        ) : null}
       </div>
     </div>
   );

@@ -272,20 +272,22 @@ describe('InteriorStep integration', () => {
       );
     });
 
-    const ceilingRow = categoryRows()[2];
+    expect(categoryRows()).toHaveLength(2);
     expect(
-      within(ceilingRow).queryByText(/does not count|excluded/i),
+      screen.queryByRole('button', { name: /Add Ceiling to Living room/ }),
     ).not.toBeInTheDocument();
-    expect(ceilingRow).not.toHaveTextContent('Matt Ceiling Paint');
+    expect(
+      categoryRows()
+        .map((row) => row.textContent)
+        .join(),
+    ).not.toContain('Matt Ceiling Paint');
     expect(screen.getByText(en.ProductShowcase.excluded)).toBeInTheDocument();
     expect(panelOf(currentDraft()).materials?.usdCents).toBeLessThan(
       before.materials?.usdCents ?? 0,
     );
 
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole('button', { name: /Add Ceiling to Living room/ }),
-      );
+      fireEvent.click(chooseButton(showcase('Ceiling'), 'Matt Ceiling Paint'));
     });
 
     expect(categoryRows()[2]).toHaveTextContent('Matt Ceiling Paint');
@@ -316,6 +318,36 @@ describe('InteriorStep integration', () => {
       useDraft.getState().rooms[0].selections[categoryIds.floor],
     ).toMatchObject({ productId: productIds.tile, disabled: false });
     expect(categoryRows()[0]).toHaveTextContent('Stone Grey Porcelain Tile');
+  });
+
+  it('collapses and expands the rows of a room', async () => {
+    await renderStep(
+      `/configurator/interior?room=${livingId}&category=${categoryIds.floor}`,
+    );
+    const section = roomSection('Living room');
+    const toggle = within(section).getByRole('button', {
+      name: /^Collapse Living room/,
+    });
+    const list = within(section).getAllByRole('list')[0];
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(list.closest('[inert]')).toBeNull();
+
+    fireEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveAccessibleName(/^Expand Living room/);
+    expect(list.closest('[inert]')).not.toBeNull();
+    expect(
+      within(roomSection('Bathroom'))
+        .getAllByRole('list')[0]
+        .closest('[inert]'),
+    ).toBeNull();
+
+    fireEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(list.closest('[inert]')).toBeNull();
   });
 
   it('groups the chosen list by room and opens another room from a row', async () => {
@@ -393,6 +425,23 @@ describe('InteriorStep integration', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: en.ChosenList.openPicker }),
+    ).toBeInTheDocument();
+  });
+
+  it('opens the picker in a bottom sheet on a 768 px tablet', async () => {
+    await renderStep(
+      `/configurator/interior?room=${livingId}&category=${categoryIds.floor}`,
+      { viewport: 768 },
+    );
+
+    expect(screen.queryByRole('list', { name: 'Flooring' })).toBeNull();
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: en.ChosenList.openPicker }),
+      );
+    });
+    expect(
+      screen.getByRole('dialog', { name: en.Specification.title }),
     ).toBeInTheDocument();
   });
 

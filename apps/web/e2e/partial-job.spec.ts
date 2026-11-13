@@ -8,7 +8,6 @@ import {
   type Locale,
   press,
   tabTo,
-  templateToRegExp,
 } from './keyboard';
 import { installMockApi, isLive } from './mock-api';
 
@@ -105,16 +104,11 @@ test('separate works: one enabled floor is priced from its components', async ({
     }),
   ).toHaveCount(0);
 
-  const addFloor = page
-    .getByRole('button', {
-      name: templateToRegExp(
-        messages.ChosenList.addLabel
-          .replace('{category}', 'Flooring')
-          .replace('{room}', '{name}'),
-      ),
-    })
-    .first();
-  await tabTo(page, addFloor);
+  const openPicker = page.getByRole('button', {
+    name: messages.ChosenList.openPicker,
+    exact: true,
+  });
+  await tabTo(page, openPicker);
   await page.keyboard.press('Enter');
   const laminateCard = page.getByRole('dialog').getByRole('button', {
     name: messages.ProductShowcase.chooseLabel.replace(
@@ -134,6 +128,10 @@ test('separate works: one enabled floor is priced from its components', async ({
     .filter({ hasText: components.material })
     .filter({ hasText: components.labor })
     .last();
+  const [showBreakdown] = messages.ChosenList.showDetails.split('{category}');
+  await floorLine
+    .getByRole('button', { name: new RegExp(`^${showBreakdown}`) })
+    .click();
   const row = (label: string) =>
     floorLine.getByRole('listitem').filter({
       has: page.getByText(label, { exact: true }),

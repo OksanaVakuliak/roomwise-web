@@ -2,6 +2,11 @@
   animation: slide-up var(--duration-slow) var(--ease-enter);
 }
 
+.root.full {
+  height: var(--overlay-sheet-full-height);
+  max-height: var(--overlay-sheet-full-height);
+}
+
 @keyframes slide-up {
   from {
     transform: translateY(100%);

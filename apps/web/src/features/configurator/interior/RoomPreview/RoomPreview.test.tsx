@@ -1,12 +1,13 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { type MutableRefObject, useEffect } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RoomCanvasProps } from '@/components/ui';
 import { area, dimension } from '@/lib/format';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import type { SceneStatus } from '@/lib/room-3d/types';
 import { makeDraftRoom } from '@/test/fixtures/draft';
 import { renderWithProviders } from '@/test/render-with-providers';
+import { setViewport } from '@/test/viewports';
 import en from '../../../../../messages/en.json';
 import uk from '../../../../../messages/uk.json';
 import { RoomPreview } from './RoomPreview';
@@ -53,10 +54,32 @@ function setStatus(status: SceneStatus) {
   act(() => canvas.props?.onStatus(status));
 }
 
+const originalMatchMedia = window.matchMedia;
+const originalWidth = window.innerWidth;
+
+function reduceMotion() {
+  const base = window.matchMedia;
+  window.matchMedia = ((query: string) => {
+    const list = base(query);
+    return query.includes('prefers-reduced-motion')
+      ? { ...list, matches: true }
+      : list;
+  }) as typeof window.matchMedia;
+}
+
+function previewRoot() {
+  return document.querySelector('[data-mode]') as HTMLElement;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   canvas.props = null;
   support.webGl = true;
+});
+
+afterEach(() => {
+  window.matchMedia = originalMatchMedia;
+  window.innerWidth = originalWidth;
 });
 
 describe('RoomPreview', () => {
@@ -260,4 +283,113 @@ describe('RoomPreview', () => {
       ).not.toBeInTheDocument();
     },
   );
+
+  describe('expanding over the side panels', () => {
+    async function renderReady() {
+      let view!: ReturnType<typeof renderPreview>;
+      await act(async () => {
+        view = renderPreview();
+      });
+      setStatus('ready');
+      return view;
+    }
+
+    it('has no expand button on a phone', async () => {
+      setViewport(390);
+      await renderReady();
+
+      expect(
+        screen.queryByRole('button', { name: en.RoomPreview.expand }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('has an expand button from tablet width', async () => {
+      setViewport(1024);
+      await renderReady();
+
+      expect(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      ).toBeInTheDocument();
+      expect(previewRoot()).toHaveAttribute('data-expanded', 'false');
+    });
+
+    it('expands on click and returns after the transition ends', async () => {
+      setViewport(1024);
+      await renderReady();
+      const button = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      button.focus();
+
+      fireEvent.click(button);
+
+      expect(previewRoot()).toHaveAttribute('data-expanded', 'true');
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+      expect(button).toHaveAccessibleName(en.RoomPreview.collapse);
+
+      fireEvent.click(button);
+
+      expect(previewRoot()).toHaveAttribute('data-expanded', 'false');
+      expect(previewRoot()).toHaveAttribute('data-mode', 'leave');
+      expect(button).toHaveAccessibleName(en.RoomPreview.expand);
+
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(button).toHaveFocus();
+    });
+
+    it('collapses on Escape', async () => {
+      setViewport(1024);
+      await renderReady();
+      const button = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      button.focus();
+      fireEvent.click(button);
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(button).toHaveAccessibleName(en.RoomPreview.expand);
+      expect(button).toHaveFocus();
+    });
+
+    it('switches instantly with reduced motion', async () => {
+      setViewport(1024);
+      reduceMotion();
+      await renderReady();
+      const button = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+
+      fireEvent.click(button);
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+
+      fireEvent.click(button);
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+    });
+
+    it('collapses instantly when the viewport drops below tablet width', async () => {
+      setViewport(1024);
+      const view = await renderReady();
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+
+      act(() => setViewport(600));
+      await act(async () => {
+        view.rerender(<RoomPreview room={first} name="Living room" />);
+      });
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(
+        screen.queryByRole('button', { name: en.RoomPreview.collapse }),
+      ).not.toBeInTheDocument();
+    });
+  });
 });
