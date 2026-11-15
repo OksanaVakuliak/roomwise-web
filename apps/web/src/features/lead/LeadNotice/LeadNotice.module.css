@@ -6,19 +6,3 @@
   border: var(--stroke-1-2) solid var(--line);
   border-left-width: var(--banner-bar);
 }
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
-.messages {
-  min-height: var(--text-body-s-line);
-}

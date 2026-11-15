@@ -6,6 +6,7 @@ import { SectionHeader } from '@/components/ui';
 import { useLeadFormSettings } from '@/lib/api/leads';
 import { LeadConfirmation } from '../LeadConfirmation/LeadConfirmation';
 import { LeadForm } from '../LeadForm/LeadForm';
+import { LeadFormSkeleton } from '../LeadFormSkeleton/LeadFormSkeleton';
 import { LeadNotice } from '../LeadNotice/LeadNotice';
 import { type LeadTarget, useSubmitLead } from '../use-submit-lead';
 import styles from './LeadRequest.module.css';
@@ -27,7 +28,11 @@ export function LeadRequest({ target }: LeadRequestProps) {
         <>
           <p className={styles.intro}>{t('intro')}</p>
           <LeadNotice settings={settings} />
-          {settings.data ? <LeadForm state={state} onSubmit={submit} /> : null}
+          {settings.data ? (
+            <LeadForm state={state} onSubmit={submit} />
+          ) : settings.isError ? null : (
+            <LeadFormSkeleton />
+          )}
         </>
       )}
     </section>
