@@ -38,6 +38,7 @@ import { snapshotPanel } from '../snapshot-panel';
 import { useEstimateCatalog } from '../use-estimate-catalog';
 import styles from './ResultStep.module.css';
 
+const SKELETON_BARS = [0, 1, 2] as const;
 const EMPTY_VALUE = '—';
 const NO_ROOMS: readonly EstimateRoomInput[] = [];
 const DRAFT_TARGET: LeadTarget = { kind: 'draft' };
@@ -60,8 +61,27 @@ function ResultLoading() {
   const t = useTranslations('ResultStep');
 
   return (
-    <div role="status" aria-label={t('loading')}>
-      <Skeleton variant="block" />
+    <div className={styles.root} role="status" aria-label={t('loading')}>
+      <Skeleton width="70%" />
+      <section className={styles.total}>
+        <div className={styles.bar}>
+          <Skeleton width="50%" height="var(--text-number-l-line)" />
+        </div>
+        <div className={styles.skeletonBars}>
+          {SKELETON_BARS.map((key) => (
+            <Skeleton key={key} height="var(--bar-track-height)" />
+          ))}
+        </div>
+      </section>
+      <div className={styles.skeletonRows}>
+        {SKELETON_BARS.map((key) => (
+          <Skeleton key={key} />
+        ))}
+      </div>
+      <div className={styles.final}>
+        <Skeleton variant="block" width="40%" height="var(--size-button)" />
+        <Skeleton variant="block" width="40%" height="var(--size-button)" />
+      </div>
     </div>
   );
 }

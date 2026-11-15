@@ -14,6 +14,9 @@ import { ApiRequestError } from '@/lib/api/request-error';
 import { CalculationNotFound } from '../CalculationNotFound/CalculationNotFound';
 import { CalculationPage } from '../CalculationPage/CalculationPage';
 import { isPublicId, parseVersionNumber } from '../version-number';
+import styles from './CalculationScreen.module.css';
+
+const SKELETON_ROWS = [0, 1, 2] as const;
 
 export type CalculationSlots = {
   notices?: (version: VersionView) => ReactNode;
@@ -58,8 +61,26 @@ function CalculationView({
 
   if (!query.data) {
     return (
-      <div role="status" aria-label={t('loading')}>
-        <Skeleton variant="block" />
+      <div className={styles.root} role="status" aria-label={t('loading')}>
+        <Skeleton width="70%" />
+        <section className={styles.total}>
+          <div className={styles.bar}>
+            <Skeleton width="50%" height="var(--text-number-l-line)" />
+          </div>
+          <div className={styles.details}>
+            {SKELETON_ROWS.map((key) => (
+              <Skeleton key={key} />
+            ))}
+          </div>
+        </section>
+        <div className={styles.rows}>
+          {SKELETON_ROWS.map((key) => (
+            <Skeleton key={key} />
+          ))}
+        </div>
+        <div className={styles.actions}>
+          <Skeleton variant="block" width="40%" height="var(--size-button)" />
+        </div>
       </div>
     );
   }
