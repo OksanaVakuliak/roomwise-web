@@ -109,6 +109,29 @@ describe('resolveSceneMaterials', () => {
     },
   );
 
+  it('paints the fallback colour when the texture has no usable step', () => {
+    const product = {
+      ...fixtures.floorTile,
+      surface: makeSurface({
+        texture: { ...makeSurface().texture, realSizeMm: null },
+        fallbackColor: '#abcdef',
+        tileWidthMm: 0,
+        tileLengthMm: 1200,
+      }),
+    };
+    const result = resolveSceneMaterials(
+      { [categoryIds.floor]: pick(productIds.tile) },
+      categories,
+      productMap(product),
+    );
+    expect(result.floor).toEqual({
+      kind: 'color',
+      productId: product.id,
+      name: product.name,
+      color: '#abcdef',
+    });
+  });
+
   it('resolves the ceiling like any other surface', () => {
     const result = resolveSceneMaterials(
       { [categoryIds.ceiling]: pick(productIds.ceilingPaint) },
