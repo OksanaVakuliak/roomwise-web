@@ -125,7 +125,21 @@
   flex: 1;
 }
 
+.engineering {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  min-width: 0;
+}
+
 .engineeringSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.engineeringOptions {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
@@ -142,11 +156,71 @@
   gap: var(--space-16);
 }
 
-.styleCard {
+.styleItem {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
   min-width: 0;
+}
+
+.styleCard {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: var(--space-8);
+  padding: var(--space-8);
+  border: var(--stroke-1-2) solid var(--line);
+  background: var(--paper);
+}
+
+.styleImage {
+  aspect-ratio: 4 / 3;
+}
+
+.styleActions {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.styleActions > * {
+  flex: 1 1 0;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-22);
+  min-width: 0;
+}
+
+.resultTotal {
+  border: var(--stroke-2) solid var(--line);
+  background: var(--sheet);
+}
+
+.resultBar {
+  padding: var(--space-10) var(--space-12);
+  background: var(--line);
+}
+
+.resultBars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-10) var(--space-12) var(--space-12);
+}
+
+.resultRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-9);
+}
+
+.resultFinal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-12);
 }
 
 .formGrid {
@@ -176,22 +250,6 @@
   display: flex;
   gap: var(--space-6);
   padding: var(--space-6) 0;
-}
-
-.specItem {
-  display: grid;
-  grid-template-columns: var(--spec-image) minmax(0, 1fr) auto;
-  column-gap: var(--space-10);
-  align-items: start;
-  padding: var(--space-10) 0;
-  border-bottom: var(--stroke-1) solid var(--hair);
-}
-
-.specActions {
-  display: flex;
-  gap: var(--space-8);
-  grid-column: 2 / -1;
-  margin-top: var(--space-8);
 }
 
 .scene {

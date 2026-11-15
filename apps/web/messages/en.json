@@ -794,6 +794,7 @@
       "interior": "Loading the room",
       "engineering": "Loading engineering options",
       "style": "Loading styles",
+      "result": "Loading the estimate",
       "object": "Loading the apartment details",
       "plan": "Loading the plan",
       "picker": "Loading the picker",
@@ -874,7 +875,6 @@
     "unavailable": "This style is unavailable right now. Choose another one.",
     "loadFailed": "Could not load the style materials. Try again.",
     "dismiss": "Dismiss message",
-    "loading": "Loading styles",
     "emptyTitle": "No styles yet",
     "emptyText": "Styles will appear here as soon as they are published.",
     "confirm": {
@@ -891,7 +891,6 @@
   "EngineeringStep": {
     "apartmentTitle": "Engineering for the apartment",
     "additionalTitle": "Additional services",
-    "loading": "Loading rooms",
     "roomFallback": "Room"
   },
   "HeatedFloorNote": {
@@ -900,7 +899,6 @@
   },
   "InteriorStep": {
     "switcherLabel": "Rooms",
-    "loading": "Loading rooms",
     "roomFallback": "Room",
     "unitM": "m",
     "wallsMobile": "walls {walls}",
@@ -1109,7 +1107,6 @@
   "ResultStep": {
     "emptyEstimate": "Add at least one work to save the estimate or send a request.",
     "additionalTitle": "Additional services",
-    "loading": "Loading the estimate",
     "preliminary": "This estimate is preliminary and is not an offer. The final price is confirmed on site after measuring.",
     "totalLabel": "Estimate total",
     "change": "Change",
@@ -1206,7 +1203,6 @@
   "CalculationPage": {
     "title": "Saved estimate. Roomwise",
     "heading": "Saved estimate",
-    "loading": "Loading the estimate",
     "preliminary": "This estimate is preliminary and is not an offer. Amounts are shown as they were on the day it was saved.",
     "totalLabel": "Estimate total",
     "style": "Style",

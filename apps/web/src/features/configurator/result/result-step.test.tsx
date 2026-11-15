@@ -644,7 +644,9 @@ describe('result step', () => {
     await renderResult({ pricingData: false });
 
     expect(
-      screen.getByRole('status', { name: catalogs.en.ResultStep.loading }),
+      screen.getByRole('status', {
+        name: catalogs.en.ZoneStates.loading.result,
+      }),
     ).toBeInTheDocument();
   });
 

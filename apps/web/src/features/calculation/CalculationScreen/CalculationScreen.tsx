@@ -1,10 +1,8 @@
 'use client';
 
 import type { UseQueryResult } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
 import { type ReactNode, useCallback } from 'react';
-import { ErrorState } from '@/components/system';
-import { Skeleton } from '@/components/ui';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
 import {
   useCalculationVersion,
   useLatestCalculation,
@@ -14,9 +12,6 @@ import { ApiRequestError } from '@/lib/api/request-error';
 import { CalculationNotFound } from '../CalculationNotFound/CalculationNotFound';
 import { CalculationPage } from '../CalculationPage/CalculationPage';
 import { isPublicId, parseVersionNumber } from '../version-number';
-import styles from './CalculationScreen.module.css';
-
-const SKELETON_ROWS = [0, 1, 2] as const;
 
 export type CalculationSlots = {
   notices?: (version: VersionView) => ReactNode;
@@ -47,7 +42,6 @@ function CalculationView({
   versions,
   actions,
 }: ViewProps) {
-  const t = useTranslations('CalculationPage');
   const { refetch } = query;
   const retry = useCallback(() => refetch(), [refetch]);
 
@@ -60,29 +54,7 @@ function CalculationView({
   }
 
   if (!query.data) {
-    return (
-      <div className={styles.root} role="status" aria-label={t('loading')}>
-        <Skeleton width="70%" />
-        <section className={styles.total}>
-          <div className={styles.bar}>
-            <Skeleton width="50%" height="var(--text-number-l-line)" />
-          </div>
-          <div className={styles.details}>
-            {SKELETON_ROWS.map((key) => (
-              <Skeleton key={key} />
-            ))}
-          </div>
-        </section>
-        <div className={styles.rows}>
-          {SKELETON_ROWS.map((key) => (
-            <Skeleton key={key} />
-          ))}
-        </div>
-        <div className={styles.actions}>
-          <Skeleton variant="block" width="40%" height="var(--size-button)" />
-        </div>
-      </div>
-    );
+    return <ZoneSkeleton kind="result" />;
   }
 
   const version = query.data;

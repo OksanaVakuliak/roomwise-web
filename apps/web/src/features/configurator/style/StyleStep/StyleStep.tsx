@@ -3,14 +3,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { useCallback, useRef, useState } from 'react';
-import { ErrorState } from '@/components/system';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
 import {
   Banner,
   Button,
   ConfirmDialog,
   EmptyState,
   ImageWithFallback,
-  Skeleton,
   StyleCard,
   VisuallyHidden,
 } from '@/components/ui';
@@ -29,8 +28,6 @@ import {
   type StylePreviewStyle,
 } from '../StylePreview/StylePreview';
 import styles from './StyleStep.module.css';
-
-const SKELETON_ITEMS = [0, 1, 2, 3, 4, 5] as const;
 
 const APPLYING_STATUS_DOM_ID = 'style-applying';
 
@@ -202,27 +199,7 @@ export function StyleStep() {
   }
 
   if (!items || !roomTypes) {
-    return (
-      <div className={styles.root} role="status" aria-label={t('loading')}>
-        <div className={styles.list}>
-          {SKELETON_ITEMS.map((key) => (
-            <div key={key} className={styles.item} aria-hidden="true">
-              <div className={styles.card}>
-                <div className={styles.cardImage}>
-                  <Skeleton variant="block" height="100%" />
-                </div>
-                <Skeleton width="60%" />
-                <Skeleton width="85%" />
-              </div>
-              <div className={styles.skeletonActions}>
-                <Skeleton variant="block" height="var(--size-compact)" />
-                <Skeleton variant="block" height="var(--size-compact)" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <ZoneSkeleton kind="style" />;
   }
 
   if (items.length === 0) {

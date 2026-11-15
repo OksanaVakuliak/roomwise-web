@@ -38,7 +38,7 @@ test('keyboard-only main flow', async ({ page, browser }) => {
   await expect(page).toHaveURL(/\/configurator\/engineering$/);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(
-    page.getByRole('status', { name: messages.EngineeringStep.loading }),
+    page.getByRole('status', { name: messages.ZoneStates.loading.engineering }),
   ).toBeHidden();
   const apartmentSwitches = page
     .getByRole('region', { name: messages.EngineeringStep.apartmentTitle })

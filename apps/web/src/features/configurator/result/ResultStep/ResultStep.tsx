@@ -3,14 +3,8 @@
 import { type Locale, useLocale, useTranslations } from 'next-intl';
 import { type ReactNode, useCallback, useId, useState } from 'react';
 import { ExchangeRateNote } from '@/components/layout';
-import { ErrorState } from '@/components/system';
-import {
-  CostBar,
-  KeyValueGrid,
-  Link,
-  Skeleton,
-  VisuallyHidden,
-} from '@/components/ui';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
+import { CostBar, KeyValueGrid, Link, VisuallyHidden } from '@/components/ui';
 import { STEP_PATHS } from '@/config/routes';
 import {
   buildEstimateModel,
@@ -38,7 +32,6 @@ import { snapshotPanel } from '../snapshot-panel';
 import { useEstimateCatalog } from '../use-estimate-catalog';
 import styles from './ResultStep.module.css';
 
-const SKELETON_BARS = [0, 1, 2] as const;
 const EMPTY_VALUE = '—';
 const NO_ROOMS: readonly EstimateRoomInput[] = [];
 const DRAFT_TARGET: LeadTarget = { kind: 'draft' };
@@ -54,35 +47,6 @@ function ChangeLink({ href, label }: ChangeLinkProps) {
     <Link href={href}>
       {t('change')} <VisuallyHidden>{label}</VisuallyHidden>
     </Link>
-  );
-}
-
-function ResultLoading() {
-  const t = useTranslations('ResultStep');
-
-  return (
-    <div className={styles.root} role="status" aria-label={t('loading')}>
-      <Skeleton width="70%" />
-      <section className={styles.total}>
-        <div className={styles.bar}>
-          <Skeleton width="50%" height="var(--text-number-l-line)" />
-        </div>
-        <div className={styles.skeletonBars}>
-          {SKELETON_BARS.map((key) => (
-            <Skeleton key={key} height="var(--bar-track-height)" />
-          ))}
-        </div>
-      </section>
-      <div className={styles.skeletonRows}>
-        {SKELETON_BARS.map((key) => (
-          <Skeleton key={key} />
-        ))}
-      </div>
-      <div className={styles.final}>
-        <Skeleton variant="block" width="40%" height="var(--size-button)" />
-        <Skeleton variant="block" width="40%" height="var(--size-button)" />
-      </div>
-    </div>
   );
 }
 
@@ -166,7 +130,7 @@ export function ResultStep() {
     if (pricingStatus === 'error') {
       return <ErrorState headingLevel={2} onRetry={checkPricingData} />;
     }
-    return <ResultLoading />;
+    return <ZoneSkeleton kind="result" />;
   }
 
   if (catalogState.status === 'error') {
@@ -174,7 +138,7 @@ export function ResultStep() {
   }
 
   if (catalogState.status === 'loading') {
-    return <ResultLoading />;
+    return <ZoneSkeleton kind="result" />;
   }
 
   const {
@@ -191,7 +155,7 @@ export function ResultStep() {
   });
 
   if (configuration === null || estimate === null) {
-    return <ResultLoading />;
+    return <ZoneSkeleton kind="result" />;
   }
 
   const panel =

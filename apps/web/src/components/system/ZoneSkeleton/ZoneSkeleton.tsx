@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { Skeleton, VisuallyHidden } from '@/components/ui';
+import { Skeleton, SpecItemSkeleton } from '@/components/ui';
 import styles from './ZoneSkeleton.module.css';
 
 export type ZoneKind = 'showcase' | 'rooms' | 'specification' | 'estimate';
@@ -9,6 +9,7 @@ export type ZoneSkeletonKind =
   | 'interior'
   | 'engineering'
   | 'style'
+  | 'result'
   | 'object'
   | 'plan'
   | 'picker'
@@ -25,9 +26,10 @@ const ESTIMATE_PARTS = [0, 1, 2, 3];
 const CHOSEN_SECTIONS = [0, 1];
 const CHOSEN_ROWS = [0, 1, 2];
 const PLAN_TILES = [0, 1, 2];
-const ENGINEERING_SECTIONS = [0, 1];
+const ENGINEERING_SECTIONS = [0, 1, 2];
 const ENGINEERING_ROWS = [0, 1, 2];
 const STYLE_CARDS = [0, 1, 2, 3, 4, 5];
+const RESULT_BARS = [0, 1, 2];
 const FORM_FIELDS = [0, 1, 2, 3];
 const PICKER_TABS = [0, 1, 2];
 const PICKER_ITEMS = [0, 1, 2, 3];
@@ -112,13 +114,15 @@ function PlanLayout() {
 
 function EngineeringLayout() {
   return (
-    <div className={styles.step}>
+    <div className={styles.engineering}>
       {ENGINEERING_SECTIONS.map((section) => (
         <div key={section} className={styles.engineeringSection}>
-          <Skeleton width="35%" height="var(--text-title-s-size)" />
-          {ENGINEERING_ROWS.map((row) => (
-            <Skeleton key={row} variant="block" height="var(--size-target)" />
-          ))}
+          <Skeleton width="40%" height="var(--text-title-m-size)" />
+          <div className={styles.engineeringOptions}>
+            {ENGINEERING_ROWS.map((row) => (
+              <Skeleton key={row} variant="block" height="var(--size-target)" />
+            ))}
+          </div>
         </div>
       ))}
     </div>
@@ -129,12 +133,47 @@ function StyleLayout() {
   return (
     <div className={styles.styleGrid}>
       {STYLE_CARDS.map((card) => (
-        <div key={card} className={styles.styleCard}>
-          <Skeleton variant="block" />
-          <Skeleton width="60%" />
-          <Skeleton variant="block" height="var(--size-compact)" />
+        <div key={card} className={styles.styleItem}>
+          <div className={styles.styleCard}>
+            <div className={styles.styleImage}>
+              <Skeleton variant="block" height="100%" />
+            </div>
+            <Skeleton width="60%" />
+            <Skeleton width="85%" />
+          </div>
+          <div className={styles.styleActions}>
+            <Skeleton variant="block" height="var(--size-compact)" />
+            <Skeleton variant="block" height="var(--size-compact)" />
+          </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function ResultLayout() {
+  return (
+    <div className={styles.result}>
+      <Skeleton width="70%" />
+      <section className={styles.resultTotal}>
+        <div className={styles.resultBar}>
+          <Skeleton width="50%" height="var(--text-number-l-line)" />
+        </div>
+        <div className={styles.resultBars}>
+          {RESULT_BARS.map((bar) => (
+            <Skeleton key={bar} height="var(--bar-track-height)" />
+          ))}
+        </div>
+      </section>
+      <div className={styles.resultRows}>
+        {RESULT_BARS.map((row) => (
+          <Skeleton key={row} />
+        ))}
+      </div>
+      <div className={styles.resultFinal}>
+        <Skeleton variant="block" width="40%" height="var(--size-button)" />
+        <Skeleton variant="block" width="40%" height="var(--size-button)" />
+      </div>
     </div>
   );
 }
@@ -173,30 +212,7 @@ function PickerLayout() {
       </div>
       <div>
         {PICKER_ITEMS.map((item) => (
-          <div key={item} className={styles.specItem}>
-            <Skeleton
-              variant="block"
-              width="var(--spec-image)"
-              height="var(--spec-image)"
-            />
-            <div className={styles.lines}>
-              <Skeleton width="65%" />
-              <Skeleton width="45%" />
-            </div>
-            <Skeleton width="4rem" />
-            <div className={styles.specActions}>
-              <Skeleton
-                variant="block"
-                width="6rem"
-                height="var(--size-compact)"
-              />
-              <Skeleton
-                variant="block"
-                width="4rem"
-                height="var(--size-compact)"
-              />
-            </div>
-          </div>
+          <SpecItemSkeleton key={item} />
         ))}
       </div>
     </div>
@@ -295,6 +311,7 @@ const LAYOUTS = {
   interior: InteriorLayout,
   engineering: EngineeringLayout,
   style: StyleLayout,
+  result: ResultLayout,
   object: ObjectLayout,
   plan: PlanLayout,
   picker: PickerLayout,
@@ -307,8 +324,12 @@ export function ZoneSkeleton({ kind }: ZoneSkeletonProps) {
   const Layout = LAYOUTS[kind];
 
   return (
-    <div className={styles.root} aria-busy="true">
-      <VisuallyHidden>{t(kind)}</VisuallyHidden>
+    <div
+      className={styles.root}
+      role="status"
+      aria-label={t(kind)}
+      aria-busy="true"
+    >
       <Layout />
     </div>
   );

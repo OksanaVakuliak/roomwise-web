@@ -2,8 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useCallback } from 'react';
-import { ErrorState } from '@/components/system';
-import { Skeleton } from '@/components/ui';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
 import { useEngineering, useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName } from '@/lib/draft/rooms';
 import { useDraft } from '@/stores/draft';
@@ -16,8 +15,6 @@ import { firstInvalidQuantityId } from '../option-quantity';
 import { PackageList } from '../PackageList/PackageList';
 import { RoomEngineering } from '../RoomEngineering/RoomEngineering';
 import styles from './EngineeringStep.module.css';
-
-const SKELETON_SECTIONS = [0, 1, 2] as const;
 
 export function EngineeringStep() {
   const t = useTranslations('EngineeringStep');
@@ -57,20 +54,7 @@ export function EngineeringStep() {
   const roomTypes = roomTypesQuery.data?.items;
 
   if (!roomTypes || !engineeringQuery.data || !pricing) {
-    return (
-      <div className={styles.root} role="status" aria-label={t('loading')}>
-        {SKELETON_SECTIONS.map((key) => (
-          <div key={key} className={styles.section} aria-hidden="true">
-            <Skeleton width="40%" height="var(--text-title-m-size)" />
-            <div className={styles.options}>
-              <Skeleton variant="block" height="var(--size-target)" />
-              <Skeleton variant="block" height="var(--size-target)" />
-              <Skeleton variant="block" height="var(--size-target)" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <ZoneSkeleton kind="engineering" />;
   }
 
   return (
