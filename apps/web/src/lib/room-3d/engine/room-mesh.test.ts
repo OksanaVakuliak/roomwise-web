@@ -1,6 +1,6 @@
 import { FrontSide, Texture, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { planeIds, roomPlanes } from '../geometry';
+import { planeIds, planeShading, roomPlanes } from '../geometry';
 import type { SceneColors } from '../types';
 import {
   createRoomMesh,
@@ -18,6 +18,48 @@ const colors: SceneColors = {
   neutral: '#cccccc',
   edge: '#222222',
 };
+
+describe('room mesh shading', () => {
+  it('shades planes with vertex colours without moving the texture mapping', () => {
+    const { planes } = createRoomMesh(room, colors);
+    for (const spec of roomPlanes(room)) {
+      const { mesh } = planes[spec.id];
+      const { width, height } = mesh.geometry.parameters;
+      const position = mesh.geometry.getAttribute('position');
+      const uv = mesh.geometry.getAttribute('uv');
+      const color = mesh.geometry.getAttribute('color');
+      expect(mesh.material.vertexColors).toBe(true);
+      expect(color.itemSize).toBe(3);
+      expect(color.count).toBe(16);
+      for (let vertex = 0; vertex < 16; vertex++) {
+        expect(uv.getX(vertex)).toBeCloseTo(
+          (position.getX(vertex) + width / 2) / width,
+        );
+        expect(uv.getY(vertex)).toBeCloseTo(
+          (position.getY(vertex) + height / 2) / height,
+        );
+      }
+      expect(position.getY(0)).toBeCloseTo(height / 2);
+      expect(position.getX(0)).toBeCloseTo(-width / 2);
+      const { xs, ys, factors } = planeShading(spec);
+      expect(position.getX(5)).toBeCloseTo(xs[1]);
+      expect(position.getY(5)).toBeCloseTo(ys[2]);
+      expect(color.getX(5)).toBeCloseTo(factors[2 * 4 + 1]);
+      expect(color.getX(0)).toBeCloseTo(factors[3 * 4]);
+    }
+  });
+
+  it('keeps only the four outer edges and the shading after a rebuild', () => {
+    const roomMesh = createRoomMesh(room, colors);
+    rebuildRoomMesh(roomMesh, { lengthM: 4, widthM: 4, heightM: 3 });
+    for (const id of planeIds) {
+      const { mesh, edges } = roomMesh.planes[id];
+      expect(edges.geometry.getAttribute('position').count).toBe(8);
+      expect(mesh.geometry.getAttribute('color').count).toBe(16);
+      expect(mesh.geometry.getAttribute('uv').count).toBe(16);
+    }
+  });
+});
 
 describe('room mesh', () => {
   it('builds one front-sided basic plane per surface facing into the room', () => {
