@@ -480,6 +480,38 @@ function ChosenSection({
       ].flatMap((line) => (line?.status === 'OK' ? [line] : []))
     : [];
 
+  const noteOf = (item: (typeof surfaces)[number]) =>
+    item.multiple &&
+    item.hasProduct &&
+    item.surface !== null &&
+    item.total !== 100
+      ? [
+          <ShareNote
+            key={`note:${item.key}`}
+            surface={item.surface}
+            total={item.total}
+            surfaceArea={item.surfaceArea}
+          />,
+        ]
+      : [];
+  const rowWarnings = rows.flatMap(({ category }) => {
+    const line = pricing?.materialsLine(room.clientId, category.id);
+    return [
+      hasHeatedFloorWarning(line) ? t('heatedFloorWarning') : null,
+      describe(line).laborMissing ? tSpec('laborMissing') : null,
+    ].flatMap((text) => (text === null ? [] : [{ key: category.id, text }]));
+  });
+  const collapsedWarnings = open
+    ? []
+    : [
+        ...surfaces.flatMap(noteOf),
+        ...rowWarnings.map(({ key, text }) => (
+          <li key={`${key}:${text}`} className={styles.note}>
+            <p className={cx(styles.noteText, styles.warning)}>{text}</p>
+          </li>
+        )),
+      ];
+
   return (
     <section className={styles.section} aria-labelledby={headingId}>
       <div className={styles.header}>
@@ -534,19 +566,7 @@ function ChosenSection({
                   onSelect={onSelect}
                 />
               )),
-              ...(item.multiple &&
-              item.hasProduct &&
-              item.surface !== null &&
-              item.total !== 100
-                ? [
-                    <ShareNote
-                      key={`note:${item.key}`}
-                      surface={item.surface}
-                      total={item.total}
-                      surfaceArea={item.surfaceArea}
-                    />,
-                  ]
-                : []),
+              ...noteOf(item),
             ])}
             <ChosenOptions
               room={room}
@@ -557,6 +577,11 @@ function ChosenSection({
           </ul>
         </div>
       </Collapse>
+      {collapsedWarnings.length > 0 ? (
+        <ul className={cx(styles.list, styles.collapsedWarnings)}>
+          {collapsedWarnings}
+        </ul>
+      ) : null}
     </section>
   );
 }
