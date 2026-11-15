@@ -81,7 +81,7 @@ export function SpecItem({
   const collapsible =
     showDetailsLabel !== undefined &&
     hideDetailsLabel !== undefined &&
-    Boolean(brand || dimensions || color || fit || components || roomCost);
+    Boolean(brand || dimensions || color || components || roomCost);
 
   const extra = (
     <>
@@ -96,9 +96,6 @@ export function SpecItem({
             </span>
           ) : null}
         </span>
-      ) : null}
-      {fit && fitLabel ? (
-        <span className={cx(styles.fit, styles[fit])}>{fitLabel}</span>
       ) : null}
       {components ? <SpecComponents items={components} /> : null}
     </>
@@ -119,6 +116,9 @@ export function SpecItem({
         <div className={styles.body}>
           <span className={styles.name}>{name}</span>
           {collapsible ? null : <>{extra}</>}
+          {fit && fitLabel ? (
+            <span className={cx(styles.fit, styles[fit])}>{fitLabel}</span>
+          ) : null}
           {warning ? <span className={styles.warning}>{warning}</span> : null}
           {unavailable && unavailableLabel ? (
             <span className={styles.unavailableNote}>{unavailableLabel}</span>
