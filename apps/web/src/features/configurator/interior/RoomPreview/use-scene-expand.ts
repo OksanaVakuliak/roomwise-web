@@ -73,8 +73,9 @@ function ratio(value: number, base: number): number {
 export function useSceneExpand(
   slotRef: RefObject<HTMLElement | null>,
   rootRef: RefObject<HTMLElement | null>,
+  enabled: boolean,
 ) {
-  const isDesktop = useIsDesktop();
+  const available = useIsDesktop() && enabled;
   const reducedMotion = usePrefersReducedMotion();
   const [mode, setMode] = useState<SceneExpandMode>('idle');
   const [geometry, setGeometry] = useState<Geometry>({
@@ -126,8 +127,8 @@ export function useSceneExpand(
   }, [mode, rootRef]);
 
   useEffect(() => {
-    if (!isDesktop && modeRef.current !== 'idle') setMode('idle');
-  }, [isDesktop]);
+    if (!available && modeRef.current !== 'idle') setMode('idle');
+  }, [available]);
 
   useEffect(() => {
     if (mode !== 'open') return;
@@ -137,7 +138,10 @@ export function useSceneExpand(
     const onResize = () => {
       const slot = slotRef.current;
       if (slot) {
-        setGeometry((current) => ({ ...current, target: readTarget(slot) }));
+        const target = readTarget(slot);
+        setGeometry((current) =>
+          sameFrame(current.target, target) ? current : { ...current, target },
+        );
       }
     };
     document.addEventListener('keydown', onKeyDown);
@@ -202,7 +206,7 @@ export function useSceneExpand(
   return {
     mode,
     expanded,
-    available: isDesktop,
+    available,
     geometry,
     toggle,
     onTransitionEnd,

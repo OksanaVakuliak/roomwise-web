@@ -60,7 +60,6 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const expand = useSceneExpand(slotRef, rootRef);
   const controllerRef = useRef<RoomSceneController | null>(null);
   const [colors, setColors] = useState<SceneColors | null>(null);
   const [status, setStatus] = useState<SceneStatus>('loading');
@@ -68,6 +67,8 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
 
   const { lengthM, widthM, heightM } = room;
   const hasDimensions = lengthM !== null && widthM !== null && heightM !== null;
+  const fallback = webGl === false || status === 'error' || status === 'lost';
+  const expand = useSceneExpand(slotRef, rootRef, hasDimensions && !fallback);
 
   useEffect(() => {
     if (hasDimensions && stageRef.current) {
@@ -125,11 +126,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
       label: expand.expanded ? t('collapse') : t('expand'),
       icon: expand.expanded ? 'collapse' : 'expand',
       onClick: expand.toggle,
-      disabled,
+      disabled: disabled && !expand.expanded,
     });
   }
 
-  if (webGl === false || status === 'error' || status === 'lost') {
+  if (fallback) {
     const lengthLabel = dimension(lengthM, locale);
     const widthLabel = dimension(widthM, locale);
     const heightLabel = dimension(heightM, locale);
