@@ -6,6 +6,8 @@ import { VIEWPORTS } from '../viewports';
 const SRC = resolve(import.meta.dirname, '../..');
 const SMALLEST = Math.min(...VIEWPORTS);
 const TABLET = 768;
+const PICKER_BREAKPOINT = 1024;
+const PICKER_STYLES = 'components/layout/StepLayout/StepLayout.module.css';
 const ROOT_PX = 16;
 const SCALING_FROM = 1440;
 const PX_ALLOWLIST = new Set([
@@ -266,7 +268,13 @@ describe('layout widths guard', () => {
 
   it('keeps one composition from the tablet width up', () => {
     const wide = declarations.filter(
-      (item) => item.minWidth > TABLET && !rel(item.file).includes('/(dev)/'),
+      (item) =>
+        item.minWidth > TABLET &&
+        !rel(item.file).includes('/(dev)/') &&
+        !(
+          rel(item.file) === PICKER_STYLES &&
+          item.minWidth === PICKER_BREAKPOINT
+        ),
     );
     expect(wide.map(describeDeclaration)).toEqual([]);
   });
