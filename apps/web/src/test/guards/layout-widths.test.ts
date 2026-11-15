@@ -1,11 +1,13 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { WIDE_BREAKPOINT } from '@/lib/media';
 import { VIEWPORTS } from '../viewports';
 
 const SRC = resolve(import.meta.dirname, '../..');
 const SMALLEST = Math.min(...VIEWPORTS);
 const TABLET = 768;
+const PICKER_STYLES = 'components/layout/StepLayout/StepLayout.module.css';
 const ROOT_PX = 16;
 const SCALING_FROM = 1440;
 const PX_ALLOWLIST = new Set([
@@ -264,9 +266,42 @@ describe('layout widths guard', () => {
     expect(Number(match?.[1]) * SCALING_FROM).toBeCloseTo(ROOT_PX * 100, 1);
   });
 
+  it('switches the picker column at the same breakpoint as useIsWide', () => {
+    const atWide = stepLayout.filter(
+      (item) => item.minWidth === WIDE_BREAKPOINT,
+    );
+    expect(
+      atWide.some(
+        (item) =>
+          item.selector === '.withPicker' &&
+          item.property === 'grid-template-columns',
+      ),
+    ).toBe(true);
+    expect(
+      atWide.some(
+        (item) =>
+          item.selector === '.picker' &&
+          item.property === 'display' &&
+          item.value === 'block',
+      ),
+    ).toBe(true);
+    expect(
+      stepLayout.filter(
+        (item) => item.minWidth > TABLET && item.minWidth !== WIDE_BREAKPOINT,
+      ),
+    ).toEqual([]);
+  });
+
   it('keeps one composition from the tablet width up', () => {
     const wide = declarations.filter(
-      (item) => item.minWidth > TABLET && !rel(item.file).includes('/(dev)/'),
+      (item) =>
+        item.minWidth > TABLET &&
+        !rel(item.file).includes('/(dev)/') &&
+        !(
+          rel(item.file) === PICKER_STYLES &&
+          item.minWidth === WIDE_BREAKPOINT &&
+          (item.selector === '.withPicker' || item.selector === '.picker')
+        ),
     );
     expect(wide.map(describeDeclaration)).toEqual([]);
   });

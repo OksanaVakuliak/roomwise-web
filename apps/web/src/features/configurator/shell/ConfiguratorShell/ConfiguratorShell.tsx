@@ -2,10 +2,9 @@
 
 import { type ReactNode, useState } from 'react';
 import { StepLayout } from '@/components/layout';
-import { ZoneSkeleton } from '@/components/system';
+import { ZoneSkeleton, type ZoneSkeletonKind } from '@/components/system';
 import { usePathname } from '@/i18n/navigation';
 import type { StepId } from '@/lib/draft/schema';
-import { useIsWide } from '@/lib/media';
 import { useDraftHydration } from '@/stores/use-draft-hydration';
 import { useDraftTabSync } from '@/stores/use-draft-tab-sync';
 import { CostPanel } from '../CostPanel/CostPanel';
@@ -22,6 +21,19 @@ import { useDefaultStyle } from '../use-default-style';
 import { useDraftReconciliation } from '../use-draft-reconciliation';
 import { useStepContext } from '../use-step-context';
 import { useSurfaceNormalization } from '../use-surface-normalization';
+
+const CONTENT_SKELETONS: Record<StepId, ZoneSkeletonKind> = {
+  object: 'object',
+  interior: 'interior',
+  engineering: 'engineering',
+  style: 'style',
+  result: 'result',
+};
+
+const SHOWCASE_SKELETONS: Partial<Record<StepId, ZoneSkeletonKind>> = {
+  object: 'plan',
+  interior: 'showcase',
+};
 
 export type ConfiguratorShellProps = {
   children: ReactNode;
@@ -41,7 +53,8 @@ function ConfiguratorFrame({
   const [sceneSlot, setSceneSlot] = useState<HTMLElement | null>(null);
   const [showcaseSlot, setShowcaseSlot] = useState<HTMLElement | null>(null);
   const [pickerSlot, setPickerSlot] = useState<HTMLElement | null>(null);
-  const wide = useIsWide();
+
+  const showcaseSkeleton = SHOWCASE_SKELETONS[step];
 
   useDraftTabSync();
   useSurfaceNormalization(hydrated);
@@ -67,20 +80,33 @@ function ConfiguratorFrame({
                     </StepGuard>
                   </>
                 ) : (
-                  <ZoneSkeleton kind="rooms" />
+                  <ZoneSkeleton kind={CONTENT_SKELETONS[step]} />
                 )
               }
               picker={
-                step === 'interior' && wide ? (
-                  <div ref={setPickerSlot} />
+                step === 'interior' ? (
+                  <>
+                    <div ref={setPickerSlot} />
+                    {ready ? null : <ZoneSkeleton kind="picker" decorative />}
+                  </>
                 ) : undefined
               }
-              scene={<div ref={setSceneSlot} />}
+              scene={
+                <>
+                  <div ref={setSceneSlot} />
+                  {ready || step !== 'interior' ? null : (
+                    <ZoneSkeleton kind="scene" decorative />
+                  )}
+                </>
+              }
               showcase={
-                ready ? (
-                  <div ref={setShowcaseSlot} />
-                ) : (
-                  <ZoneSkeleton kind="showcase" />
+                showcaseSkeleton === undefined ? null : (
+                  <>
+                    <div ref={setShowcaseSlot} />
+                    {ready ? null : (
+                      <ZoneSkeleton kind={showcaseSkeleton} decorative />
+                    )}
+                  </>
                 )
               }
               cost={
@@ -90,7 +116,12 @@ function ConfiguratorFrame({
                     <StepNav step={step} context={context} />
                   </>
                 ) : (
-                  <ZoneSkeleton kind="estimate" />
+                  <>
+                    {step === 'result' ? null : (
+                      <ZoneSkeleton kind="estimate" decorative />
+                    )}
+                    <ZoneSkeleton kind="nav" decorative />
+                  </>
                 )
               }
             />

@@ -1,10 +1,8 @@
 'use client';
 
 import type { UseQueryResult } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
 import { type ReactNode, useCallback } from 'react';
-import { ErrorState } from '@/components/system';
-import { Skeleton } from '@/components/ui';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
 import {
   useCalculationVersion,
   useLatestCalculation,
@@ -44,7 +42,6 @@ function CalculationView({
   versions,
   actions,
 }: ViewProps) {
-  const t = useTranslations('CalculationPage');
   const { refetch } = query;
   const retry = useCallback(() => refetch(), [refetch]);
 
@@ -57,11 +54,7 @@ function CalculationView({
   }
 
   if (!query.data) {
-    return (
-      <div role="status" aria-label={t('loading')}>
-        <Skeleton variant="block" />
-      </div>
-    );
+    return <ZoneSkeleton kind="result" />;
   }
 
   const version = query.data;

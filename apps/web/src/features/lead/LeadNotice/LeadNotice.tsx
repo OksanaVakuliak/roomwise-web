@@ -32,7 +32,8 @@ export function LeadNotice({ settings }: LeadNoticeProps) {
   }
   return (
     <div role="status" className={styles.loading}>
-      <Skeleton variant="block" />
+      <Skeleton />
+      <Skeleton width="60%" />
       <VisuallyHidden>{t('loading')}</VisuallyHidden>
     </div>
   );
