@@ -27,6 +27,7 @@ import type {
 } from '../types';
 
 const TEXTURE_TINT = '#ffffff';
+const EDGE_OPACITY_OVER_MATERIAL = 0.35;
 const GRID_STOPS = 4;
 
 type PlaneEntry = {
@@ -97,6 +98,10 @@ function createEdgesGeometry(spec: PlaneSpec): EdgesGeometry {
   return edges;
 }
 
+function edgeOpacity(neutral: boolean): number {
+  return neutral ? 1 : EDGE_OPACITY_OVER_MATERIAL;
+}
+
 function createPlane(spec: PlaneSpec, colors: SceneColors): PlaneEntry {
   const geometry = createPlaneGeometry(spec);
   const mesh = new Mesh(
@@ -114,6 +119,8 @@ function createPlane(spec: PlaneSpec, colors: SceneColors): PlaneEntry {
     createEdgesGeometry(spec),
     new LineBasicMaterial({
       color: colors.edge,
+      transparent: true,
+      opacity: edgeOpacity(true),
     }),
   );
   mesh.name = spec.id;
@@ -186,6 +193,7 @@ export function setRoomMeshSurface(
   for (const { entry } of surfaceEntries(roomMesh, surface)) {
     clearTexture(entry);
     entry.neutral = neutral;
+    entry.edges.material.opacity = edgeOpacity(neutral);
     entry.mesh.material.color.set(color || colors.neutral);
   }
 }
@@ -204,6 +212,7 @@ export function setRoomMeshTexture(
     entry.texture = clone;
     entry.step = step;
     entry.neutral = false;
+    entry.edges.material.opacity = edgeOpacity(false);
     entry.mesh.material.map = clone;
     entry.mesh.material.color.set(TEXTURE_TINT);
     entry.mesh.material.needsUpdate = true;

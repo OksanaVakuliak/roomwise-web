@@ -59,6 +59,35 @@ describe('room mesh shading', () => {
       expect(mesh.geometry.getAttribute('uv').count).toBe(16);
     }
   });
+
+  it('softens contours over planes with a material', () => {
+    const roomMesh = createRoomMesh(room, colors);
+    const { edges } = roomMesh.planes.floor;
+    expect(edges.material.transparent).toBe(true);
+    expect(edges.material.opacity).toBe(1);
+    setRoomMeshSurface(
+      roomMesh,
+      'floor',
+      { kind: 'color', productId: 'c', name: 'C', color: '#112233' },
+      colors,
+    );
+    expect(edges.material.opacity).toBeLessThan(1);
+    setRoomMeshSurface(
+      roomMesh,
+      'floor',
+      { kind: 'neutral', reason: 'unselected' },
+      colors,
+    );
+    expect(edges.material.opacity).toBe(1);
+    setRoomMeshTexture(
+      roomMesh,
+      'floor',
+      new Texture(),
+      { widthMm: 300, lengthMm: 600 },
+      room,
+    );
+    expect(edges.material.opacity).toBeLessThan(1);
+  });
 });
 
 describe('room mesh', () => {
