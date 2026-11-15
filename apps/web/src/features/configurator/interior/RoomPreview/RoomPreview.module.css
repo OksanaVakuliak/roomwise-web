@@ -59,7 +59,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .floating {
+  .floating[data-mode="open"],
+  .floating[data-mode="leave"] {
     transition: none;
   }
 }
