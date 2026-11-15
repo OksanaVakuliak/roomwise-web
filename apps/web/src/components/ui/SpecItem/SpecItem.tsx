@@ -78,9 +78,9 @@ export function SpecItem({
     unavailable && styles.unavailable,
   );
 
-  const toggleLabel = open ? hideDetailsLabel : showDetailsLabel;
   const collapsible =
-    toggleLabel !== undefined &&
+    showDetailsLabel !== undefined &&
+    hideDetailsLabel !== undefined &&
     Boolean(brand || dimensions || color || fit || components || roomCost);
 
   const extra = (
@@ -139,7 +139,7 @@ export function SpecItem({
                 className={styles.toggle}
                 expanded={open}
                 controls={detailsId}
-                label={toggleLabel}
+                label={open ? hideDetailsLabel : showDetailsLabel}
                 onClick={toggle}
               />
             ) : null}
