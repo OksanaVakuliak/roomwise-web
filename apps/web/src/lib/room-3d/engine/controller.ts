@@ -12,11 +12,14 @@ import {
   visibleFaces,
 } from '../camera';
 import type { RoomSize } from '../geometry';
+import { pickTextureUrl } from '../texture-source';
 import type {
   CameraView,
   RoomSceneInput,
   SceneColors,
+  SceneMaterial,
   SceneStatus,
+  SurfaceKey,
 } from '../types';
 import {
   createRoomMesh,
@@ -25,7 +28,10 @@ import {
   rebuildRoomMesh,
   setRoomMeshColors,
   setRoomMeshEdges,
+  setRoomMeshSurface,
+  setRoomMeshTexture,
 } from './room-mesh';
+import { createTextureCache, type TextureCache } from './texture-cache';
 
 export type RoomSceneControllerOptions = {
   reducedMotion: boolean;
@@ -64,6 +70,21 @@ function sameSize(a: RoomSize, b: RoomSize): boolean {
   );
 }
 
+const surfaceKeys: SurfaceKey[] = ['floor', 'walls', 'ceiling'];
+
+function materialKey(material: SceneMaterial): string {
+  switch (material.kind) {
+    case 'neutral':
+      return 'neutral';
+    case 'color':
+      return `color:${material.color}`;
+    case 'texture': {
+      const { widthMm, lengthMm } = material.textureStepMm;
+      return `texture:${material.productId}:${material.color}:${material.textureUrl}:${material.previewUrl}:${widthMm}x${lengthMm}`;
+    }
+  }
+}
+
 function shortestTurn(from: number, to: number): number {
   return ((((to - from + Math.PI) % turn) + turn) % turn) - Math.PI;
 }
@@ -81,6 +102,8 @@ export function createRoomSceneController({
   let renderer: WebGLRenderer | null = null;
   let controls: OrbitControls | null = null;
   let roomMesh: RoomMesh | null = null;
+  let textures: TextureCache | null = null;
+  let applied: Record<SurfaceKey, string> | null = null;
   let input: RoomSceneInput | null = null;
   let builtRoom: RoomSize | null = null;
   let colors = initialColors;
@@ -177,6 +200,46 @@ export function createRoomSceneController({
     builtRoom = room;
   }
 
+  function loadTexture(surface: SurfaceKey, material: SceneMaterial) {
+    if (!renderer || !textures || material.kind !== 'texture') return;
+    const url = pickTextureUrl(material, size.width, renderer.getPixelRatio());
+    const cache = textures;
+    cache.request(surface, url, (texture) => {
+      if (cache !== textures || !roomMesh || !input) return;
+      setRoomMeshTexture(
+        roomMesh,
+        surface,
+        texture,
+        material.textureStepMm,
+        roomSize(input),
+      );
+      render();
+    });
+  }
+
+  function applySurfaces() {
+    if (!renderer || !roomMesh || !textures || !input) return;
+    const next = input.surfaces;
+    const previous = applied;
+    applied = {
+      floor: materialKey(next.floor),
+      walls: materialKey(next.walls),
+      ceiling: materialKey(next.ceiling),
+    };
+    let changed = false;
+    for (const surface of surfaceKeys) {
+      if (previous && previous[surface] === applied[surface]) continue;
+      changed = true;
+      setRoomMeshSurface(roomMesh, surface, next[surface], colors);
+      if (next[surface].kind === 'texture') {
+        loadTexture(surface, next[surface]);
+      } else {
+        textures.release(surface);
+      }
+    }
+    if (changed) render();
+  }
+
   function sync(resetView: boolean) {
     if (!renderer || !input) return;
     const room = roomSize(input);
@@ -199,6 +262,9 @@ export function createRoomSceneController({
       }
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setClearColor(colors.background);
+      textures = createTextureCache({
+        anisotropy: renderer.capabilities.getMaxAnisotropy(),
+      });
       if (container.clientWidth > 0 && container.clientHeight > 0) {
         size = { width: container.clientWidth, height: container.clientHeight };
       }
@@ -216,6 +282,7 @@ export function createRoomSceneController({
       });
 
       sync(true);
+      applySurfaces();
       onStatus?.('ready');
     },
     setInput(next) {
@@ -223,6 +290,7 @@ export function createRoomSceneController({
       const sizeChanged = !input || !sameSize(input, next);
       input = next;
       if (keyChanged || sizeChanged) sync(keyChanged);
+      applySurfaces();
     },
     setColors(next) {
       if (
@@ -288,6 +356,9 @@ export function createRoomSceneController({
       cancelTransition();
       controls?.dispose();
       controls = null;
+      textures?.dispose();
+      textures = null;
+      applied = null;
       if (roomMesh) {
         scene.remove(roomMesh.group);
         disposeRoomMesh(roomMesh);

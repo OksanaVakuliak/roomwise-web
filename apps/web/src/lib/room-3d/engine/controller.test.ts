@@ -1,4 +1,12 @@
-import type { Camera, Mesh, Object3D, PlaneGeometry, Scene } from 'three';
+import {
+  type Camera,
+  type Mesh,
+  type MeshBasicMaterial,
+  type Object3D,
+  type PlaneGeometry,
+  type Scene,
+  Texture,
+} from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   cameraLimits,
@@ -6,8 +14,13 @@ import {
   cameraTarget,
   defaultView,
 } from '../camera';
-import type { PlaneId } from '../geometry';
-import type { RoomSceneInput, SceneColors, SceneStatus } from '../types';
+import { type PlaneId, textureRepeat } from '../geometry';
+import type {
+  RoomSceneInput,
+  SceneColors,
+  SceneMaterial,
+  SceneStatus,
+} from '../types';
 import {
   createRoomSceneController,
   type RoomSceneController,
@@ -18,6 +31,21 @@ const mocks = vi.hoisted(() => ({
   forceContextLoss: vi.fn(),
   created: 0,
   fail: false,
+  request: vi.fn(),
+  release: vi.fn(),
+  disposeCache: vi.fn(),
+  anisotropy: undefined as number | undefined,
+}));
+
+vi.mock('./texture-cache', () => ({
+  createTextureCache: (options: { anisotropy: number }) => {
+    mocks.anisotropy = options.anisotropy;
+    return {
+      request: mocks.request,
+      release: mocks.release,
+      dispose: mocks.disposeCache,
+    };
+  },
 }));
 
 vi.mock('three', async (importOriginal) => {
@@ -30,6 +58,8 @@ vi.mock('three', async (importOriginal) => {
     }
     setSize = vi.fn();
     setPixelRatio = vi.fn();
+    getPixelRatio = () => 2;
+    capabilities = { getMaxAnisotropy: () => 8 };
     setClearColor = vi.fn();
     render = mocks.render;
     dispose = vi.fn();
@@ -108,11 +138,40 @@ function polarAndDistance(room: RoomSceneInput) {
   };
 }
 
+const floorTexture: SceneMaterial = {
+  kind: 'texture',
+  productId: 'tile',
+  name: 'Tile',
+  color: '#aa8866',
+  textureUrl: 'https://cdn/tile.jpg',
+  previewUrl: 'https://cdn/tile-small.jpg',
+  textureStepMm: { widthMm: 1500, lengthMm: 1500 },
+};
+
+function withFloor(floor: SceneMaterial, base = input): RoomSceneInput {
+  return { ...base, surfaces: { ...base.surfaces, floor } };
+}
+
+function planeMaterial(id: PlaneId): MeshBasicMaterial {
+  return (find(lastFrame().scene, id) as Mesh<PlaneGeometry, MeshBasicMaterial>)
+    .material;
+}
+
+function deliver(call = 0) {
+  const texture = new Texture();
+  mocks.request.mock.calls[call][2](texture);
+  return texture;
+}
+
 beforeEach(() => {
   mocks.render.mockClear();
   mocks.forceContextLoss.mockClear();
   mocks.created = 0;
   mocks.fail = false;
+  mocks.request.mockReset();
+  mocks.release.mockClear();
+  mocks.disposeCache.mockClear();
+  mocks.anisotropy = undefined;
   statuses = [];
   container = document.createElement('div');
   document.body.append(container);
@@ -350,5 +409,155 @@ describe('room scene controller', () => {
     create();
     controller.dispose();
     expect(mocks.forceContextLoss).toHaveBeenCalledTimes(1);
+  });
+
+  describe('materials', () => {
+    it('keeps the camera while a material is swapped', () => {
+      create();
+      controller.setInput(input);
+      press('ArrowRight', 2);
+      const before = lastFrame().camera.position.clone();
+      controller.setInput(withFloor(floorTexture));
+      deliver();
+      controller.setInput(
+        withFloor({
+          kind: 'color',
+          productId: 'c',
+          name: 'C',
+          color: '#112233',
+        }),
+      );
+      expect(lastFrame().camera.position.toArray()).toEqual(before.toArray());
+    });
+
+    it('creates the cache with the renderer anisotropy and requests a url for the canvas', () => {
+      create();
+      controller.setInput(withFloor(floorTexture));
+      expect(mocks.anisotropy).toBe(8);
+      expect(mocks.request).toHaveBeenCalledWith(
+        'floor',
+        'https://cdn/tile.jpg',
+        expect.any(Function),
+      );
+    });
+
+    it('shows the fallback colour first, then the map with a white tint', () => {
+      create();
+      controller.setInput(withFloor(floorTexture));
+      expect(planeMaterial('floor').color.getHexString()).toBe('aa8866');
+      expect(planeMaterial('floor').map).toBeNull();
+      deliver();
+      expect(planeMaterial('floor').map).not.toBeNull();
+      expect(planeMaterial('floor').color.getHexString()).toBe('ffffff');
+    });
+
+    it('sets the repeat from the real size step and from a module step', () => {
+      const room = { lengthM: 3, widthM: 3, heightM: 2.7 };
+      create();
+      controller.setInput(withFloor(floorTexture, { ...input, ...room }));
+      deliver();
+      expect(planeMaterial('floor').map?.repeat.toArray()).toEqual([2, 2]);
+
+      const step = { widthMm: 190, lengthMm: 1200 };
+      controller.setInput(
+        withFloor(
+          { ...floorTexture, productId: 'plank', textureStepMm: step },
+          { ...input, ...room },
+        ),
+      );
+      deliver(1);
+      expect(planeMaterial('floor').map?.repeat.toArray()).toEqual(
+        textureRepeat('floor', room, step),
+      );
+    });
+
+    it('paints all four walls with the walls material', () => {
+      create();
+      controller.setInput({
+        ...input,
+        surfaces: { ...input.surfaces, walls: floorTexture },
+      });
+      deliver();
+      for (const id of [
+        'wallBack',
+        'wallFront',
+        'wallLeft',
+        'wallRight',
+      ] as const) {
+        expect(planeMaterial(id).map).not.toBeNull();
+      }
+      expect(planeMaterial('floor').map).toBeNull();
+    });
+
+    it('changes only neutral planes, edges and background on setColors', () => {
+      create();
+      controller.setInput({
+        ...input,
+        surfaces: {
+          floor: { kind: 'color', productId: 'c', name: 'C', color: '#112233' },
+          walls: { kind: 'color', productId: 'n', name: 'N', color: null },
+          ceiling: floorTexture,
+        },
+      });
+      controller.setColors({ ...colors, neutral: '#ff0000', edge: '#00ff00' });
+      expect(planeMaterial('floor').color.getHexString()).toBe('112233');
+      expect(planeMaterial('wallBack').color.getHexString()).toBe('ff0000');
+      expect(planeMaterial('ceiling').color.getHexString()).toBe('aa8866');
+      const edges = find(lastFrame().scene, 'floor-edges') as Mesh<
+        PlaneGeometry,
+        MeshBasicMaterial
+      >;
+      expect(edges.material.color.getHexString()).toBe('00ff00');
+    });
+
+    it('clears the map and disposes the clone when a texture becomes neutral', () => {
+      create();
+      controller.setInput(withFloor(floorTexture));
+      deliver();
+      const clone = planeMaterial('floor').map as Texture;
+      const disposed = vi.fn();
+      clone.addEventListener('dispose', disposed);
+      controller.setInput(input);
+      expect(planeMaterial('floor').map).toBeNull();
+      expect(planeMaterial('floor').color.getHexString()).toBe('cccccc');
+      expect(disposed).toHaveBeenCalledTimes(1);
+      expect(mocks.release).toHaveBeenCalledWith('floor');
+    });
+
+    it('recomputes the repeat when the room is resized', () => {
+      create();
+      controller.setInput(withFloor(floorTexture, { ...input, lengthM: 3 }));
+      deliver();
+      const resized = { ...input, lengthM: 6 };
+      controller.setInput(withFloor(floorTexture, resized));
+      expect(planeMaterial('floor').map?.repeat.toArray()).toEqual(
+        textureRepeat('floor', resized, floorTexture.textureStepMm),
+      );
+    });
+
+    it('applies materials that arrived before mount', () => {
+      controller = createRoomSceneController({ reducedMotion: true });
+      controller.setInput(withFloor(floorTexture));
+      controller.resize(800, 600);
+      controller.mount(container);
+      expect(mocks.request).toHaveBeenCalledTimes(1);
+      expect(planeMaterial('floor').color.getHexString()).toBe('aa8866');
+    });
+
+    it('disposes the cache and clones and ignores late textures', () => {
+      create();
+      controller.setInput(withFloor(floorTexture));
+      deliver();
+      const clone = planeMaterial('floor').map as Texture;
+      const disposed = vi.fn();
+      clone.addEventListener('dispose', disposed);
+      controller.setInput(withFloor({ ...floorTexture, productId: 'other' }));
+      const renders = mocks.render.mock.calls.length;
+      controller.dispose();
+      expect(mocks.disposeCache).toHaveBeenCalledTimes(1);
+      expect(disposed).toHaveBeenCalled();
+      expect(() => deliver(1)).not.toThrow();
+      expect(mocks.render.mock.calls.length).toBe(renders);
+    });
   });
 });
