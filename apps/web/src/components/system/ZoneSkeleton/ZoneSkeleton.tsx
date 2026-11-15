@@ -18,6 +18,7 @@ export type ZoneSkeletonKind =
 
 export type ZoneSkeletonProps = {
   kind: ZoneSkeletonKind;
+  decorative?: boolean;
 };
 
 const ROOM_ROWS = [0, 1, 2];
@@ -319,13 +320,22 @@ const LAYOUTS = {
   nav: NavLayout,
 } as const;
 
-export function ZoneSkeleton({ kind }: ZoneSkeletonProps) {
+export function ZoneSkeleton({ kind, decorative = false }: ZoneSkeletonProps) {
   const t = useTranslations('ZoneStates.loading');
   const Layout = LAYOUTS[kind];
+
+  if (decorative) {
+    return (
+      <div className={styles.root} data-skeleton={kind} aria-hidden="true">
+        <Layout />
+      </div>
+    );
+  }
 
   return (
     <div
       className={styles.root}
+      data-skeleton={kind}
       role="status"
       aria-label={t(kind)}
       aria-busy="true"

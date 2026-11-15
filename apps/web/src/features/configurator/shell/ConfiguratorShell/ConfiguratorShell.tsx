@@ -87,7 +87,7 @@ function ConfiguratorFrame({
                 step === 'interior' ? (
                   <>
                     <div ref={setPickerSlot} />
-                    {ready ? null : <ZoneSkeleton kind="picker" />}
+                    {ready ? null : <ZoneSkeleton kind="picker" decorative />}
                   </>
                 ) : undefined
               }
@@ -95,7 +95,7 @@ function ConfiguratorFrame({
                 <>
                   <div ref={setSceneSlot} />
                   {ready || step !== 'interior' ? null : (
-                    <ZoneSkeleton kind="scene" />
+                    <ZoneSkeleton kind="scene" decorative />
                   )}
                 </>
               }
@@ -103,7 +103,9 @@ function ConfiguratorFrame({
                 showcaseSkeleton === undefined ? null : (
                   <>
                     <div ref={setShowcaseSlot} />
-                    {ready ? null : <ZoneSkeleton kind={showcaseSkeleton} />}
+                    {ready ? null : (
+                      <ZoneSkeleton kind={showcaseSkeleton} decorative />
+                    )}
                   </>
                 )
               }
@@ -116,9 +118,9 @@ function ConfiguratorFrame({
                 ) : (
                   <>
                     {step === 'result' ? null : (
-                      <ZoneSkeleton kind="estimate" />
+                      <ZoneSkeleton kind="estimate" decorative />
                     )}
-                    <ZoneSkeleton kind="nav" />
+                    <ZoneSkeleton kind="nav" decorative />
                   </>
                 )
               }

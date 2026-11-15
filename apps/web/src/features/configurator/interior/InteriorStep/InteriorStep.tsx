@@ -34,13 +34,16 @@ function InteriorLoading() {
     <>
       <ZoneSkeleton kind="interior" />
       {sceneSlot
-        ? createPortal(<ZoneSkeleton kind="scene" />, sceneSlot)
+        ? createPortal(<ZoneSkeleton kind="scene" decorative />, sceneSlot)
         : null}
       {pickerSlot
-        ? createPortal(<ZoneSkeleton kind="picker" />, pickerSlot)
+        ? createPortal(<ZoneSkeleton kind="picker" decorative />, pickerSlot)
         : null}
       {showcaseSlot
-        ? createPortal(<ZoneSkeleton kind="showcase" />, showcaseSlot)
+        ? createPortal(
+            <ZoneSkeleton kind="showcase" decorative />,
+            showcaseSlot,
+          )
         : null}
     </>
   );

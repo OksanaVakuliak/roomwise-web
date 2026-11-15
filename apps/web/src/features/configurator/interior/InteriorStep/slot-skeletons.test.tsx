@@ -5,7 +5,6 @@ import { useDraft } from '@/stores/draft';
 import { makeInteriorDraft } from '@/test/fixtures/draft';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { setViewport } from '@/test/viewports';
-import en from '../../../../../messages/en.json';
 import { ConfiguratorShell } from '../../shell/ConfiguratorShell/ConfiguratorShell';
 import { InteriorStep } from './InteriorStep';
 
@@ -29,9 +28,7 @@ vi.mock('@/lib/api/catalog', async (importActual) => {
 const SLOT_KINDS = ['picker', 'scene', 'showcase'] as const;
 
 function slotStatuses(kind: (typeof SLOT_KINDS)[number]) {
-  return screen.queryAllByRole('status', {
-    name: en.ZoneStates.loading[kind],
-  });
+  return document.querySelectorAll(`[data-skeleton="${kind}"]`);
 }
 
 async function renderInterior(options: { pricing?: false } = {}) {
