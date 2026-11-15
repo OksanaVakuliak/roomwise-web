@@ -790,7 +790,15 @@
       "showcase": "Loading the catalog",
       "rooms": "Loading rooms",
       "specification": "Loading the specification",
-      "estimate": "Loading the estimate"
+      "estimate": "Loading the estimate",
+      "interior": "Loading the room",
+      "engineering": "Loading engineering options",
+      "style": "Loading styles",
+      "object": "Loading the apartment details",
+      "plan": "Loading the plan",
+      "picker": "Loading the picker",
+      "scene": "Loading the 3D view",
+      "nav": "Loading navigation"
     },
     "empty": {
       "showcase": {

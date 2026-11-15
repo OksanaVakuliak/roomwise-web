@@ -6,7 +6,20 @@ import en from '../../../../messages/en.json';
 import uk from '../../../../messages/uk.json';
 import { ZoneSkeleton } from './ZoneSkeleton';
 
-const KINDS = ['showcase', 'rooms', 'specification', 'estimate'] as const;
+const KINDS = [
+  'showcase',
+  'rooms',
+  'specification',
+  'estimate',
+  'interior',
+  'engineering',
+  'style',
+  'object',
+  'plan',
+  'picker',
+  'scene',
+  'nav',
+] as const;
 const CATALOGS = { en, uk } as const;
 
 describe('ZoneSkeleton', () => {
