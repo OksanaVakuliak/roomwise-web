@@ -47,6 +47,7 @@ export * from './SidePanel/SidePanel';
 export * from './Skeleton/Skeleton';
 export * from './SpecComponents/SpecComponents';
 export * from './SpecItem/SpecItem';
+export * from './SpecItemSkeleton/SpecItemSkeleton';
 export * from './StackBar/StackBar';
 export * from './Stepper/Stepper';
 export * from './StyleCard/StyleCard';
