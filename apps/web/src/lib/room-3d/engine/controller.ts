@@ -12,11 +12,14 @@ import {
   visibleFaces,
 } from '../camera';
 import type { RoomSize } from '../geometry';
+import { pickTextureUrl } from '../texture-source';
 import type {
   CameraView,
   RoomSceneInput,
   SceneColors,
+  SceneMaterial,
   SceneStatus,
+  SurfaceKey,
 } from '../types';
 import {
   createRoomMesh,
@@ -25,7 +28,12 @@ import {
   rebuildRoomMesh,
   setRoomMeshColors,
   setRoomMeshEdges,
+  setRoomMeshSurface,
+  setRoomMeshTexture,
 } from './room-mesh';
+import { createTextureCache, type TextureCache } from './texture-cache';
+
+type TextureMaterial = Extract<SceneMaterial, { kind: 'texture' }>;
 
 export type RoomSceneControllerOptions = {
   reducedMotion: boolean;
@@ -64,6 +72,27 @@ function sameSize(a: RoomSize, b: RoomSize): boolean {
   );
 }
 
+const surfaceKeys: SurfaceKey[] = ['floor', 'walls', 'ceiling'];
+
+type AppliedSurface = {
+  material: string;
+  url: string | null;
+  failed: boolean;
+};
+
+function materialKey(material: SceneMaterial): string {
+  switch (material.kind) {
+    case 'neutral':
+      return 'neutral';
+    case 'color':
+      return `color:${material.color}`;
+    case 'texture': {
+      const { widthMm, lengthMm } = material.textureStepMm;
+      return `texture:${material.productId}:${material.color}:${material.textureUrl}:${material.previewUrl}:${widthMm}x${lengthMm}`;
+    }
+  }
+}
+
 function shortestTurn(from: number, to: number): number {
   return ((((to - from + Math.PI) % turn) + turn) % turn) - Math.PI;
 }
@@ -81,6 +110,8 @@ export function createRoomSceneController({
   let renderer: WebGLRenderer | null = null;
   let controls: OrbitControls | null = null;
   let roomMesh: RoomMesh | null = null;
+  let textures: TextureCache | null = null;
+  let applied: Record<SurfaceKey, AppliedSurface> | null = null;
   let input: RoomSceneInput | null = null;
   let builtRoom: RoomSize | null = null;
   let colors = initialColors;
@@ -88,6 +119,7 @@ export function createRoomSceneController({
   let active = true;
   let reducedMotion = initialReducedMotion;
   let silent = false;
+  let applying = false;
   let frame: number | null = null;
 
   const aspect = () => size.width / size.height;
@@ -177,11 +209,83 @@ export function createRoomSceneController({
     builtRoom = room;
   }
 
-  function sync(resetView: boolean) {
+  function loadTexture(
+    surface: SurfaceKey,
+    material: TextureMaterial,
+    url: string,
+  ) {
+    if (!textures) return;
+    const cache = textures;
+    cache.request(
+      surface,
+      url,
+      (texture) => {
+        if (cache !== textures || !roomMesh || !input) return;
+        setRoomMeshTexture(
+          roomMesh,
+          surface,
+          texture,
+          material.textureStepMm,
+          roomSize(input),
+        );
+        if (!applying) render();
+      },
+      () => {
+        const current = applied?.[surface];
+        if (cache === textures && current?.url === url) current.failed = true;
+      },
+    );
+  }
+
+  function applySurfaces(retryFailed: boolean): boolean {
+    if (!renderer || !roomMesh || !textures || !input) return false;
+    const pixelRatio = renderer.getPixelRatio();
+    const previous = applied;
+    const next = {} as Record<SurfaceKey, AppliedSurface>;
+    let changed = false;
+    applying = true;
+    try {
+      for (const surface of surfaceKeys) {
+        const material = input.surfaces[surface];
+        const key = materialKey(material);
+        const url =
+          material.kind === 'texture'
+            ? pickTextureUrl(material, size.width, pixelRatio)
+            : null;
+        const before = previous?.[surface];
+        if (
+          before &&
+          before.material === key &&
+          before.url === url &&
+          !(retryFailed && before.failed)
+        ) {
+          next[surface] = before;
+          continue;
+        }
+        changed = true;
+        next[surface] = { material: key, url, failed: false };
+        if (before?.material !== key) {
+          setRoomMeshSurface(roomMesh, surface, material, colors);
+        }
+        if (material.kind === 'texture' && url) {
+          loadTexture(surface, material, url);
+        } else {
+          textures.release(surface);
+        }
+      }
+    } finally {
+      applying = false;
+    }
+    applied = next;
+    return changed;
+  }
+
+  function sync(resetView: boolean, retryFailed: boolean) {
     if (!renderer || !input) return;
     const room = roomSize(input);
     build(room);
     applyLimits(room);
+    applySurfaces(retryFailed);
     const view = resetView ? defaultView(room, aspect()) : currentView(room);
     moveTo(view, false);
   }
@@ -199,6 +303,9 @@ export function createRoomSceneController({
       }
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setClearColor(colors.background);
+      textures = createTextureCache({
+        anisotropy: renderer.capabilities.getMaxAnisotropy(),
+      });
       if (container.clientWidth > 0 && container.clientHeight > 0) {
         size = { width: container.clientWidth, height: container.clientHeight };
       }
@@ -215,14 +322,15 @@ export function createRoomSceneController({
         if (!silent) render();
       });
 
-      sync(true);
+      sync(true, false);
       onStatus?.('ready');
     },
     setInput(next) {
       const keyChanged = !input || input.roomKey !== next.roomKey;
       const sizeChanged = !input || !sameSize(input, next);
       input = next;
-      if (keyChanged || sizeChanged) sync(keyChanged);
+      if (keyChanged || sizeChanged) sync(keyChanged, true);
+      else if (applySurfaces(true)) render();
     },
     setColors(next) {
       if (
@@ -248,6 +356,7 @@ export function createRoomSceneController({
       if (!input) return;
       const room = roomSize(input);
       applyLimits(room);
+      applySurfaces(false);
       if (frame !== null) return;
       const view = currentView(room);
       const fit =
@@ -288,6 +397,9 @@ export function createRoomSceneController({
       cancelTransition();
       controls?.dispose();
       controls = null;
+      textures?.dispose();
+      textures = null;
+      applied = null;
       if (roomMesh) {
         scene.remove(roomMesh.group);
         disposeRoomMesh(roomMesh);

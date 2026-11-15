@@ -1,4 +1,4 @@
-import { FrontSide, Vector3 } from 'three';
+import { FrontSide, Texture, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import { planeIds, roomPlanes } from '../geometry';
 import type { SceneColors } from '../types';
@@ -8,6 +8,8 @@ import {
   rebuildRoomMesh,
   setRoomMeshColors,
   setRoomMeshEdges,
+  setRoomMeshSurface,
+  setRoomMeshTexture,
 } from './room-mesh';
 
 const room = { lengthM: 5, widthM: 3, heightM: 2.7 };
@@ -45,6 +47,104 @@ describe('room mesh', () => {
     expect(roomMesh.planes.floor.edges.material.color.getHexString()).toBe(
       '222222',
     );
+  });
+
+  it('keeps non-neutral planes when the neutral colour changes', () => {
+    const roomMesh = createRoomMesh(room, colors);
+    setRoomMeshSurface(
+      roomMesh,
+      'floor',
+      { kind: 'color', productId: 'c', name: 'C', color: '#112233' },
+      colors,
+    );
+    setRoomMeshSurface(
+      roomMesh,
+      'walls',
+      { kind: 'color', productId: 'n', name: 'N', color: null },
+      colors,
+    );
+    setRoomMeshColors(roomMesh, { ...colors, neutral: '#ff0000' });
+    expect(roomMesh.planes.floor.mesh.material.color.getHexString()).toBe(
+      '112233',
+    );
+    expect(roomMesh.planes.wallLeft.mesh.material.color.getHexString()).toBe(
+      'ff0000',
+    );
+    expect(roomMesh.planes.ceiling.mesh.material.color.getHexString()).toBe(
+      'ff0000',
+    );
+  });
+
+  it.each([null, ''])(
+    'refreshes a surface with a %j colour when the neutral colour changes',
+    (color) => {
+      const roomMesh = createRoomMesh(room, colors);
+      setRoomMeshSurface(
+        roomMesh,
+        'floor',
+        { kind: 'color', productId: 'c', name: 'C', color },
+        colors,
+      );
+      setRoomMeshSurface(
+        roomMesh,
+        'walls',
+        {
+          kind: 'texture',
+          productId: 't',
+          name: 'T',
+          color: '',
+          textureUrl: 'u',
+          previewUrl: null,
+          textureStepMm: { widthMm: 1000, lengthMm: 1000 },
+        },
+        colors,
+      );
+      setRoomMeshColors(roomMesh, { ...colors, neutral: '#ff0000' });
+      expect(roomMesh.planes.floor.mesh.material.color.getHexString()).toBe(
+        'ff0000',
+      );
+      expect(roomMesh.planes.wallBack.mesh.material.color.getHexString()).toBe(
+        'ff0000',
+      );
+    },
+  );
+
+  it('maps a texture clone per plane of the surface and rescales it on rebuild', () => {
+    const roomMesh = createRoomMesh(room, colors);
+    const texture = new Texture();
+    const step = { widthMm: 1000, lengthMm: 1000 };
+    setRoomMeshTexture(roomMesh, 'walls', texture, step, room);
+    const { wallBack, wallLeft, floor } = roomMesh.planes;
+    expect(wallBack.mesh.material.map).not.toBe(wallLeft.mesh.material.map);
+    expect(wallBack.mesh.material.map).not.toBe(texture);
+    expect(wallBack.mesh.material.map?.repeat.toArray()).toEqual([5, 2.7]);
+    expect(floor.mesh.material.map).toBeNull();
+    rebuildRoomMesh(roomMesh, { lengthM: 8, widthM: 4, heightM: 3 });
+    expect(wallBack.mesh.material.map?.repeat.toArray()).toEqual([8, 3]);
+  });
+
+  it('drops the clone and the map when the surface is repainted', () => {
+    const roomMesh = createRoomMesh(room, colors);
+    setRoomMeshTexture(
+      roomMesh,
+      'floor',
+      new Texture(),
+      { widthMm: 1000, lengthMm: 1000 },
+      room,
+    );
+    const clone = roomMesh.planes.floor.mesh.material.map as Texture;
+    let disposed = 0;
+    clone.addEventListener('dispose', () => {
+      disposed += 1;
+    });
+    setRoomMeshSurface(
+      roomMesh,
+      'floor',
+      { kind: 'neutral', reason: 'unselected' },
+      colors,
+    );
+    expect(roomMesh.planes.floor.mesh.material.map).toBeNull();
+    expect(disposed).toBe(1);
   });
 
   it('shows edges only for the listed planes', () => {

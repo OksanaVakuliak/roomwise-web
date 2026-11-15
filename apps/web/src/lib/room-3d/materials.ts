@@ -77,6 +77,15 @@ function toMaterial(product: SurfaceProduct): SceneMaterial {
     };
   }
   const { realSizeMm } = surface.texture;
+  const hasRealSize = typeof realSizeMm === 'number' && realSizeMm > 0;
+  if (!hasRealSize && !(surface.tileWidthMm > 0 && surface.tileLengthMm > 0)) {
+    return {
+      kind: 'color',
+      productId: product.id,
+      name: product.name,
+      color: surface.fallbackColor,
+    };
+  }
   return {
     kind: 'texture',
     productId: product.id,
@@ -84,10 +93,9 @@ function toMaterial(product: SurfaceProduct): SceneMaterial {
     color: surface.fallbackColor,
     textureUrl: surface.texture.url,
     previewUrl: surface.texture.previewUrl,
-    textureStepMm:
-      realSizeMm === null
-        ? { widthMm: surface.tileWidthMm, lengthMm: surface.tileLengthMm }
-        : { widthMm: realSizeMm, lengthMm: realSizeMm },
+    textureStepMm: hasRealSize
+      ? { widthMm: realSizeMm, lengthMm: realSizeMm }
+      : { widthMm: surface.tileWidthMm, lengthMm: surface.tileLengthMm },
   };
 }
 
