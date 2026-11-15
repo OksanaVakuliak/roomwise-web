@@ -298,7 +298,9 @@ describe('layout widths guard', () => {
         item.minWidth > TABLET &&
         !rel(item.file).includes('/(dev)/') &&
         !(
-          rel(item.file) === PICKER_STYLES && item.minWidth === WIDE_BREAKPOINT
+          rel(item.file) === PICKER_STYLES &&
+          item.minWidth === WIDE_BREAKPOINT &&
+          (item.selector === '.withPicker' || item.selector === '.picker')
         ),
     );
     expect(wide.map(describeDeclaration)).toEqual([]);
