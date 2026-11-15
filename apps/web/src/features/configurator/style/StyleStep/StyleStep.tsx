@@ -30,6 +30,8 @@ import {
 } from '../StylePreview/StylePreview';
 import styles from './StyleStep.module.css';
 
+const SKELETON_ITEMS = [0, 1, 2, 3, 4, 5] as const;
+
 const APPLYING_STATUS_DOM_ID = 'style-applying';
 
 type Failure = 'unavailable' | 'failed';
@@ -203,8 +205,20 @@ export function StyleStep() {
     return (
       <div className={styles.root} role="status" aria-label={t('loading')}>
         <div className={styles.list}>
-          {[0, 1, 2].map((key) => (
-            <Skeleton key={key} variant="block" />
+          {SKELETON_ITEMS.map((key) => (
+            <div key={key} className={styles.item} aria-hidden="true">
+              <div className={styles.card}>
+                <div className={styles.cardImage}>
+                  <Skeleton variant="block" height="100%" />
+                </div>
+                <Skeleton width="60%" />
+                <Skeleton width="85%" />
+              </div>
+              <div className={styles.skeletonActions}>
+                <Skeleton variant="block" height="var(--size-compact)" />
+                <Skeleton variant="block" height="var(--size-compact)" />
+              </div>
+            </div>
           ))}
         </div>
       </div>
