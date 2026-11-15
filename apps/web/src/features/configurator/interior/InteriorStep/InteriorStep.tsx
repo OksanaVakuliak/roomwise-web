@@ -4,8 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ErrorState } from '@/components/system';
-import { BottomSheet, SheetTitle, Skeleton } from '@/components/ui';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
+import { BottomSheet, SheetTitle } from '@/components/ui';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName, roomMetrics } from '@/lib/draft/rooms';
@@ -129,11 +129,7 @@ function InteriorContent() {
   const roomTypes = roomTypesQuery.data?.items;
 
   if (!roomTypes || current === null) {
-    return (
-      <div className={styles.root} role="status" aria-label={t('loading')}>
-        <Skeleton variant="block" />
-      </div>
-    );
+    return <ZoneSkeleton kind="interior" />;
   }
 
   const nameOf = (room: DraftRoom) =>
@@ -280,19 +276,9 @@ function InteriorContent() {
   );
 }
 
-function InteriorFallback() {
-  const t = useTranslations('InteriorStep');
-
-  return (
-    <div className={styles.root} role="status" aria-label={t('loading')}>
-      <Skeleton variant="block" />
-    </div>
-  );
-}
-
 export function InteriorStep() {
   return (
-    <Suspense fallback={<InteriorFallback />}>
+    <Suspense fallback={<ZoneSkeleton kind="interior" />}>
       <InteriorContent />
     </Suspense>
   );
