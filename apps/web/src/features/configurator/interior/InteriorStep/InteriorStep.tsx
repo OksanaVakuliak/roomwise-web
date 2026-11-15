@@ -25,6 +25,27 @@ import { RoomPreview } from '../RoomPreview/RoomPreview';
 import { Specification } from '../Specification/Specification';
 import styles from './InteriorStep.module.css';
 
+function InteriorLoading() {
+  const sceneSlot = useSceneSlot();
+  const pickerSlot = usePickerSlot();
+  const showcaseSlot = useShowcaseSlot();
+
+  return (
+    <>
+      <ZoneSkeleton kind="interior" />
+      {sceneSlot
+        ? createPortal(<ZoneSkeleton kind="scene" />, sceneSlot)
+        : null}
+      {pickerSlot
+        ? createPortal(<ZoneSkeleton kind="picker" />, pickerSlot)
+        : null}
+      {showcaseSlot
+        ? createPortal(<ZoneSkeleton kind="showcase" />, showcaseSlot)
+        : null}
+    </>
+  );
+}
+
 function InteriorContent() {
   const t = useTranslations('InteriorStep');
   const tSpec = useTranslations('Specification');
@@ -129,7 +150,7 @@ function InteriorContent() {
   const roomTypes = roomTypesQuery.data?.items;
 
   if (!roomTypes || current === null) {
-    return <ZoneSkeleton kind="interior" />;
+    return <InteriorLoading />;
   }
 
   const nameOf = (room: DraftRoom) =>
@@ -278,7 +299,7 @@ function InteriorContent() {
 
 export function InteriorStep() {
   return (
-    <Suspense fallback={<ZoneSkeleton kind="interior" />}>
+    <Suspense fallback={<InteriorLoading />}>
       <InteriorContent />
     </Suspense>
   );

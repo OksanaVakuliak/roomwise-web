@@ -1,7 +1,0 @@
-.slot {
-  min-width: 0;
-}
-
-.slot:not(:empty) + .placeholder {
-  display: none;
-}

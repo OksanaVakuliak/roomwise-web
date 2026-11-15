@@ -12,7 +12,6 @@ import { DraftNotices } from '../DraftNotices/DraftNotices';
 import { PickerSlotContext } from '../PickerSlot/picker-slot-context';
 import { SceneSlotContext } from '../SceneSlot/scene-slot-context';
 import { ShowcaseSlotContext } from '../ShowcaseSlot/showcase-slot-context';
-import { SlotPlaceholder } from '../SlotPlaceholder/SlotPlaceholder';
 import { StepGuard } from '../StepGuard/StepGuard';
 import { StepNav } from '../StepNav/StepNav';
 import { StepTape } from '../StepTape/StepTape';
@@ -28,7 +27,7 @@ const CONTENT_SKELETONS: Record<StepId, ZoneSkeletonKind> = {
   interior: 'interior',
   engineering: 'engineering',
   style: 'style',
-  result: 'rooms',
+  result: 'result',
 };
 
 const SHOWCASE_SKELETONS: Partial<Record<StepId, ZoneSkeletonKind>> = {
@@ -86,28 +85,26 @@ function ConfiguratorFrame({
               }
               picker={
                 step === 'interior' ? (
-                  <SlotPlaceholder
-                    slotRef={setPickerSlot}
-                    placeholder={<ZoneSkeleton kind="picker" />}
-                  />
+                  <>
+                    <div ref={setPickerSlot} />
+                    {ready ? null : <ZoneSkeleton kind="picker" />}
+                  </>
                 ) : undefined
               }
               scene={
-                step === 'interior' ? (
-                  <SlotPlaceholder
-                    slotRef={setSceneSlot}
-                    placeholder={<ZoneSkeleton kind="scene" />}
-                  />
-                ) : (
+                <>
                   <div ref={setSceneSlot} />
-                )
+                  {ready || step !== 'interior' ? null : (
+                    <ZoneSkeleton kind="scene" />
+                  )}
+                </>
               }
               showcase={
                 showcaseSkeleton === undefined ? null : (
-                  <SlotPlaceholder
-                    slotRef={setShowcaseSlot}
-                    placeholder={<ZoneSkeleton kind={showcaseSkeleton} />}
-                  />
+                  <>
+                    <div ref={setShowcaseSlot} />
+                    {ready ? null : <ZoneSkeleton kind={showcaseSkeleton} />}
+                  </>
                 )
               }
               cost={
