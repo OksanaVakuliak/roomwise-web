@@ -3,6 +3,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
 const DESKTOP_QUERY = '(min-width: 768px)';
+const WIDE_QUERY = '(min-width: 1024px)';
 
 export function useMediaQuery(query: string): boolean {
   const subscribe = useCallback(
@@ -28,4 +29,8 @@ export function useMediaQuery(query: string): boolean {
 
 export function useIsDesktop(): boolean {
   return useMediaQuery(DESKTOP_QUERY);
+}
+
+export function useIsWide(): boolean {
+  return useMediaQuery(WIDE_QUERY);
 }

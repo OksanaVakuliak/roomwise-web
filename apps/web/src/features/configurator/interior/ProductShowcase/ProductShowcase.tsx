@@ -119,6 +119,8 @@ function ProductCard({
             .filter(Boolean)
             .join(' · ') || undefined
         }
+        showDetailsLabel={t('showDetails', { name: product.name })}
+        hideDetailsLabel={t('hideDetails', { name: product.name })}
         actions={
           <>
             <Button
