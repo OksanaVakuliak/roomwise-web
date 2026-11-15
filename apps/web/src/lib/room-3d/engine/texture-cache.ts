@@ -64,7 +64,7 @@ export function createTextureCache(options: TextureCacheOptions): TextureCache {
     pending.delete(url);
     textures.set(url, texture);
     evict();
-    for (const { slot, token, onReady, onError } of waiters) {
+    for (const { slot, token, onReady } of waiters) {
       if (tokens.get(slot) === token) onReady(texture);
     }
   }
