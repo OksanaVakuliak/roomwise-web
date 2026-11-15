@@ -84,6 +84,31 @@ describe('resolveSceneMaterials', () => {
     });
   });
 
+  it.each([undefined, 0, -1])(
+    'falls back to the module when the real size is %s',
+    (realSizeMm) => {
+      const product = {
+        ...fixtures.floorTile,
+        surface: makeSurface({
+          texture: {
+            ...makeSurface().texture,
+            realSizeMm: realSizeMm as number | null,
+          },
+          tileWidthMm: 190,
+          tileLengthMm: 1200,
+        }),
+      };
+      const result = resolveSceneMaterials(
+        { [categoryIds.floor]: pick(productIds.tile) },
+        categories,
+        productMap(product),
+      );
+      expect(result.floor).toMatchObject({
+        textureStepMm: { widthMm: 190, lengthMm: 1200 },
+      });
+    },
+  );
+
   it('resolves the ceiling like any other surface', () => {
     const result = resolveSceneMaterials(
       { [categoryIds.ceiling]: pick(productIds.ceilingPaint) },

@@ -85,9 +85,9 @@ function toMaterial(product: SurfaceProduct): SceneMaterial {
     textureUrl: surface.texture.url,
     previewUrl: surface.texture.previewUrl,
     textureStepMm:
-      realSizeMm === null
-        ? { widthMm: surface.tileWidthMm, lengthMm: surface.tileLengthMm }
-        : { widthMm: realSizeMm, lengthMm: realSizeMm },
+      realSizeMm && realSizeMm > 0
+        ? { widthMm: realSizeMm, lengthMm: realSizeMm }
+        : { widthMm: surface.tileWidthMm, lengthMm: surface.tileLengthMm },
   };
 }
 
