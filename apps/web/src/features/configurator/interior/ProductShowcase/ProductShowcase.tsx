@@ -218,9 +218,13 @@ export function ProductShowcase({
   if (!sorted || pricing === null) {
     return (
       <div className={styles.root} role="status" aria-label={t('loading')}>
-        {SKELETON_ROWS.map((key) => (
-          <SpecItemSkeleton key={key} />
-        ))}
+        <ul className={styles.list} aria-hidden="true">
+          {SKELETON_ROWS.map((key) => (
+            <li key={key}>
+              <SpecItemSkeleton />
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }
