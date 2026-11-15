@@ -4,3 +4,16 @@
   gap: var(--space-24);
   min-width: 0;
 }
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}

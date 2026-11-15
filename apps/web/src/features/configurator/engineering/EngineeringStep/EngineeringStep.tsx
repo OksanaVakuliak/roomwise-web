@@ -17,6 +17,8 @@ import { PackageList } from '../PackageList/PackageList';
 import { RoomEngineering } from '../RoomEngineering/RoomEngineering';
 import styles from './EngineeringStep.module.css';
 
+const SKELETON_SECTIONS = [0, 1, 2] as const;
+
 export function EngineeringStep() {
   const t = useTranslations('EngineeringStep');
   const rooms = useDraft((state) => state.rooms);
@@ -57,7 +59,16 @@ export function EngineeringStep() {
   if (!roomTypes || !engineeringQuery.data || !pricing) {
     return (
       <div className={styles.root} role="status" aria-label={t('loading')}>
-        <Skeleton variant="block" />
+        {SKELETON_SECTIONS.map((key) => (
+          <div key={key} className={styles.section} aria-hidden="true">
+            <Skeleton width="40%" height="var(--text-title-m-size)" />
+            <div className={styles.options}>
+              <Skeleton variant="block" height="var(--size-target)" />
+              <Skeleton variant="block" height="var(--size-target)" />
+              <Skeleton variant="block" height="var(--size-target)" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
