@@ -467,6 +467,37 @@ describe('room scene controller', () => {
       expect(mocks.request).toHaveBeenCalledTimes(2);
     });
 
+    it('does not retry a failed texture on resize', () => {
+      create();
+      controller.setInput(withFloor(floorTexture));
+      mocks.request.mock.calls[0][3]();
+      controller.resize(801, 600);
+      controller.resize(802, 600);
+      expect(mocks.request).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the shown texture while another resolution loads', () => {
+      create();
+      controller.resize(300, 200);
+      controller.setInput(withFloor(floorTexture));
+      const preview = deliver();
+      controller.resize(800, 600);
+      expect(mocks.request).toHaveBeenCalledTimes(2);
+      expect(planeMaterial('floor').map?.source).toBe(preview.source);
+      expect(planeMaterial('floor').color.getHexString()).toBe('ffffff');
+      const full = deliver(1);
+      expect(planeMaterial('floor').map?.source).toBe(full.source);
+    });
+
+    it('renders once when the room size and a material change together', () => {
+      create();
+      controller.setInput(input);
+      mocks.render.mockClear();
+      controller.setInput(withFloor(floorTexture, { ...input, lengthM: 4 }));
+      expect(mocks.render).toHaveBeenCalledTimes(1);
+      expect(planeMaterial('floor').color.getHexString()).toBe('aa8866');
+    });
+
     it('renders once per input when cached textures are ready at once', () => {
       create();
       controller.setInput(input);

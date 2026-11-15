@@ -74,7 +74,13 @@ function sameSize(a: RoomSize, b: RoomSize): boolean {
 
 const surfaceKeys: SurfaceKey[] = ['floor', 'walls', 'ceiling'];
 
-function materialKey(material: SceneMaterial, url: string | null): string {
+type AppliedSurface = {
+  material: string;
+  url: string | null;
+  failed: boolean;
+};
+
+function materialKey(material: SceneMaterial): string {
   switch (material.kind) {
     case 'neutral':
       return 'neutral';
@@ -82,7 +88,7 @@ function materialKey(material: SceneMaterial, url: string | null): string {
       return `color:${material.color}`;
     case 'texture': {
       const { widthMm, lengthMm } = material.textureStepMm;
-      return `texture:${material.productId}:${material.color}:${url}:${widthMm}x${lengthMm}`;
+      return `texture:${material.productId}:${material.color}:${material.textureUrl}:${material.previewUrl}:${widthMm}x${lengthMm}`;
     }
   }
 }
@@ -105,7 +111,7 @@ export function createRoomSceneController({
   let controls: OrbitControls | null = null;
   let roomMesh: RoomMesh | null = null;
   let textures: TextureCache | null = null;
-  let applied: Record<SurfaceKey, string> | null = null;
+  let applied: Record<SurfaceKey, AppliedSurface> | null = null;
   let input: RoomSceneInput | null = null;
   let builtRoom: RoomSize | null = null;
   let colors = initialColors;
@@ -225,39 +231,42 @@ export function createRoomSceneController({
         if (!applying) render();
       },
       () => {
-        if (cache === textures && applied) applied[surface] = '';
+        const current = applied?.[surface];
+        if (cache === textures && current?.url === url) current.failed = true;
       },
     );
   }
 
-  function textureUrl(material: SceneMaterial): string | null {
-    if (!renderer || material.kind !== 'texture') return null;
-    return pickTextureUrl(material, size.width, renderer.getPixelRatio());
-  }
-
-  function applySurfaces() {
-    if (!renderer || !roomMesh || !textures || !input) return;
-    const next = input.surfaces;
+  function applySurfaces(retryFailed: boolean): boolean {
+    if (!renderer || !roomMesh || !textures || !input) return false;
+    const pixelRatio = renderer.getPixelRatio();
     const previous = applied;
-    const urls = {
-      floor: textureUrl(next.floor),
-      walls: textureUrl(next.walls),
-      ceiling: textureUrl(next.ceiling),
-    };
-    applied = {
-      floor: materialKey(next.floor, urls.floor),
-      walls: materialKey(next.walls, urls.walls),
-      ceiling: materialKey(next.ceiling, urls.ceiling),
-    };
+    const next = {} as Record<SurfaceKey, AppliedSurface>;
     let changed = false;
     applying = true;
     try {
       for (const surface of surfaceKeys) {
-        if (previous && previous[surface] === applied[surface]) continue;
+        const material = input.surfaces[surface];
+        const key = materialKey(material);
+        const url =
+          material.kind === 'texture'
+            ? pickTextureUrl(material, size.width, pixelRatio)
+            : null;
+        const before = previous?.[surface];
+        if (
+          before &&
+          before.material === key &&
+          before.url === url &&
+          !(retryFailed && before.failed)
+        ) {
+          next[surface] = before;
+          continue;
+        }
         changed = true;
-        const material = next[surface];
-        setRoomMeshSurface(roomMesh, surface, material, colors);
-        const url = urls[surface];
+        next[surface] = { material: key, url, failed: false };
+        if (before?.material !== key) {
+          setRoomMeshSurface(roomMesh, surface, material, colors);
+        }
         if (material.kind === 'texture' && url) {
           loadTexture(surface, material, url);
         } else {
@@ -267,14 +276,16 @@ export function createRoomSceneController({
     } finally {
       applying = false;
     }
-    if (changed) render();
+    applied = next;
+    return changed;
   }
 
-  function sync(resetView: boolean) {
+  function sync(resetView: boolean, retryFailed: boolean) {
     if (!renderer || !input) return;
     const room = roomSize(input);
     build(room);
     applyLimits(room);
+    applySurfaces(retryFailed);
     const view = resetView ? defaultView(room, aspect()) : currentView(room);
     moveTo(view, false);
   }
@@ -311,16 +322,15 @@ export function createRoomSceneController({
         if (!silent) render();
       });
 
-      sync(true);
-      applySurfaces();
+      sync(true, false);
       onStatus?.('ready');
     },
     setInput(next) {
       const keyChanged = !input || input.roomKey !== next.roomKey;
       const sizeChanged = !input || !sameSize(input, next);
       input = next;
-      if (keyChanged || sizeChanged) sync(keyChanged);
-      applySurfaces();
+      if (keyChanged || sizeChanged) sync(keyChanged, true);
+      else if (applySurfaces(true)) render();
     },
     setColors(next) {
       if (
@@ -344,9 +354,9 @@ export function createRoomSceneController({
       renderer.setSize(width, height);
       camera.aspect = aspect();
       if (!input) return;
-      applySurfaces();
       const room = roomSize(input);
       applyLimits(room);
+      applySurfaces(false);
       if (frame !== null) return;
       const view = currentView(room);
       const fit =

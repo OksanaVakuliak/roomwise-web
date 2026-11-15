@@ -77,8 +77,7 @@ function toMaterial(product: SurfaceProduct): SceneMaterial {
     };
   }
   const { realSizeMm } = surface.texture;
-  const hasRealSize =
-    realSizeMm !== null && realSizeMm !== undefined && realSizeMm > 0;
+  const hasRealSize = typeof realSizeMm === 'number' && realSizeMm > 0;
   if (!hasRealSize && !(surface.tileWidthMm > 0 && surface.tileLengthMm > 0)) {
     return {
       kind: 'color',
