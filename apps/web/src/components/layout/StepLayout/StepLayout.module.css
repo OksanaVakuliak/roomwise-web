@@ -50,10 +50,6 @@
 }
 
 @media (max-width: 767.98px) {
-  .picker {
-    display: none;
-  }
-
   .aside {
     display: contents;
   }
