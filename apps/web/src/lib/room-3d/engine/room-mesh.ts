@@ -129,10 +129,7 @@ function surfaceEntries(roomMesh: RoomMesh, surface: SurfaceKey) {
 }
 
 function isNeutral(material: SceneMaterial): boolean {
-  return (
-    material.kind === 'neutral' ||
-    (material.kind === 'color' && material.color === null)
-  );
+  return material.kind === 'neutral' || !material.color;
 }
 
 export function setRoomMeshSurface(
@@ -142,11 +139,11 @@ export function setRoomMeshSurface(
   colors: SceneColors,
 ) {
   const neutral = isNeutral(material);
-  const color = material.kind === 'neutral' ? colors.neutral : material.color;
+  const color = material.kind === 'neutral' ? null : material.color;
   for (const { entry } of surfaceEntries(roomMesh, surface)) {
     clearTexture(entry);
     entry.neutral = neutral;
-    entry.mesh.material.color.set(color ?? colors.neutral);
+    entry.mesh.material.color.set(color || colors.neutral);
   }
 }
 
@@ -161,7 +158,6 @@ export function setRoomMeshTexture(
     entry.texture?.dispose();
     const clone = texture.clone();
     clone.repeat.set(...textureRepeat(id, room, step));
-    clone.needsUpdate = true;
     entry.texture = clone;
     entry.step = step;
     entry.neutral = false;

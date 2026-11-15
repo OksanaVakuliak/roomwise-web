@@ -190,6 +190,19 @@ describe('createTextureCache', () => {
     expect(mocks.load).toHaveBeenCalledTimes(2);
   });
 
+  it('calls onError for the current request only', () => {
+    const cache = createTextureCache({ anisotropy: 4 });
+    const staleError = vi.fn();
+    const currentError = vi.fn();
+    cache.request('floor', 'a', vi.fn(), staleError);
+    cache.request('floor', 'a', vi.fn(), currentError);
+    cache.request('walls', 'a', vi.fn(), vi.fn());
+    cache.release('walls');
+    callFor('a').fail();
+    expect(staleError).not.toHaveBeenCalled();
+    expect(currentError).toHaveBeenCalledTimes(1);
+  });
+
   it('disposes everything and ignores late callbacks', () => {
     const cache = createTextureCache({ anisotropy: 4 });
     cache.request('floor', 'a', vi.fn());

@@ -20,6 +20,7 @@ export type TextureCache = {
     slot: SurfaceKey,
     url: string,
     onReady: (texture: Texture) => void,
+    onError?: () => void,
   ): void;
   release(slot: SurfaceKey): void;
   dispose(): void;
@@ -29,6 +30,7 @@ type Waiter = {
   slot: SurfaceKey;
   token: number;
   onReady: (texture: Texture) => void;
+  onError?: () => void;
 };
 
 export function createTextureCache(options: TextureCacheOptions): TextureCache {
@@ -62,7 +64,7 @@ export function createTextureCache(options: TextureCacheOptions): TextureCache {
     pending.delete(url);
     textures.set(url, texture);
     evict();
-    for (const { slot, token, onReady } of waiters) {
+    for (const { slot, token, onReady, onError } of waiters) {
       if (tokens.get(slot) === token) onReady(texture);
     }
   }
@@ -84,16 +86,20 @@ export function createTextureCache(options: TextureCacheOptions): TextureCache {
       undefined,
       (error) => {
         if (disposed) return;
+        const waiters = pending.get(url) ?? [];
         pending.delete(url);
         captureException(
           new Error(`Texture failed to load: ${url}`, { cause: error }),
         );
+        for (const { slot, token, onError } of waiters) {
+          if (tokens.get(slot) === token) onError?.();
+        }
       },
     );
   }
 
   return {
-    request(slot, url, onReady) {
+    request(slot, url, onReady, onError) {
       if (disposed) return;
       const token = nextToken(slot);
       pins.set(slot, url);
@@ -106,10 +112,10 @@ export function createTextureCache(options: TextureCacheOptions): TextureCache {
       }
       const waiters = pending.get(url);
       if (waiters) {
-        waiters.push({ slot, token, onReady });
+        waiters.push({ slot, token, onReady, onError });
         return;
       }
-      pending.set(url, [{ slot, token, onReady }]);
+      pending.set(url, [{ slot, token, onReady, onError }]);
       load(url);
     },
     release(slot) {

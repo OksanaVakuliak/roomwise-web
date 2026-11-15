@@ -33,6 +33,8 @@ import {
 } from './room-mesh';
 import { createTextureCache, type TextureCache } from './texture-cache';
 
+type TextureMaterial = Extract<SceneMaterial, { kind: 'texture' }>;
+
 export type RoomSceneControllerOptions = {
   reducedMotion: boolean;
   onStatus?: (status: SceneStatus) => void;
@@ -72,7 +74,7 @@ function sameSize(a: RoomSize, b: RoomSize): boolean {
 
 const surfaceKeys: SurfaceKey[] = ['floor', 'walls', 'ceiling'];
 
-function materialKey(material: SceneMaterial): string {
+function materialKey(material: SceneMaterial, url: string | null): string {
   switch (material.kind) {
     case 'neutral':
       return 'neutral';
@@ -80,7 +82,7 @@ function materialKey(material: SceneMaterial): string {
       return `color:${material.color}`;
     case 'texture': {
       const { widthMm, lengthMm } = material.textureStepMm;
-      return `texture:${material.productId}:${material.color}:${material.textureUrl}:${material.previewUrl}:${widthMm}x${lengthMm}`;
+      return `texture:${material.productId}:${material.color}:${url}:${widthMm}x${lengthMm}`;
     }
   }
 }
@@ -111,6 +113,7 @@ export function createRoomSceneController({
   let active = true;
   let reducedMotion = initialReducedMotion;
   let silent = false;
+  let applying = false;
   let frame: number | null = null;
 
   const aspect = () => size.width / size.height;
@@ -200,42 +203,69 @@ export function createRoomSceneController({
     builtRoom = room;
   }
 
-  function loadTexture(surface: SurfaceKey, material: SceneMaterial) {
-    if (!renderer || !textures || material.kind !== 'texture') return;
-    const url = pickTextureUrl(material, size.width, renderer.getPixelRatio());
+  function loadTexture(
+    surface: SurfaceKey,
+    material: TextureMaterial,
+    url: string,
+  ) {
+    if (!textures) return;
     const cache = textures;
-    cache.request(surface, url, (texture) => {
-      if (cache !== textures || !roomMesh || !input) return;
-      setRoomMeshTexture(
-        roomMesh,
-        surface,
-        texture,
-        material.textureStepMm,
-        roomSize(input),
-      );
-      render();
-    });
+    cache.request(
+      surface,
+      url,
+      (texture) => {
+        if (cache !== textures || !roomMesh || !input) return;
+        setRoomMeshTexture(
+          roomMesh,
+          surface,
+          texture,
+          material.textureStepMm,
+          roomSize(input),
+        );
+        if (!applying) render();
+      },
+      () => {
+        if (cache === textures && applied) applied[surface] = '';
+      },
+    );
+  }
+
+  function textureUrl(material: SceneMaterial): string | null {
+    if (!renderer || material.kind !== 'texture') return null;
+    return pickTextureUrl(material, size.width, renderer.getPixelRatio());
   }
 
   function applySurfaces() {
     if (!renderer || !roomMesh || !textures || !input) return;
     const next = input.surfaces;
     const previous = applied;
+    const urls = {
+      floor: textureUrl(next.floor),
+      walls: textureUrl(next.walls),
+      ceiling: textureUrl(next.ceiling),
+    };
     applied = {
-      floor: materialKey(next.floor),
-      walls: materialKey(next.walls),
-      ceiling: materialKey(next.ceiling),
+      floor: materialKey(next.floor, urls.floor),
+      walls: materialKey(next.walls, urls.walls),
+      ceiling: materialKey(next.ceiling, urls.ceiling),
     };
     let changed = false;
-    for (const surface of surfaceKeys) {
-      if (previous && previous[surface] === applied[surface]) continue;
-      changed = true;
-      setRoomMeshSurface(roomMesh, surface, next[surface], colors);
-      if (next[surface].kind === 'texture') {
-        loadTexture(surface, next[surface]);
-      } else {
-        textures.release(surface);
+    applying = true;
+    try {
+      for (const surface of surfaceKeys) {
+        if (previous && previous[surface] === applied[surface]) continue;
+        changed = true;
+        const material = next[surface];
+        setRoomMeshSurface(roomMesh, surface, material, colors);
+        const url = urls[surface];
+        if (material.kind === 'texture' && url) {
+          loadTexture(surface, material, url);
+        } else {
+          textures.release(surface);
+        }
       }
+    } finally {
+      applying = false;
     }
     if (changed) render();
   }
@@ -314,6 +344,7 @@ export function createRoomSceneController({
       renderer.setSize(width, height);
       camera.aspect = aspect();
       if (!input) return;
+      applySurfaces();
       const room = roomSize(input);
       applyLimits(room);
       if (frame !== null) return;

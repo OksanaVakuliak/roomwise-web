@@ -438,7 +438,53 @@ describe('room scene controller', () => {
         'floor',
         'https://cdn/tile.jpg',
         expect.any(Function),
+        expect.any(Function),
       );
+    });
+
+    it('re-picks the preview and the full texture when the canvas resizes', () => {
+      create();
+      controller.resize(300, 200);
+      controller.setInput(withFloor(floorTexture));
+      expect(mocks.request.mock.calls.at(-1)?.[1]).toBe(
+        'https://cdn/tile-small.jpg',
+      );
+      controller.resize(800, 600);
+      expect(mocks.request).toHaveBeenCalledTimes(2);
+      expect(mocks.request.mock.calls.at(-1)?.[1]).toBe('https://cdn/tile.jpg');
+      controller.resize(801, 600);
+      expect(mocks.request).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries a texture that failed once the same material is set again', () => {
+      create();
+      controller.setInput(withFloor(floorTexture));
+      controller.setInput(withFloor(floorTexture));
+      expect(mocks.request).toHaveBeenCalledTimes(1);
+      mocks.request.mock.calls[0][3]();
+      expect(planeMaterial('floor').color.getHexString()).toBe('aa8866');
+      controller.setInput(withFloor(floorTexture));
+      expect(mocks.request).toHaveBeenCalledTimes(2);
+    });
+
+    it('renders once per input when cached textures are ready at once', () => {
+      create();
+      controller.setInput(input);
+      mocks.request.mockImplementation(
+        (_slot: string, _url: string, onReady: (t: Texture) => void) =>
+          onReady(new Texture()),
+      );
+      mocks.render.mockClear();
+      controller.setInput({
+        ...input,
+        surfaces: {
+          floor: floorTexture,
+          walls: { ...floorTexture, productId: 'w' },
+          ceiling: { ...floorTexture, productId: 'c' },
+        },
+      });
+      expect(mocks.request).toHaveBeenCalledTimes(3);
+      expect(mocks.render).toHaveBeenCalledTimes(1);
     });
 
     it('shows the fallback colour first, then the map with a white tint', () => {

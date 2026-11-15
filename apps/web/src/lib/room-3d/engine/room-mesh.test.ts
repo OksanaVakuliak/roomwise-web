@@ -75,6 +75,40 @@ describe('room mesh', () => {
     );
   });
 
+  it.each([null, ''])(
+    'refreshes a surface with a %j colour when the neutral colour changes',
+    (color) => {
+      const roomMesh = createRoomMesh(room, colors);
+      setRoomMeshSurface(
+        roomMesh,
+        'floor',
+        { kind: 'color', productId: 'c', name: 'C', color },
+        colors,
+      );
+      setRoomMeshSurface(
+        roomMesh,
+        'walls',
+        {
+          kind: 'texture',
+          productId: 't',
+          name: 'T',
+          color: '',
+          textureUrl: 'u',
+          previewUrl: null,
+          textureStepMm: { widthMm: 1000, lengthMm: 1000 },
+        },
+        colors,
+      );
+      setRoomMeshColors(roomMesh, { ...colors, neutral: '#ff0000' });
+      expect(roomMesh.planes.floor.mesh.material.color.getHexString()).toBe(
+        'ff0000',
+      );
+      expect(roomMesh.planes.wallBack.mesh.material.color.getHexString()).toBe(
+        'ff0000',
+      );
+    },
+  );
+
   it('maps a texture clone per plane of the surface and rescales it on rebuild', () => {
     const roomMesh = createRoomMesh(room, colors);
     const texture = new Texture();
