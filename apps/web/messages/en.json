@@ -981,7 +981,7 @@
     "categoryGone": "This category is no longer available. The catalog has been refreshed.",
     "finishLabel": "Finish type",
     "fillFromStyle": "Fill from style",
-    "enableHint": "Turn on the categories you will work with",
+    "enableHint": "Choose the materials you will work with",
     "components": {
       "material": "Material",
       "labor": "Labor",
