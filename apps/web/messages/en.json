@@ -915,7 +915,20 @@
     "loading": "Preparing the 3D view…",
     "description": "{name}, {length} × {width}, height {height}, area {area}",
     "cut": "A",
-    "fallbackDescription": "{name} {length} by {width}, height {height}, section line A–A through the floor"
+    "fallbackDescription": "{name} {length} by {width}, height {height}, section line A–A through the floor",
+    "fallback": {
+      "unsupported": "Your device can't show 3D, so here's a room diagram.",
+      "lost": "The 3D view stopped, so here's a room diagram.",
+      "manual": "3D is off."
+    },
+    "disable": "Turn off 3D",
+    "enable": "Turn on 3D",
+    "surface": {
+      "floor": "Floor: {material}",
+      "walls": "Walls: {material}",
+      "ceiling": "Ceiling: {material}",
+      "none": "not chosen"
+    }
   },
   "ObjectStep": {
     "form": {

@@ -5,6 +5,7 @@ import type { RoomCanvasProps } from '@/components/ui';
 import { area, dimension } from '@/lib/format';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import type { SceneStatus } from '@/lib/room-3d/types';
+import { usePreferences } from '@/stores/preferences';
 import { makeDraftRoom } from '@/test/fixtures/draft';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { setViewport } from '@/test/viewports';
@@ -75,6 +76,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   canvas.props = null;
   support.webGl = true;
+  usePreferences.setState({ scene3d: true });
 });
 
 afterEach(() => {
@@ -264,6 +266,90 @@ describe('RoomPreview', () => {
     expect(screen.getByRole('img')).toHaveAccessibleName(
       expect.stringContaining('Living room'),
     );
+  });
+
+  it('explains the fallback and lists the surfaces when WebGL is unsupported', async () => {
+    support.webGl = false;
+    await act(async () => {
+      renderPreview();
+    });
+
+    expect(screen.getByText(en.RoomPreview.fallback.unsupported)).toBeVisible();
+    expect(screen.getByText('Floor: not chosen')).toBeVisible();
+    expect(screen.getByText('Walls: not chosen')).toBeVisible();
+    expect(screen.getByText('Ceiling: not chosen')).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: en.RoomPreview.enable }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the manual fallback without mounting the canvas when 3D is off', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
+    expect(screen.getByRole('img')).toBeInTheDocument();
+    expect(screen.getByText(en.RoomPreview.fallback.manual)).toBeVisible();
+  });
+
+  it('turns 3D back on from the manual fallback', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('canvas')).toBeInTheDocument(),
+    );
+    expect(usePreferences.getState().scene3d).toBe(true);
+    expect(
+      screen.queryByText(en.RoomPreview.fallback.manual),
+    ).not.toBeInTheDocument();
+  });
+
+  it('turns 3D off from the 3D view and remembers it', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.RoomPreview.disable }),
+    );
+
+    expect(usePreferences.getState().scene3d).toBe(false);
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
+    expect(screen.getByText(en.RoomPreview.fallback.manual)).toBeVisible();
+  });
+
+  it('keeps the preference when the canvas reports lost', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+
+    setStatus('lost');
+
+    expect(screen.getByText(en.RoomPreview.fallback.lost)).toBeVisible();
+    expect(usePreferences.getState().scene3d).toBe(true);
+    expect(
+      screen.queryByRole('button', { name: en.RoomPreview.enable }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('localises the fallback texts', async () => {
+    support.webGl = false;
+    await act(async () => {
+      renderPreview(first, 'uk');
+    });
+
+    expect(screen.getByText(uk.RoomPreview.fallback.unsupported)).toBeVisible();
+    expect(screen.getByText('Підлога: не обрано')).toBeVisible();
   });
 
   it.each(['error', 'lost'] as const)(

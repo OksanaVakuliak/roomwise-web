@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react';
 import {
+  Button,
   RoomCanvas,
   RoomScene,
   SceneToolbar,
@@ -26,8 +27,11 @@ import { isWebGlSupported } from '@/lib/room-3d/support';
 import type {
   RoomSceneInput,
   SceneColors,
+  SceneMaterial,
   SceneStatus,
+  SurfaceKey,
 } from '@/lib/room-3d/types';
+import { usePreferences } from '@/stores/preferences';
 import { toSceneSurfaces, useRoomSurfaces } from '../use-room-surfaces';
 import styles from './RoomPreview.module.css';
 import {
@@ -40,6 +44,14 @@ export type RoomPreviewProps = {
   room: DraftRoom;
   name: string;
 };
+
+const SURFACE_ORDER: SurfaceKey[] = ['floor', 'walls', 'ceiling'];
+
+type FallbackReason = 'unsupported' | 'lost' | 'manual';
+
+function materialName(material: SceneMaterial): string | null {
+  return material.kind === 'neutral' ? null : material.name;
+}
 
 function readColors(element: HTMLElement): SceneColors {
   const style = getComputedStyle(element);
@@ -64,18 +76,27 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const [colors, setColors] = useState<SceneColors | null>(null);
   const [status, setStatus] = useState<SceneStatus>('loading');
   const [webGl, setWebGl] = useState<boolean | null>(null);
+  const scene3d = usePreferences((state) => state.scene3d);
+  const setScene3d = usePreferences((state) => state.setScene3d);
 
   const { lengthM, widthM, heightM } = room;
   const hasDimensions = lengthM !== null && widthM !== null && heightM !== null;
-  const fallback = webGl === false || status === 'error' || status === 'lost';
+  let reason: FallbackReason | null = null;
+  if (webGl === false || status === 'error') reason = 'unsupported';
+  else if (status === 'lost') reason = 'lost';
+  else if (!scene3d) reason = 'manual';
+  const fallback = reason !== null;
   const expand = useSceneExpand(slotRef, rootRef, hasDimensions && !fallback);
 
   useEffect(() => {
-    if (hasDimensions && stageRef.current) {
-      setColors(readColors(stageRef.current));
-      setWebGl(isWebGlSupported());
-    }
+    if (hasDimensions) setWebGl(isWebGlSupported());
   }, [hasDimensions]);
+
+  useEffect(() => {
+    if (hasDimensions && !fallback && stageRef.current) {
+      setColors(readColors(stageRef.current));
+    }
+  }, [hasDimensions, fallback]);
 
   const input = useMemo<RoomSceneInput | null>(
     () =>
@@ -99,6 +120,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
 
   const resetView = useCallback(() => controllerRef.current?.resetView(), []);
   const topView = useCallback(() => controllerRef.current?.topView(), []);
+  const disable3d = useCallback(() => {
+    setStatus('loading');
+    setScene3d(false);
+  }, [setScene3d]);
+  const enable3d = useCallback(() => setScene3d(true), [setScene3d]);
 
   if (
     input === null ||
@@ -130,27 +156,44 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     });
   }
 
-  if (fallback) {
+  if (reason !== null) {
     const lengthLabel = dimension(lengthM, locale);
     const widthLabel = dimension(widthM, locale);
     const heightLabel = dimension(heightM, locale);
     return (
-      <RoomScene
-        lengthCm={Math.round(lengthM * 100)}
-        widthCm={Math.round(widthM * 100)}
-        heightCm={Math.round(heightM * 100)}
-        lengthLabel={lengthLabel}
-        widthLabel={widthLabel}
-        heightLabel={heightLabel}
-        surfaces={toSceneSurfaces(surfaces)}
-        cutLabel={t('cut')}
-        description={t('fallbackDescription', {
-          name,
-          length: lengthLabel,
-          width: widthLabel,
-          height: heightLabel,
-        })}
-      />
+      <div className={styles.fallback}>
+        <RoomScene
+          lengthCm={Math.round(lengthM * 100)}
+          widthCm={Math.round(widthM * 100)}
+          heightCm={Math.round(heightM * 100)}
+          lengthLabel={lengthLabel}
+          widthLabel={widthLabel}
+          heightLabel={heightLabel}
+          surfaces={toSceneSurfaces(surfaces)}
+          cutLabel={t('cut')}
+          description={t('fallbackDescription', {
+            name,
+            length: lengthLabel,
+            width: widthLabel,
+            height: heightLabel,
+          })}
+        />
+        <p className={styles.reason}>{t(`fallback.${reason}`)}</p>
+        <ul className={styles.surfaces}>
+          {SURFACE_ORDER.map((key) => (
+            <li key={key}>
+              {t(`surface.${key}`, {
+                material: materialName(surfaces[key]) ?? t('surface.none'),
+              })}
+            </li>
+          ))}
+        </ul>
+        {reason === 'manual' ? (
+          <Button className={styles.toggle} onClick={enable3d}>
+            {t('enable')}
+          </Button>
+        ) : null}
+      </div>
     );
   }
 
@@ -203,6 +246,9 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
           ) : null}
         </div>
         <SceneToolbar actions={actions} />
+        <Button className={styles.toggle} onClick={disable3d}>
+          {t('disable')}
+        </Button>
       </div>
     </div>
   );
