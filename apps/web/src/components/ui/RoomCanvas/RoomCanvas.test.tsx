@@ -296,4 +296,15 @@ describe('RoomCanvas', { timeout: importTimeout + 5_000 }, () => {
     renderCanvas({ onStatus });
     await settle(() => expect(onStatus).toHaveBeenLastCalledWith('error'));
   });
+
+  it('reports lost when the engine fails to load', async () => {
+    vi.resetModules();
+    vi.doMock('@/lib/room-3d/engine/controller', () => {
+      throw new Error('network');
+    });
+    const onStatus = vi.fn<(status: SceneStatus) => void>();
+    renderCanvas({ onStatus });
+    await settle(() => expect(onStatus).toHaveBeenLastCalledWith('lost'));
+    expect(onStatus).not.toHaveBeenCalledWith('error');
+  });
 });

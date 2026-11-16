@@ -66,37 +66,42 @@ export function RoomCanvas({
     latest.current.onStatus('loading');
 
     void import('@/lib/room-3d/engine/controller')
-      .then(({ createRoomSceneController }) => {
-        if (cancelled) return;
-        controller = createRoomSceneController({
-          reducedMotion: latest.current.reducedMotion,
-          onStatus: (status) => latest.current.onStatus(status),
-        });
-        instanceRef.current = controller;
-        if (controllerRef) controllerRef.current = controller;
-        controller.mount(container);
-        controller.setColors(latest.current.colors);
-        controller.setInput(latest.current.input);
+      .then(
+        ({ createRoomSceneController }) => {
+          if (cancelled) return;
+          controller = createRoomSceneController({
+            reducedMotion: latest.current.reducedMotion,
+            onStatus: (status) => latest.current.onStatus(status),
+          });
+          instanceRef.current = controller;
+          if (controllerRef) controllerRef.current = controller;
+          controller.mount(container);
+          controller.setColors(latest.current.colors);
+          controller.setInput(latest.current.input);
 
-        if (typeof ResizeObserver !== 'undefined') {
-          resizeObserver = new ResizeObserver(([entry]) => {
-            if (!entry) return;
-            const { width, height } = entry.contentRect;
-            controller?.resize(width, height);
-          });
-          resizeObserver.observe(container);
-        }
-        if (typeof IntersectionObserver !== 'undefined') {
-          intersectionObserver = new IntersectionObserver(([entry]) => {
-            if (!entry) return;
-            intersecting = entry.isIntersecting;
-            updateActive();
-          });
-          intersectionObserver.observe(container);
-        }
-        document.addEventListener('visibilitychange', updateActive);
-        updateActive();
-      })
+          if (typeof ResizeObserver !== 'undefined') {
+            resizeObserver = new ResizeObserver(([entry]) => {
+              if (!entry) return;
+              const { width, height } = entry.contentRect;
+              controller?.resize(width, height);
+            });
+            resizeObserver.observe(container);
+          }
+          if (typeof IntersectionObserver !== 'undefined') {
+            intersectionObserver = new IntersectionObserver(([entry]) => {
+              if (!entry) return;
+              intersecting = entry.isIntersecting;
+              updateActive();
+            });
+            intersectionObserver.observe(container);
+          }
+          document.addEventListener('visibilitychange', updateActive);
+          updateActive();
+        },
+        () => {
+          if (!cancelled) latest.current.onStatus('lost');
+        },
+      )
       .catch(() => {
         if (!cancelled) latest.current.onStatus('error');
       });
