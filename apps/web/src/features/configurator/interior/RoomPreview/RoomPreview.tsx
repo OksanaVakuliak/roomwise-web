@@ -27,7 +27,6 @@ import { isWebGlSupported } from '@/lib/room-3d/support';
 import type {
   RoomSceneInput,
   SceneColors,
-  SceneMaterial,
   SceneStatus,
   SurfaceKey,
 } from '@/lib/room-3d/types';
@@ -48,10 +47,6 @@ export type RoomPreviewProps = {
 const SURFACE_ORDER: SurfaceKey[] = ['floor', 'walls', 'ceiling'];
 
 type FallbackReason = 'unsupported' | 'lost' | 'manual';
-
-function materialName(material: SceneMaterial): string | null {
-  return material.kind === 'neutral' ? null : material.name;
-}
 
 function readColors(element: HTMLElement): SceneColors {
   const style = getComputedStyle(element);
@@ -180,13 +175,23 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         />
         <p className={styles.reason}>{t(`fallback.${reason}`)}</p>
         <ul className={styles.surfaces}>
-          {SURFACE_ORDER.map((key) => (
-            <li key={key}>
-              {t(`surface.${key}`, {
-                material: materialName(surfaces[key]) ?? t('surface.none'),
-              })}
-            </li>
-          ))}
+          {SURFACE_ORDER.map((key) => {
+            const material = surfaces[key];
+            return (
+              <li key={key}>
+                {t(`surface.${key}`, {
+                  material:
+                    material.kind === 'neutral'
+                      ? t(
+                          material.reason === 'disabled'
+                            ? 'surface.excluded'
+                            : 'surface.none',
+                        )
+                      : material.name,
+                })}
+              </li>
+            );
+          })}
         </ul>
         {reason === 'manual' ? (
           <Button className={styles.toggle} onClick={enable3d}>

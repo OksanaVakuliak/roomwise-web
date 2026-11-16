@@ -6,6 +6,7 @@ import { area, dimension } from '@/lib/format';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import type { SceneStatus } from '@/lib/room-3d/types';
 import { usePreferences } from '@/stores/preferences';
+import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import { makeDraftRoom } from '@/test/fixtures/draft';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { setViewport } from '@/test/viewports';
@@ -292,6 +293,50 @@ describe('RoomPreview', () => {
     expect(
       screen.queryByRole('button', { name: en.RoomPreview.enable }),
     ).not.toBeInTheDocument();
+  });
+
+  it('says a surface left out of the work is not included in the estimate', async () => {
+    support.webGl = false;
+    await act(async () => {
+      renderPreview(
+        makeDraftRoom({
+          selections: {
+            [categoryIds.floor]: {
+              productId: productIds.tile,
+              disabled: true,
+              source: 'manual',
+            },
+          },
+        }),
+      );
+    });
+
+    expect(
+      screen.getByText(`Floor: ${en.RoomPreview.surface.excluded}`),
+    ).toBeVisible();
+    expect(screen.getByText('Walls: not chosen')).toBeVisible();
+  });
+
+  it('localises the excluded surface text', async () => {
+    support.webGl = false;
+    await act(async () => {
+      renderPreview(
+        makeDraftRoom({
+          selections: {
+            [categoryIds.floor]: {
+              productId: productIds.tile,
+              disabled: true,
+              source: 'manual',
+            },
+          },
+        }),
+        'uk',
+      );
+    });
+
+    expect(
+      screen.getByText(`Підлога: ${uk.RoomPreview.surface.excluded}`),
+    ).toBeVisible();
   });
 
   it('shows the manual fallback without mounting the canvas when 3D is off', async () => {

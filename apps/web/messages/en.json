@@ -927,7 +927,8 @@
       "floor": "Floor: {material}",
       "walls": "Walls: {material}",
       "ceiling": "Ceiling: {material}",
-      "none": "not chosen"
+      "none": "not chosen",
+      "excluded": "not included in the estimate"
     }
   },
   "ObjectStep": {
