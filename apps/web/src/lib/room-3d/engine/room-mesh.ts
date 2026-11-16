@@ -1,4 +1,6 @@
 import {
+  BufferAttribute,
+  Color,
   EdgesGeometry,
   FrontSide,
   Group,
@@ -7,12 +9,14 @@ import {
   Mesh,
   MeshBasicMaterial,
   PlaneGeometry,
+  SRGBColorSpace,
   type Texture,
 } from 'three';
 import {
   type PlaneId,
   type PlaneSpec,
   planeIds,
+  planeShading,
   type RoomSize,
   roomPlanes,
   textureRepeat,
@@ -25,6 +29,7 @@ import type {
 } from '../types';
 
 const TEXTURE_TINT = '#ffffff';
+const EDGE_OPACITY_OVER_MATERIAL = 0.35;
 
 type PlaneEntry = {
   surface: SurfaceKey;
@@ -57,12 +62,63 @@ function placePlane({ mesh, edges }: PlaneEntry, spec: PlaneSpec) {
   }
 }
 
+function createPlaneGeometry(spec: PlaneSpec): PlaneGeometry {
+  const { xs, ys, factors } = planeShading(spec);
+  const stops = xs.length;
+  const geometry = new PlaneGeometry(
+    spec.widthM,
+    spec.heightM,
+    stops - 1,
+    stops - 1,
+  );
+  const shade = new Color();
+  const position = geometry.getAttribute('position');
+  const uv = geometry.getAttribute('uv');
+  const colors = new Float32Array(position.count * 3);
+  for (let row = 0; row < stops; row++) {
+    const yIndex = stops - 1 - row;
+    for (let column = 0; column < stops; column++) {
+      const vertex = row * stops + column;
+      const x = xs[column];
+      const y = ys[yIndex];
+      const factor = factors[yIndex * stops + column];
+      position.setXY(vertex, x, y);
+      uv.setXY(
+        vertex,
+        (x + spec.widthM / 2) / spec.widthM,
+        (y + spec.heightM / 2) / spec.heightM,
+      );
+      shade.setRGB(factor, factor, factor, SRGBColorSpace);
+      colors.set([shade.r, shade.g, shade.b], vertex * 3);
+    }
+  }
+  geometry.setAttribute('color', new BufferAttribute(colors, 3));
+  return geometry;
+}
+
+function createEdgesGeometry(spec: PlaneSpec): EdgesGeometry {
+  const outline = new PlaneGeometry(spec.widthM, spec.heightM);
+  const edges = new EdgesGeometry(outline);
+  outline.dispose();
+  return edges;
+}
+
+function edgeOpacity(neutral: boolean): number {
+  return neutral ? 1 : EDGE_OPACITY_OVER_MATERIAL;
+}
+
+function setNeutral(entry: PlaneEntry, neutral: boolean) {
+  entry.neutral = neutral;
+  entry.edges.material.opacity = edgeOpacity(neutral);
+}
+
 function createPlane(spec: PlaneSpec, colors: SceneColors): PlaneEntry {
-  const geometry = new PlaneGeometry(spec.widthM, spec.heightM);
+  const geometry = createPlaneGeometry(spec);
   const mesh = new Mesh(
     geometry,
     new MeshBasicMaterial({
       color: colors.neutral,
+      vertexColors: true,
       side: FrontSide,
       polygonOffset: true,
       polygonOffsetFactor: 1,
@@ -70,8 +126,12 @@ function createPlane(spec: PlaneSpec, colors: SceneColors): PlaneEntry {
     }),
   );
   const edges = new LineSegments(
-    new EdgesGeometry(geometry),
-    new LineBasicMaterial({ color: colors.edge }),
+    createEdgesGeometry(spec),
+    new LineBasicMaterial({
+      color: colors.edge,
+      transparent: true,
+      opacity: edgeOpacity(true),
+    }),
   );
   mesh.name = spec.id;
   edges.name = `${spec.id}-edges`;
@@ -103,8 +163,8 @@ export function rebuildRoomMesh(roomMesh: RoomMesh, room: RoomSize) {
     const entry = roomMesh.planes[spec.id];
     entry.mesh.geometry.dispose();
     entry.edges.geometry.dispose();
-    entry.mesh.geometry = new PlaneGeometry(spec.widthM, spec.heightM);
-    entry.edges.geometry = new EdgesGeometry(entry.mesh.geometry);
+    entry.mesh.geometry = createPlaneGeometry(spec);
+    entry.edges.geometry = createEdgesGeometry(spec);
     placePlane(entry, spec);
     if (entry.texture && entry.step) {
       entry.texture.repeat.set(...textureRepeat(spec.id, room, entry.step));
@@ -142,7 +202,7 @@ export function setRoomMeshSurface(
   const color = material.kind === 'neutral' ? null : material.color;
   for (const { entry } of surfaceEntries(roomMesh, surface)) {
     clearTexture(entry);
-    entry.neutral = neutral;
+    setNeutral(entry, neutral);
     entry.mesh.material.color.set(color || colors.neutral);
   }
 }
@@ -160,7 +220,7 @@ export function setRoomMeshTexture(
     clone.repeat.set(...textureRepeat(id, room, step));
     entry.texture = clone;
     entry.step = step;
-    entry.neutral = false;
+    setNeutral(entry, false);
     entry.mesh.material.map = clone;
     entry.mesh.material.color.set(TEXTURE_TINT);
     entry.mesh.material.needsUpdate = true;

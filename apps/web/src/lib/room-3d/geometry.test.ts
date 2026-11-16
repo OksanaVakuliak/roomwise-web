@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { planeIds, roomPlane, roomPlanes, textureRepeat } from './geometry';
+import {
+  EDGE_SHADE,
+  planeIds,
+  planeShade,
+  planeShading,
+  roomPlane,
+  roomPlanes,
+  textureRepeat,
+} from './geometry';
 
 const room = { lengthM: 5, widthM: 3, heightM: 2.7 };
 const square = { lengthM: 3, widthM: 3, heightM: 3 };
@@ -140,5 +148,57 @@ describe('textureRepeat', () => {
 
     expect(u).toBeCloseTo(3000 / 600, 10);
     expect(v).toBeCloseTo(3000 / 300, 10);
+  });
+});
+
+describe('planeShade', () => {
+  it('lights the ceiling most and the floor least', () => {
+    for (const id of planeIds) {
+      expect(planeShade(id)).toBeLessThanOrEqual(planeShade('ceiling'));
+      expect(planeShade(id)).toBeGreaterThanOrEqual(planeShade('floor'));
+    }
+  });
+
+  it('shades adjacent walls differently', () => {
+    expect(planeShade('wallBack')).not.toBe(planeShade('wallLeft'));
+    expect(planeShade('wallBack')).not.toBe(planeShade('wallRight'));
+    expect(planeShade('wallFront')).not.toBe(planeShade('wallLeft'));
+    expect(planeShade('wallFront')).not.toBe(planeShade('wallRight'));
+  });
+});
+
+describe('planeShading', () => {
+  const at = (factors: number[], row: number, column: number) =>
+    factors[row * 4 + column];
+
+  it('darkens the edge bands and corners of a plane', () => {
+    const spec = roomPlane('wallBack', room);
+    const shade = planeShade('wallBack');
+    const { xs, ys, factors } = planeShading(spec);
+
+    expect(xs).toEqual([-2.5, -2.3, 2.3, 2.5]);
+    expect(ys[0]).toBeCloseTo(-1.35);
+    expect(ys[1]).toBeCloseTo(-1.15);
+    expect(ys[2]).toBeCloseTo(1.15);
+    expect(ys[3]).toBeCloseTo(1.35);
+    expect(at(factors, 1, 1)).toBeCloseTo(shade);
+    expect(at(factors, 2, 2)).toBeCloseTo(shade);
+    expect(at(factors, 1, 0)).toBeCloseTo(shade * EDGE_SHADE);
+    expect(at(factors, 3, 2)).toBeCloseTo(shade * EDGE_SHADE);
+    expect(at(factors, 0, 0)).toBeCloseTo(shade * EDGE_SHADE * EDGE_SHADE);
+    expect(at(factors, 3, 3)).toBeCloseTo(shade * EDGE_SHADE * EDGE_SHADE);
+  });
+
+  it('keeps the bands inside a tiny plane', () => {
+    const tiny = { lengthM: 0.5, widthM: 0.5, heightM: 0.5 };
+    const { xs, ys } = planeShading(roomPlane('wallBack', tiny));
+
+    for (const stops of [xs, ys]) {
+      expect(stops[0]).toBeLessThan(stops[1]);
+      expect(stops[1]).toBeLessThan(stops[2]);
+      expect(stops[2]).toBeLessThan(stops[3]);
+      expect(stops[1]).toBeCloseTo(-0.125);
+      expect(stops[2]).toBeCloseTo(0.125);
+    }
   });
 });
