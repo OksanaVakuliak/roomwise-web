@@ -15,8 +15,14 @@
 
 .stage {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 9;
   background: var(--paper);
+}
+
+@media (min-width: 768px) {
+  .stage {
+    aspect-ratio: 4 / 3;
+  }
 }
 
 .loading {
@@ -35,6 +41,12 @@
   padding: var(--space-16);
   background: var(--sheet);
   transform-origin: 0 0;
+}
+
+@media (max-width: 767.98px) {
+  .floating {
+    z-index: var(--z-modal);
+  }
 }
 
 .floating .stage {

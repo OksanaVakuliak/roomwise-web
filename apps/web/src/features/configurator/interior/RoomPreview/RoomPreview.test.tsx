@@ -21,6 +21,7 @@ const canvas = vi.hoisted(() => ({
   props: null as RoomCanvasProps | null,
 }));
 const support = vi.hoisted(() => ({ webGl: true }));
+const lifecycle = vi.hoisted(() => ({ mounts: 0, unmounts: 0 }));
 
 vi.mock('@/lib/room-3d/support', () => ({
   isWebGlSupported: () => support.webGl,
@@ -35,6 +36,12 @@ vi.mock('@/components/ui', async (importActual) => {
       (controllerRef as MutableRefObject<RoomSceneController | null>).current =
         controller as unknown as RoomSceneController;
     }, [controllerRef]);
+    useEffect(() => {
+      lifecycle.mounts += 1;
+      return () => {
+        lifecycle.unmounts += 1;
+      };
+    }, []);
     return <div data-testid="canvas" />;
   }
   return { ...actual, RoomCanvas };
@@ -57,6 +64,7 @@ function setStatus(status: SceneStatus) {
 
 const originalMatchMedia = window.matchMedia;
 const originalWidth = window.innerWidth;
+const originalHeight = window.innerHeight;
 
 function reduceMotion() {
   const base = window.matchMedia;
@@ -75,6 +83,8 @@ function previewRoot() {
 beforeEach(() => {
   vi.clearAllMocks();
   canvas.props = null;
+  lifecycle.mounts = 0;
+  lifecycle.unmounts = 0;
   support.webGl = true;
   usePreferences.setState({ scene3d: true });
 });
@@ -82,6 +92,7 @@ beforeEach(() => {
 afterEach(() => {
   window.matchMedia = originalMatchMedia;
   window.innerWidth = originalWidth;
+  window.innerHeight = originalHeight;
 });
 
 describe('RoomPreview', () => {
@@ -380,13 +391,76 @@ describe('RoomPreview', () => {
       return view;
     }
 
-    it('has no expand button on a phone', async () => {
+    it('has an expand button on a phone', async () => {
       setViewport(390);
       await renderReady();
 
       expect(
-        screen.queryByRole('button', { name: en.RoomPreview.expand }),
-      ).not.toBeInTheDocument();
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      ).toBeInTheDocument();
+    });
+
+    it('fills the whole viewport on a phone and locks page scroll', async () => {
+      setViewport(390);
+      window.innerHeight = 800;
+      await renderReady();
+      const button = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      button.focus();
+
+      fireEvent.click(button);
+
+      const style = previewRoot().style;
+      expect(style.getPropertyValue('--expand-left')).toBe('0px');
+      expect(style.getPropertyValue('--expand-top')).toBe('0px');
+      expect(style.getPropertyValue('--expand-width')).toBe('390px');
+      expect(style.getPropertyValue('--expand-height')).toBe('800px');
+      expect(document.body.style.overflow).toBe('hidden');
+
+      fireEvent.click(button);
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(document.body.style.overflow).toBe('');
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(button).toHaveFocus();
+    });
+
+    it('collapses on Escape on a phone without remounting the canvas', async () => {
+      setViewport(390);
+      await renderReady();
+      const button = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      button.focus();
+
+      fireEvent.click(button);
+      fireEvent.keyDown(document, { key: 'Escape' });
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(button).toHaveFocus();
+      expect(lifecycle.mounts).toBe(1);
+      expect(lifecycle.unmounts).toBe(0);
+    });
+
+    it('makes the rest of the page inert while expanded on a phone', async () => {
+      setViewport(390);
+      await renderReady();
+      const header = document.createElement('header');
+      document.body.prepend(header);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+
+      expect(header.inert).toBe(true);
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(header.inert).not.toBe(true);
+      header.remove();
     });
 
     it('has an expand button from tablet width', async () => {
@@ -457,25 +531,6 @@ describe('RoomPreview', () => {
       fireEvent.click(button);
 
       expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
-    });
-
-    it('collapses instantly when the viewport drops below tablet width', async () => {
-      setViewport(1024);
-      const view = await renderReady();
-      fireEvent.click(
-        screen.getByRole('button', { name: en.RoomPreview.expand }),
-      );
-      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
-
-      act(() => setViewport(600));
-      await act(async () => {
-        view.rerender(<RoomPreview room={first} name="Living room" />);
-      });
-
-      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
-      expect(
-        screen.queryByRole('button', { name: en.RoomPreview.collapse }),
-      ).not.toBeInTheDocument();
     });
   });
 });
