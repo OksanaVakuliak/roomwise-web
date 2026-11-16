@@ -454,12 +454,12 @@ describe('RoomPreview', () => {
         screen.getByRole('button', { name: en.RoomPreview.expand }),
       );
 
-      expect(header.inert).toBe(true);
+      expect(header).toHaveAttribute('inert');
 
       fireEvent.keyDown(document, { key: 'Escape' });
       fireEvent.transitionEnd(previewRoot());
 
-      expect(header.inert).not.toBe(true);
+      expect(header).not.toHaveAttribute('inert');
       header.remove();
     });
 

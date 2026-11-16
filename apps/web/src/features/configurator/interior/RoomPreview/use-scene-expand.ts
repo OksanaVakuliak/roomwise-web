@@ -8,6 +8,12 @@ import {
   useRef,
   useState,
 } from 'react';
+import {
+  inertElements,
+  lockScroll,
+  releaseElements,
+  unlockScroll,
+} from '@/lib/dialog';
 import { useIsDesktop, usePrefersReducedMotion } from '@/lib/media';
 
 export type SceneExpandMode = 'idle' | 'enter' | 'open' | 'leave';
@@ -189,30 +195,23 @@ export function useSceneExpand(
     if (!expanded || !slot) return;
     const body = desktop ? slot.closest(BODY_SELECTOR) : document.body;
     if (!body) return;
-    const previous = new Map<HTMLElement, boolean>();
+    const siblings: Element[] = [];
     let node: HTMLElement = slot;
     while (node !== body && node.parentElement) {
       const parent: HTMLElement = node.parentElement;
-      for (const sibling of Array.from(parent.children)) {
-        if (sibling !== node && sibling instanceof HTMLElement) {
-          previous.set(sibling, sibling.inert);
-          sibling.inert = true;
-        }
+      for (const sibling of parent.children) {
+        if (sibling !== node) siblings.push(sibling);
       }
       node = parent;
     }
-    return () => {
-      for (const [element, wasInert] of previous) element.inert = wasInert;
-    };
+    const inerted = inertElements(siblings);
+    return () => releaseElements(inerted);
   }, [expanded, slotRef, desktop]);
 
   useEffect(() => {
     if (!expanded || desktop) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previous;
-    };
+    lockScroll();
+    return unlockScroll;
   }, [expanded, desktop]);
 
   const onTransitionEnd = useCallback((event: TransitionEvent) => {
