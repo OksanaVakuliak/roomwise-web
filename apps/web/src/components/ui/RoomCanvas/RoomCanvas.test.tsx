@@ -6,7 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { createRef, type MutableRefObject } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import type {
   RoomSceneInput,
@@ -198,6 +198,60 @@ describe('RoomCanvas', { timeout: importTimeout + 5_000 }, () => {
       );
     });
     expect(controller.setActive).toHaveBeenLastCalledWith(false);
+  });
+
+  describe('page visibility', () => {
+    function setVisibility(state: DocumentVisibilityState) {
+      vi.spyOn(document, 'visibilityState', 'get').mockReturnValue(state);
+      document.dispatchEvent(new Event('visibilitychange'));
+    }
+
+    function intersect(isIntersecting: boolean) {
+      intersectionCallbacks[0](
+        [{ isIntersecting } as IntersectionObserverEntry],
+        {} as IntersectionObserver,
+      );
+    }
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('pauses when the tab is hidden and resumes when it is shown', async () => {
+      renderCanvas();
+      await settle();
+      act(() => setVisibility('hidden'));
+      expect(controller.setActive).toHaveBeenLastCalledWith(false);
+      act(() => setVisibility('visible'));
+      expect(controller.setActive).toHaveBeenLastCalledWith(true);
+    });
+
+    it('stays paused while the canvas is out of view, even if the tab is shown', async () => {
+      renderCanvas();
+      await settle();
+      act(() => intersect(false));
+      act(() => setVisibility('visible'));
+      expect(controller.setActive).toHaveBeenLastCalledWith(false);
+      act(() => intersect(true));
+      expect(controller.setActive).toHaveBeenLastCalledWith(true);
+    });
+
+    it('stays paused while the tab is hidden, even if the canvas comes into view', async () => {
+      renderCanvas();
+      await settle();
+      act(() => setVisibility('hidden'));
+      act(() => intersect(true));
+      expect(controller.setActive).toHaveBeenLastCalledWith(false);
+    });
+
+    it('stops listening after unmount', async () => {
+      const { unmount } = renderCanvas();
+      await settle();
+      unmount();
+      controller.setActive.mockClear();
+      act(() => setVisibility('hidden'));
+      expect(controller.setActive).not.toHaveBeenCalled();
+    });
   });
 
   it('forwards keys to the controller and prevents default only when handled', async () => {

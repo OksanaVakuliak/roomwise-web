@@ -56,6 +56,14 @@ export function RoomCanvas({
     let controller: RoomSceneController | null = null;
     let resizeObserver: ResizeObserver | undefined;
     let intersectionObserver: IntersectionObserver | undefined;
+    let intersecting = true;
+    let visible = document.visibilityState === 'visible';
+
+    const updateActive = () => controller?.setActive(intersecting && visible);
+    const handleVisibility = () => {
+      visible = document.visibilityState === 'visible';
+      updateActive();
+    };
 
     latest.current.onStatus('loading');
 
@@ -83,10 +91,13 @@ export function RoomCanvas({
         if (typeof IntersectionObserver !== 'undefined') {
           intersectionObserver = new IntersectionObserver(([entry]) => {
             if (!entry) return;
-            controller?.setActive(entry.isIntersecting);
+            intersecting = entry.isIntersecting;
+            updateActive();
           });
           intersectionObserver.observe(container);
         }
+        document.addEventListener('visibilitychange', handleVisibility);
+        updateActive();
       })
       .catch(() => {
         if (!cancelled) latest.current.onStatus('error');
@@ -96,6 +107,7 @@ export function RoomCanvas({
       cancelled = true;
       resizeObserver?.disconnect();
       intersectionObserver?.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
       controller?.dispose();
       instanceRef.current = null;
       if (controllerRef) controllerRef.current = null;
