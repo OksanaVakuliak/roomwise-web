@@ -97,7 +97,6 @@ export function useSceneExpand(
     target: EMPTY_FRAME,
   });
   const modeRef = useRef(mode);
-  const desktopRef = useRef(desktop);
 
   useLayoutEffect(() => {
     modeRef.current = mode;
@@ -141,15 +140,10 @@ export function useSceneExpand(
     setMode('open');
   }, [mode, rootRef]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: collapse whenever the toggle becomes unavailable or the breakpoint flips
   useEffect(() => {
-    if (!enabled && modeRef.current !== 'idle') setMode('idle');
-  }, [enabled]);
-
-  useEffect(() => {
-    if (desktopRef.current === desktop) return;
-    desktopRef.current = desktop;
     if (modeRef.current !== 'idle') setMode('idle');
-  }, [desktop]);
+  }, [enabled, desktop]);
 
   useEffect(() => {
     if (mode !== 'open') return;
