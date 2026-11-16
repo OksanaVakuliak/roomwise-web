@@ -244,6 +244,16 @@ describe('RoomCanvas', { timeout: importTimeout + 5_000 }, () => {
       expect(controller.setActive).toHaveBeenLastCalledWith(false);
     });
 
+    it('resumes when the tab becomes visible while the controller is loading', async () => {
+      const state = vi
+        .spyOn(document, 'visibilityState', 'get')
+        .mockReturnValue('hidden');
+      renderCanvas();
+      state.mockReturnValue('visible');
+      await settle();
+      expect(controller.setActive).toHaveBeenLastCalledWith(true);
+    });
+
     it('stops listening after unmount', async () => {
       const { unmount } = renderCanvas();
       await settle();
