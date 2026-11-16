@@ -107,12 +107,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     if (!scene3d) setStatus('loading');
   }, [scene3d]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a failed scene is tried again for every room
-  useEffect(() => {
-    setStatus((current) =>
-      current === 'lost' || current === 'error' ? 'loading' : current,
-    );
-  }, [room.clientId]);
+  const [shownRoom, setShownRoom] = useState(room.clientId);
+  if (shownRoom !== room.clientId) {
+    setShownRoom(room.clientId);
+    if (status === 'lost' || status === 'error') setStatus('loading');
+  }
 
   useEffect(() => {
     if (hasDimensions) setWebGl(isWebGlSupported());

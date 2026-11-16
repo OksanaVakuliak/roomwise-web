@@ -140,10 +140,11 @@ export function useSceneExpand(
     setMode('open');
   }, [mode, rootRef]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: collapse whenever the toggle becomes unavailable or the breakpoint flips
-  useEffect(() => {
-    if (modeRef.current !== 'idle') setMode('idle');
-  }, [enabled, desktop]);
+  const [layout, setLayout] = useState({ enabled, desktop });
+  if (layout.enabled !== enabled || layout.desktop !== desktop) {
+    setLayout({ enabled, desktop });
+    if (mode !== 'idle') setMode('idle');
+  }
 
   useEffect(() => {
     if (mode !== 'open') return;
