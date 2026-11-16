@@ -300,40 +300,35 @@ export function createRoomSceneController({
     restoreTimer = null;
   }
 
-  function handleContextLost(event: Event) {
-    event.preventDefault();
-    lossCount += 1;
-    contextLost = true;
-    cancelTransition();
-    if (controls) controls.enabled = false;
+  function startRestoreTimer() {
     clearRestoreTimer();
-    if (lossCount > 1) {
-      onStatus?.('lost');
-      return;
-    }
     restoreTimer = setTimeout(() => {
       restoreTimer = null;
       onStatus?.('lost');
     }, restoreTimeoutMs);
   }
 
-  function handleContextRestored() {
-    if (!renderer) return;
+  function handleContextLost(event: Event) {
+    event.preventDefault();
+    contextLost = true;
+    cancelTransition();
+    if (controls) controls.enabled = false;
     clearRestoreTimer();
-    contextLost = false;
-    textures?.dispose();
-    textures = createCache(renderer);
-    applied = null;
-    if (controls) controls.enabled = active;
-    applySurfaces(false);
-    render();
-    onStatus?.('ready');
+    if (!active) return;
+    lossCount += 1;
+    if (lossCount > 1) {
+      onStatus?.('lost');
+      return;
+    }
+    startRestoreTimer();
   }
 
-  function createCache(target: WebGLRenderer): TextureCache {
-    return createTextureCache({
-      anisotropy: target.capabilities.getMaxAnisotropy(),
-    });
+  function handleContextRestored() {
+    clearRestoreTimer();
+    contextLost = false;
+    if (controls) controls.enabled = active;
+    render();
+    onStatus?.('ready');
   }
 
   return {
@@ -349,7 +344,9 @@ export function createRoomSceneController({
       }
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setClearColor(colors.background);
-      textures = createCache(renderer);
+      textures = createTextureCache({
+        anisotropy: renderer.capabilities.getMaxAnisotropy(),
+      });
       if (container.clientWidth > 0 && container.clientHeight > 0) {
         size = { width: container.clientWidth, height: container.clientHeight };
       }
@@ -439,8 +436,14 @@ export function createRoomSceneController({
     setActive(next) {
       active = next;
       if (controls) controls.enabled = next && !contextLost;
-      if (!next) cancelTransition();
-      else render();
+      if (!next) {
+        cancelTransition();
+        clearRestoreTimer();
+      } else if (contextLost) {
+        startRestoreTimer();
+      } else {
+        render();
+      }
     },
     setReducedMotion(reduced) {
       reducedMotion = reduced;

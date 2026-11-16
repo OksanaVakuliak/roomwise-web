@@ -446,27 +446,27 @@ describe('room scene controller', () => {
       expect(mocks.render).toHaveBeenCalledTimes(before);
     });
 
-    it('rebuilds the textures and renders once on restore', () => {
+    it('renders once on restore without rebuilding the textures', () => {
       create();
       controller.setInput(input);
       lose();
       const before = mocks.render.mock.calls.length;
       const disposed = mocks.disposeCache.mock.calls.length;
       restore();
-      expect(mocks.disposeCache).toHaveBeenCalledTimes(disposed + 1);
+      expect(mocks.disposeCache).toHaveBeenCalledTimes(disposed);
       expect(mocks.render).toHaveBeenCalledTimes(before + 1);
       expect(statuses).toEqual(['ready', 'ready']);
       vi.advanceTimersByTime(5000);
       expect(statuses).toEqual(['ready', 'ready']);
     });
 
-    it('requests the textures again after a restore', () => {
+    it('does not request the textures again after a restore', () => {
       create();
       controller.setInput(withFloor(floorTexture));
       const requested = mocks.request.mock.calls.length;
       lose();
       restore();
-      expect(mocks.request.mock.calls.length).toBe(requested + 1);
+      expect(mocks.request.mock.calls.length).toBe(requested);
     });
 
     it('reports lost when the context is not restored within 3 s', () => {
@@ -486,6 +486,50 @@ describe('room scene controller', () => {
       restore();
       lose();
       expect(statuses).toEqual(['ready', 'ready', 'lost']);
+    });
+
+    it('does not start the timer when the context is lost while inactive', () => {
+      create();
+      controller.setInput(input);
+      controller.setActive(false);
+      lose();
+      vi.advanceTimersByTime(5000);
+      expect(statuses).toEqual(['ready']);
+    });
+
+    it('does not count losses that happen while inactive', () => {
+      create();
+      controller.setInput(input);
+      controller.setActive(false);
+      lose();
+      restore();
+      controller.setActive(true);
+      lose();
+      expect(statuses).toEqual(['ready', 'ready']);
+      vi.advanceTimersByTime(2999);
+      expect(statuses).toEqual(['ready', 'ready']);
+    });
+
+    it('clears the timer when deactivated while lost', () => {
+      create();
+      controller.setInput(input);
+      lose();
+      controller.setActive(false);
+      vi.advanceTimersByTime(5000);
+      expect(statuses).toEqual(['ready']);
+    });
+
+    it('starts a fresh timer when reactivated while still lost', () => {
+      create();
+      controller.setInput(input);
+      lose();
+      vi.advanceTimersByTime(2000);
+      controller.setActive(false);
+      controller.setActive(true);
+      vi.advanceTimersByTime(2999);
+      expect(statuses).toEqual(['ready']);
+      vi.advanceTimersByTime(1);
+      expect(statuses).toEqual(['ready', 'lost']);
     });
 
     it('drops the listeners and the timer on dispose', () => {
