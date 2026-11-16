@@ -320,6 +320,7 @@ export function createRoomSceneController({
       onStatus?.('lost');
       return;
     }
+    onStatus?.('loading');
     startRestoreTimer();
   }
 
@@ -422,7 +423,7 @@ export function createRoomSceneController({
       moveTo(toTopView(currentView(roomSize(input))), true);
     },
     handleKey(key) {
-      if (!input || !active) return false;
+      if (!input || !active || contextLost) return false;
       const room = roomSize(input);
       const next = stepView(
         currentView(room),

@@ -455,9 +455,25 @@ describe('room scene controller', () => {
       restore();
       expect(mocks.disposeCache).toHaveBeenCalledTimes(disposed);
       expect(mocks.render).toHaveBeenCalledTimes(before + 1);
-      expect(statuses).toEqual(['ready', 'ready']);
+      expect(statuses).toEqual(['ready', 'loading', 'ready']);
       vi.advanceTimersByTime(5000);
-      expect(statuses).toEqual(['ready', 'ready']);
+      expect(statuses).toEqual(['ready', 'loading', 'ready']);
+    });
+
+    it('reports loading while waiting for the context to be restored', () => {
+      create();
+      controller.setInput(input);
+      lose();
+      expect(statuses).toEqual(['ready', 'loading']);
+    });
+
+    it('ignores keys while the context is lost', () => {
+      create();
+      controller.setInput(input);
+      lose();
+      expect(controller.handleKey('ArrowLeft')).toBe(false);
+      restore();
+      expect(controller.handleKey('ArrowLeft')).toBe(true);
     });
 
     it('does not request the textures again after a restore', () => {
@@ -474,9 +490,9 @@ describe('room scene controller', () => {
       controller.setInput(input);
       lose();
       vi.advanceTimersByTime(2999);
-      expect(statuses).toEqual(['ready']);
+      expect(statuses).toEqual(['ready', 'loading']);
       vi.advanceTimersByTime(1);
-      expect(statuses).toEqual(['ready', 'lost']);
+      expect(statuses).toEqual(['ready', 'loading', 'lost']);
     });
 
     it('reports lost at once when the context is lost a second time', () => {
@@ -485,7 +501,7 @@ describe('room scene controller', () => {
       lose();
       restore();
       lose();
-      expect(statuses).toEqual(['ready', 'ready', 'lost']);
+      expect(statuses).toEqual(['ready', 'loading', 'ready', 'lost']);
     });
 
     it('does not start the timer when the context is lost while inactive', () => {
@@ -505,9 +521,9 @@ describe('room scene controller', () => {
       restore();
       controller.setActive(true);
       lose();
-      expect(statuses).toEqual(['ready', 'ready']);
+      expect(statuses).toEqual(['ready', 'ready', 'loading']);
       vi.advanceTimersByTime(2999);
-      expect(statuses).toEqual(['ready', 'ready']);
+      expect(statuses).toEqual(['ready', 'ready', 'loading']);
     });
 
     it('clears the timer when deactivated while lost', () => {
@@ -516,7 +532,7 @@ describe('room scene controller', () => {
       lose();
       controller.setActive(false);
       vi.advanceTimersByTime(5000);
-      expect(statuses).toEqual(['ready']);
+      expect(statuses).toEqual(['ready', 'loading']);
     });
 
     it('starts a fresh timer when reactivated while still lost', () => {
@@ -527,9 +543,9 @@ describe('room scene controller', () => {
       controller.setActive(false);
       controller.setActive(true);
       vi.advanceTimersByTime(2999);
-      expect(statuses).toEqual(['ready']);
+      expect(statuses).toEqual(['ready', 'loading']);
       vi.advanceTimersByTime(1);
-      expect(statuses).toEqual(['ready', 'lost']);
+      expect(statuses).toEqual(['ready', 'loading', 'lost']);
     });
 
     it('drops the listeners and the timer on dispose', () => {
@@ -538,7 +554,7 @@ describe('room scene controller', () => {
       lose();
       controller.dispose();
       vi.advanceTimersByTime(5000);
-      expect(statuses).toEqual(['ready']);
+      expect(statuses).toEqual(['ready', 'loading']);
     });
   });
 
