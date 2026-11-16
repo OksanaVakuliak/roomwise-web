@@ -923,6 +923,7 @@
     },
     "disable": "Turn off 3D",
     "enable": "Turn on 3D",
+    "retry": "Try again",
     "surface": {
       "floor": "Floor: {material}",
       "walls": "Walls: {material}",

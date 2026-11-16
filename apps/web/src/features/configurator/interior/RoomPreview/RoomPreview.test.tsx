@@ -441,6 +441,153 @@ describe('RoomPreview', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('offers a retry in the lost fallback that remounts the canvas', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    expect(lifecycle.mounts).toBe(1);
+    setStatus('lost');
+
+    fireEvent.click(screen.getByRole('button', { name: en.RoomPreview.retry }));
+
+    expect(screen.getByTestId('canvas')).toBeInTheDocument();
+    expect(screen.queryByText(en.RoomPreview.fallback.lost)).toBeNull();
+    expect(lifecycle.mounts).toBe(2);
+    expect(
+      screen.getByRole('status', { name: en.RoomPreview.loading }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.disable }),
+    ).toHaveFocus();
+  });
+
+  it('localises the retry button', async () => {
+    await act(async () => {
+      renderPreview(first, 'uk');
+    });
+    setStatus('lost');
+
+    expect(
+      screen.getByRole('button', { name: uk.RoomPreview.retry }),
+    ).toBeVisible();
+  });
+
+  it('offers no retry when WebGL is unsupported or the renderer failed', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('error');
+
+    expect(screen.getByText(en.RoomPreview.fallback.unsupported)).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: en.RoomPreview.retry }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('tries 3D again when the room changes after the view was lost', async () => {
+    let view!: ReturnType<typeof renderPreview>;
+    await act(async () => {
+      view = renderPreview();
+    });
+    setStatus('lost');
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
+
+    await act(async () => {
+      view.rerender(<RoomPreview room={second} name="Living room" />);
+    });
+
+    expect(screen.getByTestId('canvas')).toBeInTheDocument();
+    expect(screen.queryByText(en.RoomPreview.fallback.lost)).toBeNull();
+  });
+
+  it('keeps a ready scene when the room changes', async () => {
+    let view!: ReturnType<typeof renderPreview>;
+    await act(async () => {
+      view = renderPreview();
+    });
+    setStatus('ready');
+
+    await act(async () => {
+      view.rerender(<RoomPreview room={second} name="Living room" />);
+    });
+
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('announces the fallback reason', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('lost');
+
+    expect(screen.getByRole('status', { name: '' }).textContent).toBe(
+      en.RoomPreview.fallback.lost,
+    );
+  });
+
+  it('moves focus to retry when the view is lost while focus is inside it', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+    screen.getByRole('button', { name: en.RoomPreview.disable }).focus();
+
+    setStatus('lost');
+
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.retry }),
+    ).toHaveFocus();
+  });
+
+  it('moves focus to the fallback when 3D becomes unsupported while focus is inside it', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    screen.getByRole('button', { name: en.RoomPreview.disable }).focus();
+
+    setStatus('error');
+
+    expect(
+      screen.getByText(en.RoomPreview.fallback.unsupported).parentElement,
+    ).toHaveFocus();
+  });
+
+  it('leaves focus alone when the view is lost while focus is elsewhere', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+    screen.getByRole('button', { name: en.RoomPreview.disable }).blur();
+
+    setStatus('lost');
+
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.retry }),
+    ).not.toHaveFocus();
+  });
+
+  it('shows the skeleton again when 3D is switched off and on from outside', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    act(() => usePreferences.setState({ scene3d: false }));
+    act(() => usePreferences.setState({ scene3d: true }));
+
+    expect(
+      screen.getByRole('status', { name: en.RoomPreview.loading }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.reset }),
+    ).toBeDisabled();
+    setStatus('ready');
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.reset }),
+    ).toBeEnabled();
+  });
+
   it('localises the fallback texts', async () => {
     support.webGl = false;
     await act(async () => {

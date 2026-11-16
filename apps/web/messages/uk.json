@@ -922,6 +922,7 @@
       "manual": "3D вимкнено."
     },
     "disable": "Вимкнути 3D",
+    "retry": "Спробувати ще раз",
     "enable": "Увімкнути 3D",
     "surface": {
       "floor": "Підлога: {material}",

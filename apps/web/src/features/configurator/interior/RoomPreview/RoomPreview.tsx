@@ -69,11 +69,14 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<RoomSceneController | null>(null);
   const enableRef = useRef<HTMLButtonElement>(null);
+  const retryRef = useRef<HTMLButtonElement>(null);
+  const fallbackRef = useRef<HTMLDivElement>(null);
   const disableRef = useRef<HTMLButtonElement>(null);
-  const focusAfterToggle = useRef<'enable' | 'disable' | null>(null);
+  const focusAfterToggle = useRef<'enable' | 'disable' | 'auto' | null>(null);
   const [colors, setColors] = useState<SceneColors | null>(null);
   const [status, setStatus] = useState<SceneStatus>('loading');
   const [webGl, setWebGl] = useState<boolean | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const scene3d = usePreferences((state) => state.scene3d);
   const setScene3d = usePreferences((state) => state.setScene3d);
 
@@ -95,7 +98,21 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     focusAfterToggle.current = null;
     if (target === 'enable' && reason === 'manual') enableRef.current?.focus();
     if (target === 'disable' && reason === null) disableRef.current?.focus();
+    if (target === 'auto' && (reason === 'lost' || reason === 'unsupported')) {
+      (retryRef.current ?? fallbackRef.current)?.focus();
+    }
   }, [reason]);
+
+  useEffect(() => {
+    if (!scene3d) setStatus('loading');
+  }, [scene3d]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a failed scene is tried again for every room
+  useEffect(() => {
+    setStatus((current) =>
+      current === 'lost' || current === 'error' ? 'loading' : current,
+    );
+  }, [room.clientId]);
 
   useEffect(() => {
     if (hasDimensions) setWebGl(isWebGlSupported());
@@ -131,9 +148,22 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const topView = useCallback(() => controllerRef.current?.topView(), []);
   const disable3d = useCallback(() => {
     focusAfterToggle.current = 'enable';
-    setStatus('loading');
     setScene3d(false);
   }, [setScene3d]);
+  const retry3d = useCallback(() => {
+    focusAfterToggle.current = 'disable';
+    setStatus('loading');
+    setAttempt((current) => current + 1);
+  }, []);
+  const handleStatus = useCallback((next: SceneStatus) => {
+    if (
+      (next === 'lost' || next === 'error') &&
+      slotRef.current?.contains(document.activeElement)
+    ) {
+      focusAfterToggle.current = 'auto';
+    }
+    setStatus(next);
+  }, []);
   const enable3d = useCallback(() => {
     focusAfterToggle.current = 'disable';
     setScene3d(true);
@@ -153,7 +183,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     const widthLabel = dimension(widthM, locale);
     const heightLabel = dimension(heightM, locale);
     return (
-      <div className={styles.fallback}>
+      <div ref={fallbackRef} className={styles.fallback} tabIndex={-1}>
         <RoomScene
           lengthCm={Math.round(lengthM * 100)}
           widthCm={Math.round(widthM * 100)}
@@ -170,7 +200,9 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             height: heightLabel,
           })}
         />
-        <p className={styles.reason}>{t(`fallback.${reason}`)}</p>
+        <p className={styles.reason} role="status">
+          {t(`fallback.${reason}`)}
+        </p>
         <ul className={styles.surfaces}>
           {SURFACE_ORDER.map((key) => {
             const material = surfaces[key];
@@ -193,6 +225,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         {reason === 'manual' ? (
           <Button ref={enableRef} className={styles.toggle} onClick={enable3d}>
             {t('enable')}
+          </Button>
+        ) : null}
+        {reason === 'lost' ? (
+          <Button ref={retryRef} className={styles.toggle} onClick={retry3d}>
+            {t('retry')}
           </Button>
         ) : null}
       </div>
@@ -237,10 +274,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         <div ref={stageRef} className={styles.stage}>
           {colors ? (
             <RoomCanvas
+              key={attempt}
               input={input}
               colors={colors}
               reducedMotion={reducedMotion}
-              onStatus={setStatus}
+              onStatus={handleStatus}
               label={t('label', { name })}
               describedBy={descriptionId}
               roleDescription={t('roleDescription')}
