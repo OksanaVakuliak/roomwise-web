@@ -104,7 +104,7 @@ const PLANE_SHADE: Record<PlaneId, number> = {
   wallRight: 0.86,
 };
 
-export const EDGE_BAND_M = 0.2;
+const EDGE_BAND_M = 0.2;
 export const EDGE_SHADE = 0.8;
 
 export function planeShade(id: PlaneId): number {

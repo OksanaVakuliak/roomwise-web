@@ -1,4 +1,4 @@
-import { FrontSide, Texture, Vector3 } from 'three';
+import { Color, FrontSide, SRGBColorSpace, Texture, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import { planeIds, planeShading, roomPlanes } from '../geometry';
 import type { SceneColors } from '../types';
@@ -11,6 +11,10 @@ import {
   setRoomMeshSurface,
   setRoomMeshTexture,
 } from './room-mesh';
+
+function linear(value: number): number {
+  return new Color().setRGB(value, value, value, SRGBColorSpace).r;
+}
 
 const room = { lengthM: 5, widthM: 3, heightM: 2.7 };
 const colors: SceneColors = {
@@ -44,8 +48,9 @@ describe('room mesh shading', () => {
       const { xs, ys, factors } = planeShading(spec);
       expect(position.getX(5)).toBeCloseTo(xs[1]);
       expect(position.getY(5)).toBeCloseTo(ys[2]);
-      expect(color.getX(5)).toBeCloseTo(factors[2 * 4 + 1]);
-      expect(color.getX(0)).toBeCloseTo(factors[3 * 4]);
+      expect(color.getX(5)).toBeCloseTo(linear(factors[2 * 4 + 1]));
+      expect(color.getX(0)).toBeCloseTo(linear(factors[3 * 4]));
+      expect(color.getX(0)).toBeLessThan(factors[3 * 4]);
     }
   });
 

@@ -1,5 +1,6 @@
 import {
   BufferAttribute,
+  Color,
   EdgesGeometry,
   FrontSide,
   Group,
@@ -8,6 +9,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   PlaneGeometry,
+  SRGBColorSpace,
   type Texture,
 } from 'three';
 import {
@@ -28,7 +30,6 @@ import type {
 
 const TEXTURE_TINT = '#ffffff';
 const EDGE_OPACITY_OVER_MATERIAL = 0.35;
-const GRID_STOPS = 4;
 
 type PlaneEntry = {
   surface: SurfaceKey;
@@ -62,29 +63,33 @@ function placePlane({ mesh, edges }: PlaneEntry, spec: PlaneSpec) {
 }
 
 function createPlaneGeometry(spec: PlaneSpec): PlaneGeometry {
+  const { xs, ys, factors } = planeShading(spec);
+  const stops = xs.length;
   const geometry = new PlaneGeometry(
     spec.widthM,
     spec.heightM,
-    GRID_STOPS - 1,
-    GRID_STOPS - 1,
+    stops - 1,
+    stops - 1,
   );
-  const { xs, ys, factors } = planeShading(spec);
+  const shade = new Color();
   const position = geometry.getAttribute('position');
   const uv = geometry.getAttribute('uv');
   const colors = new Float32Array(position.count * 3);
-  for (let row = 0; row < GRID_STOPS; row++) {
-    for (let column = 0; column < GRID_STOPS; column++) {
-      const vertex = row * GRID_STOPS + column;
+  for (let row = 0; row < stops; row++) {
+    const yIndex = stops - 1 - row;
+    for (let column = 0; column < stops; column++) {
+      const vertex = row * stops + column;
       const x = xs[column];
-      const y = ys[GRID_STOPS - 1 - row];
-      const factor = factors[(GRID_STOPS - 1 - row) * GRID_STOPS + column];
+      const y = ys[yIndex];
+      const factor = factors[yIndex * stops + column];
       position.setXY(vertex, x, y);
       uv.setXY(
         vertex,
         (x + spec.widthM / 2) / spec.widthM,
         (y + spec.heightM / 2) / spec.heightM,
       );
-      colors.fill(factor, vertex * 3, vertex * 3 + 3);
+      shade.setRGB(factor, factor, factor, SRGBColorSpace);
+      colors.set([shade.r, shade.g, shade.b], vertex * 3);
     }
   }
   geometry.setAttribute('color', new BufferAttribute(colors, 3));
@@ -100,6 +105,11 @@ function createEdgesGeometry(spec: PlaneSpec): EdgesGeometry {
 
 function edgeOpacity(neutral: boolean): number {
   return neutral ? 1 : EDGE_OPACITY_OVER_MATERIAL;
+}
+
+function setNeutral(entry: PlaneEntry, neutral: boolean) {
+  entry.neutral = neutral;
+  entry.edges.material.opacity = edgeOpacity(neutral);
 }
 
 function createPlane(spec: PlaneSpec, colors: SceneColors): PlaneEntry {
@@ -192,8 +202,7 @@ export function setRoomMeshSurface(
   const color = material.kind === 'neutral' ? null : material.color;
   for (const { entry } of surfaceEntries(roomMesh, surface)) {
     clearTexture(entry);
-    entry.neutral = neutral;
-    entry.edges.material.opacity = edgeOpacity(neutral);
+    setNeutral(entry, neutral);
     entry.mesh.material.color.set(color || colors.neutral);
   }
 }
@@ -211,8 +220,7 @@ export function setRoomMeshTexture(
     clone.repeat.set(...textureRepeat(id, room, step));
     entry.texture = clone;
     entry.step = step;
-    entry.neutral = false;
-    entry.edges.material.opacity = edgeOpacity(false);
+    setNeutral(entry, false);
     entry.mesh.material.map = clone;
     entry.mesh.material.color.set(TEXTURE_TINT);
     entry.mesh.material.needsUpdate = true;
