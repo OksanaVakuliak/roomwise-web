@@ -83,8 +83,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   if (webGl === false || status === 'error') reason = 'unsupported';
   else if (status === 'lost') reason = 'lost';
   else if (!scene3d) reason = 'manual';
-  const fallback = reason !== null;
-  const expand = useSceneExpand(slotRef, rootRef, hasDimensions && !fallback);
+  const expand = useSceneExpand(
+    slotRef,
+    rootRef,
+    hasDimensions && reason === null,
+  );
 
   useEffect(() => {
     const target = focusAfterToggle.current;
@@ -99,10 +102,10 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   }, [hasDimensions]);
 
   useEffect(() => {
-    if (hasDimensions && !fallback && stageRef.current) {
+    if (hasDimensions && reason === null && stageRef.current) {
       setColors(readColors(stageRef.current));
     }
-  }, [hasDimensions, fallback]);
+  }, [hasDimensions, reason]);
 
   const input = useMemo<RoomSceneInput | null>(
     () =>
@@ -143,27 +146,6 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     heightM === null
   ) {
     return null;
-  }
-
-  const disabled = status !== 'ready';
-  const actions: SceneToolbarAction[] = [
-    {
-      id: 'reset',
-      label: t('reset'),
-      icon: 'resetView',
-      onClick: resetView,
-      disabled,
-    },
-    { id: 'top', label: t('top'), icon: 'topView', onClick: topView, disabled },
-  ];
-  if (expand.available) {
-    actions.push({
-      id: 'expand',
-      label: expand.expanded ? t('collapse') : t('expand'),
-      icon: expand.expanded ? 'collapse' : 'expand',
-      onClick: expand.toggle,
-      disabled: disabled && !expand.expanded,
-    });
   }
 
   if (reason !== null) {
@@ -215,6 +197,27 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         ) : null}
       </div>
     );
+  }
+
+  const disabled = status !== 'ready';
+  const actions: SceneToolbarAction[] = [
+    {
+      id: 'reset',
+      label: t('reset'),
+      icon: 'resetView',
+      onClick: resetView,
+      disabled,
+    },
+    { id: 'top', label: t('top'), icon: 'topView', onClick: topView, disabled },
+  ];
+  if (expand.available) {
+    actions.push({
+      id: 'expand',
+      label: expand.expanded ? t('collapse') : t('expand'),
+      icon: expand.expanded ? 'collapse' : 'expand',
+      onClick: expand.toggle,
+      disabled: disabled && !expand.expanded,
+    });
   }
 
   return (
