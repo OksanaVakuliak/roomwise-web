@@ -532,5 +532,42 @@ describe('RoomPreview', () => {
 
       expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
     });
+
+    it('collapses instantly when the viewport drops below tablet width', async () => {
+      setViewport(1024);
+      const view = await renderReady();
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+
+      act(() => setViewport(600));
+      await act(async () => {
+        view.rerender(<RoomPreview room={first} name="Living room" />);
+      });
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(
+        screen.queryByRole('button', { name: en.RoomPreview.collapse }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('collapses instantly when the viewport grows to tablet width', async () => {
+      setViewport(600);
+      const view = await renderReady();
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+      expect(document.body.style.overflow).toBe('hidden');
+
+      act(() => setViewport(1024));
+      await act(async () => {
+        view.rerender(<RoomPreview room={first} name="Living room" />);
+      });
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(document.body.style.overflow).toBe('');
+    });
   });
 });

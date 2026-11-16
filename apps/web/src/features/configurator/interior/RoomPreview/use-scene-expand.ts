@@ -90,7 +90,6 @@ export function useSceneExpand(
   enabled: boolean,
 ) {
   const desktop = useIsDesktop();
-  const available = enabled;
   const reducedMotion = usePrefersReducedMotion();
   const [mode, setMode] = useState<SceneExpandMode>('idle');
   const [geometry, setGeometry] = useState<Geometry>({
@@ -98,6 +97,7 @@ export function useSceneExpand(
     target: EMPTY_FRAME,
   });
   const modeRef = useRef(mode);
+  const desktopRef = useRef(desktop);
 
   useLayoutEffect(() => {
     modeRef.current = mode;
@@ -142,8 +142,14 @@ export function useSceneExpand(
   }, [mode, rootRef]);
 
   useEffect(() => {
-    if (!available && modeRef.current !== 'idle') setMode('idle');
-  }, [available]);
+    if (!enabled && modeRef.current !== 'idle') setMode('idle');
+  }, [enabled]);
+
+  useEffect(() => {
+    if (desktopRef.current === desktop) return;
+    desktopRef.current = desktop;
+    if (modeRef.current !== 'idle') setMode('idle');
+  }, [desktop]);
 
   useEffect(() => {
     if (mode !== 'open') return;
@@ -223,7 +229,7 @@ export function useSceneExpand(
   return {
     mode,
     expanded,
-    available,
+    available: enabled,
     geometry,
     toggle,
     onTransitionEnd,
