@@ -13,6 +13,7 @@ import type {
   SceneColors,
   SceneStatus,
 } from '@/lib/room-3d/types';
+import { loadRoomEngine } from './load-engine';
 import { RoomCanvas } from './RoomCanvas';
 
 const controller = vi.hoisted(() => ({
@@ -28,6 +29,11 @@ const controller = vi.hoisted(() => ({
   dispose: vi.fn(),
 }));
 const create = vi.hoisted(() => vi.fn());
+
+vi.mock('./load-engine', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./load-engine')>();
+  return { loadRoomEngine: vi.fn(actual.loadRoomEngine) };
+});
 
 const input: RoomSceneInput = {
   roomKey: 'a',
@@ -298,10 +304,7 @@ describe('RoomCanvas', { timeout: importTimeout + 5_000 }, () => {
   });
 
   it('reports lost when the engine fails to load', async () => {
-    vi.resetModules();
-    vi.doMock('@/lib/room-3d/engine/controller', () => {
-      throw new Error('network');
-    });
+    vi.mocked(loadRoomEngine).mockRejectedValueOnce(new Error('network'));
     const onStatus = vi.fn<(status: SceneStatus) => void>();
     renderCanvas({ onStatus });
     await settle(() => expect(onStatus).toHaveBeenLastCalledWith('lost'));

@@ -13,6 +13,7 @@ import type {
   SceneColors,
   SceneStatus,
 } from '@/lib/room-3d/types';
+import { loadRoomEngine } from './load-engine';
 import styles from './RoomCanvas.module.css';
 
 export type RoomCanvasProps = {
@@ -65,7 +66,7 @@ export function RoomCanvas({
 
     latest.current.onStatus('loading');
 
-    void import('@/lib/room-3d/engine/controller')
+    void loadRoomEngine()
       .then(
         ({ createRoomSceneController }) => {
           if (cancelled) return;
