@@ -68,6 +68,9 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const slotRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<RoomSceneController | null>(null);
+  const enableRef = useRef<HTMLButtonElement>(null);
+  const disableRef = useRef<HTMLButtonElement>(null);
+  const focusAfterToggle = useRef<'enable' | 'disable' | null>(null);
   const [colors, setColors] = useState<SceneColors | null>(null);
   const [status, setStatus] = useState<SceneStatus>('loading');
   const [webGl, setWebGl] = useState<boolean | null>(null);
@@ -82,6 +85,14 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   else if (!scene3d) reason = 'manual';
   const fallback = reason !== null;
   const expand = useSceneExpand(slotRef, rootRef, hasDimensions && !fallback);
+
+  useEffect(() => {
+    const target = focusAfterToggle.current;
+    if (target === null) return;
+    focusAfterToggle.current = null;
+    if (target === 'enable' && reason === 'manual') enableRef.current?.focus();
+    if (target === 'disable' && reason === null) disableRef.current?.focus();
+  }, [reason]);
 
   useEffect(() => {
     if (hasDimensions) setWebGl(isWebGlSupported());
@@ -116,10 +127,14 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const resetView = useCallback(() => controllerRef.current?.resetView(), []);
   const topView = useCallback(() => controllerRef.current?.topView(), []);
   const disable3d = useCallback(() => {
+    focusAfterToggle.current = 'enable';
     setStatus('loading');
     setScene3d(false);
   }, [setScene3d]);
-  const enable3d = useCallback(() => setScene3d(true), [setScene3d]);
+  const enable3d = useCallback(() => {
+    focusAfterToggle.current = 'disable';
+    setScene3d(true);
+  }, [setScene3d]);
 
   if (
     input === null ||
@@ -194,7 +209,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
           })}
         </ul>
         {reason === 'manual' ? (
-          <Button className={styles.toggle} onClick={enable3d}>
+          <Button ref={enableRef} className={styles.toggle} onClick={enable3d}>
             {t('enable')}
           </Button>
         ) : null}
@@ -251,7 +266,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
           ) : null}
         </div>
         <SceneToolbar actions={actions} />
-        <Button className={styles.toggle} onClick={disable3d}>
+        <Button ref={disableRef} className={styles.toggle} onClick={disable3d}>
           {t('disable')}
         </Button>
       </div>

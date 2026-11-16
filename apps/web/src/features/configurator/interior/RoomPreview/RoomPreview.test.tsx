@@ -384,6 +384,49 @@ describe('RoomPreview', () => {
     expect(screen.getByText(en.RoomPreview.fallback.manual)).toBeVisible();
   });
 
+  it('moves focus to the enable button after turning 3D off', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.RoomPreview.disable }),
+    );
+
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    ).toHaveFocus();
+  });
+
+  it('moves focus to the disable button after turning 3D on', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: en.RoomPreview.disable }),
+      ).toHaveFocus(),
+    );
+  });
+
+  it('does not take focus on the first render', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    ).not.toHaveFocus();
+  });
+
   it('keeps the preference when the canvas reports lost', async () => {
     await act(async () => {
       renderPreview();
