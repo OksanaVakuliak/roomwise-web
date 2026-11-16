@@ -35,6 +35,8 @@ const mocks = vi.hoisted(() => ({
   release: vi.fn(),
   disposeCache: vi.fn(),
   anisotropy: undefined as number | undefined,
+  setPixelRatio: vi.fn(),
+  options: undefined as { antialias?: boolean } | undefined,
 }));
 
 vi.mock('./texture-cache', () => ({
@@ -52,12 +54,13 @@ vi.mock('three', async (importOriginal) => {
   const actual = await importOriginal<typeof import('three')>();
   class WebGLRenderer {
     domElement = document.createElement('canvas');
-    constructor() {
+    constructor(options?: { antialias?: boolean }) {
+      mocks.options = options;
       if (mocks.fail) throw new Error('no webgl');
       mocks.created += 1;
     }
     setSize = vi.fn();
-    setPixelRatio = vi.fn();
+    setPixelRatio = mocks.setPixelRatio;
     getPixelRatio = () => 2;
     capabilities = { getMaxAnisotropy: () => 8 };
     setClearColor = vi.fn();
@@ -172,6 +175,8 @@ beforeEach(() => {
   mocks.release.mockClear();
   mocks.disposeCache.mockClear();
   mocks.anisotropy = undefined;
+  mocks.setPixelRatio.mockClear();
+  mocks.options = undefined;
   statuses = [];
   container = document.createElement('div');
   document.body.append(container);
@@ -190,6 +195,21 @@ describe('room scene controller', () => {
     expect(container.querySelectorAll('canvas')).toHaveLength(1);
     expect(statuses).toEqual(['ready']);
   });
+
+  it.each([
+    [1, 1, true],
+    [2, 2, false],
+    [3, 2, false],
+  ])(
+    'at device pixel ratio %s sets pixel ratio %s and antialias %s',
+    (dpr, ratio, antialias) => {
+      vi.stubGlobal('devicePixelRatio', dpr);
+      create();
+      expect(mocks.setPixelRatio).toHaveBeenCalledWith(ratio);
+      expect(mocks.options?.antialias).toBe(antialias);
+      vi.unstubAllGlobals();
+    },
+  );
 
   it('reports an error when the renderer cannot be created', () => {
     mocks.fail = true;
@@ -396,6 +416,86 @@ describe('room scene controller', () => {
     expect(controller.handleKey('a')).toBe(false);
     expect(controller.handleKey('Enter')).toBe(false);
     expect(mocks.render).toHaveBeenCalledTimes(before);
+  });
+
+  describe('context loss', () => {
+    function lose() {
+      const event = new Event('webglcontextlost', { cancelable: true });
+      container.querySelector('canvas')?.dispatchEvent(event);
+      return event;
+    }
+
+    function restore() {
+      container
+        .querySelector('canvas')
+        ?.dispatchEvent(new Event('webglcontextrestored'));
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    it('prevents the default and stops rendering while the context is lost', () => {
+      create();
+      controller.setInput(input);
+      const event = lose();
+      expect(event.defaultPrevented).toBe(true);
+      const before = mocks.render.mock.calls.length;
+      controller.setColors({ ...colors, neutral: '#000000' });
+      controller.resize(400, 300);
+      expect(mocks.render).toHaveBeenCalledTimes(before);
+    });
+
+    it('rebuilds the textures and renders once on restore', () => {
+      create();
+      controller.setInput(input);
+      lose();
+      const before = mocks.render.mock.calls.length;
+      const disposed = mocks.disposeCache.mock.calls.length;
+      restore();
+      expect(mocks.disposeCache).toHaveBeenCalledTimes(disposed + 1);
+      expect(mocks.render).toHaveBeenCalledTimes(before + 1);
+      expect(statuses).toEqual(['ready', 'ready']);
+      vi.advanceTimersByTime(5000);
+      expect(statuses).toEqual(['ready', 'ready']);
+    });
+
+    it('requests the textures again after a restore', () => {
+      create();
+      controller.setInput(withFloor(floorTexture));
+      const requested = mocks.request.mock.calls.length;
+      lose();
+      restore();
+      expect(mocks.request.mock.calls.length).toBe(requested + 1);
+    });
+
+    it('reports lost when the context is not restored within 3 s', () => {
+      create();
+      controller.setInput(input);
+      lose();
+      vi.advanceTimersByTime(2999);
+      expect(statuses).toEqual(['ready']);
+      vi.advanceTimersByTime(1);
+      expect(statuses).toEqual(['ready', 'lost']);
+    });
+
+    it('reports lost at once when the context is lost a second time', () => {
+      create();
+      controller.setInput(input);
+      lose();
+      restore();
+      lose();
+      expect(statuses).toEqual(['ready', 'ready', 'lost']);
+    });
+
+    it('drops the listeners and the timer on dispose', () => {
+      create();
+      controller.setInput(input);
+      lose();
+      controller.dispose();
+      vi.advanceTimersByTime(5000);
+      expect(statuses).toEqual(['ready']);
+    });
   });
 
   it('removes the canvas on dispose', () => {

@@ -54,6 +54,7 @@ export type RoomSceneController = {
 };
 
 const transitionMs = 300;
+const restoreTimeoutMs = 3000;
 const turn = Math.PI * 2;
 
 const initialColors: SceneColors = {
@@ -121,11 +122,14 @@ export function createRoomSceneController({
   let silent = false;
   let applying = false;
   let frame: number | null = null;
+  let contextLost = false;
+  let lossCount = 0;
+  let restoreTimer: ReturnType<typeof setTimeout> | null = null;
 
   const aspect = () => size.width / size.height;
 
   function render() {
-    if (!renderer || !roomMesh || !input || !active) return;
+    if (!renderer || !roomMesh || !input || !active || contextLost) return;
     setRoomMeshEdges(roomMesh, visibleFaces(currentView(input), input));
     renderer.render(scene, camera);
   }
@@ -290,6 +294,48 @@ export function createRoomSceneController({
     moveTo(view, false);
   }
 
+  function clearRestoreTimer() {
+    if (restoreTimer === null) return;
+    clearTimeout(restoreTimer);
+    restoreTimer = null;
+  }
+
+  function handleContextLost(event: Event) {
+    event.preventDefault();
+    lossCount += 1;
+    contextLost = true;
+    cancelTransition();
+    if (controls) controls.enabled = false;
+    clearRestoreTimer();
+    if (lossCount > 1) {
+      onStatus?.('lost');
+      return;
+    }
+    restoreTimer = setTimeout(() => {
+      restoreTimer = null;
+      onStatus?.('lost');
+    }, restoreTimeoutMs);
+  }
+
+  function handleContextRestored() {
+    if (!renderer) return;
+    clearRestoreTimer();
+    contextLost = false;
+    textures?.dispose();
+    textures = createCache(renderer);
+    applied = null;
+    if (controls) controls.enabled = active;
+    applySurfaces(false);
+    render();
+    onStatus?.('ready');
+  }
+
+  function createCache(target: WebGLRenderer): TextureCache {
+    return createTextureCache({
+      anisotropy: target.capabilities.getMaxAnisotropy(),
+    });
+  }
+
   return {
     mount(container) {
       if (renderer) return;
@@ -303,15 +349,21 @@ export function createRoomSceneController({
       }
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setClearColor(colors.background);
-      textures = createTextureCache({
-        anisotropy: renderer.capabilities.getMaxAnisotropy(),
-      });
+      textures = createCache(renderer);
       if (container.clientWidth > 0 && container.clientHeight > 0) {
         size = { width: container.clientWidth, height: container.clientHeight };
       }
       renderer.setSize(size.width, size.height);
       camera.aspect = aspect();
       container.append(renderer.domElement);
+      renderer.domElement.addEventListener(
+        'webglcontextlost',
+        handleContextLost,
+      );
+      renderer.domElement.addEventListener(
+        'webglcontextrestored',
+        handleContextRestored,
+      );
 
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enablePan = false;
@@ -386,7 +438,7 @@ export function createRoomSceneController({
     },
     setActive(next) {
       active = next;
-      if (controls) controls.enabled = next;
+      if (controls) controls.enabled = next && !contextLost;
       if (!next) cancelTransition();
       else render();
     },
@@ -395,6 +447,7 @@ export function createRoomSceneController({
     },
     dispose() {
       cancelTransition();
+      clearRestoreTimer();
       controls?.dispose();
       controls = null;
       textures?.dispose();
@@ -406,6 +459,14 @@ export function createRoomSceneController({
         roomMesh = null;
       }
       if (renderer) {
+        renderer.domElement.removeEventListener(
+          'webglcontextlost',
+          handleContextLost,
+        );
+        renderer.domElement.removeEventListener(
+          'webglcontextrestored',
+          handleContextRestored,
+        );
         renderer.domElement.remove();
         renderer.forceContextLoss();
         renderer.dispose();
