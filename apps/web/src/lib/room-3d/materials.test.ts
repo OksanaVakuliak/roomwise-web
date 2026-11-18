@@ -184,6 +184,16 @@ describe('resolveSceneMaterials', () => {
     expect(result.floor).toEqual({ kind: 'neutral', reason: 'loading' });
   });
 
+  it('is unselected when product details failed to load', () => {
+    const result = resolveSceneMaterials(
+      { [categoryIds.floor]: pick(productIds.tile) },
+      categories,
+      productMap(),
+      new Set([productIds.tile]),
+    );
+    expect(result.floor).toEqual({ kind: 'neutral', reason: 'unselected' });
+  });
+
   it('uses the surface color for a product without a surface', () => {
     const result = resolveSceneMaterials(
       { [categoryIds.walls]: pick(productIds.laminatePremium) },
