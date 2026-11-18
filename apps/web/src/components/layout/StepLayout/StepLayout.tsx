@@ -1,7 +1,10 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { cx } from '@/lib/cx';
 import styles from './StepLayout.module.css';
+import { usePinnedAside } from './use-pinned-aside';
 
 export type StepLayoutProps = {
   steps: ReactNode;
@@ -27,6 +30,7 @@ export function StepLayout({
   className,
 }: StepLayoutProps) {
   const t = useTranslations('StepLayout');
+  const { asideRef, showcaseRef, costRef, pinned } = usePinnedAside();
 
   if (single) {
     return (
@@ -59,11 +63,19 @@ export function StepLayout({
           </section>
           {detail ? <div className={styles.detail}>{detail}</div> : null}
         </div>
-        <div className={styles.aside}>
-          <section className={styles.showcase} aria-label={t('showcase')}>
+        <div
+          ref={asideRef}
+          className={styles.aside}
+          data-pinned={pinned ? '' : undefined}
+        >
+          <section
+            ref={showcaseRef}
+            className={styles.showcase}
+            aria-label={t('showcase')}
+          >
             {showcase}
           </section>
-          <section className={styles.cost} aria-label={t('cost')}>
+          <section ref={costRef} className={styles.cost} aria-label={t('cost')}>
             {cost}
           </section>
         </div>

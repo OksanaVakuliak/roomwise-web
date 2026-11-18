@@ -1,6 +1,6 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import type { AnchorHTMLAttributes } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EstimateStamp } from '@/components/ui';
 import { axe } from '@/test/axe';
 import {
@@ -114,5 +114,87 @@ describe('StepLayout', () => {
   it.each(forEachLocale)('has no axe violations in %s', async (locale) => {
     const { container } = renderWithProviders(layout(), { locale });
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  describe('pinned aside', () => {
+    const heights = { Specification: 0, Estimate: 0 };
+    const observers: ResizeObserverCallback[] = [];
+
+    beforeEach(() => {
+      observers.length = 0;
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(callback: ResizeObserverCallback) {
+            observers.push(callback);
+          }
+          observe() {}
+          unobserve() {}
+          disconnect() {}
+        },
+      );
+      vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(
+        function (this: HTMLElement) {
+          const label = this.getAttribute('aria-label') as
+            | keyof typeof heights
+            | null;
+          return label && label in heights ? heights[label] : 0;
+        },
+      );
+      window.innerHeight = 800;
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    function aside() {
+      return screen.getByRole('region', { name: 'Estimate' }).parentElement;
+    }
+
+    it('pins the aside on desktop when the showcase and cost fit the viewport', () => {
+      setViewport(1024);
+      heights.Specification = 300;
+      heights.Estimate = 200;
+      renderWithProviders(layout());
+      expect(aside()).toHaveAttribute('data-pinned');
+    });
+
+    it('does not pin the aside when the showcase is taller than the viewport', () => {
+      setViewport(1024);
+      heights.Specification = 700;
+      heights.Estimate = 200;
+      renderWithProviders(layout());
+      expect(aside()).not.toHaveAttribute('data-pinned');
+    });
+
+    it('does not pin the aside below the desktop breakpoint', () => {
+      setViewport(390);
+      heights.Specification = 100;
+      heights.Estimate = 100;
+      renderWithProviders(layout());
+      expect(aside()).not.toHaveAttribute('data-pinned');
+    });
+
+    it('re-measures when the content resizes and when the window resizes', () => {
+      setViewport(1024);
+      heights.Specification = 300;
+      heights.Estimate = 200;
+      renderWithProviders(layout());
+      expect(aside()).toHaveAttribute('data-pinned');
+
+      heights.Specification = 700;
+      act(() => {
+        observers.forEach((callback) => callback([], {} as ResizeObserver));
+      });
+      expect(aside()).not.toHaveAttribute('data-pinned');
+
+      window.innerHeight = 1200;
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(aside()).toHaveAttribute('data-pinned');
+    });
   });
 });

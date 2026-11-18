@@ -78,6 +78,13 @@
     padding: var(--space-16) var(--space-16) var(--space-16);
   }
 
+  .aside[data-pinned] {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    min-height: var(--overlay-sheet-full-height);
+  }
+
   .showcase {
     padding-bottom: var(--space-16);
   }
