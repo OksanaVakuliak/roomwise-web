@@ -68,6 +68,8 @@
       "stepTape": "Стрічка кроків",
       "actions": "Дії та перемикачі",
       "roomPlan": "План кімнати",
+      "roomCanvas": "3D-кімната",
+      "sceneToolbar": "Панель сцени",
       "sectionCut": "Розріз",
       "specification": "Специфікація",
       "estimate": "Кошторис",
@@ -236,6 +238,43 @@
     "wallsMobile": "стіни {walls}",
     "wallsDesktop": "стіни {walls}, периметр {perimeter}",
     "sceneDescription": "{name} {length} на {width}, висота {height}"
+  },
+  "ShowcaseRoomCanvas": {
+    "intro": "3D-кімната, що підвантажує three.js ліниво. Перетягування обертає, колесо або щипок масштабують, стрілки рухають камеру.",
+    "neutralHeading": "RoomCanvas: нейтральні поверхні",
+    "neutralCaption": "Матеріали не обрано: кожна поверхня має нейтральний колір фарби.",
+    "coloredHeading": "RoomCanvas: кольорові поверхні",
+    "coloredCaption": "Підлога й стіни з однотонним кольором, стеля лишається нейтральною.",
+    "fallbackHeading": "RoomScene: запасний режим",
+    "fallbackCaption": "Статичний малюнок, коли WebGL недоступний або 3D вимкнено.",
+    "bedroom": "Спальня",
+    "label": "{name} у 3D",
+    "roleDescription": "3D-вигляд",
+    "status": "Стан: {status}",
+    "statuses": {
+      "loading": "завантаження",
+      "ready": "готово",
+      "error": "помилка",
+      "lost": "контекст втрачено"
+    },
+    "fallbackDescription": "{name} {length} на {width}, висота {height}"
+  },
+  "ShowcaseSceneToolbar": {
+    "intro": "Ряд кнопок-іконок під 3D-виглядом. Додаткові елементи керування передаються дочірніми.",
+    "activeHeading": "Активна",
+    "activeCaption": "Вигляд зверху — натиснутий перемикач, розгортання змінює іконку й підпис.",
+    "loadingHeading": "Вимкнена",
+    "loadingCaption": "Кнопки виду недоступні, доки сцена не готова.",
+    "fallbackHeading": "Запасний режим",
+    "fallbackCaption": "Без 3D лишається тільки розгортання поряд із кнопкою, що вмикає 3D назад.",
+    "reset": "Скинути вигляд",
+    "top": "Вигляд зверху",
+    "expand": "Розгорнути",
+    "collapse": "Закрити",
+    "disable": "Вимкнути 3D",
+    "enable": "Увімкнути 3D",
+    "stateOn": "3D-вигляд увімкнено",
+    "stateOff": "3D-вигляд вимкнено"
   },
   "ShowcaseOverlays": {
     "modalTitle": "Модальне вікно",

@@ -31,6 +31,8 @@ const NAMESPACES = [
   'ShowcaseActions',
   'ShowcaseFormFields',
   'ShowcaseRoomPlan',
+  'ShowcaseRoomCanvas',
+  'ShowcaseSceneToolbar',
   'ShowcaseSectionCut',
   'ShowcaseDataDisplay',
   'ShowcaseSpecification',
