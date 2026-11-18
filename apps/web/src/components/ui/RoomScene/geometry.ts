@@ -15,6 +15,7 @@ export type Segment = {
 
 export type SceneGeometry = {
   viewBox: string;
+  aspectRatio: string;
   floor: string;
   rightWall: string;
   leftWall: string;
@@ -176,6 +177,7 @@ export function computeGeometry(
 
   return {
     viewBox: [minX, minY, boxWidth, boxHeight].map(round).join(' '),
+    aspectRatio: `${round(boxWidth)} / ${round(boxHeight)}`,
     floor: points([back, right, front, left]),
     rightWall: points([backTop, rightTop, right, back]),
     leftWall: points([backTop, leftTop, left, back]),
