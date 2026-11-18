@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { RoomCanvas, RoomScene } from '@/components/ui';
 import { dimension } from '@/lib/format';
 import { usePrefersReducedMotion } from '@/lib/media';
@@ -93,8 +93,6 @@ function CanvasStage({ input, label, caption }: CanvasStageProps) {
 export function RoomCanvasSection() {
   const t = useTranslations('ShowcaseRoomCanvas');
   const locale = useLocale();
-  const neutral = useMemo(() => NEUTRAL_INPUT, []);
-  const colored = useMemo(() => COLORED_INPUT, []);
 
   const lengthLabel = dimension(ROOM.lengthM, locale);
   const widthLabel = dimension(ROOM.widthM, locale);
@@ -107,14 +105,14 @@ export function RoomCanvasSection() {
 
       <h3>{t('neutralHeading')}</h3>
       <CanvasStage
-        input={neutral}
+        input={NEUTRAL_INPUT}
         label={t('label', { name: bedroom })}
         caption={t('neutralCaption')}
       />
 
       <h3>{t('coloredHeading')}</h3>
       <CanvasStage
-        input={colored}
+        input={COLORED_INPUT}
         label={t('label', { name: bedroom })}
         caption={t('coloredCaption')}
       />
