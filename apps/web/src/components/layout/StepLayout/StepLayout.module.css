@@ -75,27 +75,23 @@
   }
 
   .aside {
-    padding: var(--space-16) var(--space-16) var(--space-16);
-  }
-
-  .aside[data-pinned] {
     position: sticky;
     top: 0;
     align-self: start;
-    min-height: var(--overlay-sheet-full-height);
-  }
-
-  .aside[data-pinned] .cost {
-    position: sticky;
-    bottom: 0;
+    height: calc(var(--overlay-sheet-full-height) - var(--aside-offset, 0rem));
+    padding: var(--space-16) var(--space-16) var(--space-16);
   }
 
   .showcase {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
     padding-bottom: var(--space-16);
   }
 
   .cost {
     position: static;
+    flex: none;
     margin-top: auto;
     max-height: none;
     overflow-y: visible;
