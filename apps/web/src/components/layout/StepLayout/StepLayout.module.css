@@ -103,7 +103,6 @@
   .costSlot .cost {
     position: sticky;
     bottom: 0;
-    z-index: auto;
   }
 }
 
@@ -121,6 +120,10 @@
     top: var(--space-16);
     z-index: var(--z-sticky);
     background: var(--sheet);
+  }
+
+  .scene:has([data-mode]:not([data-mode="idle"])) {
+    z-index: var(--z-panel);
   }
 }
 
