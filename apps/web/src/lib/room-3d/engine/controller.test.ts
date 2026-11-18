@@ -526,6 +526,17 @@ describe('room scene controller', () => {
       expect(statuses).toEqual(['ready', 'ready', 'loading']);
     });
 
+    it('reports a loss that happened while inactive once reactivated', () => {
+      create();
+      controller.setInput(input);
+      controller.setActive(false);
+      lose();
+      controller.setActive(true);
+      expect(statuses).toEqual(['ready', 'loading']);
+      vi.advanceTimersByTime(3000);
+      expect(statuses).toEqual(['ready', 'loading', 'lost']);
+    });
+
     it('clears the timer when deactivated while lost', () => {
       create();
       controller.setInput(input);

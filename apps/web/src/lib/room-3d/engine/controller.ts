@@ -308,13 +308,10 @@ export function createRoomSceneController({
     }, restoreTimeoutMs);
   }
 
-  function handleContextLost(event: Event) {
-    event.preventDefault();
-    contextLost = true;
-    cancelTransition();
-    if (controls) controls.enabled = false;
-    clearRestoreTimer();
-    if (!active) return;
+  let lossReported = false;
+
+  function reportLoss() {
+    lossReported = true;
     lossCount += 1;
     if (lossCount > 1) {
       onStatus?.('lost');
@@ -322,6 +319,16 @@ export function createRoomSceneController({
     }
     onStatus?.('loading');
     startRestoreTimer();
+  }
+
+  function handleContextLost(event: Event) {
+    event.preventDefault();
+    contextLost = true;
+    lossReported = false;
+    cancelTransition();
+    if (controls) controls.enabled = false;
+    clearRestoreTimer();
+    if (active) reportLoss();
   }
 
   function handleContextRestored() {
@@ -441,7 +448,8 @@ export function createRoomSceneController({
         cancelTransition();
         clearRestoreTimer();
       } else if (contextLost) {
-        startRestoreTimer();
+        if (lossReported) startRestoreTimer();
+        else reportLoss();
       } else {
         render();
       }
