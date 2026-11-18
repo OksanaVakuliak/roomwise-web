@@ -54,6 +54,10 @@
     display: contents;
   }
 
+  .costSlot {
+    display: contents;
+  }
+
   .showcase {
     padding: 0 var(--space-16) var(--space-16);
   }
@@ -75,27 +79,30 @@
   }
 
   .aside {
-    position: sticky;
-    top: 0;
-    align-self: start;
-    height: calc(var(--overlay-sheet-full-height) - var(--aside-offset, 0rem));
     padding: var(--space-16) var(--space-16) var(--space-16);
   }
 
   .showcase {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
     padding-bottom: var(--space-16);
+  }
+
+  .costSlot {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    justify-content: flex-end;
   }
 
   .cost {
     position: static;
-    flex: none;
-    margin-top: auto;
     max-height: none;
     overflow-y: visible;
     border-top: 0;
+  }
+
+  .costSlot .cost {
+    position: sticky;
+    bottom: 0;
   }
 }
 

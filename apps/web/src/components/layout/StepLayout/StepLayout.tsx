@@ -1,10 +1,7 @@
-'use client';
-
 import { useTranslations } from 'next-intl';
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { cx } from '@/lib/cx';
 import styles from './StepLayout.module.css';
-import { useAsideOffset } from './use-aside-offset';
 
 export type StepLayoutProps = {
   steps: ReactNode;
@@ -30,7 +27,6 @@ export function StepLayout({
   className,
 }: StepLayoutProps) {
   const t = useTranslations('StepLayout');
-  const { asideRef, offset } = useAsideOffset();
 
   if (single) {
     return (
@@ -63,21 +59,15 @@ export function StepLayout({
           </section>
           {detail ? <div className={styles.detail}>{detail}</div> : null}
         </div>
-        <div
-          ref={asideRef}
-          className={styles.aside}
-          style={
-            {
-              '--aside-offset': offset === null ? undefined : `${offset}px`,
-            } as CSSProperties
-          }
-        >
+        <div className={styles.aside}>
           <section className={styles.showcase} aria-label={t('showcase')}>
             {showcase}
           </section>
-          <section className={styles.cost} aria-label={t('cost')}>
-            {cost}
-          </section>
+          <div className={styles.costSlot}>
+            <section className={styles.cost} aria-label={t('cost')}>
+              {cost}
+            </section>
+          </div>
         </div>
       </div>
     </div>

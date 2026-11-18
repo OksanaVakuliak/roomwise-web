@@ -1,6 +1,6 @@
-import { act, fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import type { AnchorHTMLAttributes } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EstimateStamp } from '@/components/ui';
 import { axe } from '@/test/axe';
 import {
@@ -114,56 +114,5 @@ describe('StepLayout', () => {
   it.each(forEachLocale)('has no axe violations in %s', async (locale) => {
     const { container } = renderWithProviders(layout(), { locale });
     expect(await axe(container)).toHaveNoViolations();
-  });
-
-  describe('aside offset', () => {
-    let top = 0;
-
-    beforeEach(() => {
-      top = 137;
-      vi.spyOn(
-        HTMLElement.prototype,
-        'getBoundingClientRect',
-      ).mockImplementation(function (this: HTMLElement) {
-        return {
-          top: this.hasAttribute('data-layout-body') ? top : 0,
-        } as DOMRect;
-      });
-      vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
-        cb(0);
-        return 1;
-      });
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
-    function aside() {
-      return screen.getByRole('region', { name: 'Estimate' }).parentElement;
-    }
-
-    it('sizes the aside to the viewport below the header on desktop', () => {
-      setViewport(1024);
-      renderWithProviders(layout());
-      expect(aside()?.style.getPropertyValue('--aside-offset')).toBe('137px');
-    });
-
-    it('drops the offset once the header scrolls away', () => {
-      setViewport(1024);
-      renderWithProviders(layout());
-
-      top = -400;
-      act(() => {
-        window.dispatchEvent(new Event('scroll'));
-      });
-      expect(aside()?.style.getPropertyValue('--aside-offset')).toBe('0px');
-    });
-
-    it('leaves the aside unstyled below the desktop breakpoint', () => {
-      setViewport(390);
-      renderWithProviders(layout());
-      expect(aside()?.style.getPropertyValue('--aside-offset')).toBe('');
-    });
   });
 });
