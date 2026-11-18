@@ -11,16 +11,18 @@ import {
 } from 'react';
 import {
   Button,
+  IconButton,
   RoomCanvas,
   RoomScene,
   SceneToolbar,
   type SceneToolbarAction,
   Skeleton,
+  Tooltip,
   VisuallyHidden,
 } from '@/components/ui';
 import { cx } from '@/lib/cx';
 import type { DraftRoom } from '@/lib/draft/schema';
-import { area, dimension } from '@/lib/format';
+import { dimension } from '@/lib/format';
 import { usePrefersReducedMotion } from '@/lib/media';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import { isWebGlSupported } from '@/lib/room-3d/support';
@@ -28,12 +30,19 @@ import type {
   RoomSceneInput,
   SceneColors,
   SceneStatus,
-  SurfaceKey,
 } from '@/lib/room-3d/types';
 import { usePreferences } from '@/stores/preferences';
 import { usePreferencesHydration } from '@/stores/use-preferences-hydration';
 import { toSceneSurfaces, useRoomSurfaces } from '../use-room-surfaces';
 import styles from './RoomPreview.module.css';
+import {
+  type SettledSurfaces,
+  sceneDescription,
+  settleSurfaces,
+  surfaceLine,
+  surfaceLines,
+  type Translate,
+} from './scene-description';
 import {
   expandVariables,
   slotVariables,
@@ -44,8 +53,6 @@ export type RoomPreviewProps = {
   room: DraftRoom;
   name: string;
 };
-
-const SURFACE_ORDER: SurfaceKey[] = ['floor', 'walls', 'ceiling'];
 
 type FallbackReason = 'unsupported' | 'lost' | 'manual';
 
@@ -61,6 +68,7 @@ function readColors(element: HTMLElement): SceneColors {
 
 export function RoomPreview({ room, name }: RoomPreviewProps) {
   const t = useTranslations('RoomPreview');
+  const translate = t as unknown as Translate;
   const locale = useLocale();
   const descriptionId = useId();
   const reducedMotion = usePrefersReducedMotion();
@@ -74,6 +82,14 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const fallbackRef = useRef<HTMLDivElement>(null);
   const disableRef = useRef<HTMLButtonElement>(null);
   const focusAfterToggle = useRef<'enable' | 'disable' | 'auto' | null>(null);
+  const [announcement, setAnnouncement] = useState('');
+  const settledSurfaces = useRef<{
+    roomKey: string;
+    surfaces: SettledSurfaces;
+  }>({
+    roomKey: room.clientId,
+    surfaces: settleSurfaces({}, surfaces).settled,
+  });
   const [colors, setColors] = useState<SceneColors | null>(null);
   const [status, setStatus] = useState<SceneStatus>('loading');
   const [webGl, setWebGl] = useState<boolean | null>(null);
@@ -98,6 +114,26 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     if (target === 'auto' && (reason === 'lost' || reason === 'unsupported')) {
       (retryRef.current ?? fallbackRef.current)?.focus();
     }
+  }, [reason]);
+
+  useEffect(() => {
+    const previous = settledSurfaces.current;
+    if (previous.roomKey !== room.clientId) {
+      settledSurfaces.current = {
+        roomKey: room.clientId,
+        surfaces: settleSurfaces({}, surfaces).settled,
+      };
+      setAnnouncement('');
+      return;
+    }
+    const { settled, changed } = settleSurfaces(previous.surfaces, surfaces);
+    settledSurfaces.current = { roomKey: room.clientId, surfaces: settled };
+    if (changed !== null)
+      setAnnouncement(surfaceLine(translate, changed, surfaces[changed]));
+  }, [room.clientId, surfaces, translate]);
+
+  useEffect(() => {
+    if (reason === 'lost' || reason === 'unsupported') setAnnouncement('');
   }, [reason]);
 
   useEffect(() => {
@@ -238,12 +274,12 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             ) : null}
             <VisuallyHidden>
               <span id={descriptionId}>
-                {t('description', {
+                {sceneDescription({
+                  t: translate,
+                  locale,
                   name,
-                  length: lengthLabel,
-                  width: widthLabel,
-                  height: heightLabel,
-                  area: area(lengthM * widthM, locale),
+                  room,
+                  surfaces,
                 })}
               </span>
             </VisuallyHidden>
@@ -284,23 +320,9 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             )}
             <VisuallyHidden as="div">
               <ul>
-                {SURFACE_ORDER.map((key) => {
-                  const material = surfaces[key];
-                  return (
-                    <li key={key}>
-                      {t(`surface.${key}`, {
-                        material:
-                          material.kind === 'neutral'
-                            ? t(
-                                material.reason === 'disabled'
-                                  ? 'surface.excluded'
-                                  : 'surface.none',
-                              )
-                            : material.name,
-                      })}
-                    </li>
-                  );
-                })}
+                {surfaceLines(translate, surfaces).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
               </ul>
             </VisuallyHidden>
           </div>
@@ -309,10 +331,15 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
           <div aria-live="polite">
             {reason === 'lost' || reason === 'unsupported'
               ? t(`fallback.${reason}`)
-              : null}
+              : announcement || null}
           </div>
         </VisuallyHidden>
         <SceneToolbar actions={actions}>
+          {reason === null ? (
+            <Tooltip content={t('keysHint')}>
+              <IconButton icon="info" label={t('keys')} />
+            </Tooltip>
+          ) : null}
           {reason === null ? (
             <Button ref={disableRef} onClick={disable3d}>
               {t('disable')}

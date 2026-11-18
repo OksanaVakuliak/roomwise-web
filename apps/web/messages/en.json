@@ -913,6 +913,9 @@
     "collapse": "Close",
     "loading": "Preparing the 3D view…",
     "description": "{name}, {length} × {width}, height {height}, area {area}",
+    "descriptionNoArea": "{name}, {length} × {width}, height {height}",
+    "keys": "Keys",
+    "keysHint": "Arrow keys rotate the room, + and − zoom in and out.",
     "fallbackDescription": "{name} {length} by {width}, height {height}",
     "fallback": {
       "unsupported": "Your device can't show 3D, so here's a room diagram.",
