@@ -84,15 +84,6 @@
   margin: 0;
 }
 
-.surfaces {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .toggle {
   align-self: flex-start;
 }

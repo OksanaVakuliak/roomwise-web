@@ -280,16 +280,16 @@ describe('RoomPreview', () => {
     );
   });
 
-  it('explains the fallback and lists the surfaces when WebGL is unsupported', async () => {
+  it('explains the fallback and lists the surfaces for screen readers when WebGL is unsupported', async () => {
     support.webGl = false;
     await act(async () => {
       renderPreview();
     });
 
     expect(screen.getByText(en.RoomPreview.fallback.unsupported)).toBeVisible();
-    expect(screen.getByText('Floor: not chosen')).toBeVisible();
-    expect(screen.getByText('Walls: not chosen')).toBeVisible();
-    expect(screen.getByText('Ceiling: not chosen')).toBeVisible();
+    expect(screen.getByText('Floor: not chosen')).toBeInTheDocument();
+    expect(screen.getByText('Walls: not chosen')).toBeInTheDocument();
+    expect(screen.getByText('Ceiling: not chosen')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: en.RoomPreview.enable }),
     ).not.toBeInTheDocument();
@@ -313,8 +313,8 @@ describe('RoomPreview', () => {
 
     expect(
       screen.getByText(`Floor: ${en.RoomPreview.surface.excluded}`),
-    ).toBeVisible();
-    expect(screen.getByText('Walls: not chosen')).toBeVisible();
+    ).toBeInTheDocument();
+    expect(screen.getByText('Walls: not chosen')).toBeInTheDocument();
   });
 
   it('localises the excluded surface text', async () => {
@@ -336,7 +336,7 @@ describe('RoomPreview', () => {
 
     expect(
       screen.getByText(`Підлога: ${uk.RoomPreview.surface.excluded}`),
-    ).toBeVisible();
+    ).toBeInTheDocument();
   });
 
   it('shows the manual fallback without mounting the canvas when 3D is off', async () => {
@@ -347,7 +347,18 @@ describe('RoomPreview', () => {
 
     expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
     expect(screen.getByRole('img')).toBeInTheDocument();
-    expect(screen.getByText(en.RoomPreview.fallback.manual)).toBeVisible();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('keeps the surfaces for screen readers only in the manual fallback', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    const floor = screen.getByText('Floor: not chosen');
+    expect(floor).toBeInTheDocument();
+    expect(floor.closest('ul')?.parentElement?.className).toMatch(/root/);
   });
 
   it('turns 3D back on from the manual fallback', async () => {
@@ -364,9 +375,7 @@ describe('RoomPreview', () => {
       expect(screen.getByTestId('canvas')).toBeInTheDocument(),
     );
     expect(usePreferences.getState().scene3d).toBe(true);
-    expect(
-      screen.queryByText(en.RoomPreview.fallback.manual),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('status', { name: '' })).not.toBeInTheDocument();
   });
 
   it('puts the 3D toggle in the same row as the toolbar buttons', async () => {
@@ -394,7 +403,10 @@ describe('RoomPreview', () => {
 
     expect(usePreferences.getState().scene3d).toBe(false);
     expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
-    expect(screen.getByText(en.RoomPreview.fallback.manual)).toBeVisible();
+    expect(screen.queryByRole('status', { name: '' })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    ).toBeVisible();
   });
 
   it('moves focus to the enable button after turning 3D off', async () => {
@@ -608,7 +620,7 @@ describe('RoomPreview', () => {
     });
 
     expect(screen.getByText(uk.RoomPreview.fallback.unsupported)).toBeVisible();
-    expect(screen.getByText('Підлога: не обрано')).toBeVisible();
+    expect(screen.getByText('Підлога: не обрано')).toBeInTheDocument();
   });
 
   it.each(['error', 'lost'] as const)(

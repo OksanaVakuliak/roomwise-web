@@ -918,8 +918,7 @@
     "fallbackDescription": "{name} {length} by {width}, height {height}, section line A–A through the floor",
     "fallback": {
       "unsupported": "Your device can't show 3D, so here's a room diagram.",
-      "lost": "The 3D view stopped, so here's a room diagram.",
-      "manual": "3D is off."
+      "lost": "The 3D view stopped, so here's a room diagram."
     },
     "disable": "Turn off 3D",
     "enable": "Turn on 3D",

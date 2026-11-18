@@ -200,28 +200,32 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             height: heightLabel,
           })}
         />
-        <p className={styles.reason} role="status">
-          {t(`fallback.${reason}`)}
-        </p>
-        <ul className={styles.surfaces}>
-          {SURFACE_ORDER.map((key) => {
-            const material = surfaces[key];
-            return (
-              <li key={key}>
-                {t(`surface.${key}`, {
-                  material:
-                    material.kind === 'neutral'
-                      ? t(
-                          material.reason === 'disabled'
-                            ? 'surface.excluded'
-                            : 'surface.none',
-                        )
-                      : material.name,
-                })}
-              </li>
-            );
-          })}
-        </ul>
+        {reason === 'manual' ? null : (
+          <p className={styles.reason} role="status">
+            {t(`fallback.${reason}`)}
+          </p>
+        )}
+        <VisuallyHidden as="div">
+          <ul>
+            {SURFACE_ORDER.map((key) => {
+              const material = surfaces[key];
+              return (
+                <li key={key}>
+                  {t(`surface.${key}`, {
+                    material:
+                      material.kind === 'neutral'
+                        ? t(
+                            material.reason === 'disabled'
+                              ? 'surface.excluded'
+                              : 'surface.none',
+                          )
+                        : material.name,
+                  })}
+                </li>
+              );
+            })}
+          </ul>
+        </VisuallyHidden>
         {reason === 'manual' ? (
           <Button ref={enableRef} className={styles.toggle} onClick={enable3d}>
             {t('enable')}
