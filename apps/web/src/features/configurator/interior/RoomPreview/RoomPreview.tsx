@@ -25,6 +25,7 @@ import type { DraftRoom } from '@/lib/draft/schema';
 import { dimension } from '@/lib/format';
 import { usePrefersReducedMotion } from '@/lib/media';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
+import { SURFACE_KEYS } from '@/lib/room-3d/materials';
 import { isWebGlSupported } from '@/lib/room-3d/support';
 import type {
   RoomSceneInput,
@@ -40,8 +41,6 @@ import {
   sceneDescription,
   settleSurfaces,
   surfaceLine,
-  surfaceLines,
-  type Translate,
 } from './scene-description';
 import {
   expandVariables,
@@ -68,7 +67,6 @@ function readColors(element: HTMLElement): SceneColors {
 
 export function RoomPreview({ room, name }: RoomPreviewProps) {
   const t = useTranslations('RoomPreview');
-  const translate = t as unknown as Translate;
   const locale = useLocale();
   const descriptionId = useId();
   const reducedMotion = usePrefersReducedMotion();
@@ -86,10 +84,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const settledSurfaces = useRef<{
     roomKey: string;
     surfaces: SettledSurfaces;
-  }>({
-    roomKey: room.clientId,
-    surfaces: settleSurfaces({}, surfaces).settled,
-  });
+  } | null>(null);
   const [colors, setColors] = useState<SceneColors | null>(null);
   const [status, setStatus] = useState<SceneStatus>('loading');
   const [webGl, setWebGl] = useState<boolean | null>(null);
@@ -118,7 +113,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
 
   useEffect(() => {
     const previous = settledSurfaces.current;
-    if (previous.roomKey !== room.clientId) {
+    if (previous === null || previous.roomKey !== room.clientId) {
       settledSurfaces.current = {
         roomKey: room.clientId,
         surfaces: settleSurfaces({}, surfaces).settled,
@@ -129,12 +124,14 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     const { settled, changed } = settleSurfaces(previous.surfaces, surfaces);
     settledSurfaces.current = { roomKey: room.clientId, surfaces: settled };
     if (changed !== null)
-      setAnnouncement(surfaceLine(translate, changed, surfaces[changed]));
-  }, [room.clientId, surfaces, translate]);
+      setAnnouncement(surfaceLine(t, changed, surfaces[changed]));
+  }, [room.clientId, surfaces, t]);
 
-  useEffect(() => {
-    if (reason === 'lost' || reason === 'unsupported') setAnnouncement('');
-  }, [reason]);
+  const [announcedReason, setAnnouncedReason] = useState(reason);
+  if (announcedReason !== reason) {
+    setAnnouncedReason(reason);
+    setAnnouncement('');
+  }
 
   useEffect(() => {
     if (!scene3d) setStatus('loading');
@@ -275,9 +272,14 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             <VisuallyHidden>
               <span id={descriptionId}>
                 {sceneDescription({
-                  t: translate,
+                  t,
                   locale,
-                  name,
+                  labels: {
+                    name,
+                    length: lengthLabel,
+                    width: widthLabel,
+                    height: heightLabel,
+                  },
                   room,
                   surfaces,
                 })}
@@ -320,8 +322,8 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             )}
             <VisuallyHidden as="div">
               <ul>
-                {surfaceLines(translate, surfaces).map((line) => (
-                  <li key={line}>{line}</li>
+                {SURFACE_KEYS.map((key) => (
+                  <li key={key}>{surfaceLine(t, key, surfaces[key])}</li>
                 ))}
               </ul>
             </VisuallyHidden>
@@ -337,7 +339,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         <SceneToolbar actions={actions}>
           {reason === null ? (
             <Tooltip content={t('keysHint')}>
-              <IconButton icon="info" label={t('keys')} />
+              <IconButton
+                className={styles.keys}
+                icon="info"
+                label={t('keys')}
+              />
             </Tooltip>
           ) : null}
           {reason === null ? (

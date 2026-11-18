@@ -929,6 +929,7 @@
       "walls": "Walls: {material}",
       "ceiling": "Ceiling: {material}",
       "none": "not chosen",
+      "loading": "loading…",
       "excluded": "not included in the estimate"
     }
   },

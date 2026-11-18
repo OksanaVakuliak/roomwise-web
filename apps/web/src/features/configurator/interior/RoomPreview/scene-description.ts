@@ -1,22 +1,20 @@
-import type { Locale } from 'next-intl';
-import { roomMetrics } from '@/lib/draft/rooms';
+import type { Locale, useTranslations } from 'next-intl';
+import { roomFloorArea } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
-import { area, dimension } from '@/lib/format';
+import { area } from '@/lib/format';
 import { SURFACE_KEYS, type SurfaceMaterials } from '@/lib/room-3d/materials';
 import type { SceneMaterial, SurfaceKey } from '@/lib/room-3d/types';
 
-export type Translate = (
-  key: string,
-  values?: Record<string, string | number>,
-) => string;
+export type Translate = ReturnType<typeof useTranslations<'RoomPreview'>>;
 
 export function materialLabel(t: Translate, material: SceneMaterial): string {
   if (material.kind !== 'neutral') {
     return material.name;
   }
-  return t(
-    material.reason === 'disabled' ? 'surface.excluded' : 'surface.none',
-  );
+  if (material.reason === 'disabled') {
+    return t('surface.excluded');
+  }
+  return t(material.reason === 'loading' ? 'surface.loading' : 'surface.none');
 }
 
 export function surfaceLine(
@@ -37,7 +35,7 @@ export function surfaceLines(
 export function materialSignature(material: SceneMaterial): string {
   return material.kind === 'neutral'
     ? `neutral:${material.reason}`
-    : `${material.kind}:${material.productId}:${material.name}`;
+    : `product:${material.productId}`;
 }
 
 export type SettledSurfaces = Partial<Record<SurfaceKey, string>>;
@@ -66,32 +64,30 @@ export function settleSurfaces(
   };
 }
 
+export type SceneLabels = {
+  name: string;
+  length: string;
+  width: string;
+  height: string;
+};
+
 export function sceneDescription({
   t,
   locale,
-  name,
+  labels,
   room,
   surfaces,
 }: {
   t: Translate;
   locale: Locale;
-  name: string;
+  labels: SceneLabels;
   room: DraftRoom;
   surfaces: SurfaceMaterials;
 }): string {
-  const { lengthM, widthM, heightM } = room;
-  if (lengthM === null || widthM === null || heightM === null) {
-    return '';
-  }
-  const metrics = roomMetrics(room);
-  const values = {
-    name,
-    length: dimension(lengthM, locale),
-    width: dimension(widthM, locale),
-    height: dimension(heightM, locale),
-  };
-  const summary = metrics
-    ? t('description', { ...values, area: area(metrics.floorArea, locale) })
-    : t('descriptionNoArea', values);
+  const floorArea = roomFloorArea(room);
+  const summary =
+    floorArea === null
+      ? t('descriptionNoArea', labels)
+      : t('description', { ...labels, area: area(floorArea, locale) });
   return [summary, ...surfaceLines(t, surfaces)].join('. ');
 }

@@ -929,6 +929,7 @@
       "walls": "Стіни: {material}",
       "ceiling": "Стеля: {material}",
       "none": "не обрано",
+      "loading": "завантажується…",
       "excluded": "не входить у розрахунок"
     }
   },

@@ -101,3 +101,9 @@
   max-height: none;
   aspect-ratio: auto;
 }
+
+@media (hover: none) and (pointer: coarse) {
+  .keys {
+    display: none;
+  }
+}

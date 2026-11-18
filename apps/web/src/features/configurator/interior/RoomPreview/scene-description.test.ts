@@ -10,7 +10,7 @@ import {
   type Translate,
 } from './scene-description';
 
-const translate: Translate = (key, values = {}) => {
+const translate = ((key: string, values: Record<string, unknown> = {}) => {
   const template = key
     .split('.')
     .reduce<unknown>(
@@ -18,7 +18,9 @@ const translate: Translate = (key, values = {}) => {
       en.RoomPreview,
     ) as string;
   return template.replace(/\{(\w+)\}/g, (_, name) => String(values[name]));
-};
+}) as Translate;
+
+const labels = { length: '4 m', width: '3 m', height: '2.7 m' };
 
 const color = (productId: string, name: string) =>
   ({ kind: 'color', productId, name, color: null }) as const;
@@ -38,6 +40,12 @@ describe('surfaceLine', () => {
     expect(surfaceLine(translate, 'ceiling', surfaces.ceiling)).toBe(
       'Ceiling: not included in the estimate',
     );
+  });
+
+  it('says a picked product is still loading', () => {
+    expect(
+      surfaceLine(translate, 'floor', { kind: 'neutral', reason: 'loading' }),
+    ).toBe('Floor: loading…');
   });
 
   it('lists floor, walls, ceiling in order', () => {
@@ -71,6 +79,13 @@ describe('settleSurfaces', () => {
     ).toBeNull();
   });
 
+  it('treats the same product under another name as unchanged', () => {
+    expect(
+      settleSurfaces(settled, { ...surfaces, floor: color('p1', 'Дуб') })
+        .changed,
+    ).toBeNull();
+  });
+
   it('waits for a picked product to load before reporting the change', () => {
     const picking = settleSurfaces(settled, { ...surfaces, walls: loading });
     expect(picking.changed).toBeNull();
@@ -93,7 +108,7 @@ describe('sceneDescription', () => {
     const text = sceneDescription({
       t: translate,
       locale: 'en',
-      name: 'Living room',
+      labels: { ...labels, name: 'Living room' },
       room: makeDraftRoom(),
       surfaces,
     });
@@ -109,7 +124,7 @@ describe('sceneDescription', () => {
     const text = sceneDescription({
       t: translate,
       locale: 'en',
-      name: 'Room',
+      labels: { ...labels, name: 'Room' },
       room: makeDraftRoom({ roomTypeCode: null }),
       surfaces,
     });
