@@ -126,7 +126,7 @@ export function resolveSceneMaterials(
     const product = products.get(picked.productId);
     return product
       ? toMaterial(product)
-      : { kind: 'neutral', reason: 'unselected' };
+      : { kind: 'neutral', reason: 'loading' };
   };
   return {
     floor: resolve('floor'),

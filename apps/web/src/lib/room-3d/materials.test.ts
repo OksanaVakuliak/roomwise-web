@@ -175,13 +175,13 @@ describe('resolveSceneMaterials', () => {
     });
   });
 
-  it('is unselected while product details are not loaded', () => {
+  it('is loading while product details are not loaded', () => {
     const result = resolveSceneMaterials(
       { [categoryIds.floor]: pick(productIds.tile) },
       categories,
       productMap(),
     );
-    expect(result.floor).toEqual({ kind: 'neutral', reason: 'unselected' });
+    expect(result.floor).toEqual({ kind: 'neutral', reason: 'loading' });
   });
 
   it('uses the surface color for a product without a surface', () => {
