@@ -20,6 +20,12 @@ import {
 
 const NO_SELECTIONS: DraftRoom['selections'] = {};
 
+const LOADING: SurfaceMaterials = {
+  floor: { kind: 'neutral', reason: 'loading' },
+  walls: { kind: 'neutral', reason: 'loading' },
+  ceiling: { kind: 'neutral', reason: 'loading' },
+};
+
 export function useRoomSurfaces(room: DraftRoom | null): SurfaceMaterials {
   const lang = useLang();
   const ready = useCatalogReady();
@@ -48,6 +54,9 @@ export function useRoomSurfaces(room: DraftRoom | null): SurfaceMaterials {
   });
 
   return useMemo(() => {
+    if (!roomTypes) {
+      return LOADING;
+    }
     const loaded = new Map<string, SurfaceProduct>();
     for (const data of products) {
       if (data) {
@@ -55,7 +64,7 @@ export function useRoomSurfaces(room: DraftRoom | null): SurfaceMaterials {
       }
     }
     return resolveSceneMaterials(selections, categories, loaded);
-  }, [products, selections, categories]);
+  }, [roomTypes, products, selections, categories]);
 }
 
 export function toSceneSurfaces({
