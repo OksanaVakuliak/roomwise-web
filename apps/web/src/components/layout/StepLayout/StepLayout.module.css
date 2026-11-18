@@ -85,6 +85,11 @@
     min-height: var(--overlay-sheet-full-height);
   }
 
+  .aside[data-pinned] .cost {
+    position: sticky;
+    bottom: 0;
+  }
+
   .showcase {
     padding-bottom: var(--space-16);
   }

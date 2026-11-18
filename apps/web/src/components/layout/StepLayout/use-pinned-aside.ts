@@ -28,8 +28,12 @@ export function usePinnedAside(): {
       const padding =
         (Number.parseFloat(style.paddingTop) || 0) +
         (Number.parseFloat(style.paddingBottom) || 0);
+      const container = aside.parentElement;
+      const offset = container
+        ? container.getBoundingClientRect().top + window.scrollY
+        : 0;
       setFits(
-        showcase.offsetHeight + cost.offsetHeight + padding <=
+        offset + showcase.offsetHeight + cost.offsetHeight + padding <=
           window.innerHeight,
       );
     };
