@@ -41,6 +41,7 @@ import {
   sceneDescription,
   settleSurfaces,
   surfaceLine,
+  surfaceLines,
 } from './scene-description';
 import {
   expandVariables,
@@ -111,21 +112,22 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     }
   }, [reason]);
 
+  const surfacesKey = `${room.clientId}:${room.roomTypeCode ?? ''}`;
   useEffect(() => {
     const previous = settledSurfaces.current;
-    if (previous === null || previous.roomKey !== room.clientId) {
+    if (previous === null || previous.roomKey !== surfacesKey) {
       settledSurfaces.current = {
-        roomKey: room.clientId,
+        roomKey: surfacesKey,
         surfaces: settleSurfaces({}, surfaces).settled,
       };
       setAnnouncement('');
       return;
     }
     const { settled, changed } = settleSurfaces(previous.surfaces, surfaces);
-    settledSurfaces.current = { roomKey: room.clientId, surfaces: settled };
+    settledSurfaces.current = { roomKey: surfacesKey, surfaces: settled };
     if (changed !== null)
       setAnnouncement(surfaceLine(t, changed, surfaces[changed]));
-  }, [room.clientId, surfaces, t]);
+  }, [surfacesKey, surfaces, t]);
 
   const [announcedReason, setAnnouncedReason] = useState(reason);
   if (announcedReason !== reason) {
@@ -322,8 +324,8 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             )}
             <VisuallyHidden as="div">
               <ul>
-                {SURFACE_KEYS.map((key) => (
-                  <li key={key}>{surfaceLine(t, key, surfaces[key])}</li>
+                {surfaceLines(t, surfaces).map((line, index) => (
+                  <li key={SURFACE_KEYS[index]}>{line}</li>
                 ))}
               </ul>
             </VisuallyHidden>
@@ -338,13 +340,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         </VisuallyHidden>
         <SceneToolbar actions={actions}>
           {reason === null ? (
-            <Tooltip content={t('keysHint')}>
-              <IconButton
-                className={styles.keys}
-                icon="info"
-                label={t('keys')}
-              />
-            </Tooltip>
+            <span className={styles.keys}>
+              <Tooltip content={t('keysHint')}>
+                <IconButton icon="info" label={t('keys')} />
+              </Tooltip>
+            </span>
           ) : null}
           {reason === null ? (
             <Button ref={disableRef} onClick={disable3d}>

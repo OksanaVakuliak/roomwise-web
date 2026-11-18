@@ -45,7 +45,7 @@ describe('surfaceLine', () => {
   it('says a picked product is still loading', () => {
     expect(
       surfaceLine(translate, 'floor', { kind: 'neutral', reason: 'loading' }),
-    ).toBe('Floor: loading…');
+    ).toBe('Floor: loading');
   });
 
   it('lists floor, walls, ceiling in order', () => {
