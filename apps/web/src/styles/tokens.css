@@ -198,6 +198,8 @@
   --overlay-sheet-height: 85dvh;
   --overlay-sheet-full-height: 100dvh;
   --scene-max-height: 50dvh;
+  --container-full-width: 100cqw;
+  --container-full-height: 100cqh;
   --overlay-tooltip-width: 15rem;
   --overlay-toast-width: 26.25rem;
   --overlay-shadow: 0.375rem 0.375rem 0;

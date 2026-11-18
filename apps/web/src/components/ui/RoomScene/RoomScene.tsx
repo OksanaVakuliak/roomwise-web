@@ -86,12 +86,20 @@ export function RoomScene({
     },
   ];
 
+  const [, , viewWidth, viewHeight] = geometry.viewBox.split(' ');
+  const sceneRatio = `${viewWidth} / ${viewHeight}`;
+
   return (
     <div className={cx(styles.root, styles[size], fill && styles.fill)}>
       <VisuallyHidden>
         <span id={descriptionId}>{description}</span>
       </VisuallyHidden>
-      <div className={styles.scene} role="img" aria-labelledby={descriptionId}>
+      <div
+        className={styles.scene}
+        role="img"
+        aria-labelledby={descriptionId}
+        style={{ '--scene-ratio': sceneRatio } as CSSProperties}
+      >
         <svg
           className={styles.svg}
           viewBox={geometry.viewBox}
