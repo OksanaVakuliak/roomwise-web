@@ -89,8 +89,8 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const expand = useSceneExpand(
     slotRef,
     rootRef,
-    hasDimensions && reason === null,
-    'scene',
+    hasDimensions,
+    reason === null ? 'scene' : 'fallback',
   );
 
   useEffect(() => {
@@ -178,88 +178,39 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     return null;
   }
 
-  if (reason !== null) {
-    const lengthLabel = dimension(lengthM, locale);
-    const widthLabel = dimension(widthM, locale);
-    const heightLabel = dimension(heightM, locale);
-    return (
-      <div ref={fallbackRef} className={styles.fallback} tabIndex={-1}>
-        <RoomScene
-          lengthCm={Math.round(lengthM * 100)}
-          widthCm={Math.round(widthM * 100)}
-          heightCm={Math.round(heightM * 100)}
-          lengthLabel={lengthLabel}
-          widthLabel={widthLabel}
-          heightLabel={heightLabel}
-          surfaces={toSceneSurfaces(surfaces)}
-          cutLabel={t('cut')}
-          description={t('fallbackDescription', {
-            name,
-            length: lengthLabel,
-            width: widthLabel,
-            height: heightLabel,
-          })}
-        />
-        {reason === 'manual' ? null : (
-          <p className={styles.reason} role="status">
-            {t(`fallback.${reason}`)}
-          </p>
-        )}
-        <VisuallyHidden as="div">
-          <ul>
-            {SURFACE_ORDER.map((key) => {
-              const material = surfaces[key];
-              return (
-                <li key={key}>
-                  {t(`surface.${key}`, {
-                    material:
-                      material.kind === 'neutral'
-                        ? t(
-                            material.reason === 'disabled'
-                              ? 'surface.excluded'
-                              : 'surface.none',
-                          )
-                        : material.name,
-                  })}
-                </li>
-              );
-            })}
-          </ul>
-        </VisuallyHidden>
-        {reason === 'manual' ? (
-          <Button ref={enableRef} className={styles.toggle} onClick={enable3d}>
-            {t('enable')}
-          </Button>
-        ) : null}
-        {reason === 'lost' ? (
-          <Button ref={retryRef} className={styles.toggle} onClick={retry3d}>
-            {t('retry')}
-          </Button>
-        ) : null}
-      </div>
+  const disabled = status !== 'ready';
+  const actions: SceneToolbarAction[] = [];
+  if (reason === null) {
+    actions.push(
+      {
+        id: 'reset',
+        label: t('reset'),
+        icon: 'resetView',
+        onClick: resetView,
+        disabled,
+      },
+      {
+        id: 'top',
+        label: t('top'),
+        icon: 'topView',
+        onClick: topView,
+        disabled,
+      },
     );
   }
-
-  const disabled = status !== 'ready';
-  const actions: SceneToolbarAction[] = [
-    {
-      id: 'reset',
-      label: t('reset'),
-      icon: 'resetView',
-      onClick: resetView,
-      disabled,
-    },
-    { id: 'top', label: t('top'), icon: 'topView', onClick: topView, disabled },
-  ];
   if (expand.available) {
     actions.push({
       id: 'expand',
       label: expand.expanded ? t('collapse') : t('expand'),
       icon: expand.expanded ? 'collapse' : 'expand',
       onClick: expand.toggle,
-      disabled: disabled && !expand.expanded,
+      disabled: reason === null && disabled && !expand.expanded,
     });
   }
+
+  const lengthLabel = dimension(lengthM, locale);
+  const widthLabel = dimension(widthM, locale);
+  const heightLabel = dimension(heightM, locale);
 
   return (
     <div
@@ -275,45 +226,107 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         style={expandVariables(expand.geometry)}
         onTransitionEnd={expand.onTransitionEnd}
       >
-        <div ref={stageRef} className={styles.stage}>
-          {colors ? (
-            <RoomCanvas
-              key={attempt}
-              input={input}
-              colors={colors}
-              reducedMotion={reducedMotion}
-              onStatus={handleStatus}
-              label={t('label', { name })}
-              describedBy={descriptionId}
-              roleDescription={t('roleDescription')}
-              controllerRef={controllerRef}
-            />
-          ) : null}
-          <VisuallyHidden>
-            <span id={descriptionId}>
-              {t('description', {
-                name,
-                length: dimension(lengthM, locale),
-                width: dimension(widthM, locale),
-                height: dimension(heightM, locale),
-                area: area(lengthM * widthM, locale),
-              })}
-            </span>
-          </VisuallyHidden>
-          {colors === null || status === 'loading' ? (
-            <div
-              className={styles.loading}
-              role="status"
-              aria-label={t('loading')}
-            >
-              <Skeleton variant="block" width="100%" height="100%" />
+        {reason === null ? (
+          <div ref={stageRef} className={styles.stage}>
+            {colors ? (
+              <RoomCanvas
+                key={attempt}
+                input={input}
+                colors={colors}
+                reducedMotion={reducedMotion}
+                onStatus={handleStatus}
+                label={t('label', { name })}
+                describedBy={descriptionId}
+                roleDescription={t('roleDescription')}
+                controllerRef={controllerRef}
+              />
+            ) : null}
+            <VisuallyHidden>
+              <span id={descriptionId}>
+                {t('description', {
+                  name,
+                  length: lengthLabel,
+                  width: widthLabel,
+                  height: heightLabel,
+                  area: area(lengthM * widthM, locale),
+                })}
+              </span>
+            </VisuallyHidden>
+            {colors === null || status === 'loading' ? (
+              <div
+                className={styles.loading}
+                role="status"
+                aria-label={t('loading')}
+              >
+                <Skeleton variant="block" width="100%" height="100%" />
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div ref={fallbackRef} className={styles.fallback} tabIndex={-1}>
+            <div className={styles.figure}>
+              <RoomScene
+                fill={expand.mode !== 'idle'}
+                lengthCm={Math.round(lengthM * 100)}
+                widthCm={Math.round(widthM * 100)}
+                heightCm={Math.round(heightM * 100)}
+                lengthLabel={lengthLabel}
+                widthLabel={widthLabel}
+                heightLabel={heightLabel}
+                surfaces={toSceneSurfaces(surfaces)}
+                cutLabel={t('cut')}
+                description={t('fallbackDescription', {
+                  name,
+                  length: lengthLabel,
+                  width: widthLabel,
+                  height: heightLabel,
+                })}
+              />
             </div>
-          ) : null}
-        </div>
+            {reason === 'manual' ? null : (
+              <p className={styles.reason} role="status">
+                {t(`fallback.${reason}`)}
+              </p>
+            )}
+            <VisuallyHidden as="div">
+              <ul>
+                {SURFACE_ORDER.map((key) => {
+                  const material = surfaces[key];
+                  return (
+                    <li key={key}>
+                      {t(`surface.${key}`, {
+                        material:
+                          material.kind === 'neutral'
+                            ? t(
+                                material.reason === 'disabled'
+                                  ? 'surface.excluded'
+                                  : 'surface.none',
+                              )
+                            : material.name,
+                      })}
+                    </li>
+                  );
+                })}
+              </ul>
+            </VisuallyHidden>
+          </div>
+        )}
         <SceneToolbar actions={actions}>
-          <Button ref={disableRef} onClick={disable3d}>
-            {t('disable')}
-          </Button>
+          {reason === null ? (
+            <Button ref={disableRef} onClick={disable3d}>
+              {t('disable')}
+            </Button>
+          ) : null}
+          {reason === 'manual' ? (
+            <Button ref={enableRef} onClick={enable3d}>
+              {t('enable')}
+            </Button>
+          ) : null}
+          {reason === 'lost' ? (
+            <Button ref={retryRef} onClick={retry3d}>
+              {t('retry')}
+            </Button>
+          ) : null}
         </SceneToolbar>
       </div>
     </div>

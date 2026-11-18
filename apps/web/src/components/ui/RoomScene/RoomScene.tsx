@@ -26,6 +26,7 @@ export type RoomSceneProps = {
   cutLabel: string;
   description: string;
   size?: 'mobile' | 'desktop';
+  fill?: boolean;
   surfaces?: SceneSurfaces;
 };
 
@@ -39,6 +40,7 @@ export function RoomScene({
   cutLabel,
   description,
   size = 'mobile',
+  fill = false,
   surfaces,
 }: RoomSceneProps) {
   const descriptionId = useId();
@@ -85,7 +87,7 @@ export function RoomScene({
   ];
 
   return (
-    <div className={cx(styles.root, styles[size])}>
+    <div className={cx(styles.root, styles[size], fill && styles.fill)}>
       <VisuallyHidden>
         <span id={descriptionId}>{description}</span>
       </VisuallyHidden>

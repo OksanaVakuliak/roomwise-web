@@ -21,6 +21,18 @@
   height: auto;
 }
 
+.fill {
+  height: 100%;
+}
+
+.fill .scene {
+  height: 100%;
+}
+
+.fill .svg {
+  height: 100%;
+}
+
 .floor {
   fill: var(--fill-a);
 }

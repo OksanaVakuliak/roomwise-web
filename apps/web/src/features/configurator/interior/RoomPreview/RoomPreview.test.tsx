@@ -830,4 +830,94 @@ describe('RoomPreview', () => {
       expect(document.body.style.overflow).toBe('');
     });
   });
+
+  describe('expanding the fallback', () => {
+    it('puts the expand button and the enable button in one row', async () => {
+      usePreferences.setState({ scene3d: false });
+      setViewport(1024);
+      await act(async () => {
+        renderPreview();
+      });
+
+      const expand = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      const enable = screen.getByRole('button', {
+        name: en.RoomPreview.enable,
+      });
+      expect(expand.parentElement).toBe(enable.parentElement);
+    });
+
+    it('puts the expand button and retry in one row when the view is lost', async () => {
+      setViewport(1024);
+      await act(async () => {
+        renderPreview();
+      });
+      setStatus('lost');
+
+      const expand = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      const retry = screen.getByRole('button', { name: en.RoomPreview.retry });
+      expect(expand.parentElement).toBe(retry.parentElement);
+    });
+
+    it('expands and collapses the scheme', async () => {
+      usePreferences.setState({ scene3d: false });
+      setViewport(1024);
+      await act(async () => {
+        renderPreview();
+      });
+      const button = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      button.focus();
+
+      fireEvent.click(button);
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+      expect(button).toHaveAccessibleName(en.RoomPreview.collapse);
+      expect(screen.getByRole('img')).toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(button).toHaveAccessibleName(en.RoomPreview.expand);
+      expect(button).toHaveFocus();
+    });
+
+    it('expands the scheme when WebGL is unsupported', async () => {
+      support.webGl = false;
+      setViewport(390);
+      await act(async () => {
+        renderPreview();
+      });
+
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+
+      expect(previewRoot()).toHaveAttribute('data-expanded', 'true');
+    });
+
+    it('collapses an expanded 3D view when it falls back', async () => {
+      setViewport(1024);
+      await act(async () => {
+        renderPreview();
+      });
+      setStatus('ready');
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+
+      setStatus('lost');
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      ).toBeInTheDocument();
+    });
+  });
 });
