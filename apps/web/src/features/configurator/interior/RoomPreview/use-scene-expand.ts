@@ -195,10 +195,11 @@ export function useSceneExpand(
   }, [mode, rootRef]);
 
   const expanded = mode === 'enter' || mode === 'open';
+  const covering = mode !== 'idle';
 
   useEffect(() => {
     const slot = slotRef.current;
-    if (!expanded || !slot) return;
+    if (!covering || !slot) return;
     const body = desktop ? slot.closest(BODY_SELECTOR) : document.body;
     if (!body) return;
     const siblings: Element[] = [];
@@ -212,13 +213,13 @@ export function useSceneExpand(
     }
     const inerted = inertElements(siblings);
     return () => releaseElements(inerted);
-  }, [expanded, slotRef, desktop]);
+  }, [covering, slotRef, desktop]);
 
   useEffect(() => {
-    if (!expanded || desktop) return;
+    if (!covering || desktop) return;
     lockScroll();
     return unlockScroll;
-  }, [expanded, desktop]);
+  }, [covering, desktop]);
 
   const onTransitionEnd = useCallback((event: TransitionEvent) => {
     if (event.target === event.currentTarget && modeRef.current === 'leave') {
