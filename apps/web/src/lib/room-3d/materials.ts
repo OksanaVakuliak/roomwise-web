@@ -117,6 +117,7 @@ export function resolveSceneMaterials(
   selections: Selections,
   categories: readonly SurfaceCategory[],
   products: ReadonlyMap<string, SurfaceProduct>,
+  failed: ReadonlySet<string> = new Set(),
 ): SurfaceMaterials {
   const resolve = (key: SurfaceKey): SceneMaterial => {
     const picked = pickPrimary(selections, categoriesOf(categories, key));
@@ -124,9 +125,13 @@ export function resolveSceneMaterials(
       return { kind: 'neutral', reason: picked };
     }
     const product = products.get(picked.productId);
-    return product
-      ? toMaterial(product)
-      : { kind: 'neutral', reason: 'unselected' };
+    if (product) {
+      return toMaterial(product);
+    }
+    return {
+      kind: 'neutral',
+      reason: failed.has(picked.productId) ? 'unselected' : 'loading',
+    };
   };
   return {
     floor: resolve('floor'),

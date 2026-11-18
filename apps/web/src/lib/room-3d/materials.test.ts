@@ -175,11 +175,21 @@ describe('resolveSceneMaterials', () => {
     });
   });
 
-  it('is unselected while product details are not loaded', () => {
+  it('is loading while product details are not loaded', () => {
     const result = resolveSceneMaterials(
       { [categoryIds.floor]: pick(productIds.tile) },
       categories,
       productMap(),
+    );
+    expect(result.floor).toEqual({ kind: 'neutral', reason: 'loading' });
+  });
+
+  it('is unselected when product details failed to load', () => {
+    const result = resolveSceneMaterials(
+      { [categoryIds.floor]: pick(productIds.tile) },
+      categories,
+      productMap(),
+      new Set([productIds.tile]),
     );
     expect(result.floor).toEqual({ kind: 'neutral', reason: 'unselected' });
   });

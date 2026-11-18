@@ -101,3 +101,13 @@
   max-height: none;
   aspect-ratio: auto;
 }
+
+.keys {
+  display: contents;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .keys {
+    display: none;
+  }
+}

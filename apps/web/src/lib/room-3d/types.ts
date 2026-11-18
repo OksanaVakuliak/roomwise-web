@@ -6,7 +6,7 @@ export type TextureStep = {
 };
 
 export type SceneMaterial =
-  | { kind: 'neutral'; reason: 'disabled' | 'unselected' }
+  | { kind: 'neutral'; reason: 'disabled' | 'unselected' | 'loading' }
   | { kind: 'color'; productId: string; name: string; color: string | null }
   | {
       kind: 'texture';

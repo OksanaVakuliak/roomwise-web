@@ -913,6 +913,9 @@
     "collapse": "Закрити",
     "loading": "Готуємо 3D-перегляд…",
     "description": "{name}, {length} × {width}, висота {height}, площа {area}",
+    "descriptionNoArea": "{name}, {length} × {width}, висота {height}",
+    "keys": "Клавіші",
+    "keysHint": "Стрілки обертають кімнату, + і − наближають і віддаляють.",
     "fallbackDescription": "{name} {length} на {width}, висота {height}",
     "fallback": {
       "unsupported": "Ваш пристрій не показує 3D, тому тут схема кімнати.",
@@ -926,6 +929,7 @@
       "walls": "Стіни: {material}",
       "ceiling": "Стеля: {material}",
       "none": "не обрано",
+      "loading": "завантажується",
       "excluded": "не входить у розрахунок"
     }
   },

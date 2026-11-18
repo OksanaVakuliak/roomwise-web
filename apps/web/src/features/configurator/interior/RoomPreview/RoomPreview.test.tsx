@@ -6,6 +6,7 @@ import { area, dimension } from '@/lib/format';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import type { SceneStatus } from '@/lib/room-3d/types';
 import { usePreferences } from '@/stores/preferences';
+import { blockingViolations } from '@/test/axe';
 import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import { makeDraftRoom } from '@/test/fixtures/draft';
 import { renderWithProviders } from '@/test/render-with-providers';
@@ -931,6 +932,162 @@ describe('RoomPreview', () => {
       expect(
         screen.getByRole('button', { name: en.RoomPreview.collapse }),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('accessibility', () => {
+    const withFloor = (clientId?: string) =>
+      makeDraftRoom({
+        ...(clientId ? { clientId } : {}),
+        selections: {
+          [categoryIds.floor]: {
+            productId: productIds.tile,
+            disabled: false,
+            source: 'manual',
+          },
+        },
+      });
+
+    it.each([
+      ['en', en],
+      ['uk', uk],
+    ] as const)(
+      'describes the group with name, sizes, area and all surfaces in %s',
+      async (locale, messages) => {
+        await act(async () => {
+          renderPreview(first, locale);
+        });
+
+        const id = canvas.props?.describedBy as string;
+        const text = document.getElementById(id)?.textContent ?? '';
+        const lengthM = first.lengthM as number;
+        const widthM = first.widthM as number;
+        const none = messages.RoomPreview.surface.none;
+        expect(text).toContain('Living room');
+        expect(text).toContain(dimension(lengthM, locale));
+        expect(text).toContain(dimension(widthM, locale));
+        expect(text).toContain(area(lengthM * widthM, locale));
+        for (const key of ['floor', 'walls', 'ceiling'] as const) {
+          expect(text).toContain(
+            messages.RoomPreview.surface[key].replace('{material}', none),
+          );
+        }
+        expect(canvas.props?.roleDescription).toBe(
+          messages.RoomPreview.roleDescription,
+        );
+      },
+    );
+
+    it('lists the surfaces without the scene', async () => {
+      support.webGl = false;
+      await act(async () => {
+        renderPreview(withFloor());
+      });
+
+      await waitFor(() =>
+        expect(
+          screen.getByText('Floor: Stone Grey Porcelain Tile'),
+        ).toBeInTheDocument(),
+      );
+      expect(screen.getByText('Walls: not chosen')).toBeInTheDocument();
+      expect(screen.getByText('Ceiling: not chosen')).toBeInTheDocument();
+    });
+
+    it.each([
+      ['en', en],
+      ['uk', uk],
+    ] as const)(
+      'announces only the changed surface in %s and leaves focus alone',
+      async (locale, messages) => {
+        let view!: ReturnType<typeof renderPreview>;
+        await act(async () => {
+          view = renderPreview(first, locale);
+        });
+        const region = view.container.querySelector('[aria-live="polite"]');
+        const button = screen.getByRole('button', {
+          name: messages.RoomPreview.disable,
+        });
+        button.focus();
+        expect(region?.textContent).toBe('');
+
+        await act(async () => {
+          view.rerender(
+            <RoomPreview room={withFloor('room-a')} name="Living room" />,
+          );
+        });
+
+        await waitFor(() =>
+          expect(region?.textContent).toBe(
+            messages.RoomPreview.surface.floor.replace(
+              '{material}',
+              'Stone Grey Porcelain Tile',
+            ),
+          ),
+        );
+        expect(view.container.querySelector('[aria-live="polite"]')).toBe(
+          region,
+        );
+        expect(button).toHaveFocus();
+      },
+    );
+
+    it('does not announce when another room is shown', async () => {
+      let view!: ReturnType<typeof renderPreview>;
+      await act(async () => {
+        view = renderPreview();
+      });
+      const region = view.container.querySelector('[aria-live="polite"]');
+
+      await act(async () => {
+        view.rerender(
+          <RoomPreview room={withFloor('room-b')} name="Living room" />,
+        );
+      });
+
+      expect(region?.textContent).toBe('');
+    });
+
+    it('passes reduced motion to the canvas', async () => {
+      setViewport(1024);
+      reduceMotion();
+      await act(async () => {
+        renderPreview();
+      });
+
+      expect(canvas.props?.reducedMotion).toBe(true);
+    });
+
+    it('shows a keyboard hint on a focusable button', async () => {
+      await act(async () => {
+        renderPreview();
+      });
+
+      const keys = screen.getByRole('button', { name: en.RoomPreview.keys });
+      act(() => keys.focus());
+
+      expect(screen.getByRole('tooltip')).toHaveTextContent(
+        en.RoomPreview.keysHint,
+      );
+      expect(keys).toHaveAccessibleDescription(en.RoomPreview.keysHint);
+    });
+
+    it('has no blocking axe violations in 3D mode', async () => {
+      let view!: ReturnType<typeof renderPreview>;
+      await act(async () => {
+        view = renderPreview();
+      });
+
+      expect(await blockingViolations(view.container)).toEqual([]);
+    });
+
+    it('has no blocking axe violations in the fallback', async () => {
+      support.webGl = false;
+      let view!: ReturnType<typeof renderPreview>;
+      await act(async () => {
+        view = renderPreview();
+      });
+
+      expect(await blockingViolations(view.container)).toEqual([]);
     });
   });
 });

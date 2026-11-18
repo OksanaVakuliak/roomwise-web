@@ -20,10 +20,25 @@ import {
 
 const NO_SELECTIONS: DraftRoom['selections'] = {};
 
+const LOADING: SurfaceMaterials = {
+  floor: { kind: 'neutral', reason: 'loading' },
+  walls: { kind: 'neutral', reason: 'loading' },
+  ceiling: { kind: 'neutral', reason: 'loading' },
+};
+
+type ProductResult = {
+  data: SurfaceProduct | undefined;
+  isError: boolean;
+};
+
+function combineProducts(results: readonly ProductResult[]) {
+  return results.map(({ data, isError }) => ({ data, isError }));
+}
+
 export function useRoomSurfaces(room: DraftRoom | null): SurfaceMaterials {
   const lang = useLang();
   const ready = useCatalogReady();
-  const { data: roomTypes } = useRoomTypes();
+  const { data: roomTypes, isError: roomTypesFailed } = useRoomTypes();
 
   const categories = useMemo(
     () =>
@@ -44,18 +59,32 @@ export function useRoomSurfaces(room: DraftRoom | null): SurfaceMaterials {
       ...productQuery(productId, lang),
       enabled: ready,
     })),
-    combine: (results) => results.map(({ data }) => data),
+    combine: combineProducts,
   });
 
   return useMemo(() => {
+    if (!roomTypes && !roomTypesFailed) {
+      return LOADING;
+    }
     const loaded = new Map<string, SurfaceProduct>();
-    for (const data of products) {
+    const failed = new Set<string>();
+    products.forEach(({ data, isError }, index) => {
+      const productId = productIds[index];
       if (data) {
         loaded.set(data.id, data);
+      } else if (isError && productId !== undefined) {
+        failed.add(productId);
       }
-    }
-    return resolveSceneMaterials(selections, categories, loaded);
-  }, [products, selections, categories]);
+    });
+    return resolveSceneMaterials(selections, categories, loaded, failed);
+  }, [
+    roomTypes,
+    roomTypesFailed,
+    products,
+    productIds,
+    selections,
+    categories,
+  ]);
 }
 
 export function toSceneSurfaces({
