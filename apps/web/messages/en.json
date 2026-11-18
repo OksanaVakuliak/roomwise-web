@@ -235,8 +235,7 @@
     "planNameDesktop": "{name}, {area}",
     "wallsMobile": "walls {walls}",
     "wallsDesktop": "walls {walls}, perimeter {perimeter}",
-    "cutLabel": "A",
-    "sceneDescription": "{name} {length} by {width}, height {height}, section line A–A through the floor"
+    "sceneDescription": "{name} {length} by {width}, height {height}"
   },
   "ShowcaseOverlays": {
     "modalTitle": "Modal dialog",
@@ -914,8 +913,21 @@
     "collapse": "Close",
     "loading": "Preparing the 3D view…",
     "description": "{name}, {length} × {width}, height {height}, area {area}",
-    "cut": "A",
-    "fallbackDescription": "{name} {length} by {width}, height {height}, section line A–A through the floor"
+    "fallbackDescription": "{name} {length} by {width}, height {height}",
+    "fallback": {
+      "unsupported": "Your device can't show 3D, so here's a room diagram.",
+      "lost": "The 3D view stopped, so here's a room diagram."
+    },
+    "disable": "Turn off 3D",
+    "enable": "Turn on 3D",
+    "retry": "Try again",
+    "surface": {
+      "floor": "Floor: {material}",
+      "walls": "Walls: {material}",
+      "ceiling": "Ceiling: {material}",
+      "none": "not chosen",
+      "excluded": "not included in the estimate"
+    }
   },
   "ObjectStep": {
     "form": {

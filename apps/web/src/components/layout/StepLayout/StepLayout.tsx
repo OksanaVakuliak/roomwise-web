@@ -63,9 +63,11 @@ export function StepLayout({
           <section className={styles.showcase} aria-label={t('showcase')}>
             {showcase}
           </section>
-          <section className={styles.cost} aria-label={t('cost')}>
-            {cost}
-          </section>
+          <div className={styles.costSlot}>
+            <section className={styles.cost} aria-label={t('cost')}>
+              {cost}
+            </section>
+          </div>
         </div>
       </div>
     </div>

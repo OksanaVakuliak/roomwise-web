@@ -11,7 +11,7 @@ export function NoticeProvider({ children }: { children: ReactNode }) {
   return (
     <NoticeHostContext value={host}>
       {children}
-      <div ref={setHost} className={styles.root} />
+      <div ref={setHost} className={styles.root} data-stays-interactive="" />
     </NoticeHostContext>
   );
 }

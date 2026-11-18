@@ -54,6 +54,7 @@ export type RoomSceneController = {
 };
 
 const transitionMs = 300;
+const restoreTimeoutMs = 3000;
 const turn = Math.PI * 2;
 
 const initialColors: SceneColors = {
@@ -121,11 +122,14 @@ export function createRoomSceneController({
   let silent = false;
   let applying = false;
   let frame: number | null = null;
+  let contextLost = false;
+  let lossCount = 0;
+  let restoreTimer: ReturnType<typeof setTimeout> | null = null;
 
   const aspect = () => size.width / size.height;
 
   function render() {
-    if (!renderer || !roomMesh || !input || !active) return;
+    if (!renderer || !roomMesh || !input || !active || contextLost) return;
     setRoomMeshEdges(roomMesh, visibleFaces(currentView(input), input));
     renderer.render(scene, camera);
   }
@@ -290,6 +294,51 @@ export function createRoomSceneController({
     moveTo(view, false);
   }
 
+  function clearRestoreTimer() {
+    if (restoreTimer === null) return;
+    clearTimeout(restoreTimer);
+    restoreTimer = null;
+  }
+
+  function startRestoreTimer() {
+    clearRestoreTimer();
+    restoreTimer = setTimeout(() => {
+      restoreTimer = null;
+      onStatus?.('lost');
+    }, restoreTimeoutMs);
+  }
+
+  let lossReported = false;
+
+  function reportLoss() {
+    lossReported = true;
+    lossCount += 1;
+    if (lossCount > 1) {
+      onStatus?.('lost');
+      return;
+    }
+    onStatus?.('loading');
+    startRestoreTimer();
+  }
+
+  function handleContextLost(event: Event) {
+    event.preventDefault();
+    contextLost = true;
+    lossReported = false;
+    cancelTransition();
+    if (controls) controls.enabled = false;
+    clearRestoreTimer();
+    if (active) reportLoss();
+  }
+
+  function handleContextRestored() {
+    clearRestoreTimer();
+    contextLost = false;
+    if (controls) controls.enabled = active;
+    render();
+    onStatus?.('ready');
+  }
+
   return {
     mount(container) {
       if (renderer) return;
@@ -312,6 +361,14 @@ export function createRoomSceneController({
       renderer.setSize(size.width, size.height);
       camera.aspect = aspect();
       container.append(renderer.domElement);
+      renderer.domElement.addEventListener(
+        'webglcontextlost',
+        handleContextLost,
+      );
+      renderer.domElement.addEventListener(
+        'webglcontextrestored',
+        handleContextRestored,
+      );
 
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enablePan = false;
@@ -373,7 +430,7 @@ export function createRoomSceneController({
       moveTo(toTopView(currentView(roomSize(input))), true);
     },
     handleKey(key) {
-      if (!input || !active) return false;
+      if (!input || !active || contextLost) return false;
       const room = roomSize(input);
       const next = stepView(
         currentView(room),
@@ -386,15 +443,23 @@ export function createRoomSceneController({
     },
     setActive(next) {
       active = next;
-      if (controls) controls.enabled = next;
-      if (!next) cancelTransition();
-      else render();
+      if (controls) controls.enabled = next && !contextLost;
+      if (!next) {
+        cancelTransition();
+        clearRestoreTimer();
+      } else if (contextLost) {
+        if (lossReported) startRestoreTimer();
+        else reportLoss();
+      } else {
+        render();
+      }
     },
     setReducedMotion(reduced) {
       reducedMotion = reduced;
     },
     dispose() {
       cancelTransition();
+      clearRestoreTimer();
       controls?.dispose();
       controls = null;
       textures?.dispose();
@@ -406,6 +471,14 @@ export function createRoomSceneController({
         roomMesh = null;
       }
       if (renderer) {
+        renderer.domElement.removeEventListener(
+          'webglcontextlost',
+          handleContextLost,
+        );
+        renderer.domElement.removeEventListener(
+          'webglcontextrestored',
+          handleContextRestored,
+        );
         renderer.domElement.remove();
         renderer.forceContextLoss();
         renderer.dispose();

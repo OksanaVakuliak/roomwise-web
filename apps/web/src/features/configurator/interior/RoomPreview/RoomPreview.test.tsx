@@ -5,6 +5,8 @@ import type { RoomCanvasProps } from '@/components/ui';
 import { area, dimension } from '@/lib/format';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import type { SceneStatus } from '@/lib/room-3d/types';
+import { usePreferences } from '@/stores/preferences';
+import { categoryIds, productIds } from '@/test/fixtures/catalog';
 import { makeDraftRoom } from '@/test/fixtures/draft';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { setViewport } from '@/test/viewports';
@@ -20,6 +22,7 @@ const canvas = vi.hoisted(() => ({
   props: null as RoomCanvasProps | null,
 }));
 const support = vi.hoisted(() => ({ webGl: true }));
+const lifecycle = vi.hoisted(() => ({ mounts: 0, unmounts: 0 }));
 
 vi.mock('@/lib/room-3d/support', () => ({
   isWebGlSupported: () => support.webGl,
@@ -34,6 +37,12 @@ vi.mock('@/components/ui', async (importActual) => {
       (controllerRef as MutableRefObject<RoomSceneController | null>).current =
         controller as unknown as RoomSceneController;
     }, [controllerRef]);
+    useEffect(() => {
+      lifecycle.mounts += 1;
+      return () => {
+        lifecycle.unmounts += 1;
+      };
+    }, []);
     return <div data-testid="canvas" />;
   }
   return { ...actual, RoomCanvas };
@@ -56,6 +65,7 @@ function setStatus(status: SceneStatus) {
 
 const originalMatchMedia = window.matchMedia;
 const originalWidth = window.innerWidth;
+const originalHeight = window.innerHeight;
 
 function reduceMotion() {
   const base = window.matchMedia;
@@ -74,12 +84,16 @@ function previewRoot() {
 beforeEach(() => {
   vi.clearAllMocks();
   canvas.props = null;
+  lifecycle.mounts = 0;
+  lifecycle.unmounts = 0;
   support.webGl = true;
+  usePreferences.setState({ scene3d: true });
 });
 
 afterEach(() => {
   window.matchMedia = originalMatchMedia;
   window.innerWidth = originalWidth;
+  window.innerHeight = originalHeight;
 });
 
 describe('RoomPreview', () => {
@@ -266,6 +280,362 @@ describe('RoomPreview', () => {
     );
   });
 
+  it('explains the fallback and lists the surfaces for screen readers when WebGL is unsupported', async () => {
+    support.webGl = false;
+    await act(async () => {
+      renderPreview();
+    });
+
+    expect(
+      screen.getByText(en.RoomPreview.fallback.unsupported, { selector: 'p' }),
+    ).toBeVisible();
+    expect(screen.getByText('Floor: not chosen')).toBeInTheDocument();
+    expect(screen.getByText('Walls: not chosen')).toBeInTheDocument();
+    expect(screen.getByText('Ceiling: not chosen')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: en.RoomPreview.enable }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('says a surface left out of the work is not included in the estimate', async () => {
+    support.webGl = false;
+    await act(async () => {
+      renderPreview(
+        makeDraftRoom({
+          selections: {
+            [categoryIds.floor]: {
+              productId: productIds.tile,
+              disabled: true,
+              source: 'manual',
+            },
+          },
+        }),
+      );
+    });
+
+    expect(
+      screen.getByText(`Floor: ${en.RoomPreview.surface.excluded}`),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Walls: not chosen')).toBeInTheDocument();
+  });
+
+  it('localises the excluded surface text', async () => {
+    support.webGl = false;
+    await act(async () => {
+      renderPreview(
+        makeDraftRoom({
+          selections: {
+            [categoryIds.floor]: {
+              productId: productIds.tile,
+              disabled: true,
+              source: 'manual',
+            },
+          },
+        }),
+        'uk',
+      );
+    });
+
+    expect(
+      screen.getByText(`Підлога: ${uk.RoomPreview.surface.excluded}`),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the manual fallback without mounting the canvas when 3D is off', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
+    expect(screen.getByRole('img')).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('keeps the surfaces for screen readers only in the manual fallback', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    const floor = screen.getByText('Floor: not chosen');
+    expect(floor).toBeInTheDocument();
+    expect(floor.closest('ul')?.parentElement?.className).toMatch(/root/);
+  });
+
+  it('turns 3D back on from the manual fallback', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('canvas')).toBeInTheDocument(),
+    );
+    expect(usePreferences.getState().scene3d).toBe(true);
+    expect(screen.queryByRole('status', { name: '' })).not.toBeInTheDocument();
+  });
+
+  it('puts the 3D toggle in the same row as the toolbar buttons', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+
+    const reset = screen.getByRole('button', { name: en.RoomPreview.reset });
+    const disable = screen.getByRole('button', {
+      name: en.RoomPreview.disable,
+    });
+    expect(disable.parentElement).toBe(reset.parentElement);
+  });
+
+  it('turns 3D off from the 3D view and remembers it', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.RoomPreview.disable }),
+    );
+
+    expect(usePreferences.getState().scene3d).toBe(false);
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
+    expect(screen.queryByRole('status', { name: '' })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    ).toBeVisible();
+  });
+
+  it('moves focus to the enable button after turning 3D off', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.RoomPreview.disable }),
+    );
+
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    ).toHaveFocus();
+  });
+
+  it('moves focus to the disable button after turning 3D on', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: en.RoomPreview.disable }),
+      ).toHaveFocus(),
+    );
+  });
+
+  it('does not take focus on the first render', async () => {
+    usePreferences.setState({ scene3d: false });
+    await act(async () => {
+      renderPreview();
+    });
+
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.enable }),
+    ).not.toHaveFocus();
+  });
+
+  it('keeps the preference when the canvas reports lost', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+
+    setStatus('lost');
+
+    expect(
+      screen.getByText(en.RoomPreview.fallback.lost, { selector: 'p' }),
+    ).toBeVisible();
+    expect(usePreferences.getState().scene3d).toBe(true);
+    expect(
+      screen.queryByRole('button', { name: en.RoomPreview.enable }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers a retry in the lost fallback that remounts the canvas', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    expect(lifecycle.mounts).toBe(1);
+    setStatus('lost');
+
+    fireEvent.click(screen.getByRole('button', { name: en.RoomPreview.retry }));
+
+    expect(screen.getByTestId('canvas')).toBeInTheDocument();
+    expect(
+      screen.queryByText(en.RoomPreview.fallback.lost, { selector: 'p' }),
+    ).toBeNull();
+    expect(lifecycle.mounts).toBe(2);
+    expect(
+      screen.getByRole('status', { name: en.RoomPreview.loading }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.disable }),
+    ).toHaveFocus();
+  });
+
+  it('localises the retry button', async () => {
+    await act(async () => {
+      renderPreview(first, 'uk');
+    });
+    setStatus('lost');
+
+    expect(
+      screen.getByRole('button', { name: uk.RoomPreview.retry }),
+    ).toBeVisible();
+  });
+
+  it('offers no retry when WebGL is unsupported or the renderer failed', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('error');
+
+    expect(
+      screen.getByText(en.RoomPreview.fallback.unsupported, { selector: 'p' }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: en.RoomPreview.retry }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('tries 3D again when the room changes after the view was lost', async () => {
+    let view!: ReturnType<typeof renderPreview>;
+    await act(async () => {
+      view = renderPreview();
+    });
+    setStatus('lost');
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
+
+    await act(async () => {
+      view.rerender(<RoomPreview room={second} name="Living room" />);
+    });
+
+    expect(screen.getByTestId('canvas')).toBeInTheDocument();
+    expect(
+      screen.queryByText(en.RoomPreview.fallback.lost, { selector: 'p' }),
+    ).toBeNull();
+  });
+
+  it('keeps a ready scene when the room changes', async () => {
+    let view!: ReturnType<typeof renderPreview>;
+    await act(async () => {
+      view = renderPreview();
+    });
+    setStatus('ready');
+
+    await act(async () => {
+      view.rerender(<RoomPreview room={second} name="Living room" />);
+    });
+
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('announces the fallback reason through a live region mounted before it', async () => {
+    const { container } = await act(async () => renderPreview());
+    const region = container.querySelector('[aria-live="polite"]');
+    expect(region?.textContent).toBe('');
+
+    setStatus('lost');
+
+    expect(container.querySelector('[aria-live="polite"]')).toBe(region);
+    expect(region?.textContent).toBe(en.RoomPreview.fallback.lost);
+  });
+
+  it('moves focus to retry when the view is lost while focus is inside it', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+    screen.getByRole('button', { name: en.RoomPreview.disable }).focus();
+
+    setStatus('lost');
+
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.retry }),
+    ).toHaveFocus();
+  });
+
+  it('moves focus to the fallback when 3D becomes unsupported while focus is inside it', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    screen.getByRole('button', { name: en.RoomPreview.disable }).focus();
+
+    setStatus('error');
+
+    expect(
+      screen.getByText(en.RoomPreview.fallback.unsupported, { selector: 'p' })
+        .parentElement,
+    ).toHaveFocus();
+  });
+
+  it('leaves focus alone when the view is lost while focus is elsewhere', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+    screen.getByRole('button', { name: en.RoomPreview.disable }).blur();
+
+    setStatus('lost');
+
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.retry }),
+    ).not.toHaveFocus();
+  });
+
+  it('shows the skeleton again when 3D is switched off and on from outside', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    act(() => usePreferences.setState({ scene3d: false }));
+    act(() => usePreferences.setState({ scene3d: true }));
+
+    expect(
+      screen.getByRole('status', { name: en.RoomPreview.loading }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.reset }),
+    ).toBeDisabled();
+    setStatus('ready');
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.reset }),
+    ).toBeEnabled();
+  });
+
+  it('localises the fallback texts', async () => {
+    support.webGl = false;
+    await act(async () => {
+      renderPreview(first, 'uk');
+    });
+
+    expect(
+      screen.getByText(uk.RoomPreview.fallback.unsupported, { selector: 'p' }),
+    ).toBeVisible();
+    expect(screen.getByText('Підлога: не обрано')).toBeInTheDocument();
+  });
+
   it.each(['error', 'lost'] as const)(
     'falls back to the 2D room when the canvas reports %s',
     async (status) => {
@@ -294,13 +664,76 @@ describe('RoomPreview', () => {
       return view;
     }
 
-    it('has no expand button on a phone', async () => {
+    it('has an expand button on a phone', async () => {
       setViewport(390);
       await renderReady();
 
       expect(
-        screen.queryByRole('button', { name: en.RoomPreview.expand }),
-      ).not.toBeInTheDocument();
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      ).toBeInTheDocument();
+    });
+
+    it('fills the whole viewport on a phone and locks page scroll', async () => {
+      setViewport(390);
+      window.innerHeight = 800;
+      await renderReady();
+      const button = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      button.focus();
+
+      fireEvent.click(button);
+
+      const style = previewRoot().style;
+      expect(style.getPropertyValue('--expand-left')).toBe('0px');
+      expect(style.getPropertyValue('--expand-top')).toBe('0px');
+      expect(style.getPropertyValue('--expand-width')).toBe('390px');
+      expect(style.getPropertyValue('--expand-height')).toBe('800px');
+      expect(document.body.style.overflow).toBe('hidden');
+
+      fireEvent.click(button);
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(document.body.style.overflow).toBe('');
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(button).toHaveFocus();
+    });
+
+    it('collapses on Escape on a phone without remounting the canvas', async () => {
+      setViewport(390);
+      await renderReady();
+      const button = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      button.focus();
+
+      fireEvent.click(button);
+      fireEvent.keyDown(document, { key: 'Escape' });
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(button).toHaveFocus();
+      expect(lifecycle.mounts).toBe(1);
+      expect(lifecycle.unmounts).toBe(0);
+    });
+
+    it('makes the rest of the page inert while expanded on a phone', async () => {
+      setViewport(390);
+      await renderReady();
+      const header = document.createElement('header');
+      document.body.prepend(header);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+
+      expect(header).toHaveAttribute('inert');
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(header).not.toHaveAttribute('inert');
+      header.remove();
     });
 
     it('has an expand button from tablet width', async () => {
@@ -390,6 +823,114 @@ describe('RoomPreview', () => {
       expect(
         screen.queryByRole('button', { name: en.RoomPreview.collapse }),
       ).not.toBeInTheDocument();
+    });
+
+    it('collapses instantly when the viewport grows to tablet width', async () => {
+      setViewport(600);
+      const view = await renderReady();
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+      expect(document.body.style.overflow).toBe('hidden');
+
+      act(() => setViewport(1024));
+      await act(async () => {
+        view.rerender(<RoomPreview room={first} name="Living room" />);
+      });
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(document.body.style.overflow).toBe('');
+    });
+  });
+
+  describe('expanding the fallback', () => {
+    it('puts the expand button and the enable button in one row', async () => {
+      usePreferences.setState({ scene3d: false });
+      setViewport(1024);
+      await act(async () => {
+        renderPreview();
+      });
+
+      const expand = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      const enable = screen.getByRole('button', {
+        name: en.RoomPreview.enable,
+      });
+      expect(expand.parentElement).toBe(enable.parentElement);
+    });
+
+    it('puts the expand button and retry in one row when the view is lost', async () => {
+      setViewport(1024);
+      await act(async () => {
+        renderPreview();
+      });
+      setStatus('lost');
+
+      const expand = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      const retry = screen.getByRole('button', { name: en.RoomPreview.retry });
+      expect(expand.parentElement).toBe(retry.parentElement);
+    });
+
+    it('expands and collapses the scheme', async () => {
+      usePreferences.setState({ scene3d: false });
+      setViewport(1024);
+      await act(async () => {
+        renderPreview();
+      });
+      const button = screen.getByRole('button', {
+        name: en.RoomPreview.expand,
+      });
+      button.focus();
+
+      fireEvent.click(button);
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+      expect(button).toHaveAccessibleName(en.RoomPreview.collapse);
+      expect(screen.getByRole('img')).toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      fireEvent.transitionEnd(previewRoot());
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(button).toHaveAccessibleName(en.RoomPreview.expand);
+      expect(button).toHaveFocus();
+    });
+
+    it('expands the scheme when WebGL is unsupported', async () => {
+      support.webGl = false;
+      setViewport(390);
+      await act(async () => {
+        renderPreview();
+      });
+
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+
+      expect(previewRoot()).toHaveAttribute('data-expanded', 'true');
+    });
+
+    it('keeps the view expanded when 3D falls back', async () => {
+      setViewport(1024);
+      await act(async () => {
+        renderPreview();
+      });
+      setStatus('ready');
+      fireEvent.click(
+        screen.getByRole('button', { name: en.RoomPreview.expand }),
+      );
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+
+      setStatus('lost');
+
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
+      expect(
+        screen.getByRole('button', { name: en.RoomPreview.collapse }),
+      ).toBeInTheDocument();
     });
   });
 });

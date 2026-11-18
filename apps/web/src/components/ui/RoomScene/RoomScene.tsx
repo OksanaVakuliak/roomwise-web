@@ -23,9 +23,9 @@ export type RoomSceneProps = {
   lengthLabel: string;
   widthLabel: string;
   heightLabel: string;
-  cutLabel: string;
   description: string;
   size?: 'mobile' | 'desktop';
+  fill?: boolean;
   surfaces?: SceneSurfaces;
 };
 
@@ -36,22 +36,20 @@ export function RoomScene({
   lengthLabel,
   widthLabel,
   heightLabel,
-  cutLabel,
   description,
   size = 'mobile',
+  fill = false,
   surfaces,
 }: RoomSceneProps) {
   const descriptionId = useId();
   const patternPrefix = useId();
   const geometry = computeGeometry(lengthCm, widthCm, heightCm);
-  const { cutLine, backLeft } = geometry;
+  const { backLeft } = geometry;
 
   const labels: { label: Label; text: string; className: string }[] = [
     { label: geometry.width, text: widthLabel, className: styles.dim },
     { label: geometry.length, text: lengthLabel, className: styles.dim },
     { label: geometry.height, text: heightLabel, className: styles.dim },
-    { label: geometry.cutStart, text: cutLabel, className: styles.cutmark },
-    { label: geometry.cutEnd, text: cutLabel, className: styles.cutmark },
   ];
 
   const faces: {
@@ -85,11 +83,16 @@ export function RoomScene({
   ];
 
   return (
-    <div className={cx(styles.root, styles[size])}>
+    <div className={cx(styles.root, styles[size], fill && styles.fill)}>
       <VisuallyHidden>
         <span id={descriptionId}>{description}</span>
       </VisuallyHidden>
-      <div className={styles.scene} role="img" aria-labelledby={descriptionId}>
+      <div
+        className={styles.scene}
+        role="img"
+        aria-labelledby={descriptionId}
+        style={{ '--scene-ratio': geometry.aspectRatio } as CSSProperties}
+      >
         <svg
           className={styles.svg}
           viewBox={geometry.viewBox}
@@ -143,8 +146,6 @@ export function RoomScene({
           {geometry.dimensionPaths.map((path) => (
             <path key={path} className={styles.dimension} d={path} />
           ))}
-          <line className={styles.cut} {...cutLine} />
-          <path className={styles.cutTick} d={geometry.cutTicks} />
         </svg>
         {labels.map(({ label, text, className }) => {
           const { left, top } = geometry.place(label);

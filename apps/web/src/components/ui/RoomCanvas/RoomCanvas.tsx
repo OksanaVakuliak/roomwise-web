@@ -13,6 +13,7 @@ import type {
   SceneColors,
   SceneStatus,
 } from '@/lib/room-3d/types';
+import { loadRoomEngine } from './load-engine';
 import styles from './RoomCanvas.module.css';
 
 export type RoomCanvasProps = {
@@ -56,38 +57,52 @@ export function RoomCanvas({
     let controller: RoomSceneController | null = null;
     let resizeObserver: ResizeObserver | undefined;
     let intersectionObserver: IntersectionObserver | undefined;
+    let intersecting = true;
+
+    const updateActive = () =>
+      controller?.setActive(
+        intersecting && document.visibilityState === 'visible',
+      );
 
     latest.current.onStatus('loading');
 
-    void import('@/lib/room-3d/engine/controller')
-      .then(({ createRoomSceneController }) => {
-        if (cancelled) return;
-        controller = createRoomSceneController({
-          reducedMotion: latest.current.reducedMotion,
-          onStatus: (status) => latest.current.onStatus(status),
-        });
-        instanceRef.current = controller;
-        if (controllerRef) controllerRef.current = controller;
-        controller.mount(container);
-        controller.setColors(latest.current.colors);
-        controller.setInput(latest.current.input);
+    void loadRoomEngine()
+      .then(
+        ({ createRoomSceneController }) => {
+          if (cancelled) return;
+          controller = createRoomSceneController({
+            reducedMotion: latest.current.reducedMotion,
+            onStatus: (status) => latest.current.onStatus(status),
+          });
+          instanceRef.current = controller;
+          if (controllerRef) controllerRef.current = controller;
+          controller.mount(container);
+          controller.setColors(latest.current.colors);
+          controller.setInput(latest.current.input);
 
-        if (typeof ResizeObserver !== 'undefined') {
-          resizeObserver = new ResizeObserver(([entry]) => {
-            if (!entry) return;
-            const { width, height } = entry.contentRect;
-            controller?.resize(width, height);
-          });
-          resizeObserver.observe(container);
-        }
-        if (typeof IntersectionObserver !== 'undefined') {
-          intersectionObserver = new IntersectionObserver(([entry]) => {
-            if (!entry) return;
-            controller?.setActive(entry.isIntersecting);
-          });
-          intersectionObserver.observe(container);
-        }
-      })
+          if (typeof ResizeObserver !== 'undefined') {
+            resizeObserver = new ResizeObserver(([entry]) => {
+              if (!entry) return;
+              const { width, height } = entry.contentRect;
+              controller?.resize(width, height);
+            });
+            resizeObserver.observe(container);
+          }
+          if (typeof IntersectionObserver !== 'undefined') {
+            intersectionObserver = new IntersectionObserver(([entry]) => {
+              if (!entry) return;
+              intersecting = entry.isIntersecting;
+              updateActive();
+            });
+            intersectionObserver.observe(container);
+          }
+          document.addEventListener('visibilitychange', updateActive);
+          updateActive();
+        },
+        () => {
+          if (!cancelled) latest.current.onStatus('lost');
+        },
+      )
       .catch(() => {
         if (!cancelled) latest.current.onStatus('error');
       });
@@ -96,6 +111,7 @@ export function RoomCanvas({
       cancelled = true;
       resizeObserver?.disconnect();
       intersectionObserver?.disconnect();
+      document.removeEventListener('visibilitychange', updateActive);
       controller?.dispose();
       instanceRef.current = null;
       if (controllerRef) controllerRef.current = null;

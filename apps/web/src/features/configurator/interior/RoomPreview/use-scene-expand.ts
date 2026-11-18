@@ -8,6 +8,12 @@ import {
   useRef,
   useState,
 } from 'react';
+import {
+  inertElements,
+  lockScroll,
+  releaseElements,
+  unlockScroll,
+} from '@/lib/dialog';
 import { useIsDesktop, usePrefersReducedMotion } from '@/lib/media';
 
 export type SceneExpandMode = 'idle' | 'enter' | 'open' | 'leave';
@@ -28,7 +34,15 @@ function readFrame(rect: DOMRect): Frame {
   };
 }
 
-function readTarget(slot: HTMLElement): Frame {
+function readTarget(slot: HTMLElement, desktop: boolean): Frame {
+  if (!desktop) {
+    return {
+      left: 0,
+      top: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  }
   const body = slot.closest(BODY_SELECTOR);
   const rect = body?.getBoundingClientRect();
   const top = Math.max(rect?.top ?? 0, 0);
@@ -75,7 +89,7 @@ export function useSceneExpand(
   rootRef: RefObject<HTMLElement | null>,
   enabled: boolean,
 ) {
-  const available = useIsDesktop() && enabled;
+  const desktop = useIsDesktop();
   const reducedMotion = usePrefersReducedMotion();
   const [mode, setMode] = useState<SceneExpandMode>('idle');
   const [geometry, setGeometry] = useState<Geometry>({
@@ -93,7 +107,7 @@ export function useSceneExpand(
       const slot = slotRef.current;
       if (slot) {
         const origin = readFrame(slot.getBoundingClientRect());
-        const target = readTarget(slot);
+        const target = readTarget(slot, desktop);
         setGeometry({ origin, target });
         if (sameFrame(origin, target)) {
           setMode('idle');
@@ -102,7 +116,7 @@ export function useSceneExpand(
       }
       setMode(instant || reducedMotion || !slot ? 'idle' : 'leave');
     },
-    [slotRef, reducedMotion],
+    [slotRef, reducedMotion, desktop],
   );
 
   const expand = useCallback(() => {
@@ -110,10 +124,10 @@ export function useSceneExpand(
     if (!slot) return;
     setGeometry({
       origin: readFrame(slot.getBoundingClientRect()),
-      target: readTarget(slot),
+      target: readTarget(slot, desktop),
     });
     setMode(reducedMotion ? 'open' : 'enter');
-  }, [slotRef, reducedMotion]);
+  }, [slotRef, reducedMotion, desktop]);
 
   const toggle = useCallback(() => {
     if (modeRef.current === 'idle') expand();
@@ -126,9 +140,11 @@ export function useSceneExpand(
     setMode('open');
   }, [mode, rootRef]);
 
-  useEffect(() => {
-    if (!available && modeRef.current !== 'idle') setMode('idle');
-  }, [available]);
+  const [layout, setLayout] = useState({ enabled, desktop });
+  if (layout.enabled !== enabled || layout.desktop !== desktop) {
+    setLayout({ enabled, desktop });
+    if (mode !== 'idle') setMode('idle');
+  }
 
   useEffect(() => {
     if (mode !== 'open') return;
@@ -138,7 +154,7 @@ export function useSceneExpand(
     const onResize = () => {
       const slot = slotRef.current;
       if (slot) {
-        const target = readTarget(slot);
+        const target = readTarget(slot, desktop);
         setGeometry((current) =>
           sameFrame(current.target, target) ? current : { ...current, target },
         );
@@ -155,7 +171,7 @@ export function useSceneExpand(
       window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onResize, { capture: true });
     };
-  }, [mode, collapse, slotRef]);
+  }, [mode, collapse, slotRef, desktop]);
 
   useEffect(() => {
     if (mode !== 'leave') return;
@@ -174,28 +190,36 @@ export function useSceneExpand(
   }, [mode, rootRef]);
 
   const expanded = mode === 'enter' || mode === 'open';
+  const covering = mode !== 'idle';
 
   useEffect(() => {
     const slot = slotRef.current;
-    if (!expanded || !slot) return;
-    const body = slot.closest(BODY_SELECTOR);
+    if (!covering || !slot) return;
+    const body = desktop ? slot.closest(BODY_SELECTOR) : document.body;
     if (!body) return;
-    const previous = new Map<HTMLElement, boolean>();
+    const siblings: Element[] = [];
     let node: HTMLElement = slot;
     while (node !== body && node.parentElement) {
       const parent: HTMLElement = node.parentElement;
-      for (const sibling of Array.from(parent.children)) {
-        if (sibling !== node && sibling instanceof HTMLElement) {
-          previous.set(sibling, sibling.inert);
-          sibling.inert = true;
+      for (const sibling of parent.children) {
+        if (
+          sibling !== node &&
+          !sibling.hasAttribute('data-stays-interactive')
+        ) {
+          siblings.push(sibling);
         }
       }
       node = parent;
     }
-    return () => {
-      for (const [element, wasInert] of previous) element.inert = wasInert;
-    };
-  }, [expanded, slotRef]);
+    const inerted = inertElements(siblings);
+    return () => releaseElements(inerted);
+  }, [covering, slotRef, desktop]);
+
+  useEffect(() => {
+    if (!covering || desktop) return;
+    lockScroll();
+    return unlockScroll;
+  }, [covering, desktop]);
 
   const onTransitionEnd = useCallback((event: TransitionEvent) => {
     if (event.target === event.currentTarget && modeRef.current === 'leave') {
@@ -206,7 +230,7 @@ export function useSceneExpand(
   return {
     mode,
     expanded,
-    available,
+    available: enabled,
     geometry,
     toggle,
     onTransitionEnd,

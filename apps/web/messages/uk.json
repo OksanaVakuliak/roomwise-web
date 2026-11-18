@@ -235,8 +235,7 @@
     "planNameDesktop": "{name}, {area}",
     "wallsMobile": "стіни {walls}",
     "wallsDesktop": "стіни {walls}, периметр {perimeter}",
-    "cutLabel": "А",
-    "sceneDescription": "{name} {length} на {width}, висота {height}, лінія розрізу А–А через підлогу"
+    "sceneDescription": "{name} {length} на {width}, висота {height}"
   },
   "ShowcaseOverlays": {
     "modalTitle": "Модальне вікно",
@@ -914,8 +913,21 @@
     "collapse": "Закрити",
     "loading": "Готуємо 3D-перегляд…",
     "description": "{name}, {length} × {width}, висота {height}, площа {area}",
-    "cut": "А",
-    "fallbackDescription": "{name} {length} на {width}, висота {height}, лінія розрізу А–А через підлогу"
+    "fallbackDescription": "{name} {length} на {width}, висота {height}",
+    "fallback": {
+      "unsupported": "Ваш пристрій не показує 3D, тому тут схема кімнати.",
+      "lost": "3D-перегляд зупинився, тому тут схема кімнати."
+    },
+    "disable": "Вимкнути 3D",
+    "retry": "Спробувати ще раз",
+    "enable": "Увімкнути 3D",
+    "surface": {
+      "floor": "Підлога: {material}",
+      "walls": "Стіни: {material}",
+      "ceiling": "Стеля: {material}",
+      "none": "не обрано",
+      "excluded": "не входить у розрахунок"
+    }
   },
   "ObjectStep": {
     "form": {

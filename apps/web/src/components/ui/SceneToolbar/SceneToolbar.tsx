@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { IconName } from '../Icon/Icon';
 import { IconButton } from '../IconButton/IconButton';
 import styles from './SceneToolbar.module.css';
@@ -13,9 +14,10 @@ export type SceneToolbarAction = {
 
 export type SceneToolbarProps = {
   actions: SceneToolbarAction[];
+  children?: ReactNode;
 };
 
-export function SceneToolbar({ actions }: SceneToolbarProps) {
+export function SceneToolbar({ actions, children }: SceneToolbarProps) {
   return (
     <div className={styles.root}>
       {actions.map(({ id, label, icon, onClick, pressed, disabled }) => (
@@ -28,6 +30,7 @@ export function SceneToolbar({ actions }: SceneToolbarProps) {
           aria-pressed={pressed}
         />
       ))}
+      {children}
     </div>
   );
 }

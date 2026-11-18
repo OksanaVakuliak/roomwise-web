@@ -54,6 +54,10 @@
     display: contents;
   }
 
+  .costSlot {
+    display: contents;
+  }
+
   .showcase {
     padding: 0 var(--space-16) var(--space-16);
   }
@@ -82,12 +86,23 @@
     padding-bottom: var(--space-16);
   }
 
+  .costSlot {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
   .cost {
     position: static;
-    margin-top: auto;
     max-height: none;
     overflow-y: visible;
     border-top: 0;
+  }
+
+  .costSlot .cost {
+    position: sticky;
+    bottom: 0;
   }
 }
 
@@ -99,12 +114,16 @@
   padding: var(--space-16);
 }
 
-@media (min-width: 768px) and (min-height: 40rem) {
+@media (min-width: 768px) and (min-height: 30rem) {
   .scene {
     position: sticky;
     top: var(--space-16);
     z-index: var(--z-sticky);
     background: var(--sheet);
+  }
+
+  .scene:has([data-scene-expanded]) {
+    z-index: var(--z-panel);
   }
 }
 

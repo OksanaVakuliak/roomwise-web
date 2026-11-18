@@ -15,6 +15,7 @@ export type Segment = {
 
 export type SceneGeometry = {
   viewBox: string;
+  aspectRatio: string;
   floor: string;
   rightWall: string;
   leftWall: string;
@@ -22,13 +23,9 @@ export type SceneGeometry = {
   edges: string;
   backLeft: Segment;
   dimensionPaths: string[];
-  cutLine: Segment;
-  cutTicks: string;
   width: Label;
   length: Label;
   height: Label;
-  cutStart: Label;
-  cutEnd: Label;
   place: (label: Label) => { left: string; top: string };
   tileUnit: (millimetres: number) => number;
   floorTransform: string;
@@ -39,9 +36,6 @@ export type SceneGeometry = {
 const SCALE = 26;
 const COS = Math.sqrt(3) / 2;
 const SIN = 0.5;
-const CUT_FRACTION = 0.55;
-const CUT_START = -15.5;
-const CUT_OVERSHOOT = 23.2;
 const LABEL_HALF_WIDTH = 26;
 const LABEL_HALF_HEIGHT = 10;
 const PADDING = 6;
@@ -129,14 +123,6 @@ export function computeGeometry(
     barbs(heightEnd, 'l-3.5 -8 m3.5 8 l3.5 -8'),
   ];
 
-  const cutOffset = CUT_FRACTION * width;
-  const onCut = (u: number): Point => [
-    COS * (u - cutOffset),
-    SIN * (u + cutOffset),
-  ];
-  const cutStart = onCut(CUT_START);
-  const cutEnd = onCut(length + CUT_OVERSHOOT);
-
   const widthMiddle = middle(widthStart, widthEnd);
   const lengthMiddle = middle(lengthStart, lengthEnd);
   const heightMiddle = middle(heightStart, heightEnd);
@@ -157,8 +143,6 @@ export function computeGeometry(
       y: heightMiddle[1] + 2.8,
       rotation: 0,
     },
-    cutStart: { x: cutStart[0] - 13, y: cutStart[1] - 5, rotation: 0 },
-    cutEnd: { x: cutEnd[0] - 19, y: cutEnd[1] + 21, rotation: 0 },
   };
 
   const extent: Point[] = [
@@ -175,8 +159,6 @@ export function computeGeometry(
     lengthEnd,
     heightStart,
     heightEnd,
-    cutStart,
-    cutEnd,
     move(widthEnd, 4, 14),
     move(lengthEnd, -20, 14),
   ];
@@ -195,6 +177,7 @@ export function computeGeometry(
 
   return {
     viewBox: [minX, minY, boxWidth, boxHeight].map(round).join(' '),
+    aspectRatio: `${round(boxWidth)} / ${round(boxHeight)}`,
     floor: points([back, right, front, left]),
     rightWall: points([backTop, rightTop, right, back]),
     leftWall: points([backTop, leftTop, left, back]),
@@ -202,8 +185,6 @@ export function computeGeometry(
     edges: points([backTop, back, right]),
     backLeft: segment(back, left),
     dimensionPaths,
-    cutLine: segment(cutStart, cutEnd),
-    cutTicks: `${barbs(cutStart, 'l-8 12')}${barbs(cutEnd, 'l-8 12')}`,
     ...labels,
     tileUnit: (millimetres) => (millimetres / 1000) * SCALE,
     floorTransform: `matrix(${COS} ${SIN} ${-COS} ${SIN} 0 0)`,
