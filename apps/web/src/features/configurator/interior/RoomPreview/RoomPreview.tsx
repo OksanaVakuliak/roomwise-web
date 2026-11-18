@@ -274,7 +274,6 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
                 widthLabel={widthLabel}
                 heightLabel={heightLabel}
                 surfaces={toSceneSurfaces(surfaces)}
-                cutLabel={t('cut')}
                 description={t('fallbackDescription', {
                   name,
                   length: lengthLabel,

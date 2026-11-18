@@ -23,7 +23,6 @@ export type RoomSceneProps = {
   lengthLabel: string;
   widthLabel: string;
   heightLabel: string;
-  cutLabel: string;
   description: string;
   size?: 'mobile' | 'desktop';
   fill?: boolean;
@@ -37,7 +36,6 @@ export function RoomScene({
   lengthLabel,
   widthLabel,
   heightLabel,
-  cutLabel,
   description,
   size = 'mobile',
   fill = false,
@@ -46,14 +44,12 @@ export function RoomScene({
   const descriptionId = useId();
   const patternPrefix = useId();
   const geometry = computeGeometry(lengthCm, widthCm, heightCm);
-  const { cutLine, backLeft } = geometry;
+  const { backLeft } = geometry;
 
   const labels: { label: Label; text: string; className: string }[] = [
     { label: geometry.width, text: widthLabel, className: styles.dim },
     { label: geometry.length, text: lengthLabel, className: styles.dim },
     { label: geometry.height, text: heightLabel, className: styles.dim },
-    { label: geometry.cutStart, text: cutLabel, className: styles.cutmark },
-    { label: geometry.cutEnd, text: cutLabel, className: styles.cutmark },
   ];
 
   const faces: {
@@ -153,8 +149,6 @@ export function RoomScene({
           {geometry.dimensionPaths.map((path) => (
             <path key={path} className={styles.dimension} d={path} />
           ))}
-          <line className={styles.cut} {...cutLine} />
-          <path className={styles.cutTick} d={geometry.cutTicks} />
         </svg>
         {labels.map(({ label, text, className }) => {
           const { left, top } = geometry.place(label);

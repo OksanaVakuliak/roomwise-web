@@ -66,20 +66,7 @@
   stroke-width: 1.1;
 }
 
-.cut {
-  stroke: var(--heat);
-  stroke-width: 1.8;
-  stroke-dasharray: 12 3 2 3;
-}
-
-.cutTick {
-  fill: none;
-  stroke: var(--heat);
-  stroke-width: 2.6;
-}
-
-.dim,
-.cutmark {
+.dim {
   position: absolute;
   left: var(--x);
   top: var(--y);
@@ -92,12 +79,6 @@
   font-variant-numeric: tabular-nums lining-nums;
   line-height: 1.1;
   white-space: nowrap;
-}
-
-.cutmark {
-  background: none;
-  color: var(--heat);
-  font-size: var(--text-cutmark-size);
 }
 
 .shade {
