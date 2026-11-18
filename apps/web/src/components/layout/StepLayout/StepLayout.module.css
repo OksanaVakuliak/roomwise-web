@@ -99,7 +99,7 @@
   padding: var(--space-16);
 }
 
-@media (min-width: 768px) and (min-height: 40rem) {
+@media (min-width: 768px) and (min-height: 30rem) {
   .scene {
     position: sticky;
     top: var(--space-16);
