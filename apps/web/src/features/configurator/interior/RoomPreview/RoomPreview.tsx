@@ -87,12 +87,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   if (webGl === false || status === 'error') reason = 'unsupported';
   else if (status === 'lost') reason = 'lost';
   else if (!scene3d) reason = 'manual';
-  const expand = useSceneExpand(
-    slotRef,
-    rootRef,
-    hasDimensions,
-    reason === null ? 'scene' : 'fallback',
-  );
+  const expand = useSceneExpand(slotRef, rootRef, hasDimensions);
 
   useEffect(() => {
     const target = focusAfterToggle.current;
@@ -223,6 +218,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         className={cx(styles.root, expand.mode !== 'idle' && styles.floating)}
         data-mode={expand.mode}
         data-expanded={expand.expanded}
+        data-scene-expanded={expand.mode === 'idle' ? undefined : ''}
         style={expandVariables(expand.geometry)}
         onTransitionEnd={expand.onTransitionEnd}
       >
@@ -265,7 +261,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
           <div ref={fallbackRef} className={styles.fallback} tabIndex={-1}>
             <div className={styles.figure}>
               <RoomScene
-                fill={expand.mode !== 'idle'}
+                fill
                 lengthCm={Math.round(lengthM * 100)}
                 widthCm={Math.round(widthM * 100)}
                 heightCm={Math.round(heightM * 100)}

@@ -914,7 +914,7 @@ describe('RoomPreview', () => {
       expect(previewRoot()).toHaveAttribute('data-expanded', 'true');
     });
 
-    it('collapses an expanded 3D view when it falls back', async () => {
+    it('keeps the view expanded when 3D falls back', async () => {
       setViewport(1024);
       await act(async () => {
         renderPreview();
@@ -927,9 +927,9 @@ describe('RoomPreview', () => {
 
       setStatus('lost');
 
-      expect(previewRoot()).toHaveAttribute('data-mode', 'idle');
+      expect(previewRoot()).toHaveAttribute('data-mode', 'open');
       expect(
-        screen.getByRole('button', { name: en.RoomPreview.expand }),
+        screen.getByRole('button', { name: en.RoomPreview.collapse }),
       ).toBeInTheDocument();
     });
   });

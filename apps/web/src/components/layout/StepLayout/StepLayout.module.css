@@ -122,7 +122,7 @@
     background: var(--sheet);
   }
 
-  .scene:has([data-mode]:not([data-mode="idle"])) {
+  .scene:has([data-scene-expanded]) {
     z-index: var(--z-panel);
   }
 }

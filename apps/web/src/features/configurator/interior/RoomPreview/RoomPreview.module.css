@@ -86,6 +86,8 @@
 
 .figure {
   min-width: 0;
+  max-height: var(--scene-max-height);
+  aspect-ratio: 16 / 9;
 }
 
 .floating .fallback {
@@ -96,4 +98,6 @@
 .floating .figure {
   flex: 1 1 0;
   min-height: 0;
+  max-height: none;
+  aspect-ratio: auto;
 }
