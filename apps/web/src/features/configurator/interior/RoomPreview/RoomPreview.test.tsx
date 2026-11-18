@@ -286,7 +286,9 @@ describe('RoomPreview', () => {
       renderPreview();
     });
 
-    expect(screen.getByText(en.RoomPreview.fallback.unsupported)).toBeVisible();
+    expect(
+      screen.getByText(en.RoomPreview.fallback.unsupported, { selector: 'p' }),
+    ).toBeVisible();
     expect(screen.getByText('Floor: not chosen')).toBeInTheDocument();
     expect(screen.getByText('Walls: not chosen')).toBeInTheDocument();
     expect(screen.getByText('Ceiling: not chosen')).toBeInTheDocument();
@@ -459,7 +461,9 @@ describe('RoomPreview', () => {
 
     setStatus('lost');
 
-    expect(screen.getByText(en.RoomPreview.fallback.lost)).toBeVisible();
+    expect(
+      screen.getByText(en.RoomPreview.fallback.lost, { selector: 'p' }),
+    ).toBeVisible();
     expect(usePreferences.getState().scene3d).toBe(true);
     expect(
       screen.queryByRole('button', { name: en.RoomPreview.enable }),
@@ -476,7 +480,9 @@ describe('RoomPreview', () => {
     fireEvent.click(screen.getByRole('button', { name: en.RoomPreview.retry }));
 
     expect(screen.getByTestId('canvas')).toBeInTheDocument();
-    expect(screen.queryByText(en.RoomPreview.fallback.lost)).toBeNull();
+    expect(
+      screen.queryByText(en.RoomPreview.fallback.lost, { selector: 'p' }),
+    ).toBeNull();
     expect(lifecycle.mounts).toBe(2);
     expect(
       screen.getByRole('status', { name: en.RoomPreview.loading }),
@@ -503,7 +509,9 @@ describe('RoomPreview', () => {
     });
     setStatus('error');
 
-    expect(screen.getByText(en.RoomPreview.fallback.unsupported)).toBeVisible();
+    expect(
+      screen.getByText(en.RoomPreview.fallback.unsupported, { selector: 'p' }),
+    ).toBeVisible();
     expect(
       screen.queryByRole('button', { name: en.RoomPreview.retry }),
     ).not.toBeInTheDocument();
@@ -522,7 +530,9 @@ describe('RoomPreview', () => {
     });
 
     expect(screen.getByTestId('canvas')).toBeInTheDocument();
-    expect(screen.queryByText(en.RoomPreview.fallback.lost)).toBeNull();
+    expect(
+      screen.queryByText(en.RoomPreview.fallback.lost, { selector: 'p' }),
+    ).toBeNull();
   });
 
   it('keeps a ready scene when the room changes', async () => {
@@ -539,15 +549,15 @@ describe('RoomPreview', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('announces the fallback reason', async () => {
-    await act(async () => {
-      renderPreview();
-    });
+  it('announces the fallback reason through a live region mounted before it', async () => {
+    const { container } = await act(async () => renderPreview());
+    const region = container.querySelector('[aria-live="polite"]');
+    expect(region?.textContent).toBe('');
+
     setStatus('lost');
 
-    expect(screen.getByRole('status', { name: '' }).textContent).toBe(
-      en.RoomPreview.fallback.lost,
-    );
+    expect(container.querySelector('[aria-live="polite"]')).toBe(region);
+    expect(region?.textContent).toBe(en.RoomPreview.fallback.lost);
   });
 
   it('moves focus to retry when the view is lost while focus is inside it', async () => {
@@ -573,7 +583,8 @@ describe('RoomPreview', () => {
     setStatus('error');
 
     expect(
-      screen.getByText(en.RoomPreview.fallback.unsupported).parentElement,
+      screen.getByText(en.RoomPreview.fallback.unsupported, { selector: 'p' })
+        .parentElement,
     ).toHaveFocus();
   });
 
@@ -619,7 +630,9 @@ describe('RoomPreview', () => {
       renderPreview(first, 'uk');
     });
 
-    expect(screen.getByText(uk.RoomPreview.fallback.unsupported)).toBeVisible();
+    expect(
+      screen.getByText(uk.RoomPreview.fallback.unsupported, { selector: 'p' }),
+    ).toBeVisible();
     expect(screen.getByText('Підлога: не обрано')).toBeInTheDocument();
   });
 

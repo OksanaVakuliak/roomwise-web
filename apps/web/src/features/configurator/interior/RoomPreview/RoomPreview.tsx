@@ -31,6 +31,7 @@ import type {
   SurfaceKey,
 } from '@/lib/room-3d/types';
 import { usePreferences } from '@/stores/preferences';
+import { usePreferencesHydration } from '@/stores/use-preferences-hydration';
 import { toSceneSurfaces, useRoomSurfaces } from '../use-room-surfaces';
 import styles from './RoomPreview.module.css';
 import {
@@ -76,7 +77,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const [colors, setColors] = useState<SceneColors | null>(null);
   const [status, setStatus] = useState<SceneStatus>('loading');
   const [webGl, setWebGl] = useState<boolean | null>(null);
-  const [attempt, setAttempt] = useState(0);
+  const preferencesReady = usePreferencesHydration();
   const scene3d = usePreferences((state) => state.scene3d);
   const setScene3d = usePreferences((state) => state.setScene3d);
 
@@ -153,7 +154,6 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const retry3d = useCallback(() => {
     focusAfterToggle.current = 'disable';
     setStatus('loading');
-    setAttempt((current) => current + 1);
   }, []);
   const handleStatus = useCallback((next: SceneStatus) => {
     if (
@@ -228,9 +228,8 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
       >
         {reason === null ? (
           <div ref={stageRef} className={styles.stage}>
-            {colors ? (
+            {colors && preferencesReady ? (
               <RoomCanvas
-                key={attempt}
                 input={input}
                 colors={colors}
                 reducedMotion={reducedMotion}
@@ -283,7 +282,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
               />
             </div>
             {reason === 'manual' ? null : (
-              <p className={styles.reason} role="status">
+              <p className={styles.reason} aria-hidden="true">
                 {t(`fallback.${reason}`)}
               </p>
             )}
@@ -310,6 +309,13 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             </VisuallyHidden>
           </div>
         )}
+        <VisuallyHidden as="div">
+          <div aria-live="polite">
+            {reason === 'lost' || reason === 'unsupported'
+              ? t(`fallback.${reason}`)
+              : null}
+          </div>
+        </VisuallyHidden>
         <SceneToolbar actions={actions}>
           {reason === null ? (
             <Button ref={disableRef} onClick={disable3d}>
