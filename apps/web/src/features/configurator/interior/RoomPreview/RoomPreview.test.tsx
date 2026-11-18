@@ -369,6 +369,19 @@ describe('RoomPreview', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('puts the 3D toggle in the same row as the toolbar buttons', async () => {
+    await act(async () => {
+      renderPreview();
+    });
+    setStatus('ready');
+
+    const reset = screen.getByRole('button', { name: en.RoomPreview.reset });
+    const disable = screen.getByRole('button', {
+      name: en.RoomPreview.disable,
+    });
+    expect(disable.parentElement).toBe(reset.parentElement);
+  });
+
   it('turns 3D off from the 3D view and remembers it', async () => {
     await act(async () => {
       renderPreview();

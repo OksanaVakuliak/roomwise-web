@@ -88,6 +88,7 @@ export function useSceneExpand(
   slotRef: RefObject<HTMLElement | null>,
   rootRef: RefObject<HTMLElement | null>,
   enabled: boolean,
+  variant: string,
 ) {
   const desktop = useIsDesktop();
   const reducedMotion = usePrefersReducedMotion();
@@ -140,9 +141,13 @@ export function useSceneExpand(
     setMode('open');
   }, [mode, rootRef]);
 
-  const [layout, setLayout] = useState({ enabled, desktop });
-  if (layout.enabled !== enabled || layout.desktop !== desktop) {
-    setLayout({ enabled, desktop });
+  const [layout, setLayout] = useState({ enabled, desktop, variant });
+  if (
+    layout.enabled !== enabled ||
+    layout.desktop !== desktop ||
+    layout.variant !== variant
+  ) {
+    setLayout({ enabled, desktop, variant });
     if (mode !== 'idle') setMode('idle');
   }
 

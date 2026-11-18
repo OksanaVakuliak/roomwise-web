@@ -75,6 +75,22 @@ describe('SceneToolbar', () => {
     expect(screen.getByRole('button', { name: 'Top' })).toBeEnabled();
   });
 
+  it('renders children after the actions in the same row', () => {
+    render(
+      <SceneToolbar
+        actions={[
+          { id: 'reset', label: 'Reset', icon: 'resetView', onClick: vi.fn() },
+        ]}
+      >
+        <button type="button">Extra</button>
+      </SceneToolbar>,
+    );
+    const reset = screen.getByRole('button', { name: 'Reset' });
+    const extra = screen.getByRole('button', { name: 'Extra' });
+    expect(extra.parentElement).toBe(reset.parentElement);
+    expect(extra.previousElementSibling).toBe(reset);
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = render(
       <SceneToolbar

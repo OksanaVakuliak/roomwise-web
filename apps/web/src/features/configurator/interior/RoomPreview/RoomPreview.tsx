@@ -90,6 +90,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     slotRef,
     rootRef,
     hasDimensions && reason === null,
+    'scene',
   );
 
   useEffect(() => {
@@ -305,10 +306,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
             </div>
           ) : null}
         </div>
-        <SceneToolbar actions={actions} />
-        <Button ref={disableRef} className={styles.toggle} onClick={disable3d}>
-          {t('disable')}
-        </Button>
+        <SceneToolbar actions={actions}>
+          <Button ref={disableRef} onClick={disable3d}>
+            {t('disable')}
+          </Button>
+        </SceneToolbar>
       </div>
     </div>
   );
