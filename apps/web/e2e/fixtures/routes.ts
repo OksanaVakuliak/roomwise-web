@@ -1,4 +1,5 @@
 import {
+  categoryIds,
   makeCategoryProducts,
   makeDefaultMaterials,
   makeEngineering,
@@ -9,6 +10,7 @@ import {
   makeRoomTypes,
   makeSaveCalculationResponse,
   makeStyles,
+  makeSurface,
   makeVersionView,
   type VersionView,
 } from '@/test/fixtures';
@@ -44,6 +46,36 @@ const notFound = (): MockReply => ({
   body: { error: { code: 'NOT_FOUND' } },
 });
 
+const surfaceKinds = {
+  [categoryIds.floor]: 'FLOOR',
+  [categoryIds.walls]: 'WALLS',
+  [categoryIds.ceiling]: 'CEILING',
+} as const;
+
+export const TEXTURE_ORIGIN = 'https://cdn.test';
+
+const withSurface = (productId: string) => {
+  const details = makeProductDetails(productId);
+  const kind =
+    surfaceKinds[details.categoryId as keyof typeof surfaceKinds] ?? 'NONE';
+  if (kind === 'NONE') {
+    return details;
+  }
+  return {
+    ...details,
+    surfaceColor: '#9a9a9a',
+    surface: makeSurface({
+      kind,
+      texture: {
+        id: `tx-${productId}`,
+        url: `${TEXTURE_ORIGIN}/textures/${productId}.png`,
+        previewUrl: `${TEXTURE_ORIGIN}/textures/${productId}-512.png`,
+        realSizeMm: 600,
+      },
+    }),
+  };
+};
+
 const lookup = (store: MockStore, publicId: string) =>
   store.calculations.get(publicId);
 
@@ -77,7 +109,7 @@ export const routes: Route[] = [
   {
     method: 'GET',
     pattern: /^\/public\/products\/([^/]+)$/,
-    reply: ([, productId]) => ok(makeProductDetails(productId)),
+    reply: ([, productId]) => ok(withSurface(productId)),
   },
   {
     method: 'GET',

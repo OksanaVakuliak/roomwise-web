@@ -23,6 +23,7 @@ export {
   makeRoomTypes,
   makeStyle,
   makeStyles,
+  makeSurface,
   type ProductCard,
   type ProductCardsResponse,
   type ProductDetails,

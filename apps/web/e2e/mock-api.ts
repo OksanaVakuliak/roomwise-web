@@ -1,6 +1,12 @@
 import { createHash } from 'node:crypto';
 import type { BrowserContext, Route } from '@playwright/test';
-import { createMockStore, type MockStore, routes } from './fixtures/routes';
+import {
+  createMockStore,
+  type MockStore,
+  routes,
+  TEXTURE_ORIGIN,
+} from './fixtures/routes';
+import { TEXTURE_PNG } from './fixtures/texture';
 
 const API_PREFIX = '/api/v1';
 
@@ -74,6 +80,14 @@ export async function installMockApi(
 ): Promise<MockStore> {
   if (!isLive()) {
     await context.route('**/api/v1/**', (route) => answer(route, store));
+    await context.route(`${TEXTURE_ORIGIN}/**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'image/png',
+        headers: { 'access-control-allow-origin': '*' },
+        body: TEXTURE_PNG,
+      }),
+    );
   }
   return store;
 }
