@@ -285,6 +285,17 @@ describe('dimensionLines', () => {
     expect(byKey(lines, 'height').label[1]).toBeCloseTo(room.heightM / 2);
   });
 
+  it('gives the height ticks a horizontal component in both axes', () => {
+    for (const { sx, sz } of sectors) {
+      const lines = dimensionLines(room, { sx, sz, height: true });
+      const segments = byKey(lines, 'height').segments;
+      for (const [start, end] of segments.slice(-2)) {
+        expect(Math.abs(end[0] - start[0])).toBeGreaterThan(0);
+        expect(Math.abs(end[2] - start[2])).toBeGreaterThan(0);
+      }
+    }
+  });
+
   it('measures the real size of an elongated room', () => {
     const long = { lengthM: 12, widthM: 1.2, heightM: 2.7 };
     const lines = dimensionLines(long, { sx: -1, sz: 1, height: true });

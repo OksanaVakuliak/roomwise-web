@@ -177,10 +177,11 @@ function groundTick([x, y, z]: Vec3): Segment3 {
   ];
 }
 
-function verticalTick([x, y, z]: Vec3): Segment3 {
+function verticalTick({ sx, sz }: DimensionSector, [x, y, z]: Vec3): Segment3 {
+  const t = TICK_M / Math.SQRT2;
   return [
-    [x - TICK_M, y - TICK_M, z],
-    [x + TICK_M, y + TICK_M, z],
+    [x - sz * t, y - TICK_M, z + sx * t],
+    [x + sz * t, y + TICK_M, z - sx * t],
   ];
 }
 
@@ -262,7 +263,7 @@ export function dimensionLines(
         [farX, heightM, heightZ],
       ],
     ],
-    verticalTick,
+    (point) => verticalTick(sector, point),
   );
   return [length, width, height];
 }
