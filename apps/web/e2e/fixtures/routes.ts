@@ -56,9 +56,8 @@ export const TEXTURE_ORIGIN = 'https://cdn.test';
 
 const withSurface = (productId: string) => {
   const details = makeProductDetails(productId);
-  const kind =
-    surfaceKinds[details.categoryId as keyof typeof surfaceKinds] ?? 'NONE';
-  if (kind === 'NONE') {
+  const kind = surfaceKinds[details.categoryId as keyof typeof surfaceKinds];
+  if (!kind) {
     return details;
   }
   return {
