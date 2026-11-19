@@ -1,10 +1,10 @@
 import { expect, type Page, test } from '@playwright/test';
+import { DRAFT_VERSION } from '@/lib/draft/migrate';
 import { makeInteriorDraft } from '@/test/fixtures';
 import { catalogs, type Locale, templateToRegExp } from './keyboard';
 import { installMockApi } from './mock-api';
 
 const DRAFT_KEY = 'roomwise-draft';
-const DRAFT_VERSION = 3;
 const THREE_MARKER = 'THREE.WebGLRenderer';
 const ENGINE_DELAY_MS = 6_000;
 const FEEDBACK_BUDGET_MS = 100;
