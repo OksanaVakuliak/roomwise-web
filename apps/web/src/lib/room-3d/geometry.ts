@@ -1,4 +1,9 @@
-import type { RoomSceneInput, SurfaceKey, TextureStep } from './types';
+import type {
+  CameraView,
+  RoomSceneInput,
+  SurfaceKey,
+  TextureStep,
+} from './types';
 
 export type RoomSize = Pick<RoomSceneInput, 'lengthM' | 'widthM' | 'heightM'>;
 
@@ -133,4 +138,128 @@ export function planeShading(spec: PlaneSpec): PlaneShading {
     xs.map((_, column) => shade * edgeFactor(column) * edgeFactor(row)),
   );
   return { xs, ys, factors };
+}
+
+export type DimensionKey = 'length' | 'width' | 'height';
+
+export type Segment3 = readonly [Vec3, Vec3];
+
+export type DimensionLine = {
+  key: DimensionKey;
+  segments: Segment3[];
+  label: Vec3;
+};
+
+export type DimensionSector = { sx: 1 | -1; sz: 1 | -1; height: boolean };
+
+const DIMENSION_OFFSET_M = 0.35;
+const EXTENSION_GAP_M = 0.08;
+const EXTENSION_OVERSHOOT_M = 0.12;
+const TICK_M = 0.1;
+const HEIGHT_MIN_POLAR = 0.35;
+
+export function dimensionSector(
+  view: Pick<CameraView, 'azimuth' | 'polar'>,
+): DimensionSector {
+  return {
+    sx: Math.sin(view.azimuth) >= 0 ? 1 : -1,
+    sz: Math.cos(view.azimuth) >= 0 ? 1 : -1,
+    height: view.polar >= HEIGHT_MIN_POLAR,
+  };
+}
+
+function groundTick([x, y, z]: Vec3): Segment3 {
+  return [
+    [x - TICK_M, y, z - TICK_M],
+    [x + TICK_M, y, z + TICK_M],
+  ];
+}
+
+function verticalTick([x, y, z]: Vec3): Segment3 {
+  return [
+    [x - TICK_M, y - TICK_M, z],
+    [x + TICK_M, y + TICK_M, z],
+  ];
+}
+
+function midpoint([a, b]: Segment3): Vec3 {
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
+}
+
+function dimensionLine(
+  key: DimensionKey,
+  line: Segment3,
+  extensions: Segment3[],
+  tick: (point: Vec3) => Segment3,
+): DimensionLine {
+  return {
+    key,
+    segments: [line, ...extensions, tick(line[0]), tick(line[1])],
+    label: midpoint(line),
+  };
+}
+
+export function dimensionLines(
+  room: RoomSize,
+  sector: DimensionSector,
+): DimensionLine[] {
+  const { lengthM, widthM, heightM } = room;
+  const { sx, sz } = sector;
+  const halfL = lengthM / 2;
+  const halfW = widthM / 2;
+  const lineZ = sz * (halfW + DIMENSION_OFFSET_M);
+  const lineX = sx * (halfL + DIMENSION_OFFSET_M);
+  const nearZ = sz * (halfW + EXTENSION_GAP_M);
+  const farZ = sz * (halfW + DIMENSION_OFFSET_M + EXTENSION_OVERSHOOT_M);
+  const nearX = sx * (halfL + EXTENSION_GAP_M);
+  const farX = sx * (halfL + DIMENSION_OFFSET_M + EXTENSION_OVERSHOOT_M);
+
+  const length = dimensionLine(
+    'length',
+    [
+      [-halfL, 0, lineZ],
+      [halfL, 0, lineZ],
+    ],
+    [-halfL, halfL].map(
+      (x): Segment3 => [
+        [x, 0, nearZ],
+        [x, 0, farZ],
+      ],
+    ),
+    groundTick,
+  );
+  const width = dimensionLine(
+    'width',
+    [
+      [lineX, 0, -halfW],
+      [lineX, 0, halfW],
+    ],
+    [-halfW, halfW].map(
+      (z): Segment3 => [
+        [nearX, 0, z],
+        [farX, 0, z],
+      ],
+    ),
+    groundTick,
+  );
+  if (!sector.height) {
+    return [length, width];
+  }
+
+  const heightZ = -sz * halfW;
+  const height = dimensionLine(
+    'height',
+    [
+      [lineX, 0, heightZ],
+      [lineX, heightM, heightZ],
+    ],
+    [
+      [
+        [nearX, heightM, heightZ],
+        [farX, heightM, heightZ],
+      ],
+    ],
+    verticalTick,
+  );
+  return [length, width, height];
 }
