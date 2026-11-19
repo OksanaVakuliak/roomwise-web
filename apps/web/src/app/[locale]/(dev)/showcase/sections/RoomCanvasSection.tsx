@@ -2,8 +2,8 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useId, useState } from 'react';
-import { RoomCanvas, RoomScene } from '@/components/ui';
-import { dimension } from '@/lib/format';
+import { RoomCanvas, RoomScene, VisuallyHidden } from '@/components/ui';
+import { area, dimension } from '@/lib/format';
 import { usePrefersReducedMotion } from '@/lib/media';
 import type { RoomSceneInput, SceneStatus } from '@/lib/room-3d/types';
 import { useSceneColors } from '@/lib/room-3d/use-scene-colors';
@@ -36,12 +36,14 @@ const COLORED_INPUT: RoomSceneInput = {
 
 type CanvasStageProps = {
   input: RoomSceneInput;
-  label: string;
+  name: string;
   caption: string;
 };
 
-function CanvasStage({ input, label, caption }: CanvasStageProps) {
+function CanvasStage({ input, name, caption }: CanvasStageProps) {
   const t = useTranslations('ShowcaseRoomCanvas');
+  const room = useTranslations('RoomPreview');
+  const locale = useLocale();
   const descriptionId = useId();
   const reducedMotion = usePrefersReducedMotion();
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
@@ -58,13 +60,24 @@ function CanvasStage({ input, label, caption }: CanvasStageProps) {
             colors={colors}
             reducedMotion={reducedMotion}
             onStatus={setStatus}
-            label={label}
+            label={room('label', { name })}
             describedBy={descriptionId}
-            roleDescription={t('roleDescription')}
+            roleDescription={room('roleDescription')}
           />
         ) : null}
       </div>
-      <p id={descriptionId} className={styles.status}>
+      <VisuallyHidden>
+        <span id={descriptionId}>
+          {room('description', {
+            name,
+            length: dimension(ROOM.lengthM, locale),
+            width: dimension(ROOM.widthM, locale),
+            height: dimension(ROOM.heightM, locale),
+            area: area(ROOM.lengthM * ROOM.widthM, locale),
+          })}
+        </span>
+      </VisuallyHidden>
+      <p className={styles.status}>
         {t('status', { status: t(`statuses.${status}`) })}
       </p>
     </div>
@@ -73,6 +86,7 @@ function CanvasStage({ input, label, caption }: CanvasStageProps) {
 
 export function RoomCanvasSection() {
   const t = useTranslations('ShowcaseRoomCanvas');
+  const room = useTranslations('RoomPreview');
   const locale = useLocale();
 
   const lengthLabel = dimension(ROOM.lengthM, locale);
@@ -87,14 +101,14 @@ export function RoomCanvasSection() {
       <h3>{t('neutralHeading')}</h3>
       <CanvasStage
         input={NEUTRAL_INPUT}
-        label={t('label', { name: bedroom })}
+        name={t('neutralName')}
         caption={t('neutralCaption')}
       />
 
       <h3>{t('coloredHeading')}</h3>
       <CanvasStage
         input={COLORED_INPUT}
-        label={t('label', { name: bedroom })}
+        name={t('coloredName')}
         caption={t('coloredCaption')}
       />
 
@@ -108,7 +122,7 @@ export function RoomCanvasSection() {
           lengthLabel={lengthLabel}
           widthLabel={widthLabel}
           heightLabel={heightLabel}
-          description={t('fallbackDescription', {
+          description={room('fallbackDescription', {
             name: bedroom,
             length: lengthLabel,
             width: widthLabel,

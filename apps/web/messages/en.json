@@ -248,16 +248,15 @@
     "fallbackHeading": "RoomScene: fallback",
     "fallbackCaption": "Static drawing shown when WebGL is unavailable or the 3D view is switched off.",
     "bedroom": "Bedroom",
-    "label": "{name} in 3D",
-    "roleDescription": "3D view",
+    "neutralName": "Bedroom, neutral surfaces",
+    "coloredName": "Bedroom, coloured surfaces",
     "status": "Status: {status}",
     "statuses": {
       "loading": "loading",
       "ready": "ready",
       "error": "error",
       "lost": "context lost"
-    },
-    "fallbackDescription": "{name} {length} by {width}, height {height}"
+    }
   },
   "ShowcaseSceneToolbar": {
     "intro": "Row of icon buttons placed under the 3D view. Extra controls go in as children.",

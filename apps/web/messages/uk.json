@@ -248,16 +248,15 @@
     "fallbackHeading": "RoomScene: запасний режим",
     "fallbackCaption": "Статичний малюнок, коли WebGL недоступний або 3D вимкнено.",
     "bedroom": "Спальня",
-    "label": "{name} у 3D",
-    "roleDescription": "3D-вигляд",
+    "neutralName": "Спальня, нейтральні поверхні",
+    "coloredName": "Спальня, кольорові поверхні",
     "status": "Стан: {status}",
     "statuses": {
       "loading": "завантаження",
       "ready": "готово",
       "error": "помилка",
       "lost": "контекст втрачено"
-    },
-    "fallbackDescription": "{name} {length} на {width}, висота {height}"
+    }
   },
   "ShowcaseSceneToolbar": {
     "intro": "Ряд кнопок-іконок під 3D-виглядом. Додаткові елементи керування передаються дочірніми.",
