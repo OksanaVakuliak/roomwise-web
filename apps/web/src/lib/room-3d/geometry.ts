@@ -205,6 +205,7 @@ export function dimensionLines(
 ): DimensionLine[] {
   const { lengthM, widthM, heightM } = room;
   const { sx, sz } = sector;
+  const base = sector.height ? 0 : heightM;
   const halfL = lengthM / 2;
   const halfW = widthM / 2;
   const lineZ = sz * (halfW + DIMENSION_OFFSET_M);
@@ -217,13 +218,13 @@ export function dimensionLines(
   const length = dimensionLine(
     'length',
     [
-      [-halfL, 0, lineZ],
-      [halfL, 0, lineZ],
+      [-halfL, base, lineZ],
+      [halfL, base, lineZ],
     ],
     [-halfL, halfL].map(
       (x): Segment3 => [
-        [x, 0, nearZ],
-        [x, 0, farZ],
+        [x, base, nearZ],
+        [x, base, farZ],
       ],
     ),
     groundTick,
@@ -231,13 +232,13 @@ export function dimensionLines(
   const width = dimensionLine(
     'width',
     [
-      [lineX, 0, -halfW],
-      [lineX, 0, halfW],
+      [lineX, base, -halfW],
+      [lineX, base, halfW],
     ],
     [-halfW, halfW].map(
       (z): Segment3 => [
-        [nearX, 0, z],
-        [farX, 0, z],
+        [nearX, base, z],
+        [farX, base, z],
       ],
     ),
     groundTick,

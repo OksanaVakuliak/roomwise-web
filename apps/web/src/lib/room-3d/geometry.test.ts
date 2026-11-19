@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  type DimensionLine,
   dimensionLines,
   dimensionSector,
   EDGE_SHADE,
@@ -301,5 +302,17 @@ describe('dimensionLines', () => {
     const lines = dimensionLines(room, { sx: 1, sz: 1, height: false });
 
     expect(lines.map((line) => line.key)).toEqual(['length', 'width']);
+  });
+
+  it('lifts length and width to the top of the walls without the height', () => {
+    const top = dimensionLines(room, { sx: 1, sz: 1, height: false });
+    const side = dimensionLines(room, { sx: 1, sz: 1, height: true });
+    const heights = (lines: DimensionLine[]) =>
+      lines
+        .filter((line) => line.key !== 'height')
+        .flatMap((line) => line.segments.flat().map((point) => point[1]));
+
+    expect(new Set(heights(top))).toEqual(new Set([room.heightM]));
+    expect(new Set(heights(side))).toEqual(new Set([0]));
   });
 });
