@@ -2,11 +2,13 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readSceneColors, useSceneColors } from './use-scene-colors';
 
-const tokens: Record<string, string> = {
+const DEFAULT_TOKENS: Record<string, string> = {
   '--paper': ' #111111 ',
   '--paint': '#222222',
   '--line': '#333333',
 };
+
+const tokens: Record<string, string> = { ...DEFAULT_TOKENS };
 
 function stubTokens() {
   return vi.spyOn(window, 'getComputedStyle').mockReturnValue({
@@ -15,6 +17,7 @@ function stubTokens() {
 }
 
 afterEach(() => {
+  Object.assign(tokens, DEFAULT_TOKENS);
   vi.restoreAllMocks();
   document.documentElement.removeAttribute('data-theme');
 });
@@ -59,6 +62,5 @@ describe('useSceneColors', () => {
     act(() => document.documentElement.setAttribute('data-theme', 'dark'));
 
     await waitFor(() => expect(result.current?.background).toBe('#999999'));
-    tokens['--paper'] = ' #111111 ';
   });
 });
