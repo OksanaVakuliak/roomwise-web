@@ -10,9 +10,7 @@ import {
 import { installMockApi, isLive } from './mock-api';
 
 const THREE_MARKER = 'THREE.WebGLRenderer';
-const ENGINE_DELAY_MS = 6_000;
 const FEEDBACK_BUDGET_MS = 100;
-const WITHOUT_WEBGL = 'falls back to the diagram without WebGL';
 
 async function allowSoftwareWebGl(page: Page) {
   await page.addInitScript(() => {
@@ -90,9 +88,7 @@ test.describe('room 3d preview', () => {
     preview = catalogs[locale].RoomPreview;
     await installMockApi(page.context());
     await seedDraft(page, makeInteriorDraft());
-    if (test.info().title !== WITHOUT_WEBGL) {
-      await allowSoftwareWebGl(page);
-    }
+    await allowSoftwareWebGl(page);
   });
 
   test('shows the canvas and the view buttons respond', async ({ page }) => {
@@ -124,7 +120,7 @@ test.describe('room 3d preview', () => {
     await expect(page.locator('canvas')).toHaveCount(0);
   });
 
-  test(WITHOUT_WEBGL, async ({ page }) => {
+  test('falls back to the diagram without WebGL', async ({ page }) => {
     await disableWebGl(page);
     await page.goto(`/${locale}/configurator/interior`);
     await expect(
@@ -173,7 +169,7 @@ test.describe('room 3d preview', () => {
         if (!released && body.includes(THREE_MARKER)) {
           await new Promise<void>((resolve) => {
             holds.add(resolve);
-            setTimeout(resolve, ENGINE_DELAY_MS);
+            page.once('close', () => resolve());
           });
         }
         await route.fulfill({ response, body });
