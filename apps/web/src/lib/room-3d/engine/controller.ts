@@ -430,8 +430,8 @@ export function createRoomSceneController({
       const keyChanged = !input || input.roomKey !== next.roomKey;
       const sizeChanged = !input || !sameSize(input, next);
       input = next;
-      if (keyChanged || sizeChanged) sync(keyChanged, true);
-      else if (applySurfaces(true)) render();
+      if (keyChanged || sizeChanged) sync(keyChanged, keyChanged);
+      else if (applySurfaces(false)) render();
     },
     setColors(next) {
       if (

@@ -645,15 +645,35 @@ describe('room scene controller', () => {
       expect(mocks.request).toHaveBeenCalledTimes(2);
     });
 
-    it('retries a texture that failed once the same material is set again', () => {
+    it('does not retry a failed texture on an unrelated input change', () => {
       create();
       controller.setInput(withFloor(floorTexture));
-      controller.setInput(withFloor(floorTexture));
-      expect(mocks.request).toHaveBeenCalledTimes(1);
       mocks.request.mock.calls[0][3]();
-      expect(planeMaterial('floor').color.getHexString()).toBe('aa8866');
       controller.setInput(withFloor(floorTexture));
-      expect(mocks.request).toHaveBeenCalledTimes(2);
+      controller.setInput({
+        ...withFloor(floorTexture),
+        surfaces: {
+          ...withFloor(floorTexture).surfaces,
+          walls: {
+            ...floorTexture,
+            productId: 'w',
+            textureUrl: 'https://cdn/w.jpg',
+          },
+        },
+      });
+      expect(
+        mocks.request.mock.calls.filter(([slot]) => slot === 'floor'),
+      ).toHaveLength(1);
+    });
+
+    it('retries a failed texture when the room key changes', () => {
+      create();
+      controller.setInput(withFloor(floorTexture));
+      mocks.request.mock.calls[0][3]();
+      controller.setInput(withFloor(floorTexture, { ...input, roomKey: 'b' }));
+      expect(
+        mocks.request.mock.calls.filter(([slot]) => slot === 'floor'),
+      ).toHaveLength(2);
     });
 
     it('does not retry a failed texture on resize', () => {
