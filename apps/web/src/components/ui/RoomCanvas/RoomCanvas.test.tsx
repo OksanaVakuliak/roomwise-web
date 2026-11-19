@@ -207,6 +207,32 @@ describe('RoomCanvas', { timeout: importTimeout + 5_000 }, () => {
       expect(screen.getByText('3 m')).toHaveAttribute('data-visible', 'true');
     });
 
+    it('hides the labels when the engine is disposed', async () => {
+      const first =
+        createRef<RoomSceneController | null>() as MutableRefObject<RoomSceneController | null>;
+      const second =
+        createRef<RoomSceneController | null>() as MutableRefObject<RoomSceneController | null>;
+      const props = {
+        input,
+        colors,
+        reducedMotion: false,
+        onStatus: vi.fn(),
+        label: 'Living room',
+        roleDescription: '3D view',
+        dimensionLabels: texts,
+      };
+      const { rerender } = render(
+        <RoomCanvas {...props} controllerRef={first} />,
+      );
+      await settle();
+      const report = create.mock.calls[0][0].onDimensionLabels;
+      act(() => report([{ key: 'length', x: 10, y: 20 }]));
+      expect(screen.getByText('4 m')).toHaveAttribute('data-visible', 'true');
+      rerender(<RoomCanvas {...props} controllerRef={second} />);
+      expect(controller.dispose).toHaveBeenCalled();
+      expect(screen.getByText('4 m')).toHaveAttribute('data-visible', 'false');
+    });
+
     it('renders no labels without the prop', async () => {
       const { container } = renderCanvas();
       await settle();

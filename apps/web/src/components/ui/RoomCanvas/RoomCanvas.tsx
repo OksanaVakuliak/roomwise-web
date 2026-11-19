@@ -137,6 +137,7 @@ export function RoomCanvas({
       intersectionObserver?.disconnect();
       document.removeEventListener('visibilitychange', updateActive);
       controller?.dispose();
+      showLabels([]);
       instanceRef.current = null;
       if (controllerRef) controllerRef.current = null;
     };
