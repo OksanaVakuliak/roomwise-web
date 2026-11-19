@@ -5,6 +5,7 @@ import {
   type MutableRefObject,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
 } from 'react';
 import type {
@@ -49,7 +50,7 @@ export function RoomCanvas({
   const instanceRef = useRef<RoomSceneController | null>(null);
   const latest = useRef({ input, colors, reducedMotion, onStatus });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     latest.current = { input, colors, reducedMotion, onStatus };
     const controller = instanceRef.current;
     if (!controller) return;
