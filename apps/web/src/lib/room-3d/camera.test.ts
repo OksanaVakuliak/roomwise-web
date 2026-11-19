@@ -1,4 +1,3 @@
-import { PerspectiveCamera, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import {
   cameraLimits,
@@ -88,17 +87,28 @@ describe('defaultView', () => {
     const size = { lengthM: 4, widthM: 3, heightM: 2.7 };
     const aspect = 640 / 360;
     const view = defaultView(size, aspect);
-    const camera = new PerspectiveCamera(fovDegrees, aspect, 0.1, 100);
-    camera.position.set(...cameraPosition(view, size));
-    camera.lookAt(...cameraTarget(size));
-    camera.updateMatrixWorld();
+    const camera = cameraPosition(view, size);
+    const target = cameraTarget(size);
+    const forward = normalize(
+      target.map((value, axis) => value - camera[axis]),
+    );
+    const right = normalize(cross(forward, [0, 1, 0]));
+    const up = cross(right, forward);
+    const tanVertical = Math.tan((fovDegrees * Math.PI) / 360);
+    const tanHorizontal = tanVertical * aspect;
 
     for (const line of dimensionLines(size, dimensionSector(view))) {
       for (const segment of line.segments) {
         for (const point of segment) {
-          const ndc = new Vector3(...point).project(camera);
-          expect(Math.abs(ndc.x)).toBeLessThanOrEqual(1);
-          expect(Math.abs(ndc.y)).toBeLessThanOrEqual(1);
+          const offset = point.map((value, axis) => value - camera[axis]);
+          const depth = dot(offset, forward);
+          expect(depth).toBeGreaterThan(0);
+          expect(
+            Math.abs(dot(offset, right) / depth / tanHorizontal),
+          ).toBeLessThanOrEqual(1);
+          expect(
+            Math.abs(dot(offset, up) / depth / tanVertical),
+          ).toBeLessThanOrEqual(1);
         }
       }
     }
