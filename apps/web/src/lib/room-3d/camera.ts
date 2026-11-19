@@ -1,4 +1,10 @@
-import { type PlaneId, type RoomSize, roomPlanes, type Vec3 } from './geometry';
+import {
+  DIMENSION_REACH_M,
+  type PlaneId,
+  type RoomSize,
+  roomPlanes,
+  type Vec3,
+} from './geometry';
 import type { CameraView } from './types';
 
 export type CameraLimits = {
@@ -28,11 +34,16 @@ export function cameraTarget({ heightM }: RoomSize): Vec3 {
 }
 
 function fitDistance(room: RoomSize, aspect: number): number {
+  const framed = {
+    ...room,
+    lengthM: room.lengthM + 2 * DIMENSION_REACH_M,
+    widthM: room.widthM + 2 * DIMENSION_REACH_M,
+  };
   const safeAspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 1;
   const halfVertical = (fovDegrees * Math.PI) / 360;
   const halfHorizontal = Math.atan(Math.tan(halfVertical) * safeAspect);
   return (
-    (sceneRadius(room) / Math.sin(Math.min(halfVertical, halfHorizontal))) *
+    (sceneRadius(framed) / Math.sin(Math.min(halfVertical, halfHorizontal))) *
     fitMargin
   );
 }

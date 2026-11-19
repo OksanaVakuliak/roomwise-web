@@ -158,6 +158,8 @@ const EXTENSION_OVERSHOOT_M = 0.12;
 const TICK_M = 0.1;
 const HEIGHT_MIN_POLAR = 0.35;
 
+export const DIMENSION_REACH_M = DIMENSION_OFFSET_M + EXTENSION_OVERSHOOT_M;
+
 export function dimensionSector(
   view: Pick<CameraView, 'azimuth' | 'polar'>,
 ): DimensionSector {

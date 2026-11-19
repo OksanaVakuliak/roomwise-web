@@ -1,3 +1,4 @@
+import { PerspectiveCamera, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import {
   cameraLimits,
@@ -10,7 +11,12 @@ import {
   topView,
   visibleFaces,
 } from './camera';
-import type { PlaneId, RoomSize } from './geometry';
+import {
+  dimensionLines,
+  dimensionSector,
+  type PlaneId,
+  type RoomSize,
+} from './geometry';
 import type { CameraView } from './types';
 
 const rooms: RoomSize[] = [
@@ -75,6 +81,26 @@ describe('defaultView', () => {
   it.each(rooms)('fits room %o at every aspect ratio', (size) => {
     for (const aspect of aspects) {
       expect(fitsFrame(size, defaultView(size, aspect), aspect)).toBe(true);
+    }
+  });
+
+  it('keeps every dimension line point inside the frame', () => {
+    const size = { lengthM: 4, widthM: 3, heightM: 2.7 };
+    const aspect = 640 / 360;
+    const view = defaultView(size, aspect);
+    const camera = new PerspectiveCamera(fovDegrees, aspect, 0.1, 100);
+    camera.position.set(...cameraPosition(view, size));
+    camera.lookAt(...cameraTarget(size));
+    camera.updateMatrixWorld();
+
+    for (const line of dimensionLines(size, dimensionSector(view))) {
+      for (const segment of line.segments) {
+        for (const point of segment) {
+          const ndc = new Vector3(...point).project(camera);
+          expect(Math.abs(ndc.x)).toBeLessThanOrEqual(1);
+          expect(Math.abs(ndc.y)).toBeLessThanOrEqual(1);
+        }
+      }
     }
   });
 
