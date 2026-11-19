@@ -1,4 +1,4 @@
-import { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import { PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
   cameraLimits,
@@ -11,7 +11,7 @@ import {
   topView as toTopView,
   visibleFaces,
 } from '../camera';
-import type { RoomSize } from '../geometry';
+import { type DimensionKey, dimensionSector, type RoomSize } from '../geometry';
 import { pickTextureUrl } from '../texture-source';
 import type {
   CameraView,
@@ -21,6 +21,13 @@ import type {
   SceneStatus,
   SurfaceKey,
 } from '../types';
+import {
+  createDimensionLines,
+  type DimensionLinesState,
+  disposeDimensionLines,
+  setDimensionLinesColor,
+  updateDimensionLines,
+} from './dimension-lines';
 import {
   createRoomMesh,
   disposeRoomMesh,
@@ -35,9 +42,12 @@ import { createTextureCache, type TextureCache } from './texture-cache';
 
 type TextureMaterial = Extract<SceneMaterial, { kind: 'texture' }>;
 
+export type DimensionLabel = { key: DimensionKey; x: number; y: number };
+
 export type RoomSceneControllerOptions = {
   reducedMotion: boolean;
   onStatus?: (status: SceneStatus) => void;
+  onDimensionLabels?: (labels: DimensionLabel[]) => void;
 };
 
 export type RoomSceneController = {
@@ -105,12 +115,15 @@ function ease(t: number): number {
 export function createRoomSceneController({
   reducedMotion: initialReducedMotion,
   onStatus,
+  onDimensionLabels,
 }: RoomSceneControllerOptions): RoomSceneController {
   const scene = new Scene();
   const camera = new PerspectiveCamera(fovDegrees, 1, 0.1, 100);
   let renderer: WebGLRenderer | null = null;
   let controls: OrbitControls | null = null;
   let roomMesh: RoomMesh | null = null;
+  let dimensions: DimensionLinesState | null = null;
+  const scratch = new Vector3();
   let textures: TextureCache | null = null;
   let applied: Record<SurfaceKey, AppliedSurface> | null = null;
   let input: RoomSceneInput | null = null;
@@ -131,7 +144,32 @@ export function createRoomSceneController({
   function render() {
     if (!renderer || !roomMesh || !input || !active || contextLost) return;
     setRoomMeshEdges(roomMesh, visibleFaces(currentView(input), input));
+    if (dimensions) {
+      updateDimensionLines(
+        dimensions,
+        roomSize(input),
+        dimensionSector(currentView(input)),
+      );
+    }
     renderer.render(scene, camera);
+    if (dimensions && onDimensionLabels) {
+      reportLabels(dimensions);
+    }
+  }
+
+  function reportLabels({ lines }: DimensionLinesState) {
+    const labels: DimensionLabel[] = [];
+    camera.updateMatrixWorld();
+    for (const { key, label } of lines) {
+      scratch.set(...label).project(camera);
+      if (scratch.z < -1 || scratch.z > 1) continue;
+      labels.push({
+        key,
+        x: ((scratch.x + 1) / 2) * size.width,
+        y: ((1 - scratch.y) / 2) * size.height,
+      });
+    }
+    onDimensionLabels?.(labels);
   }
 
   function currentView(room: RoomSize): CameraView {
@@ -207,6 +245,8 @@ export function createRoomSceneController({
     if (!roomMesh) {
       roomMesh = createRoomMesh(room, colors);
       scene.add(roomMesh.group);
+      dimensions = createDimensionLines(colors);
+      scene.add(dimensions.object);
     } else if (!builtRoom || !sameSize(builtRoom, room)) {
       rebuildRoomMesh(roomMesh, room);
     }
@@ -401,6 +441,7 @@ export function createRoomSceneController({
       if (!renderer) return;
       renderer.setClearColor(next.background);
       if (roomMesh) setRoomMeshColors(roomMesh, next);
+      if (dimensions) setDimensionLinesColor(dimensions, next);
       render();
     },
     resize(width, height) {
@@ -465,6 +506,11 @@ export function createRoomSceneController({
       textures?.dispose();
       textures = null;
       applied = null;
+      if (dimensions) {
+        scene.remove(dimensions.object);
+        disposeDimensionLines(dimensions);
+        dimensions = null;
+      }
       if (roomMesh) {
         scene.remove(roomMesh.group);
         disposeRoomMesh(roomMesh);
