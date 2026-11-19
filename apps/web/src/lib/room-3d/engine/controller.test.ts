@@ -401,6 +401,20 @@ describe('room scene controller', () => {
     expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
   });
 
+  it('refits the target of a running transition to a new aspect', () => {
+    vi.useFakeTimers();
+    create(false);
+    controller.setInput(input);
+    press('ArrowRight', 3);
+    controller.resetView();
+    vi.advanceTimersByTime(100);
+    controller.resize(200, 540);
+    vi.advanceTimersByTime(600);
+    const [x, y, z] = cameraTarget(input);
+    const distance = lastFrame().camera.position.distanceTo({ x, y, z });
+    expect(distance).toBeCloseTo(defaultView(input, 200 / 540).distance, 3);
+  });
+
   it('handles known keys and ignores unknown ones without rendering', () => {
     create();
     controller.setInput(input);

@@ -135,6 +135,7 @@ export function createRoomSceneController({
   let silent = false;
   let applying = false;
   let frame: number | null = null;
+  let transitionView: CameraView | null = null;
   let contextLost = false;
   let lossCount = 0;
   let restoreTimer: ReturnType<typeof setTimeout> | null = null;
@@ -209,6 +210,7 @@ export function createRoomSceneController({
     if (frame === null) return;
     cancelAnimationFrame(frame);
     frame = null;
+    transitionView = null;
   }
 
   function moveTo(view: CameraView, animate: boolean) {
@@ -222,6 +224,7 @@ export function createRoomSceneController({
       return;
     }
     const from = currentView(room);
+    transitionView = target;
     const start = performance.now();
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / transitionMs);
@@ -237,6 +240,7 @@ export function createRoomSceneController({
       );
       render();
       frame = t < 1 ? requestAnimationFrame(step) : null;
+      if (frame === null) transitionView = null;
     };
     frame = requestAnimationFrame(step);
   }
@@ -455,12 +459,14 @@ export function createRoomSceneController({
       const room = roomSize(input);
       applyLimits(room);
       applySurfaces(false);
-      if (frame !== null) return;
-      const view = currentView(room);
+      const view = transitionView ?? currentView(room);
       const fit =
         defaultView(room, aspect()).distance /
         defaultView(room, previousAspect).distance;
-      moveTo({ ...view, distance: view.distance * fit }, false);
+      moveTo(
+        { ...view, distance: view.distance * fit },
+        transitionView !== null,
+      );
     },
     resetView() {
       if (!input) return;
