@@ -1,5 +1,4 @@
 import {
-  categorySurfaces,
   makeCategoryProducts,
   makeDefaultMaterials,
   makeEngineering,
@@ -10,10 +9,10 @@ import {
   makeRoomTypes,
   makeSaveCalculationResponse,
   makeStyles,
-  makeSurface,
   makeVersionView,
   type VersionView,
 } from '@/test/fixtures';
+import { makeSurfaceProducts } from '@/test/fixtures/catalog';
 
 export type Json = unknown;
 
@@ -48,27 +47,10 @@ const notFound = (): MockReply => ({
 
 export const TEXTURE_ORIGIN = 'https://cdn.test';
 
-const withSurface = (productId: string) => {
-  const details = makeProductDetails(productId);
-  const kind =
-    categorySurfaces[details.categoryId as keyof typeof categorySurfaces];
-  if (!kind) {
-    return details;
-  }
-  return {
-    ...details,
-    surfaceColor: '#9a9a9a',
-    surface: makeSurface({
-      kind,
-      texture: {
-        id: `tx-${productId}`,
-        url: `${TEXTURE_ORIGIN}/textures/${productId}.png`,
-        previewUrl: `${TEXTURE_ORIGIN}/textures/${productId}-512.png`,
-        realSizeMm: 600,
-      },
-    }),
-  };
-};
+const withSurface = (productId: string) =>
+  Object.values(makeSurfaceProducts()).find(
+    (product) => product.id === productId,
+  ) ?? makeProductDetails(productId);
 
 const lookup = (store: MockStore, publicId: string) =>
   store.calculations.get(publicId);
