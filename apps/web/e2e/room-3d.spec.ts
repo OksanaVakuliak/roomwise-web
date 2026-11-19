@@ -95,7 +95,7 @@ test.describe('room 3d preview', () => {
     }
   });
 
-  test('shows the canvas and the view buttons work', async ({ page }) => {
+  test('shows the canvas and the view buttons respond', async ({ page }) => {
     await page.goto(`/${locale}/configurator/interior`);
     const reset = page.getByRole('button', { name: preview.reset });
     const top = page.getByRole('button', { name: preview.top });
