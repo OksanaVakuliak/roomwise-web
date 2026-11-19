@@ -1,6 +1,6 @@
 'use client';
 
-import { type RefObject, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { SceneColors } from './types';
 
 export function readSceneColors(element: HTMLElement): SceneColors {
@@ -13,27 +13,35 @@ export function readSceneColors(element: HTMLElement): SceneColors {
   };
 }
 
+function sameColors(a: SceneColors | null, b: SceneColors): boolean {
+  return (
+    a !== null &&
+    a.background === b.background &&
+    a.neutral === b.neutral &&
+    a.edge === b.edge
+  );
+}
+
 export function useSceneColors(
-  ref: RefObject<HTMLElement | null>,
+  element: HTMLElement | null,
   enabled = true,
 ): SceneColors | null {
   const [colors, setColors] = useState<SceneColors | null>(null);
 
   useEffect(() => {
-    if (enabled && ref.current) setColors(readSceneColors(ref.current));
-  }, [ref, enabled]);
-
-  useEffect(() => {
-    if (!enabled) return;
-    const observer = new MutationObserver(() => {
-      if (ref.current) setColors(readSceneColors(ref.current));
-    });
+    if (!enabled || !element) return;
+    const update = () => {
+      const next = readSceneColors(element);
+      setColors((previous) => (sameColors(previous, next) ? previous : next));
+    };
+    update();
+    const observer = new MutationObserver(update);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['data-theme'],
     });
     return () => observer.disconnect();
-  }, [ref, enabled]);
+  }, [element, enabled]);
 
   return colors;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useId, useRef, useState } from 'react';
+import { useId, useState } from 'react';
 import { RoomCanvas, RoomScene } from '@/components/ui';
 import { dimension } from '@/lib/format';
 import { usePrefersReducedMotion } from '@/lib/media';
@@ -44,14 +44,14 @@ function CanvasStage({ input, label, caption }: CanvasStageProps) {
   const t = useTranslations('ShowcaseRoomCanvas');
   const descriptionId = useId();
   const reducedMotion = usePrefersReducedMotion();
-  const stageRef = useRef<HTMLDivElement>(null);
-  const colors = useSceneColors(stageRef);
+  const [stage, setStage] = useState<HTMLDivElement | null>(null);
+  const colors = useSceneColors(stage);
   const [status, setStatus] = useState<SceneStatus>('loading');
 
   return (
     <div className={styles.stack}>
       <p>{caption}</p>
-      <div ref={stageRef} className={styles.stage}>
+      <div ref={setStage} className={styles.stage}>
         {colors ? (
           <RoomCanvas
             input={input}

@@ -59,7 +59,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   const descriptionId = useId();
   const reducedMotion = usePrefersReducedMotion();
   const surfaces = useRoomSurfaces(room);
-  const stageRef = useRef<HTMLDivElement>(null);
+  const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<RoomSceneController | null>(null);
@@ -85,7 +85,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   if (webGl === false || status === 'error') reason = 'unsupported';
   else if (status === 'lost') reason = 'lost';
   else if (!scene3d) reason = 'manual';
-  const colors = useSceneColors(stageRef, hasDimensions && reason === null);
+  const colors = useSceneColors(stage, hasDimensions && reason === null);
   const expand = useSceneExpand(slotRef, rootRef, hasDimensions);
 
   useEffect(() => {
@@ -227,7 +227,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         onTransitionEnd={expand.onTransitionEnd}
       >
         {reason === null ? (
-          <div ref={stageRef} className={styles.stage}>
+          <div ref={setStage} className={styles.stage}>
             {colors && preferencesReady ? (
               <RoomCanvas
                 input={input}

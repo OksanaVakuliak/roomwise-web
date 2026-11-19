@@ -37,26 +37,53 @@ describe('readSceneColors', () => {
 describe('useSceneColors', () => {
   it('reads the colours once the element is available', () => {
     stubTokens();
-    const ref = { current: document.createElement('div') };
+    const element = document.createElement('div');
 
-    const { result } = renderHook(() => useSceneColors(ref));
+    const { result } = renderHook(() => useSceneColors(element));
 
     expect(result.current?.background).toBe('#111111');
   });
 
+  it('reads the colours when the element mounts after enabling', () => {
+    stubTokens();
+
+    const { result, rerender } = renderHook(
+      ({ element }: { element: HTMLElement | null }) => useSceneColors(element),
+      { initialProps: { element: null } },
+    );
+    expect(result.current).toBeNull();
+
+    rerender({ element: document.createElement('div') });
+
+    expect(result.current?.background).toBe('#111111');
+  });
+
+  it('keeps the same object when the theme change leaves colours unchanged', async () => {
+    const spy = stubTokens();
+    const element = document.createElement('div');
+    const { result } = renderHook(() => useSceneColors(element));
+    const first = result.current;
+    spy.mockClear();
+
+    act(() => document.documentElement.setAttribute('data-theme', 'dark'));
+
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    expect(result.current).toBe(first);
+  });
+
   it('stays empty while disabled', () => {
     stubTokens();
-    const ref = { current: document.createElement('div') };
+    const element = document.createElement('div');
 
-    const { result } = renderHook(() => useSceneColors(ref, false));
+    const { result } = renderHook(() => useSceneColors(element, false));
 
     expect(result.current).toBeNull();
   });
 
   it('re-reads the colours when the theme changes', async () => {
     stubTokens();
-    const ref = { current: document.createElement('div') };
-    const { result } = renderHook(() => useSceneColors(ref));
+    const element = document.createElement('div');
+    const { result } = renderHook(() => useSceneColors(element));
     tokens['--paper'] = '#999999';
 
     act(() => document.documentElement.setAttribute('data-theme', 'dark'));
