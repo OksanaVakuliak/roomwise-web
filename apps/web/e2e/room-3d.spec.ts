@@ -1,26 +1,36 @@
 import { expect, type Page, test } from '@playwright/test';
-import { DRAFT_VERSION } from '@/lib/draft/migrate';
-import { makeInteriorDraft } from '@/test/fixtures';
-import { catalogs, type Locale, templateToRegExp } from './keyboard';
-import { installMockApi } from './mock-api';
+import { categoryIds, categoryNames, makeInteriorDraft } from '@/test/fixtures';
+import { seedDraft } from './draft';
+import {
+  catalogs,
+  escapeRegExp,
+  type Locale,
+  templateToRegExp,
+} from './keyboard';
+import { installMockApi, isLive } from './mock-api';
 
-const DRAFT_KEY = 'roomwise-draft';
 const THREE_MARKER = 'THREE.WebGLRenderer';
 const ENGINE_DELAY_MS = 6_000;
 const FEEDBACK_BUDGET_MS = 100;
+const WITHOUT_WEBGL = 'falls back to the diagram without WebGL';
 
-async function seedDraft(page: Page) {
-  await page.addInitScript(
-    ([key, value]) => {
-      if (!window.localStorage.getItem(key)) {
-        window.localStorage.setItem(key, value);
+async function allowSoftwareWebGl(page: Page) {
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function getContext(
+      this: HTMLCanvasElement,
+      type: string,
+      options?: unknown,
+    ) {
+      if (type === 'webgl' || type === 'webgl2') {
+        return original.call(this, type, {
+          ...(options as WebGLContextAttributes | undefined),
+          failIfMajorPerformanceCaveat: false,
+        });
       }
-    },
-    [
-      DRAFT_KEY,
-      JSON.stringify({ state: makeInteriorDraft(), version: DRAFT_VERSION }),
-    ],
-  );
+      return original.call(this, type, options as never);
+    } as typeof original;
+  });
 }
 
 async function disableWebGl(page: Page) {
@@ -45,22 +55,33 @@ async function disableWebGl(page: Page) {
 
 function trackEngineChunks(page: Page) {
   const engine = new Set<string>();
-  page.on('response', async (response) => {
+  const pending = new Set<Promise<void>>();
+  page.on('response', (response) => {
     if (response.request().resourceType() !== 'script') {
       return;
     }
-    try {
-      if ((await response.text()).includes(THREE_MARKER)) {
-        engine.add(response.url());
-      }
-    } catch {
-      return;
-    }
+    const read = response
+      .text()
+      .then((body) => {
+        if (body.includes(THREE_MARKER)) {
+          engine.add(response.url());
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => pending.delete(read));
+    pending.add(read);
   });
-  return engine;
+  const settled = async () => {
+    while (pending.size > 0) {
+      await Promise.all([...pending]);
+    }
+  };
+  return { engine, settled };
 }
 
 test.describe('room 3d preview', () => {
+  test.skip(isLive(), 'relies on the mocked catalog');
+
   let locale: Locale;
   let preview: (typeof catalogs)['en']['RoomPreview'];
 
@@ -68,7 +89,10 @@ test.describe('room 3d preview', () => {
     locale = test.info().project.name as Locale;
     preview = catalogs[locale].RoomPreview;
     await installMockApi(page.context());
-    await seedDraft(page);
+    await seedDraft(page, makeInteriorDraft());
+    if (test.info().title !== WITHOUT_WEBGL) {
+      await allowSoftwareWebGl(page);
+    }
   });
 
   test('shows the canvas and the view buttons work', async ({ page }) => {
@@ -100,7 +124,7 @@ test.describe('room 3d preview', () => {
     await expect(page.locator('canvas')).toHaveCount(0);
   });
 
-  test('falls back to the diagram without WebGL', async ({ page }) => {
+  test(WITHOUT_WEBGL, async ({ page }) => {
     await disableWebGl(page);
     await page.goto(`/${locale}/configurator/interior`);
     await expect(
@@ -119,31 +143,42 @@ test.describe('room 3d preview', () => {
   });
 
   test('the object step does not load the 3D engine', async ({ page }) => {
-    const engine = trackEngineChunks(page);
+    const { engine, settled } = trackEngineChunks(page);
     await page.goto(`/${locale}/configurator/object`);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await page.waitForLoadState('networkidle');
+    await settled();
     expect([...engine]).toEqual([]);
 
     await page.goto(`/${locale}/configurator/interior`);
     await expect(page.locator('canvas').first()).toBeVisible();
-    expect(engine.size).toBeGreaterThan(0);
+    await expect.poll(() => engine.size).toBeGreaterThan(0);
   });
 
   test('choosing a product answers within 100 ms while the engine loads', async ({
     page,
   }) => {
     let released = false;
+    const holds = new Set<() => void>();
+    const release = () => {
+      released = true;
+      for (const resolve of holds) {
+        resolve();
+      }
+    };
     await page.route('**/_next/static/**/*.js', async (route) => {
       try {
         const response = await route.fetch();
         const body = await response.text();
         if (!released && body.includes(THREE_MARKER)) {
-          await new Promise((resolve) => setTimeout(resolve, ENGINE_DELAY_MS));
+          await new Promise<void>((resolve) => {
+            holds.add(resolve);
+            setTimeout(resolve, ENGINE_DELAY_MS);
+          });
         }
         await route.fulfill({ response, body });
       } catch {
-        await route.abort();
+        await route.abort().catch(() => undefined);
       }
     });
 
@@ -153,10 +188,9 @@ test.describe('room 3d preview', () => {
     await expect(loading).toBeVisible();
 
     await page
-      .getByRole('region')
-      .getByRole('list')
-      .first()
-      .getByRole('button')
+      .getByRole('button', {
+        name: new RegExp(`^${escapeRegExp(categoryNames[categoryIds.floor])}`),
+      })
       .first()
       .click();
     const candidate = page
@@ -176,10 +210,13 @@ test.describe('room 3d preview', () => {
         [...document.querySelectorAll('[role="dialog"] button')].find(
           (button) => button.getAttribute('aria-label') === name,
         );
-      find()?.addEventListener(
+      document.addEventListener(
         'click',
-        () => {
-          started = performance.now();
+        (event) => {
+          const target = event.target as Element | null;
+          if (target?.closest('button')?.getAttribute('aria-label') === name) {
+            started = performance.now();
+          }
         },
         { capture: true },
       );
@@ -208,7 +245,8 @@ test.describe('room 3d preview', () => {
     const elapsed = await page.evaluate(
       () => (window as Window & { feedbackMs?: number }).feedbackMs,
     );
-    released = true;
+    release();
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
 
     expect(elapsed).toBeDefined();
     expect(elapsed as number).toBeLessThan(FEEDBACK_BUDGET_MS);
