@@ -1,15 +1,12 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { RoomCanvas, RoomScene } from '@/components/ui';
 import { dimension } from '@/lib/format';
 import { usePrefersReducedMotion } from '@/lib/media';
-import type {
-  RoomSceneInput,
-  SceneColors,
-  SceneStatus,
-} from '@/lib/room-3d/types';
+import type { RoomSceneInput, SceneStatus } from '@/lib/room-3d/types';
+import { useSceneColors } from '@/lib/room-3d/use-scene-colors';
 import styles from './RoomCanvasSection.module.css';
 
 const ROOM = { lengthM: 4.2, widthM: 3.6, heightM: 2.7 };
@@ -37,16 +34,6 @@ const COLORED_INPUT: RoomSceneInput = {
   },
 };
 
-function readColors(element: HTMLElement): SceneColors {
-  const style = getComputedStyle(element);
-  const token = (name: string) => style.getPropertyValue(name).trim();
-  return {
-    background: token('--paper'),
-    neutral: token('--paint'),
-    edge: token('--line'),
-  };
-}
-
 type CanvasStageProps = {
   input: RoomSceneInput;
   label: string;
@@ -58,14 +45,8 @@ function CanvasStage({ input, label, caption }: CanvasStageProps) {
   const descriptionId = useId();
   const reducedMotion = usePrefersReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
-  const [colors, setColors] = useState<SceneColors | null>(null);
+  const colors = useSceneColors(stageRef);
   const [status, setStatus] = useState<SceneStatus>('loading');
-
-  useEffect(() => {
-    if (stageRef.current) {
-      setColors(readColors(stageRef.current));
-    }
-  }, []);
 
   return (
     <div className={styles.stack}>
