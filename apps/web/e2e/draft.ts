@@ -6,9 +6,7 @@ import type { DraftV1 } from '@/test/fixtures';
 export async function seedDraft(page: Page, draft: DraftV1) {
   await page.addInitScript(
     ([key, value]) => {
-      if (!window.localStorage.getItem(key)) {
-        window.localStorage.setItem(key, value);
-      }
+      window.localStorage.setItem(key, value);
     },
     [
       DRAFT_STORAGE_KEY,
