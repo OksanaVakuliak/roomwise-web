@@ -68,6 +68,8 @@
       "stepTape": "Step tape",
       "actions": "Actions and toggles",
       "roomPlan": "Room plan",
+      "roomCanvas": "Room canvas",
+      "sceneToolbar": "Scene toolbar",
       "sectionCut": "Section cut",
       "specification": "Specification",
       "estimate": "Estimate",
@@ -236,6 +238,34 @@
     "wallsMobile": "walls {walls}",
     "wallsDesktop": "walls {walls}, perimeter {perimeter}",
     "sceneDescription": "{name} {length} by {width}, height {height}"
+  },
+  "ShowcaseRoomCanvas": {
+    "intro": "The 3D room that loads three.js lazily. Drag to rotate, scroll or pinch to zoom, arrow keys move the camera.",
+    "neutralHeading": "RoomCanvas: neutral surfaces",
+    "neutralCaption": "No materials chosen: every surface uses the neutral paint colour.",
+    "coloredHeading": "RoomCanvas: coloured surfaces",
+    "coloredCaption": "Floor and walls with a flat colour, the ceiling stays neutral.",
+    "fallbackHeading": "RoomScene: fallback",
+    "fallbackCaption": "Static drawing shown when WebGL is unavailable or the 3D view is switched off.",
+    "bedroom": "Bedroom",
+    "neutralName": "Bedroom, neutral surfaces",
+    "coloredName": "Bedroom, coloured surfaces",
+    "status": "Status: {status}",
+    "statuses": {
+      "loading": "loading",
+      "ready": "ready",
+      "error": "error",
+      "lost": "context lost"
+    }
+  },
+  "ShowcaseSceneToolbar": {
+    "intro": "Row of icon buttons placed under the 3D view. Extra controls go in as children.",
+    "activeHeading": "Active",
+    "activeCaption": "Top view is a pressed toggle, expand swaps its icon and label.",
+    "loadingHeading": "Disabled",
+    "loadingCaption": "View controls stay disabled until the scene is ready.",
+    "fallbackHeading": "Fallback",
+    "fallbackCaption": "Without 3D only expand remains, next to the button that turns 3D back on."
   },
   "ShowcaseOverlays": {
     "modalTitle": "Modal dialog",

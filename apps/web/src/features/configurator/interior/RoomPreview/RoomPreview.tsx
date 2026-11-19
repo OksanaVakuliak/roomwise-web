@@ -27,11 +27,8 @@ import { usePrefersReducedMotion } from '@/lib/media';
 import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
 import { SURFACE_KEYS } from '@/lib/room-3d/materials';
 import { isWebGlSupported } from '@/lib/room-3d/support';
-import type {
-  RoomSceneInput,
-  SceneColors,
-  SceneStatus,
-} from '@/lib/room-3d/types';
+import type { RoomSceneInput, SceneStatus } from '@/lib/room-3d/types';
+import { useSceneColors } from '@/lib/room-3d/use-scene-colors';
 import { usePreferences } from '@/stores/preferences';
 import { usePreferencesHydration } from '@/stores/use-preferences-hydration';
 import { toSceneSurfaces, useRoomSurfaces } from '../use-room-surfaces';
@@ -56,23 +53,13 @@ export type RoomPreviewProps = {
 
 type FallbackReason = 'unsupported' | 'lost' | 'manual';
 
-function readColors(element: HTMLElement): SceneColors {
-  const style = getComputedStyle(element);
-  const token = (name: string) => style.getPropertyValue(name).trim();
-  return {
-    background: token('--paper'),
-    neutral: token('--paint'),
-    edge: token('--line'),
-  };
-}
-
 export function RoomPreview({ room, name }: RoomPreviewProps) {
   const t = useTranslations('RoomPreview');
   const locale = useLocale();
   const descriptionId = useId();
   const reducedMotion = usePrefersReducedMotion();
   const surfaces = useRoomSurfaces(room);
-  const stageRef = useRef<HTMLDivElement>(null);
+  const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<RoomSceneController | null>(null);
@@ -86,7 +73,6 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     roomKey: string;
     surfaces: SettledSurfaces;
   } | null>(null);
-  const [colors, setColors] = useState<SceneColors | null>(null);
   const [status, setStatus] = useState<SceneStatus>('loading');
   const [webGl, setWebGl] = useState<boolean | null>(null);
   const preferencesReady = usePreferencesHydration();
@@ -99,6 +85,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
   if (webGl === false || status === 'error') reason = 'unsupported';
   else if (status === 'lost') reason = 'lost';
   else if (!scene3d) reason = 'manual';
+  const colors = useSceneColors(stage, hasDimensions && reason === null);
   const expand = useSceneExpand(slotRef, rootRef, hasDimensions);
 
   useEffect(() => {
@@ -149,12 +136,6 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
     if (hasDimensions) setWebGl(isWebGlSupported());
   }, [hasDimensions]);
 
-  useEffect(() => {
-    if (hasDimensions && reason === null && stageRef.current) {
-      setColors(readColors(stageRef.current));
-    }
-  }, [hasDimensions, reason]);
-
   const input = useMemo<RoomSceneInput | null>(
     () =>
       lengthM === null || widthM === null || heightM === null
@@ -162,18 +143,6 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         : { roomKey: room.clientId, lengthM, widthM, heightM, surfaces },
     [room.clientId, lengthM, widthM, heightM, surfaces],
   );
-
-  useEffect(() => {
-    if (!hasDimensions) return;
-    const observer = new MutationObserver(() => {
-      if (stageRef.current) setColors(readColors(stageRef.current));
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme'],
-    });
-    return () => observer.disconnect();
-  }, [hasDimensions]);
 
   const resetView = useCallback(() => controllerRef.current?.resetView(), []);
   const topView = useCallback(() => controllerRef.current?.topView(), []);
@@ -258,7 +227,7 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
         onTransitionEnd={expand.onTransitionEnd}
       >
         {reason === null ? (
-          <div ref={stageRef} className={styles.stage}>
+          <div ref={setStage} className={styles.stage}>
             {colors && preferencesReady ? (
               <RoomCanvas
                 input={input}
