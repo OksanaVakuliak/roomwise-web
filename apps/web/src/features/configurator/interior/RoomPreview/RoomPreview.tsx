@@ -238,6 +238,11 @@ export function RoomPreview({ room, name }: RoomPreviewProps) {
                 describedBy={descriptionId}
                 roleDescription={t('roleDescription')}
                 controllerRef={controllerRef}
+                dimensionLabels={{
+                  length: lengthLabel,
+                  width: widthLabel,
+                  height: heightLabel,
+                }}
               />
             ) : null}
             <VisuallyHidden>

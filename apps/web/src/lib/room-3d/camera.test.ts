@@ -10,7 +10,12 @@ import {
   topView,
   visibleFaces,
 } from './camera';
-import type { PlaneId, RoomSize } from './geometry';
+import {
+  dimensionLines,
+  dimensionSector,
+  type PlaneId,
+  type RoomSize,
+} from './geometry';
 import type { CameraView } from './types';
 
 const rooms: RoomSize[] = [
@@ -75,6 +80,37 @@ describe('defaultView', () => {
   it.each(rooms)('fits room %o at every aspect ratio', (size) => {
     for (const aspect of aspects) {
       expect(fitsFrame(size, defaultView(size, aspect), aspect)).toBe(true);
+    }
+  });
+
+  it('keeps every dimension line point inside the frame', () => {
+    const size = { lengthM: 4, widthM: 3, heightM: 2.7 };
+    const aspect = 640 / 360;
+    const view = defaultView(size, aspect);
+    const camera = cameraPosition(view, size);
+    const target = cameraTarget(size);
+    const forward = normalize(
+      target.map((value, axis) => value - camera[axis]),
+    );
+    const right = normalize(cross(forward, [0, 1, 0]));
+    const up = cross(right, forward);
+    const tanVertical = Math.tan((fovDegrees * Math.PI) / 360);
+    const tanHorizontal = tanVertical * aspect;
+
+    for (const line of dimensionLines(size, dimensionSector(view))) {
+      for (const segment of line.segments) {
+        for (const point of segment) {
+          const offset = point.map((value, axis) => value - camera[axis]);
+          const depth = dot(offset, forward);
+          expect(depth).toBeGreaterThan(0);
+          expect(
+            Math.abs(dot(offset, right) / depth / tanHorizontal),
+          ).toBeLessThanOrEqual(1);
+          expect(
+            Math.abs(dot(offset, up) / depth / tanVertical),
+          ).toBeLessThanOrEqual(1);
+        }
+      }
     }
   });
 

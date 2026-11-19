@@ -948,6 +948,21 @@ describe('RoomPreview', () => {
         },
       });
 
+    it.each(['en', 'uk'] as const)(
+      'passes formatted dimension labels to the canvas in %s',
+      async (locale) => {
+        await act(async () => {
+          renderPreview(first, locale);
+        });
+
+        expect(canvas.props?.dimensionLabels).toEqual({
+          length: dimension(first.lengthM as number, locale),
+          width: dimension(first.widthM as number, locale),
+          height: dimension(first.heightM as number, locale),
+        });
+      },
+    );
+
     it.each([
       ['en', en],
       ['uk', uk],

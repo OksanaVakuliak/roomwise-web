@@ -1,5 +1,8 @@
 import {
+  type BufferGeometry,
   type Camera,
+  type LineBasicMaterial,
+  type LineSegments,
   type Mesh,
   type MeshBasicMaterial,
   type Object3D,
@@ -23,6 +26,7 @@ import type {
 } from '../types';
 import {
   createRoomSceneController,
+  type DimensionLabel,
   type RoomSceneController,
 } from './controller';
 
@@ -807,5 +811,86 @@ describe('room scene controller', () => {
       expect(() => deliver(1)).not.toThrow();
       expect(mocks.render.mock.calls.length).toBe(renders);
     });
+  });
+});
+
+describe('dimension labels', () => {
+  function createWithLabels(onLabels: (labels: DimensionLabel[]) => void) {
+    controller = createRoomSceneController({
+      reducedMotion: true,
+      onDimensionLabels: onLabels,
+    });
+    controller.setColors(colors);
+    controller.resize(800, 600);
+    controller.mount(container);
+  }
+
+  function dimensionObject() {
+    return find(lastFrame().scene, 'dimension-lines') as LineSegments<
+      BufferGeometry,
+      LineBasicMaterial
+    >;
+  }
+
+  it('reports length, width and height labels in canvas pixels', () => {
+    const onLabels = vi.fn();
+    createWithLabels(onLabels);
+    controller.setInput(input);
+    const labels = onLabels.mock.calls.at(-1)?.[0] as DimensionLabel[];
+    expect(labels.map(({ key }) => key).sort()).toEqual([
+      'height',
+      'length',
+      'width',
+    ]);
+    for (const { x, y } of labels) {
+      expect(Number.isFinite(x)).toBe(true);
+      expect(Number.isFinite(y)).toBe(true);
+      expect(x).toBeGreaterThan(-100);
+      expect(x).toBeLessThan(900);
+      expect(y).toBeGreaterThan(-100);
+      expect(y).toBeLessThan(700);
+    }
+  });
+
+  it('drops the height label from the top view', () => {
+    const onLabels = vi.fn();
+    createWithLabels(onLabels);
+    controller.setInput(input);
+    controller.topView();
+    const labels = onLabels.mock.calls.at(-1)?.[0] as DimensionLabel[];
+    expect(labels.map(({ key }) => key)).not.toContain('height');
+    expect(labels.map(({ key }) => key)).toContain('length');
+  });
+
+  it('does not report labels while inactive', () => {
+    const onLabels = vi.fn();
+    createWithLabels(onLabels);
+    controller.setInput(input);
+    controller.setActive(false);
+    onLabels.mockClear();
+    controller.setColors({ ...colors, edge: '#445566' });
+    controller.topView();
+    expect(onLabels).not.toHaveBeenCalled();
+  });
+
+  it('recolours the lines with the edge colour', () => {
+    createWithLabels(vi.fn());
+    controller.setInput(input);
+    controller.setColors({ ...colors, edge: '#ff0000' });
+    expect(dimensionObject().material.color.getHexString()).toBe('ff0000');
+  });
+
+  it('disposes the lines with the controller', () => {
+    createWithLabels(vi.fn());
+    controller.setInput(input);
+    const { geometry, material } = dimensionObject();
+    const disposeGeometry = vi.spyOn(geometry, 'dispose');
+    const disposeMaterial = vi.spyOn(material, 'dispose');
+    controller.dispose();
+    expect(disposeGeometry).toHaveBeenCalled();
+    expect(disposeMaterial).toHaveBeenCalled();
+    expect(
+      lastFrame().scene.getObjectByName('dimension-lines'),
+    ).toBeUndefined();
   });
 });

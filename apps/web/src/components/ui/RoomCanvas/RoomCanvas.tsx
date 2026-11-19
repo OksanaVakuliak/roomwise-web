@@ -5,9 +5,14 @@ import {
   type MutableRefObject,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
 } from 'react';
-import type { RoomSceneController } from '@/lib/room-3d/engine/controller';
+import type {
+  DimensionLabel,
+  RoomSceneController,
+} from '@/lib/room-3d/engine/controller';
+import type { DimensionKey } from '@/lib/room-3d/geometry';
 import type {
   RoomSceneInput,
   SceneColors,
@@ -25,7 +30,10 @@ export type RoomCanvasProps = {
   roleDescription: string;
   describedBy?: string;
   controllerRef?: MutableRefObject<RoomSceneController | null>;
+  dimensionLabels?: Record<DimensionKey, string>;
 };
+
+const DIMENSION_KEYS: DimensionKey[] = ['length', 'width', 'height'];
 
 export function RoomCanvas({
   input,
@@ -36,12 +44,13 @@ export function RoomCanvas({
   roleDescription,
   describedBy,
   controllerRef,
+  dimensionLabels,
 }: RoomCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<RoomSceneController | null>(null);
   const latest = useRef({ input, colors, reducedMotion, onStatus });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     latest.current = { input, colors, reducedMotion, onStatus };
     const controller = instanceRef.current;
     if (!controller) return;
@@ -59,6 +68,21 @@ export function RoomCanvas({
     let intersectionObserver: IntersectionObserver | undefined;
     let intersecting = true;
 
+    const showLabels = (labels: DimensionLabel[]) => {
+      for (const key of DIMENSION_KEYS) {
+        const span = container.querySelector<HTMLSpanElement>(
+          `[data-dimension="${key}"]`,
+        );
+        if (!span) continue;
+        const label = labels.find((item) => item.key === key);
+        if (label) {
+          span.style.setProperty('--x', `${label.x}px`);
+          span.style.setProperty('--y', `${label.y}px`);
+        }
+        span.dataset.visible = String(label !== undefined);
+      }
+    };
+
     const updateActive = () =>
       controller?.setActive(
         intersecting && document.visibilityState === 'visible',
@@ -73,6 +97,7 @@ export function RoomCanvas({
           controller = createRoomSceneController({
             reducedMotion: latest.current.reducedMotion,
             onStatus: (status) => latest.current.onStatus(status),
+            onDimensionLabels: showLabels,
           });
           instanceRef.current = controller;
           if (controllerRef) controllerRef.current = controller;
@@ -113,6 +138,7 @@ export function RoomCanvas({
       intersectionObserver?.disconnect();
       document.removeEventListener('visibilitychange', updateActive);
       controller?.dispose();
+      showLabels([]);
       instanceRef.current = null;
       if (controllerRef) controllerRef.current = null;
     };
@@ -133,6 +159,20 @@ export function RoomCanvas({
       aria-describedby={describedBy}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-    />
+    >
+      {dimensionLabels
+        ? DIMENSION_KEYS.map((key) => (
+            <span
+              key={key}
+              data-dimension={key}
+              className={styles.dimensionLabel}
+              data-visible="false"
+              aria-hidden="true"
+            >
+              {dimensionLabels[key]}
+            </span>
+          ))
+        : null}
+    </div>
   );
 }

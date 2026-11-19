@@ -63,6 +63,11 @@ function CanvasStage({ input, name, caption }: CanvasStageProps) {
             label={room('label', { name })}
             describedBy={descriptionId}
             roleDescription={room('roleDescription')}
+            dimensionLabels={{
+              length: dimension(ROOM.lengthM, locale),
+              width: dimension(ROOM.widthM, locale),
+              height: dimension(ROOM.heightM, locale),
+            }}
           />
         ) : null}
       </div>

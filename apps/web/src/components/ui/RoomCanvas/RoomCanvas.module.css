@@ -17,3 +17,23 @@
   outline: var(--focus-ring-width) solid var(--line);
   outline-offset: calc(var(--focus-ring-width) * -1);
 }
+
+.dimensionLabel {
+  position: absolute;
+  left: var(--x, 0);
+  top: var(--y, 0);
+  padding: 0 var(--space-3);
+  transform: translate(-50%, -50%);
+  background: var(--paper);
+  font-family: var(--text-number-s-family);
+  font-size: var(--text-label-size);
+  font-weight: var(--text-number-s-weight);
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dimensionLabel[data-visible="false"] {
+  visibility: hidden;
+}

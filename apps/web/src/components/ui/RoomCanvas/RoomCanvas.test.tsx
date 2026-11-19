@@ -173,6 +173,73 @@ describe('RoomCanvas', { timeout: importTimeout + 5_000 }, () => {
     expect(controller.setReducedMotion).toHaveBeenLastCalledWith(true);
   });
 
+  describe('dimension labels', () => {
+    const texts = { length: '4 m', width: '3 m', height: '2.7 m' };
+
+    it('renders hidden aria-hidden labels until the first report', async () => {
+      renderCanvas({ dimensionLabels: texts });
+      await settle();
+      for (const text of Object.values(texts)) {
+        const span = screen.getByText(text);
+        expect(span).toHaveAttribute('aria-hidden', 'true');
+        expect(span).toHaveAttribute('data-visible', 'false');
+      }
+    });
+
+    it('positions and shows reported labels and hides missing ones', async () => {
+      renderCanvas({ dimensionLabels: texts });
+      await settle();
+      const report = create.mock.calls[0][0].onDimensionLabels;
+      act(() =>
+        report([
+          { key: 'length', x: 10, y: 20 },
+          { key: 'height', x: 30, y: 40 },
+        ]),
+      );
+      const length = screen.getByText('4 m');
+      expect(length).toHaveAttribute('data-visible', 'true');
+      expect(length.style.getPropertyValue('--x')).toBe('10px');
+      expect(length.style.getPropertyValue('--y')).toBe('20px');
+      expect(screen.getByText('2.7 m')).toHaveAttribute('data-visible', 'true');
+      expect(screen.getByText('3 m')).toHaveAttribute('data-visible', 'false');
+      act(() => report([{ key: 'width', x: 1, y: 2 }]));
+      expect(length).toHaveAttribute('data-visible', 'false');
+      expect(screen.getByText('3 m')).toHaveAttribute('data-visible', 'true');
+    });
+
+    it('hides the labels when the engine is disposed', async () => {
+      const first =
+        createRef<RoomSceneController | null>() as MutableRefObject<RoomSceneController | null>;
+      const second =
+        createRef<RoomSceneController | null>() as MutableRefObject<RoomSceneController | null>;
+      const props = {
+        input,
+        colors,
+        reducedMotion: false,
+        onStatus: vi.fn(),
+        label: 'Living room',
+        roleDescription: '3D view',
+        dimensionLabels: texts,
+      };
+      const { rerender } = render(
+        <RoomCanvas {...props} controllerRef={first} />,
+      );
+      await settle();
+      const report = create.mock.calls[0][0].onDimensionLabels;
+      act(() => report([{ key: 'length', x: 10, y: 20 }]));
+      expect(screen.getByText('4 m')).toHaveAttribute('data-visible', 'true');
+      rerender(<RoomCanvas {...props} controllerRef={second} />);
+      expect(controller.dispose).toHaveBeenCalled();
+      expect(screen.getByText('4 m')).toHaveAttribute('data-visible', 'false');
+    });
+
+    it('renders no labels without the prop', async () => {
+      const { container } = renderCanvas();
+      await settle();
+      expect(container.querySelectorAll('span')).toHaveLength(0);
+    });
+  });
+
   it('does not mount when unmounted during the import', async () => {
     const { unmount } = renderCanvas();
     unmount();

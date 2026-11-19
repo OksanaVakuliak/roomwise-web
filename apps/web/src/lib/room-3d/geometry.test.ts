@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  type DimensionLine,
+  dimensionLines,
+  dimensionSector,
   EDGE_SHADE,
   planeIds,
   planeShade,
@@ -200,5 +203,127 @@ describe('planeShading', () => {
       expect(stops[1]).toBeCloseTo(-0.125);
       expect(stops[2]).toBeCloseTo(0.125);
     }
+  });
+});
+
+describe('dimensionSector', () => {
+  const deg = (value: number) => (value * Math.PI) / 180;
+  const polar = deg(55);
+
+  it('picks the edges nearer the camera in all four quadrants', () => {
+    expect(dimensionSector({ azimuth: deg(35), polar })).toMatchObject({
+      sx: 1,
+      sz: 1,
+    });
+    expect(dimensionSector({ azimuth: deg(125), polar })).toMatchObject({
+      sx: 1,
+      sz: -1,
+    });
+    expect(dimensionSector({ azimuth: deg(215), polar })).toMatchObject({
+      sx: -1,
+      sz: -1,
+    });
+    expect(dimensionSector({ azimuth: deg(305), polar })).toMatchObject({
+      sx: -1,
+      sz: 1,
+    });
+  });
+
+  it('shows the height from the default polar angle and hides it in top view', () => {
+    expect(dimensionSector({ azimuth: 0, polar }).height).toBe(true);
+    expect(dimensionSector({ azimuth: 0, polar: 0.05 }).height).toBe(false);
+  });
+});
+
+describe('dimensionLines', () => {
+  const sectors = [
+    { sx: 1, sz: 1 },
+    { sx: 1, sz: -1 },
+    { sx: -1, sz: -1 },
+    { sx: -1, sz: 1 },
+  ] as const;
+  const byKey = (lines: ReturnType<typeof dimensionLines>, key: string) => {
+    const line = lines.find((item) => item.key === key);
+    if (!line) {
+      throw new Error(`missing ${key}`);
+    }
+    return line;
+  };
+  const distance = (a: readonly number[], b: readonly number[]) =>
+    Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+
+  it('places the lines outside the room on the side nearer the camera', () => {
+    for (const { sx, sz } of sectors) {
+      const lines = dimensionLines(room, { sx, sz, height: true });
+      const [lengthStart] = byKey(lines, 'length').segments[0];
+      const [widthStart] = byKey(lines, 'width').segments[0];
+
+      expect(Math.sign(lengthStart[2])).toBe(sz);
+      expect(Math.abs(lengthStart[2])).toBeGreaterThan(room.widthM / 2);
+      expect(Math.sign(widthStart[0])).toBe(sx);
+      expect(Math.abs(widthStart[0])).toBeGreaterThan(room.lengthM / 2);
+    }
+  });
+
+  it('keeps every point off the room footprint interior', () => {
+    for (const { sx, sz } of sectors) {
+      for (const line of dimensionLines(room, { sx, sz, height: true })) {
+        for (const point of line.segments.flat()) {
+          const outsideX = Math.abs(point[0]) >= room.lengthM / 2 - 0.1;
+          const outsideZ = Math.abs(point[2]) >= room.widthM / 2 - 0.1;
+          expect(outsideX || outsideZ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('anchors each label at the midpoint of its dimension line', () => {
+    const lines = dimensionLines(room, { sx: 1, sz: 1, height: true });
+
+    expect(byKey(lines, 'length').label[0]).toBeCloseTo(0);
+    expect(byKey(lines, 'width').label[2]).toBeCloseTo(0);
+    expect(byKey(lines, 'height').label[1]).toBeCloseTo(room.heightM / 2);
+  });
+
+  it('gives the height ticks a horizontal component in both axes', () => {
+    for (const { sx, sz } of sectors) {
+      const lines = dimensionLines(room, { sx, sz, height: true });
+      const segments = byKey(lines, 'height').segments;
+      for (const [start, end] of segments.slice(-2)) {
+        expect(Math.abs(end[0] - start[0])).toBeGreaterThan(0);
+        expect(Math.abs(end[2] - start[2])).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('measures the real size of an elongated room', () => {
+    const long = { lengthM: 12, widthM: 1.2, heightM: 2.7 };
+    const lines = dimensionLines(long, { sx: -1, sz: 1, height: true });
+    const span = (key: string) => {
+      const [start, end] = byKey(lines, key).segments[0];
+      return distance(start, end);
+    };
+
+    expect(span('length')).toBeCloseTo(12);
+    expect(span('width')).toBeCloseTo(1.2);
+    expect(span('height')).toBeCloseTo(2.7);
+  });
+
+  it('returns only length and width without the height', () => {
+    const lines = dimensionLines(room, { sx: 1, sz: 1, height: false });
+
+    expect(lines.map((line) => line.key)).toEqual(['length', 'width']);
+  });
+
+  it('lifts length and width to the top of the walls without the height', () => {
+    const top = dimensionLines(room, { sx: 1, sz: 1, height: false });
+    const side = dimensionLines(room, { sx: 1, sz: 1, height: true });
+    const heights = (lines: DimensionLine[]) =>
+      lines
+        .filter((line) => line.key !== 'height')
+        .flatMap((line) => line.segments.flat().map((point) => point[1]));
+
+    expect(new Set(heights(top))).toEqual(new Set([room.heightM]));
+    expect(new Set(heights(side))).toEqual(new Set([0]));
   });
 });
