@@ -13,6 +13,8 @@ export {
 } from './calculation';
 export {
   categoryIds,
+  categoryNames,
+  categorySurfaces,
   type DefaultMaterialsResponse,
   type EngineeringResponse,
   makeCategoryProducts,

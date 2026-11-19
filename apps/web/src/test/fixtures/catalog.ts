@@ -132,13 +132,13 @@ const materialTypeCodes: Record<string, string> = {
   'mt-paint': 'paint',
 };
 
-const categoryNames = {
+export const categoryNames = {
   [categoryIds.floor]: 'Flooring',
   [categoryIds.walls]: 'Walls',
   [categoryIds.ceiling]: 'Ceiling',
 } as const;
 
-const categorySurfaces = {
+export const categorySurfaces = {
   [categoryIds.floor]: 'FLOOR',
   [categoryIds.walls]: 'WALLS',
   [categoryIds.ceiling]: 'CEILING',

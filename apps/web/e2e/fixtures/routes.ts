@@ -1,5 +1,5 @@
 import {
-  categoryIds,
+  categorySurfaces,
   makeCategoryProducts,
   makeDefaultMaterials,
   makeEngineering,
@@ -46,17 +46,12 @@ const notFound = (): MockReply => ({
   body: { error: { code: 'NOT_FOUND' } },
 });
 
-const surfaceKinds = {
-  [categoryIds.floor]: 'FLOOR',
-  [categoryIds.walls]: 'WALLS',
-  [categoryIds.ceiling]: 'CEILING',
-} as const;
-
 export const TEXTURE_ORIGIN = 'https://cdn.test';
 
 const withSurface = (productId: string) => {
   const details = makeProductDetails(productId);
-  const kind = surfaceKinds[details.categoryId as keyof typeof surfaceKinds];
+  const kind =
+    categorySurfaces[details.categoryId as keyof typeof categorySurfaces];
   if (!kind) {
     return details;
   }
