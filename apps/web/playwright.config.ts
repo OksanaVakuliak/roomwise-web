@@ -20,7 +20,6 @@ export default defineConfig({
     baseURL,
     trace: 'retain-on-failure',
     serviceWorkers: 'block',
-    launchOptions: { args: ['--enable-unsafe-swiftshader'] },
   },
   projects: [
     {

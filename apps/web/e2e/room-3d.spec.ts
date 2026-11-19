@@ -12,6 +12,8 @@ import { installMockApi, isLive } from './mock-api';
 const THREE_MARKER = 'THREE.WebGLRenderer';
 const FEEDBACK_BUDGET_MS = 100;
 
+test.use({ launchOptions: { args: ['--enable-unsafe-swiftshader'] } });
+
 async function allowSoftwareWebGl(page: Page) {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext;
