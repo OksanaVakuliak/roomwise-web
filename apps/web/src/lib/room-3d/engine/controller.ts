@@ -328,14 +328,26 @@ export function createRoomSceneController({
     return changed;
   }
 
+  function keptView(room: RoomSize, previous: RoomSize | null): CameraView {
+    if (!previous || sameSize(previous, room)) return currentView(room);
+    const view = currentView(previous);
+    const fit =
+      defaultView(room, aspect()).distance /
+      defaultView(previous, aspect()).distance;
+    return { ...view, distance: view.distance * fit };
+  }
+
   function sync(resetView: boolean, retryFailed: boolean) {
     if (!renderer || !input) return;
     const room = roomSize(input);
+    const previous = builtRoom;
     build(room);
     applyLimits(room);
     applySurfaces(retryFailed);
-    const view = resetView ? defaultView(room, aspect()) : currentView(room);
-    moveTo(view, false);
+    moveTo(
+      resetView ? defaultView(room, aspect()) : keptView(room, previous),
+      false,
+    );
   }
 
   function clearRestoreTimer() {

@@ -311,6 +311,22 @@ describe('room scene controller', () => {
     expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
   });
 
+  it('scales the view with the room when the size changes under the same key', () => {
+    create();
+    controller.setInput(input);
+    const grown = { ...input, lengthM: 10, widthM: 8 };
+    const ratio =
+      defaultView(grown, 800 / 600).distance /
+      defaultView(input, 800 / 600).distance;
+    controller.setInput(grown);
+    const [x, y, z] = cameraTarget(grown);
+    const distance = lastFrame().camera.position.distanceTo({ x, y, z });
+    expect(distance).toBeCloseTo(
+      defaultView(input, 800 / 600).distance * ratio,
+      3,
+    );
+  });
+
   it('refits the room into a narrower frame after a resize', () => {
     create();
     controller.setInput(input);
