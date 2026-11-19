@@ -49,7 +49,7 @@ describe('useSceneColors', () => {
 
     const { result, rerender } = renderHook(
       ({ element }: { element: HTMLElement | null }) => useSceneColors(element),
-      { initialProps: { element: null } },
+      { initialProps: { element: null as HTMLElement | null } },
     );
     expect(result.current).toBeNull();
 
