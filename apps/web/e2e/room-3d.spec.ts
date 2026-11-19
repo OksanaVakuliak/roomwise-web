@@ -65,7 +65,9 @@ function trackEngineChunks(page: Page) {
           engine.add(response.url());
         }
       })
-      .catch(() => undefined)
+      .catch(() => {
+        engine.add(response.url());
+      })
       .finally(() => pending.delete(read));
     pending.add(read);
   });
