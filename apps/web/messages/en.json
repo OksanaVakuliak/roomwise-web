@@ -266,15 +266,7 @@
     "loadingHeading": "Disabled",
     "loadingCaption": "View controls stay disabled until the scene is ready.",
     "fallbackHeading": "Fallback",
-    "fallbackCaption": "Without 3D only expand remains, next to the button that turns 3D back on.",
-    "reset": "Reset view",
-    "top": "Top view",
-    "expand": "Expand",
-    "collapse": "Close",
-    "disable": "Turn off 3D",
-    "enable": "Turn on 3D",
-    "stateOn": "3D view is on",
-    "stateOff": "3D view is off"
+    "fallbackCaption": "Without 3D only expand remains, next to the button that turns 3D back on."
   },
   "ShowcaseOverlays": {
     "modalTitle": "Modal dialog",
