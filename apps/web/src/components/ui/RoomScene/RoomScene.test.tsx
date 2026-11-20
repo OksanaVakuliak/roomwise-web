@@ -103,6 +103,20 @@ describe('RoomScene', () => {
     ).not.toBeNull();
   });
 
+  it('fills a colour-only surface without a pattern', () => {
+    const { container } = renderWithProviders(
+      <RoomScene
+        {...props}
+        surfaces={{ walls: { fallbackColor: '#336699' } }}
+      />,
+    );
+    expect(container.querySelector('pattern')).toBeNull();
+    expect(container.querySelector('image')).toBeNull();
+    expect(container.querySelectorAll('polygon[fill="#336699"]')).toHaveLength(
+      2,
+    );
+  });
+
   it('keeps pattern ids unique across instances', () => {
     const surface = {
       textureUrl: 'a.jpg',

@@ -4,12 +4,14 @@ import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import { computeGeometry, type Label } from './geometry';
 import styles from './RoomScene.module.css';
 
-export type SceneSurface = {
-  textureUrl: string;
-  tileWidthMm: number;
-  tileLengthMm: number;
-  fallbackColor: string;
-};
+export type SceneSurface =
+  | {
+      textureUrl: string;
+      tileWidthMm: number;
+      tileLengthMm: number;
+      fallbackColor: string;
+    }
+  | { fallbackColor: string; textureUrl?: undefined };
 
 export type SceneSurfaces = {
   floor?: SceneSurface;
@@ -105,6 +107,16 @@ export function RoomScene({
           {faces.map(({ key, surface, points, transform, shaded }) => {
             if (!surface) {
               return null;
+            }
+            if (surface.textureUrl === undefined) {
+              return (
+                <g key={key} data-surface={key}>
+                  <polygon points={points} fill={surface.fallbackColor} />
+                  {shaded ? (
+                    <polygon className={styles.shade} points={points} />
+                  ) : null}
+                </g>
+              );
             }
             const patternId = `${patternPrefix}-${key}`;
             const isFloor = key === 'floor';
