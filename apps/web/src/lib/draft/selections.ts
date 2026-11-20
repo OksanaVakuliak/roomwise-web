@@ -94,18 +94,3 @@ export function disableCategory(
     disabled: true,
   }));
 }
-
-export function enableCategory(
-  draft: DraftV1,
-  roomClientId: string,
-  categoryId: string,
-  siblingIds: readonly string[] = [],
-): DraftV1 {
-  return disableSiblings(
-    updateSelection(draft, roomClientId, categoryId, (previous) =>
-      previous ? { ...previous, disabled: false } : undefined,
-    ),
-    roomClientId,
-    siblingIds,
-  );
-}

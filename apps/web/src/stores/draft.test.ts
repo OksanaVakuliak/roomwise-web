@@ -517,22 +517,6 @@ describe('useDraft selection actions', () => {
     });
   });
 
-  it('restores the product when the category is enabled again', () => {
-    useDraft
-      .getState()
-      .selectProduct(roomId, categoryIds.floor, productIds.tile);
-    useDraft
-      .getState()
-      .disableCategory(roomId, categoryIds.floor, surfaceCategories);
-    useDraft.getState().enableCategory(roomId, categoryIds.floor);
-
-    expect(selection()).toEqual({
-      productId: productIds.tile,
-      disabled: false,
-      source: 'manual',
-    });
-  });
-
   it('ignores an unknown room but still bumps revision', () => {
     const before = useDraft.getState().rooms;
     const revision = useDraft.getState().revision;
@@ -543,10 +527,9 @@ describe('useDraft selection actions', () => {
     useDraft
       .getState()
       .disableCategory('missing', categoryIds.floor, surfaceCategories);
-    useDraft.getState().enableCategory('missing', categoryIds.floor);
 
     expect(useDraft.getState().rooms).toEqual(before);
-    expect(useDraft.getState().revision).toBe(revision + 3);
+    expect(useDraft.getState().revision).toBe(revision + 2);
   });
 
   it('increments revision on every action', () => {
@@ -558,9 +541,8 @@ describe('useDraft selection actions', () => {
     useDraft
       .getState()
       .disableCategory(roomId, categoryIds.floor, surfaceCategories);
-    useDraft.getState().enableCategory(roomId, categoryIds.floor);
 
-    expect(useDraft.getState().revision).toBe(revision + 3);
+    expect(useDraft.getState().revision).toBe(revision + 2);
   });
 });
 
@@ -620,15 +602,6 @@ describe('useDraft one finish per surface', () => {
       productId: productIds.paint,
       disabled: true,
     });
-  });
-
-  it('disables the sibling when a category is enabled again', () => {
-    useDraft
-      .getState()
-      .enableCategory(roomId, wallpaperId, [categoryIds.walls]);
-
-    expect(selections()[wallpaperId]?.disabled).toBe(false);
-    expect(selections()[categoryIds.walls]?.disabled).toBe(true);
   });
 
   it('normalises a stored draft with two finishes on one surface', () => {
