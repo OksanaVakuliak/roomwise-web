@@ -311,6 +311,38 @@ describe('room scene controller', () => {
     expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
   });
 
+  it('scales the view with the room when the size changes under the same key', () => {
+    create();
+    controller.setInput(input);
+    const grown = { ...input, lengthM: 10, widthM: 8 };
+    const ratio =
+      defaultView(grown, 800 / 600).distance /
+      defaultView(input, 800 / 600).distance;
+    controller.setInput(grown);
+    const [x, y, z] = cameraTarget(grown);
+    const distance = lastFrame().camera.position.distanceTo({ x, y, z });
+    expect(distance).toBeCloseTo(
+      defaultView(input, 800 / 600).distance * ratio,
+      3,
+    );
+  });
+
+  it('lands on the scaled target when the size changes during a transition', () => {
+    vi.useFakeTimers();
+    create(false);
+    controller.setInput(input);
+    press('ArrowRight', 3);
+    controller.resetView();
+    vi.advanceTimersByTime(100);
+    const grown = { ...input, lengthM: 10, widthM: 8 };
+    controller.setInput(grown);
+    const [x, y, z] = cameraPosition(defaultView(grown, 800 / 600), grown);
+    expect(lastFrame().camera.position.distanceTo({ x, y, z })).toBeCloseTo(
+      0,
+      3,
+    );
+  });
+
   it('refits the room into a narrower frame after a resize', () => {
     create();
     controller.setInput(input);
@@ -399,6 +431,38 @@ describe('room scene controller', () => {
     controller.resize(640, 480);
     vi.advanceTimersByTime(400);
     expect(lastFrame().camera.position.distanceTo(start)).toBeCloseTo(0, 3);
+  });
+
+  it('refits the target of a running transition to a new aspect', () => {
+    vi.useFakeTimers();
+    create(false);
+    controller.setInput(input);
+    press('ArrowRight', 3);
+    controller.resetView();
+    vi.advanceTimersByTime(100);
+    controller.resize(200, 540);
+    vi.advanceTimersByTime(600);
+    const [x, y, z] = cameraTarget(input);
+    const distance = lastFrame().camera.position.distanceTo({ x, y, z });
+    expect(distance).toBeCloseTo(defaultView(input, 200 / 540).distance, 3);
+  });
+
+  it('finishes a running transition on time while the canvas keeps resizing', () => {
+    vi.useFakeTimers();
+    create(false);
+    controller.setInput(input);
+    press('ArrowRight', 3);
+    controller.resetView();
+    for (let step = 0; step < 15; step += 1) {
+      vi.advanceTimersByTime(16);
+      controller.resize(640 + step * 4, 480);
+    }
+    vi.advanceTimersByTime(120);
+    const [x, y, z] = cameraPosition(defaultView(input, 696 / 480), input);
+    expect(lastFrame().camera.position.distanceTo({ x, y, z })).toBeCloseTo(
+      0,
+      3,
+    );
   });
 
   it('handles known keys and ignores unknown ones without rendering', () => {
@@ -631,15 +695,26 @@ describe('room scene controller', () => {
       expect(mocks.request).toHaveBeenCalledTimes(2);
     });
 
-    it('retries a texture that failed once the same material is set again', () => {
+    it('retries a failed texture on the next input change a limited number of times', () => {
       create();
       controller.setInput(withFloor(floorTexture));
+      const floorCalls = () =>
+        mocks.request.mock.calls.filter(([slot]) => slot === 'floor');
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        floorCalls().at(-1)?.[3]();
+        controller.setInput(withFloor(floorTexture));
+      }
+      expect(floorCalls()).toHaveLength(3);
+    });
+
+    it('retries a failed texture when the room key changes', () => {
+      create();
       controller.setInput(withFloor(floorTexture));
-      expect(mocks.request).toHaveBeenCalledTimes(1);
       mocks.request.mock.calls[0][3]();
-      expect(planeMaterial('floor').color.getHexString()).toBe('aa8866');
-      controller.setInput(withFloor(floorTexture));
-      expect(mocks.request).toHaveBeenCalledTimes(2);
+      controller.setInput(withFloor(floorTexture, { ...input, roomKey: 'b' }));
+      expect(
+        mocks.request.mock.calls.filter(([slot]) => slot === 'floor'),
+      ).toHaveLength(2);
     });
 
     it('does not retry a failed texture on resize', () => {

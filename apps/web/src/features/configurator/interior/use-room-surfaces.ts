@@ -2,7 +2,7 @@
 
 import { useQueries } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import type { SceneSurfaces } from '@/components/ui';
+import type { SceneSurface, SceneSurfaces } from '@/components/ui';
 import {
   productQuery,
   useCatalogReady,
@@ -92,22 +92,30 @@ export function toSceneSurfaces({
   walls,
 }: SurfaceMaterials): SceneSurfaces {
   const surfaces: SceneSurfaces = {};
-  if (floor.kind === 'texture') {
-    surfaces.floor = toSceneSurface(floor);
+  const floorSurface = toSceneSurface(floor);
+  if (floorSurface) {
+    surfaces.floor = floorSurface;
   }
-  if (walls.kind === 'texture') {
-    surfaces.walls = toSceneSurface(walls);
+  const wallsSurface = toSceneSurface(walls);
+  if (wallsSurface) {
+    surfaces.walls = wallsSurface;
   }
   return surfaces;
 }
 
 function toSceneSurface(
-  material: Extract<SurfaceMaterials['floor'], { kind: 'texture' }>,
-) {
-  return {
-    textureUrl: material.textureUrl,
-    tileWidthMm: material.textureStepMm.widthMm,
-    tileLengthMm: material.textureStepMm.lengthMm,
-    fallbackColor: material.color,
-  };
+  material: SurfaceMaterials['floor'],
+): SceneSurface | null {
+  if (material.kind === 'texture') {
+    return {
+      textureUrl: material.textureUrl,
+      tileWidthMm: material.textureStepMm.widthMm,
+      tileLengthMm: material.textureStepMm.lengthMm,
+      fallbackColor: material.color,
+    };
+  }
+  if (material.kind === 'color' && material.color !== null) {
+    return { fallbackColor: material.color };
+  }
+  return null;
 }

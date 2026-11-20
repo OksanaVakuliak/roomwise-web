@@ -159,7 +159,7 @@ describe('useRoomSurfaces', () => {
 });
 
 describe('toSceneSurfaces', () => {
-  it('exposes only textured floor and walls to the placeholder scene', () => {
+  it('exposes textured floor and coloured walls to the placeholder scene', () => {
     const { scene } = renderProbe(
       makeDraftRoom({
         selections: {
@@ -176,6 +176,18 @@ describe('toSceneSurfaces', () => {
         tileLengthMm: 1500,
         fallbackColor: '#9a9a9a',
       },
+      walls: { fallbackColor: '#6b4a2f' },
     });
+  });
+
+  it('maps colour materials to colour-only surfaces and skips a missing colour', () => {
+    const neutral = { kind: 'neutral', reason: 'unselected' } as const;
+    expect(
+      toSceneSurfaces({
+        floor: { kind: 'color', productId: 'f', name: 'F', color: null },
+        walls: { kind: 'color', productId: 'w', name: 'W', color: '#336699' },
+        ceiling: neutral,
+      }),
+    ).toEqual({ walls: { fallbackColor: '#336699' } });
   });
 });
