@@ -38,7 +38,6 @@ export function RoomPlanSection() {
     lengthLabel: dimension(bedroomLength, locale),
     widthLabel: dimension(bedroomWidth, locale),
     heightLabel: dimension(bedroomHeight, locale),
-    cutLabel: t('cutLabel'),
     description: t('sceneDescription', {
       name: bedroom,
       length: dimension(bedroomLength, locale),

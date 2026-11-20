@@ -44,6 +44,7 @@ export function StepLayout({
     <div className={cx(styles.root, className)}>
       <div className={styles.steps}>{steps}</div>
       <div
+        data-layout-body=""
         className={cx(styles.body, picker !== undefined && styles.withPicker)}
       >
         {picker ? (
@@ -62,9 +63,11 @@ export function StepLayout({
           <section className={styles.showcase} aria-label={t('showcase')}>
             {showcase}
           </section>
-          <section className={styles.cost} aria-label={t('cost')}>
-            {cost}
-          </section>
+          <div className={styles.costSlot}>
+            <section className={styles.cost} aria-label={t('cost')}>
+              {cost}
+            </section>
+          </div>
         </div>
       </div>
     </div>

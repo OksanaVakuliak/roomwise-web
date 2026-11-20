@@ -27,7 +27,6 @@ import {
 } from '@/lib/draft/schema';
 import {
   disableCategory as disableDraftCategory,
-  enableCategory as enableDraftCategory,
   selectProduct as selectDraftProduct,
 } from '@/lib/draft/selections';
 import {
@@ -121,11 +120,6 @@ type DraftState = DraftV1 & {
     roomClientId: string,
     categoryId: string,
     categories: readonly SurfaceCategory[],
-  ) => void;
-  enableCategory: (
-    roomClientId: string,
-    categoryId: string,
-    siblingIds?: readonly string[],
   ) => void;
   addCovering: (
     roomClientId: string,
@@ -383,16 +377,6 @@ export const useDraft = create<DraftState>()(
             roomClientId,
             categoryId,
             categories,
-          ),
-          revision: state.revision + 1,
-        })),
-      enableCategory: (roomClientId, categoryId, siblingIds) =>
-        set((state) => ({
-          ...enableDraftCategory(
-            pickDraft(state),
-            roomClientId,
-            categoryId,
-            siblingIds,
           ),
           revision: state.revision + 1,
         })),

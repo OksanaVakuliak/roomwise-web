@@ -6,15 +6,31 @@ import en from '../../../../messages/en.json';
 import uk from '../../../../messages/uk.json';
 import { ZoneSkeleton } from './ZoneSkeleton';
 
-const KINDS = ['showcase', 'rooms', 'specification', 'estimate'] as const;
+const KINDS = [
+  'showcase',
+  'rooms',
+  'specification',
+  'estimate',
+  'interior',
+  'engineering',
+  'style',
+  'result',
+  'object',
+  'plan',
+  'picker',
+  'scene',
+  'nav',
+] as const;
 const CATALOGS = { en, uk } as const;
 
 describe('ZoneSkeleton', () => {
   describe.each(KINDS)('kind %s', (kind) => {
-    it('renders a busy region with skeleton shapes and a loading label', () => {
+    it('renders a busy status named by its loading label', () => {
       const { container } = renderWithProviders(<ZoneSkeleton kind={kind} />);
       expect(container.firstElementChild).toHaveAttribute('aria-busy', 'true');
-      expect(screen.getByText(en.ZoneStates.loading[kind])).toBeInTheDocument();
+      expect(
+        screen.getByRole('status', { name: en.ZoneStates.loading[kind] }),
+      ).toBe(container.firstElementChild);
       expect(
         container.querySelectorAll('[aria-hidden="true"]').length,
       ).toBeGreaterThan(0);
@@ -23,7 +39,9 @@ describe('ZoneSkeleton', () => {
     it.each(['en', 'uk'] as const)('labels the zone in %s', (locale) => {
       renderWithProviders(<ZoneSkeleton kind={kind} />, { locale });
       expect(
-        screen.getByText(CATALOGS[locale].ZoneStates.loading[kind]),
+        screen.getByRole('status', {
+          name: CATALOGS[locale].ZoneStates.loading[kind],
+        }),
       ).toBeInTheDocument();
     });
 

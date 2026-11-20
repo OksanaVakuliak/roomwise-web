@@ -5,7 +5,7 @@ import { axe } from '@/test/axe';
 import { renderWithProviders } from '@/test/render-with-providers';
 import { BottomSheet } from './BottomSheet';
 
-function Harness() {
+function Harness({ full }: { full?: boolean }) {
   const [open, setOpen] = useState(false);
   const handleOpen = useCallback(() => setOpen(true), []);
   const handleClose = useCallback(() => setOpen(false), []);
@@ -20,6 +20,7 @@ function Harness() {
         onClose={handleClose}
         title="Finish"
         closeLabel="Close"
+        full={full}
       >
         <button type="button">Action</button>
       </BottomSheet>
@@ -59,6 +60,16 @@ describe('BottomSheet', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+
+  it('fills the viewport height only when asked to', () => {
+    const { unmount } = renderWithProviders(<Harness />);
+    openIt();
+    expect(screen.getByRole('dialog').className).not.toMatch(/full/);
+    unmount();
+    renderWithProviders(<Harness full />);
+    openIt();
+    expect(screen.getByRole('dialog').className).toMatch(/full/);
   });
 
   it('has no axe violations when open', async () => {

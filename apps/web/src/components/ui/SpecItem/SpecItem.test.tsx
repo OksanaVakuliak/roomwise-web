@@ -136,4 +136,60 @@ describe('SpecItem', () => {
       expect(await axe(container)).toHaveNoViolations();
     },
   );
+
+  describe('collapsible details', () => {
+    const collapsible = {
+      ...props,
+      roomCost: '$85.20',
+      roomCostLabel: 'for the room',
+      components: [{ id: 'material', label: 'Material', amount: '$100' }],
+      showDetailsLabel: 'Show details',
+      hideDetailsLabel: 'Hide details',
+      actions: <button type="button">Choose</button>,
+    };
+
+    it('hides the extras from the accessibility tree until expanded', () => {
+      render(<SpecItem {...collapsible} />);
+      const toggle = screen.getByRole('button', { name: 'Show details' });
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(
+        screen.getByRole('button', { name: 'Choose' }),
+      ).toBeInTheDocument();
+      expect(screen.getByText('$14.20')).toBeInTheDocument();
+      expect(screen.queryByRole('list')).toBeNull();
+      expect(screen.getByText('Material').closest('[inert]')).not.toBeNull();
+
+      fireEvent.click(toggle);
+      expect(
+        screen.getByRole('button', { name: 'Hide details' }),
+      ).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('list')).toBeInTheDocument();
+      expect(screen.getByText('Material').closest('[inert]')).toBeNull();
+    });
+
+    it('has no toggle without labels or without extras', () => {
+      const { rerender } = render(
+        <SpecItem {...collapsible} showDetailsLabel={undefined} />,
+      );
+      expect(screen.queryByRole('button', { name: /details/ })).toBeNull();
+      rerender(
+        <SpecItem
+          {...collapsible}
+          brand={undefined}
+          dimensions={undefined}
+          fit={undefined}
+          components={undefined}
+          roomCost={undefined}
+        />,
+      );
+      expect(screen.queryByRole('button', { name: /details/ })).toBeNull();
+    });
+
+    it('has no axe violations collapsed and expanded', async () => {
+      const { container } = render(<SpecItem {...collapsible} />);
+      expect(await axe(container)).toHaveNoViolations();
+      fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
+      expect(await axe(container)).toHaveNoViolations();
+    });
+  });
 });

@@ -10,7 +10,9 @@ import { FormFieldsSection } from './sections/FormFieldsSection';
 import { HeaderSection } from './sections/HeaderSection';
 import { IconsSection } from './sections/IconsSection';
 import { OverlaysSection } from './sections/OverlaysSection';
+import { RoomCanvasSection } from './sections/RoomCanvasSection';
 import { RoomPlanSection } from './sections/RoomPlanSection';
+import { SceneToolbarSection } from './sections/SceneToolbarSection';
 import { SectionCutSection } from './sections/SectionCutSection';
 import { SpacingSection } from './sections/SpacingSection';
 import { SpecificationSection } from './sections/SpecificationSection';
@@ -28,6 +30,8 @@ const SECTION_CONTENT: Partial<Record<ShowcaseSection, ComponentType>> = {
   stepTape: StepTapeSection,
   actions: ActionsSection,
   roomPlan: RoomPlanSection,
+  roomCanvas: RoomCanvasSection,
+  sceneToolbar: SceneToolbarSection,
   sectionCut: SectionCutSection,
   specification: SpecificationSection,
   estimate: EstimateSection,

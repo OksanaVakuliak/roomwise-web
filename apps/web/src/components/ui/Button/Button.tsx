@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, MouseEvent } from 'react';
+import type { ButtonHTMLAttributes, MouseEvent, Ref } from 'react';
 import { cx } from '@/lib/cx';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './Button.module.css';
@@ -7,6 +7,7 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   kind?: 'outline' | 'fill' | 'heat';
   loading?: boolean;
   loadingLabel?: string;
+  ref?: Ref<HTMLButtonElement>;
 };
 
 function preventAction(event: MouseEvent<HTMLButtonElement>) {

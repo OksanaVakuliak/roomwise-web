@@ -1,8 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
-import { DRAFT_VERSION } from '@/lib/draft/migrate';
 import { ROOM_NAME_MAX } from '@/lib/draft/schema';
 import { THEME_STORAGE_KEY } from '@/lib/theme/constants';
-import { DRAFT_STORAGE_KEY } from '@/stores/draft';
 import {
   calculationIds,
   makeDraftRoom,
@@ -10,6 +8,7 @@ import {
   makePricingData,
   makeVersionView,
 } from '@/test/fixtures';
+import { seedDraft } from './draft';
 import { createMockStore, installMockApi, isLive } from './mock-api';
 
 const NARROW = { width: 320, height: 640 };
@@ -58,17 +57,12 @@ async function seed(
   draft: ReturnType<typeof extremeDraft>,
 ) {
   await page.addInitScript(
-    ([themeKey, mode, draftKey, persisted]) => {
+    ([themeKey, mode]) => {
       window.localStorage.setItem(themeKey, mode);
-      window.localStorage.setItem(draftKey, persisted);
     },
-    [
-      THEME_STORAGE_KEY,
-      theme,
-      DRAFT_STORAGE_KEY,
-      JSON.stringify({ state: draft, version: DRAFT_VERSION }),
-    ] as const,
+    [THEME_STORAGE_KEY, theme] as const,
   );
+  await seedDraft(page, draft);
 }
 
 async function overflowOf(page: Page) {

@@ -4,15 +4,15 @@ import { useSearchParams } from 'next/navigation';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ErrorState } from '@/components/system';
-import { BottomSheet, SheetTitle, Skeleton } from '@/components/ui';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
+import { BottomSheet, SheetTitle } from '@/components/ui';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName, roomMetrics } from '@/lib/draft/rooms';
 import type { DraftRoom } from '@/lib/draft/schema';
 import { surfaceSiblings } from '@/lib/draft/surfaces';
 import { area, dimension } from '@/lib/format';
-import { useIsDesktop } from '@/lib/media';
+import { useIsDesktop, useIsWide } from '@/lib/media';
 import { useDraft } from '@/stores/draft';
 import { usePickerSlot } from '../../shell/PickerSlot/picker-slot-context';
 import { useSceneSlot } from '../../shell/SceneSlot/scene-slot-context';
@@ -21,10 +21,33 @@ import { useRoomPricing } from '../../shell/use-room-pricing';
 import { ChosenList } from '../ChosenList/ChosenList';
 import { ProductDetail } from '../ProductDetail/ProductDetail';
 import { RoomPlans } from '../RoomPlans/RoomPlans';
-import { ScenePlaceholder } from '../ScenePlaceholder/ScenePlaceholder';
+import { RoomPreview } from '../RoomPreview/RoomPreview';
 import { Specification } from '../Specification/Specification';
-import { useRoomSurfaces } from '../use-room-surfaces';
 import styles from './InteriorStep.module.css';
+
+function InteriorLoading() {
+  const sceneSlot = useSceneSlot();
+  const pickerSlot = usePickerSlot();
+  const showcaseSlot = useShowcaseSlot();
+
+  return (
+    <>
+      <ZoneSkeleton kind="interior" />
+      {sceneSlot
+        ? createPortal(<ZoneSkeleton kind="scene" decorative />, sceneSlot)
+        : null}
+      {pickerSlot
+        ? createPortal(<ZoneSkeleton kind="picker" decorative />, pickerSlot)
+        : null}
+      {showcaseSlot
+        ? createPortal(
+            <ZoneSkeleton kind="showcase" decorative />,
+            showcaseSlot,
+          )
+        : null}
+    </>
+  );
+}
 
 function InteriorContent() {
   const t = useTranslations('InteriorStep');
@@ -40,6 +63,7 @@ function InteriorContent() {
   const pickerSlot = usePickerSlot();
   const showcaseSlot = useShowcaseSlot();
   const desktop = useIsDesktop();
+  const inlinePicker = useIsWide();
   const selectProduct = useDraft((state) => state.selectProduct);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -49,7 +73,6 @@ function InteriorContent() {
   const current =
     rooms.find((room) => room.clientId === requestedRoom) ?? rooms[0] ?? null;
   const needsRedirect = current !== null && current.clientId !== requestedRoom;
-  const surfaces = useRoomSurfaces(current);
   const pricing = useRoomPricing();
 
   const navigate = useCallback(
@@ -90,11 +113,11 @@ function InteriorContent() {
         { room: roomClientId, category: id },
         roomClientId === current?.clientId ? 'replace' : 'push',
       );
-      if (!desktop) {
+      if (!inlinePicker) {
         setPickerOpen(true);
       }
     },
-    [current?.clientId, desktop, navigate],
+    [current?.clientId, inlinePicker, navigate],
   );
   const roomTypeItems = roomTypesQuery.data?.items;
   const currentCategories = useMemo(
@@ -130,11 +153,7 @@ function InteriorContent() {
   const roomTypes = roomTypesQuery.data?.items;
 
   if (!roomTypes || current === null) {
-    return (
-      <div className={styles.root} role="status" aria-label={t('loading')}>
-        <Skeleton variant="block" />
-      </div>
-    );
+    return <InteriorLoading />;
   }
 
   const nameOf = (room: DraftRoom) =>
@@ -178,18 +197,6 @@ function InteriorContent() {
     };
   });
   const metrics = roomMetrics(current);
-  const { lengthM, widthM, heightM } = current;
-  const scene =
-    lengthM === null || widthM === null || heightM === null ? null : (
-      <ScenePlaceholder
-        name={roomName}
-        lengthM={lengthM}
-        widthM={widthM}
-        heightM={heightM}
-        surfaces={surfaces}
-      />
-    );
-
   return (
     <div className={styles.root}>
       <RoomPlans
@@ -234,8 +241,13 @@ function InteriorContent() {
         onChoose={chooseFromDetail}
         onClose={closeDetail}
       />
-      {sceneSlot && scene ? createPortal(scene, sceneSlot) : null}
-      {pickerSlot && desktop
+      {sceneSlot
+        ? createPortal(
+            <RoomPreview room={current} name={roomName} />,
+            sceneSlot,
+          )
+        : null}
+      {pickerSlot && inlinePicker
         ? createPortal(
             <Specification
               room={current}
@@ -249,12 +261,13 @@ function InteriorContent() {
             pickerSlot,
           )
         : null}
-      {desktop ? null : (
+      {inlinePicker ? null : (
         <BottomSheet
           open={pickerOpen}
           onClose={closePicker}
           title={tSpec('title')}
           closeLabel={t('closePicker')}
+          full
         >
           <Specification
             room={current}
@@ -278,7 +291,7 @@ function InteriorContent() {
               activeCategoryId={activeCategory?.id ?? null}
               size={size}
               onSelect={chooseFromList}
-              onOpenPicker={desktop ? undefined : openPicker}
+              onOpenPicker={inlinePicker ? undefined : openPicker}
             />,
             showcaseSlot,
           )
@@ -287,19 +300,9 @@ function InteriorContent() {
   );
 }
 
-function InteriorFallback() {
-  const t = useTranslations('InteriorStep');
-
-  return (
-    <div className={styles.root} role="status" aria-label={t('loading')}>
-      <Skeleton variant="block" />
-    </div>
-  );
-}
-
 export function InteriorStep() {
   return (
-    <Suspense fallback={<InteriorFallback />}>
+    <Suspense fallback={<InteriorLoading />}>
       <InteriorContent />
     </Suspense>
   );

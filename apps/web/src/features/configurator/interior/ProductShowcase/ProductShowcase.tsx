@@ -4,7 +4,12 @@ import type { EstimateLine } from '@roomwise/calc-engine';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useEffectEvent, useMemo } from 'react';
 import { ErrorState } from '@/components/system';
-import { Button, ImageWithFallback, Skeleton, SpecItem } from '@/components/ui';
+import {
+  Button,
+  ImageWithFallback,
+  SpecItem,
+  SpecItemSkeleton,
+} from '@/components/ui';
 import { useCategoryProducts } from '@/lib/api/catalog';
 import { ApiRequestError } from '@/lib/api/request-error';
 import type { DraftRoom } from '@/lib/draft/schema';
@@ -20,6 +25,7 @@ import {
 import styles from './ProductShowcase.module.css';
 
 const NO_CATEGORIES: readonly SpecCategory[] = [];
+const SKELETON_ROWS = [0, 1, 2, 3] as const;
 
 type ProductCardData = NonNullable<
   ReturnType<typeof useCategoryProducts>['data']
@@ -119,6 +125,8 @@ function ProductCard({
             .filter(Boolean)
             .join(' · ') || undefined
         }
+        showDetailsLabel={t('showDetails', { name: product.name })}
+        hideDetailsLabel={t('hideDetails', { name: product.name })}
         actions={
           <>
             <Button
@@ -210,7 +218,13 @@ export function ProductShowcase({
   if (!sorted || pricing === null) {
     return (
       <div className={styles.root} role="status" aria-label={t('loading')}>
-        <Skeleton variant="block" />
+        <ul className={styles.list} aria-hidden="true">
+          {SKELETON_ROWS.map((key) => (
+            <li key={key}>
+              <SpecItemSkeleton />
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }

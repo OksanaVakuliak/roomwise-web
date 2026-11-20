@@ -18,6 +18,8 @@ import { productCardLine } from '@/lib/engine/card-cost';
 import type { RoomPricing } from '../../shell/use-room-pricing';
 import styles from './ProductDetail.module.css';
 
+const SKELETON_ROWS = [0, 1, 2] as const;
+
 export type ProductDetailProps = {
   productId: string | null;
   categoryId: string | null;
@@ -29,8 +31,25 @@ export type ProductDetailProps = {
 
 function BodySkeleton({ label }: { label: string }) {
   return (
-    <div role="status" aria-label={label}>
-      <Skeleton variant="block" />
+    <div className={styles.root} role="status" aria-label={label}>
+      <div className={styles.galleryImage}>
+        <Skeleton variant="block" height="100%" />
+      </div>
+      <div className={styles.cost}>
+        <Skeleton />
+        <Skeleton width="80%" />
+      </div>
+      <div className={styles.cost}>
+        {SKELETON_ROWS.map((key) => (
+          <div key={key} className={styles.row}>
+            <Skeleton width="30%" />
+            <Skeleton width="25%" />
+          </div>
+        ))}
+      </div>
+      <div className={styles.actions}>
+        <Skeleton variant="block" width="40%" height="var(--size-button)" />
+      </div>
     </div>
   );
 }

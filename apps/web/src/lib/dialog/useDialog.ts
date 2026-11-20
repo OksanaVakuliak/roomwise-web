@@ -1,4 +1,10 @@
 import { type RefObject, useEffect, useRef, useState } from 'react';
+import {
+  inertElements,
+  lockScroll,
+  releaseElements,
+  unlockScroll,
+} from './page-lock';
 
 const FOCUSABLE = [
   'a[href]',
@@ -44,41 +50,16 @@ function focusableIn(container: HTMLElement): HTMLElement[] {
 type Entry = { container: HTMLElement };
 
 const stack: Entry[] = [];
-const inertCounts = new Map<Element, number>();
-let savedOverflow = '';
 
 function lockPage(container: HTMLElement) {
-  if (stack.length === 0) {
-    savedOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-  }
+  lockScroll();
   const own = container.closest('body > *');
-  const nodes: Element[] = [];
-  for (const node of document.body.children) {
-    const count = inertCounts.get(node);
-    if (node === own || (count === undefined && node.hasAttribute('inert'))) {
-      continue;
-    }
-    inertCounts.set(node, (count ?? 0) + 1);
-    node.setAttribute('inert', '');
-    nodes.push(node);
-  }
-  return nodes;
+  return inertElements([...document.body.children].filter((n) => n !== own));
 }
 
 function unlockPage(nodes: Element[]) {
-  for (const node of nodes) {
-    const count = (inertCounts.get(node) ?? 1) - 1;
-    if (count > 0) {
-      inertCounts.set(node, count);
-    } else {
-      inertCounts.delete(node);
-      node.removeAttribute('inert');
-    }
-  }
-  if (stack.length === 0) {
-    document.body.style.overflow = savedOverflow;
-  }
+  releaseElements(nodes);
+  unlockScroll();
 }
 
 export function useDialog(

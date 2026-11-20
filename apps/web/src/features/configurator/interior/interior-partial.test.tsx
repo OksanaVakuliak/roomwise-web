@@ -23,6 +23,7 @@ import {
   offSelection,
   pricing,
   renderStep,
+  roomSection,
   showcase,
   styleSelection,
   usd,
@@ -39,13 +40,6 @@ function floorRow() {
 
 async function enableFloorWithLaminate(locale: 'en' | 'uk' = 'en') {
   const text = catalogs[locale];
-  await act(async () => {
-    fireEvent.click(
-      within(floorRow()).getByRole('button', {
-        name: new RegExp(`^${text.ChosenList.add}`),
-      }),
-    );
-  });
   await act(async () => {
     fireEvent.click(
       within(showcase('Flooring')).getByRole('button', {
@@ -80,10 +74,8 @@ describe('InteriorStep at partial scope', () => {
         }),
       ).toBeNull();
       expect(
-        within(floorRow()).getByRole('button', {
-          name: new RegExp(`^${text.ChosenList.add}`),
-        }),
-      ).toBeInTheDocument();
+        within(roomSection('Living room')).queryAllByRole('listitem'),
+      ).toHaveLength(0);
       expect(costRow(text.CostPanel.worksAndMaterials)).toHaveTextContent('—');
     },
   );
@@ -105,7 +97,11 @@ describe('InteriorStep at partial scope', () => {
     'lists material, labor and preparation of the chosen floor in %s',
     async (locale) => {
       await renderStep(url, { draft: makePartialRoomDraft('ROUGH'), locale });
-      const text = catalogs[locale].Specification.components;
+      const text = {
+        ...catalogs[locale].Specification.components,
+        showDetailsPrefix:
+          catalogs[locale].ChosenList.showDetails.split(':')[0],
+      };
 
       await enableFloorWithLaminate(locale);
 
@@ -116,6 +112,11 @@ describe('InteriorStep at partial scope', () => {
         'LABOR',
         'PREP',
       ]);
+      fireEvent.click(
+        within(floorRow()).getByRole('button', {
+          name: new RegExp(`^${text.showDetailsPrefix}`),
+        }),
+      );
       const items = within(within(floorRow()).getByRole('list')).getAllByRole(
         'listitem',
       );
@@ -171,10 +172,8 @@ describe('InteriorStep at partial scope', () => {
       });
       const { laborMissing } = catalogs[locale].Specification;
 
-      expect(categoryRows('Living room')[2]).toHaveTextContent(laborMissing);
-      expect(categoryRows('Living room')[0]).not.toHaveTextContent(
-        laborMissing,
-      );
+      expect(categoryRows('Living room')).toHaveLength(1);
+      expect(categoryRows('Living room')[0]).toHaveTextContent(laborMissing);
     },
   );
 
@@ -193,7 +192,35 @@ describe('InteriorStep at partial scope', () => {
     const material = alone?.components?.find((c) => c.kind === 'MATERIAL');
     expect(card).toHaveTextContent(usd(alone?.amountCents));
     expect(alone?.amountCents).toBeGreaterThan(material?.amountCents ?? 0);
+    expect(within(card).queryAllByRole('listitem')).toHaveLength(0);
+    fireEvent.click(
+      within(card).getByRole('button', {
+        name: /^Show price breakdown/,
+      }),
+    );
     expect(within(card).getAllByRole('listitem')).toHaveLength(4);
+  });
+
+  it('toggles the price breakdown of a chosen row', async () => {
+    await renderStep(url, { draft: makePartialRoomDraft('ROUGH') });
+    await enableFloorWithLaminate();
+    const row = floorRow();
+    const name = en.ChosenList.showDetails.replace('{category}', 'Flooring');
+
+    expect(within(row).queryByRole('list')).toBeNull();
+    const toggle = within(row).getByRole('button', { name });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(
+      within(row).getByRole('button', { name: /^Remove Flooring/ }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(within(row).getByRole('list')).toBeInTheDocument();
+    expect(
+      within(row).getByRole('button', {
+        name: en.ChosenList.hideDetails.replace('{category}', 'Flooring'),
+      }),
+    ).toHaveAttribute('aria-expanded', 'true');
   });
 
   describe('fill from style', () => {

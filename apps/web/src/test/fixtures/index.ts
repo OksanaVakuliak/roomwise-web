@@ -13,6 +13,8 @@ export {
 } from './calculation';
 export {
   categoryIds,
+  categoryNames,
+  categorySurfaces,
   type DefaultMaterialsResponse,
   type EngineeringResponse,
   makeCategoryProducts,
@@ -23,6 +25,7 @@ export {
   makeRoomTypes,
   makeStyle,
   makeStyles,
+  makeSurface,
   type ProductCard,
   type ProductCardsResponse,
   type ProductDetails,

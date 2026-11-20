@@ -33,8 +33,8 @@ function roomPlans() {
   ).getAllByRole('button');
 }
 
-function sceneDescription() {
-  return screen.getByRole('img', { name: /section line A–A/ });
+function scene() {
+  return screen.getByRole('group', { name: /in 3D$/ });
 }
 
 describe('InteriorStep', () => {
@@ -66,7 +66,10 @@ describe('InteriorStep', () => {
     expect(search.get('room')).toBe(secondId);
     expect(search.get('category')).toBe('c-1');
     expect(roomPlans()[1]).toHaveAttribute('aria-current', 'true');
-    expect(sceneDescription()).toHaveAccessibleName(/2\sm by 2\sm/);
+    expect(scene()).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.reset }),
+    ).toBeInTheDocument();
   });
 
   it.each([
@@ -80,12 +83,16 @@ describe('InteriorStep', () => {
     expect(router.push).not.toHaveBeenCalled();
   });
 
-  it('describes the current room scene as text', async () => {
+  it('shows the 3D preview of the current room in the scene slot', async () => {
     await renderStep(`/configurator/interior?room=${firstId}`);
 
-    expect(sceneDescription()).toHaveAccessibleName(
-      /5\sm by 4\sm, height 2.7\sm/,
+    expect(scene()).toHaveAttribute(
+      'aria-roledescription',
+      en.RoomPreview.roleDescription,
     );
+    expect(
+      screen.getByRole('button', { name: en.RoomPreview.top }),
+    ).toBeInTheDocument();
   });
 
   it('has no axe violations', async () => {

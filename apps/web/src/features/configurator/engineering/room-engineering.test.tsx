@@ -188,7 +188,9 @@ describe('engineering step rooms', () => {
     await renderEngineering('en', makeDraft(), { pricing: false, bare: true });
 
     expect(
-      screen.getByRole('status', { name: catalogs.en.EngineeringStep.loading }),
+      screen.getByRole('status', {
+        name: catalogs.en.ZoneStates.loading.engineering,
+      }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('region')).not.toBeInTheDocument();
   });

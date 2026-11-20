@@ -2,8 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useCallback } from 'react';
-import { ErrorState } from '@/components/system';
-import { Skeleton } from '@/components/ui';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
 import { useEngineering, useRoomTypes } from '@/lib/api/catalog';
 import { roomDisplayName } from '@/lib/draft/rooms';
 import { useDraft } from '@/stores/draft';
@@ -55,11 +54,7 @@ export function EngineeringStep() {
   const roomTypes = roomTypesQuery.data?.items;
 
   if (!roomTypes || !engineeringQuery.data || !pricing) {
-    return (
-      <div className={styles.root} role="status" aria-label={t('loading')}>
-        <Skeleton variant="block" />
-      </div>
-    );
+    return <ZoneSkeleton kind="engineering" />;
   }
 
   return (

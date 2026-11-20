@@ -1,0 +1,26 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: var(--text-body-s-line);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: calc((var(--size-target) - var(--icon-lg)) / 2);
+  min-height: var(--size-target);
+  padding-left: calc((var(--size-target) - var(--icon-lg)) / 2);
+}

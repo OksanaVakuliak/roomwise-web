@@ -4,12 +4,14 @@ import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import { computeGeometry, type Label } from './geometry';
 import styles from './RoomScene.module.css';
 
-export type SceneSurface = {
-  textureUrl: string;
-  tileWidthMm: number;
-  tileLengthMm: number;
-  fallbackColor: string;
-};
+export type SceneSurface =
+  | {
+      textureUrl: string;
+      tileWidthMm: number;
+      tileLengthMm: number;
+      fallbackColor: string;
+    }
+  | { fallbackColor: string; textureUrl?: undefined };
 
 export type SceneSurfaces = {
   floor?: SceneSurface;
@@ -23,9 +25,9 @@ export type RoomSceneProps = {
   lengthLabel: string;
   widthLabel: string;
   heightLabel: string;
-  cutLabel: string;
   description: string;
   size?: 'mobile' | 'desktop';
+  fill?: boolean;
   surfaces?: SceneSurfaces;
 };
 
@@ -36,22 +38,20 @@ export function RoomScene({
   lengthLabel,
   widthLabel,
   heightLabel,
-  cutLabel,
   description,
   size = 'mobile',
+  fill = false,
   surfaces,
 }: RoomSceneProps) {
   const descriptionId = useId();
   const patternPrefix = useId();
   const geometry = computeGeometry(lengthCm, widthCm, heightCm);
-  const { cutLine, backLeft } = geometry;
+  const { backLeft } = geometry;
 
   const labels: { label: Label; text: string; className: string }[] = [
     { label: geometry.width, text: widthLabel, className: styles.dim },
     { label: geometry.length, text: lengthLabel, className: styles.dim },
     { label: geometry.height, text: heightLabel, className: styles.dim },
-    { label: geometry.cutStart, text: cutLabel, className: styles.cutmark },
-    { label: geometry.cutEnd, text: cutLabel, className: styles.cutmark },
   ];
 
   const faces: {
@@ -85,11 +85,16 @@ export function RoomScene({
   ];
 
   return (
-    <div className={cx(styles.root, styles[size])}>
+    <div className={cx(styles.root, styles[size], fill && styles.fill)}>
       <VisuallyHidden>
         <span id={descriptionId}>{description}</span>
       </VisuallyHidden>
-      <div className={styles.scene} role="img" aria-labelledby={descriptionId}>
+      <div
+        className={styles.scene}
+        role="img"
+        aria-labelledby={descriptionId}
+        style={{ '--scene-ratio': geometry.aspectRatio } as CSSProperties}
+      >
         <svg
           className={styles.svg}
           viewBox={geometry.viewBox}
@@ -102,6 +107,16 @@ export function RoomScene({
           {faces.map(({ key, surface, points, transform, shaded }) => {
             if (!surface) {
               return null;
+            }
+            if (surface.textureUrl === undefined) {
+              return (
+                <g key={key} data-surface={key}>
+                  <polygon points={points} fill={surface.fallbackColor} />
+                  {shaded ? (
+                    <polygon className={styles.shade} points={points} />
+                  ) : null}
+                </g>
+              );
             }
             const patternId = `${patternPrefix}-${key}`;
             const isFloor = key === 'floor';
@@ -143,8 +158,6 @@ export function RoomScene({
           {geometry.dimensionPaths.map((path) => (
             <path key={path} className={styles.dimension} d={path} />
           ))}
-          <line className={styles.cut} {...cutLine} />
-          <path className={styles.cutTick} d={geometry.cutTicks} />
         </svg>
         {labels.map(({ label, text, className }) => {
           const { left, top } = geometry.place(label);

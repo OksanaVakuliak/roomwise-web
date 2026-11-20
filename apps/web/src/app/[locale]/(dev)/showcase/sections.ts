@@ -7,6 +7,8 @@ export const SHOWCASE_SECTIONS = [
   'stepTape',
   'actions',
   'roomPlan',
+  'roomCanvas',
+  'sceneToolbar',
   'sectionCut',
   'specification',
   'estimate',

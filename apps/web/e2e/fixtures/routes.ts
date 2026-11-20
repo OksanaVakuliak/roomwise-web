@@ -12,6 +12,7 @@ import {
   makeVersionView,
   type VersionView,
 } from '@/test/fixtures';
+import { makeSurfaceProducts } from '@/test/fixtures/catalog';
 
 export type Json = unknown;
 
@@ -43,6 +44,13 @@ const notFound = (): MockReply => ({
   status: 404,
   body: { error: { code: 'NOT_FOUND' } },
 });
+
+export const TEXTURE_ORIGIN = 'https://cdn.test';
+
+const withSurface = (productId: string) =>
+  Object.values(makeSurfaceProducts()).find(
+    (product) => product.id === productId,
+  ) ?? makeProductDetails(productId);
 
 const lookup = (store: MockStore, publicId: string) =>
   store.calculations.get(publicId);
@@ -77,7 +85,7 @@ export const routes: Route[] = [
   {
     method: 'GET',
     pattern: /^\/public\/products\/([^/]+)$/,
-    reply: ([, productId]) => ok(makeProductDetails(productId)),
+    reply: ([, productId]) => ok(withSurface(productId)),
   },
   {
     method: 'GET',

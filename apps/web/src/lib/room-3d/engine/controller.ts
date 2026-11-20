@@ -1,0 +1,570 @@
+import { PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import {
+  cameraLimits,
+  cameraPosition,
+  cameraTarget,
+  clampView,
+  defaultView,
+  fovDegrees,
+  stepView,
+  topView as toTopView,
+  visibleFaces,
+} from '../camera';
+import { type DimensionKey, dimensionSector, type RoomSize } from '../geometry';
+import { pickTextureUrl } from '../texture-source';
+import type {
+  CameraView,
+  RoomSceneInput,
+  SceneColors,
+  SceneMaterial,
+  SceneStatus,
+  SurfaceKey,
+} from '../types';
+import {
+  createDimensionLines,
+  type DimensionLinesState,
+  disposeDimensionLines,
+  setDimensionLinesColor,
+  updateDimensionLines,
+} from './dimension-lines';
+import {
+  createRoomMesh,
+  disposeRoomMesh,
+  type RoomMesh,
+  rebuildRoomMesh,
+  setRoomMeshColors,
+  setRoomMeshEdges,
+  setRoomMeshSurface,
+  setRoomMeshTexture,
+} from './room-mesh';
+import { createTextureCache, type TextureCache } from './texture-cache';
+
+type TextureMaterial = Extract<SceneMaterial, { kind: 'texture' }>;
+
+export type DimensionLabel = { key: DimensionKey; x: number; y: number };
+
+export type RoomSceneControllerOptions = {
+  reducedMotion: boolean;
+  onStatus?: (status: SceneStatus) => void;
+  onDimensionLabels?: (labels: DimensionLabel[]) => void;
+};
+
+export type RoomSceneController = {
+  mount(container: HTMLElement): void;
+  setInput(input: RoomSceneInput): void;
+  setColors(colors: SceneColors): void;
+  resize(width: number, height: number): void;
+  resetView(): void;
+  topView(): void;
+  handleKey(key: string): boolean;
+  setActive(active: boolean): void;
+  setReducedMotion(reduced: boolean): void;
+  dispose(): void;
+};
+
+const transitionMs = 300;
+const textureAttempts = 3;
+const restoreTimeoutMs = 3000;
+const turn = Math.PI * 2;
+
+const initialColors: SceneColors = {
+  background: '#ffffff',
+  neutral: '#cccccc',
+  edge: '#333333',
+};
+
+function roomSize({ lengthM, widthM, heightM }: RoomSize): RoomSize {
+  return { lengthM, widthM, heightM };
+}
+
+function sameSize(a: RoomSize, b: RoomSize): boolean {
+  return (
+    a.lengthM === b.lengthM && a.widthM === b.widthM && a.heightM === b.heightM
+  );
+}
+
+const surfaceKeys: SurfaceKey[] = ['floor', 'walls', 'ceiling'];
+
+type AppliedSurface = {
+  material: string;
+  url: string | null;
+  failed: boolean;
+  attempts: number;
+};
+
+function materialKey(material: SceneMaterial): string {
+  switch (material.kind) {
+    case 'neutral':
+      return 'neutral';
+    case 'color':
+      return `color:${material.color}`;
+    case 'texture': {
+      const { widthMm, lengthMm } = material.textureStepMm;
+      return `texture:${material.productId}:${material.color}:${material.textureUrl}:${material.previewUrl}:${widthMm}x${lengthMm}`;
+    }
+  }
+}
+
+function shortestTurn(from: number, to: number): number {
+  return ((((to - from + Math.PI) % turn) + turn) % turn) - Math.PI;
+}
+
+function ease(t: number): number {
+  return t * t * (3 - 2 * t);
+}
+
+export function createRoomSceneController({
+  reducedMotion: initialReducedMotion,
+  onStatus,
+  onDimensionLabels,
+}: RoomSceneControllerOptions): RoomSceneController {
+  const scene = new Scene();
+  const camera = new PerspectiveCamera(fovDegrees, 1, 0.1, 100);
+  let renderer: WebGLRenderer | null = null;
+  let controls: OrbitControls | null = null;
+  let roomMesh: RoomMesh | null = null;
+  let dimensions: DimensionLinesState | null = null;
+  const scratch = new Vector3();
+  let textures: TextureCache | null = null;
+  let applied: Record<SurfaceKey, AppliedSurface> | null = null;
+  let input: RoomSceneInput | null = null;
+  let builtRoom: RoomSize | null = null;
+  let colors = initialColors;
+  let size = { width: 1, height: 1 };
+  let active = true;
+  let reducedMotion = initialReducedMotion;
+  let silent = false;
+  let applying = false;
+  let frame: number | null = null;
+  let transition: { target: CameraView } | null = null;
+  let contextLost = false;
+  let lossCount = 0;
+  let restoreTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const aspect = () => size.width / size.height;
+
+  function render() {
+    if (!renderer || !roomMesh || !input || !active || contextLost) return;
+    setRoomMeshEdges(roomMesh, visibleFaces(currentView(input), input));
+    if (dimensions) {
+      updateDimensionLines(
+        dimensions,
+        roomSize(input),
+        dimensionSector(currentView(input)),
+      );
+    }
+    renderer.render(scene, camera);
+    if (dimensions && onDimensionLabels) {
+      reportLabels(dimensions);
+    }
+  }
+
+  function reportLabels({ lines }: DimensionLinesState) {
+    const labels: DimensionLabel[] = [];
+    camera.updateMatrixWorld();
+    for (const { key, label } of lines) {
+      scratch.set(...label).project(camera);
+      if (scratch.z < -1 || scratch.z > 1) continue;
+      labels.push({
+        key,
+        x: ((scratch.x + 1) / 2) * size.width,
+        y: ((1 - scratch.y) / 2) * size.height,
+      });
+    }
+    onDimensionLabels?.(labels);
+  }
+
+  function currentView(room: RoomSize): CameraView {
+    const [x, y, z] = cameraTarget(room);
+    const dx = camera.position.x - x;
+    const dy = camera.position.y - y;
+    const dz = camera.position.z - z;
+    return {
+      azimuth: Math.atan2(dx, dz),
+      polar: Math.atan2(Math.hypot(dx, dz), dy),
+      distance: Math.hypot(dx, dy, dz),
+    };
+  }
+
+  function applyLimits(room: RoomSize) {
+    if (!controls) return;
+    const limits = cameraLimits(room, aspect());
+    controls.minDistance = limits.minDistance;
+    controls.maxDistance = limits.maxDistance;
+    controls.minPolarAngle = limits.minPolar;
+    controls.maxPolarAngle = limits.maxPolar;
+    camera.near = limits.minDistance * 0.05;
+    camera.far = limits.maxDistance * 2;
+    camera.updateProjectionMatrix();
+  }
+
+  function applyView(view: CameraView, room: RoomSize) {
+    if (!controls) return;
+    camera.position.set(...cameraPosition(view, room));
+    controls.target.set(...cameraTarget(room));
+    silent = true;
+    controls.update();
+    silent = false;
+  }
+
+  function cancelTransition() {
+    if (frame === null) return;
+    cancelAnimationFrame(frame);
+    frame = null;
+    transition = null;
+  }
+
+  function moveTo(view: CameraView, animate: boolean) {
+    cancelTransition();
+    if (!input) return;
+    const room = roomSize(input);
+    const target = clampView(view, cameraLimits(room, aspect()));
+    if (!animate || reducedMotion || !active) {
+      applyView(target, room);
+      render();
+      return;
+    }
+    const from = currentView(room);
+    const running = { target };
+    transition = running;
+    const start = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / transitionMs);
+      const eased = ease(t);
+      applyView(
+        {
+          azimuth:
+            from.azimuth +
+            shortestTurn(from.azimuth, running.target.azimuth) * eased,
+          polar: from.polar + (running.target.polar - from.polar) * eased,
+          distance:
+            from.distance + (running.target.distance - from.distance) * eased,
+        },
+        room,
+      );
+      render();
+      frame = t < 1 ? requestAnimationFrame(step) : null;
+      if (frame === null) transition = null;
+    };
+    frame = requestAnimationFrame(step);
+  }
+
+  function build(room: RoomSize) {
+    if (!roomMesh) {
+      roomMesh = createRoomMesh(room, colors);
+      scene.add(roomMesh.group);
+      dimensions = createDimensionLines(colors);
+      scene.add(dimensions.object);
+    } else if (!builtRoom || !sameSize(builtRoom, room)) {
+      rebuildRoomMesh(roomMesh, room);
+    }
+    builtRoom = room;
+  }
+
+  function loadTexture(
+    surface: SurfaceKey,
+    material: TextureMaterial,
+    url: string,
+  ) {
+    if (!textures) return;
+    const cache = textures;
+    cache.request(
+      surface,
+      url,
+      (texture) => {
+        if (cache !== textures || !roomMesh || !input) return;
+        setRoomMeshTexture(
+          roomMesh,
+          surface,
+          texture,
+          material.textureStepMm,
+          roomSize(input),
+        );
+        if (!applying) render();
+      },
+      () => {
+        const current = applied?.[surface];
+        if (cache === textures && current?.url === url) current.failed = true;
+      },
+    );
+  }
+
+  function applySurfaces(retryFailed: boolean): boolean {
+    if (!renderer || !roomMesh || !textures || !input) return false;
+    const pixelRatio = renderer.getPixelRatio();
+    const previous = applied;
+    const next = {} as Record<SurfaceKey, AppliedSurface>;
+    let changed = false;
+    applying = true;
+    try {
+      for (const surface of surfaceKeys) {
+        const material = input.surfaces[surface];
+        const key = materialKey(material);
+        const url =
+          material.kind === 'texture'
+            ? pickTextureUrl(material, size.width, pixelRatio)
+            : null;
+        const before = previous?.[surface];
+        const same = before?.material === key && before.url === url;
+        if (
+          before &&
+          same &&
+          !(retryFailed && before.failed && before.attempts < textureAttempts)
+        ) {
+          next[surface] = before;
+          continue;
+        }
+        changed = true;
+        next[surface] = {
+          material: key,
+          url,
+          failed: false,
+          attempts: before && same ? before.attempts + 1 : 1,
+        };
+        if (before?.material !== key) {
+          setRoomMeshSurface(roomMesh, surface, material, colors);
+        }
+        if (material.kind === 'texture' && url) {
+          loadTexture(surface, material, url);
+        } else {
+          textures.release(surface);
+        }
+      }
+    } finally {
+      applying = false;
+    }
+    applied = next;
+    return changed;
+  }
+
+  function keptView(room: RoomSize, previous: RoomSize | null): CameraView {
+    if (!previous || sameSize(previous, room)) {
+      return transition?.target ?? currentView(room);
+    }
+    const view = transition?.target ?? currentView(previous);
+    const fit =
+      defaultView(room, aspect()).distance /
+      defaultView(previous, aspect()).distance;
+    return { ...view, distance: view.distance * fit };
+  }
+
+  function sync(resetView: boolean, retryFailed: boolean) {
+    if (!renderer || !input) return;
+    const room = roomSize(input);
+    const previous = builtRoom;
+    build(room);
+    applyLimits(room);
+    applySurfaces(retryFailed);
+    moveTo(
+      resetView ? defaultView(room, aspect()) : keptView(room, previous),
+      false,
+    );
+  }
+
+  function clearRestoreTimer() {
+    if (restoreTimer === null) return;
+    clearTimeout(restoreTimer);
+    restoreTimer = null;
+  }
+
+  function startRestoreTimer() {
+    clearRestoreTimer();
+    restoreTimer = setTimeout(() => {
+      restoreTimer = null;
+      onStatus?.('lost');
+    }, restoreTimeoutMs);
+  }
+
+  let lossReported = false;
+
+  function reportLoss() {
+    lossReported = true;
+    lossCount += 1;
+    if (lossCount > 1) {
+      onStatus?.('lost');
+      return;
+    }
+    onStatus?.('loading');
+    startRestoreTimer();
+  }
+
+  function handleContextLost(event: Event) {
+    event.preventDefault();
+    contextLost = true;
+    lossReported = false;
+    cancelTransition();
+    if (controls) controls.enabled = false;
+    clearRestoreTimer();
+    if (active) reportLoss();
+  }
+
+  function handleContextRestored() {
+    clearRestoreTimer();
+    contextLost = false;
+    if (controls) controls.enabled = active;
+    render();
+    onStatus?.('ready');
+  }
+
+  return {
+    mount(container) {
+      if (renderer) return;
+      try {
+        renderer = new WebGLRenderer({
+          antialias: window.devicePixelRatio <= 1,
+        });
+      } catch {
+        onStatus?.('error');
+        return;
+      }
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(colors.background);
+      textures = createTextureCache({
+        anisotropy: renderer.capabilities.getMaxAnisotropy(),
+      });
+      if (container.clientWidth > 0 && container.clientHeight > 0) {
+        size = { width: container.clientWidth, height: container.clientHeight };
+      }
+      renderer.setSize(size.width, size.height);
+      camera.aspect = aspect();
+      container.append(renderer.domElement);
+      renderer.domElement.addEventListener(
+        'webglcontextlost',
+        handleContextLost,
+      );
+      renderer.domElement.addEventListener(
+        'webglcontextrestored',
+        handleContextRestored,
+      );
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enablePan = false;
+      controls.enableDamping = false;
+      controls.enabled = active;
+      controls.addEventListener('start', cancelTransition);
+      controls.addEventListener('change', () => {
+        if (!silent) render();
+      });
+
+      sync(true, false);
+      onStatus?.('ready');
+    },
+    setInput(next) {
+      const keyChanged = !input || input.roomKey !== next.roomKey;
+      const sizeChanged = !input || !sameSize(input, next);
+      input = next;
+      if (keyChanged || sizeChanged) sync(keyChanged, true);
+      else if (applySurfaces(true)) render();
+    },
+    setColors(next) {
+      if (
+        next.background === colors.background &&
+        next.neutral === colors.neutral &&
+        next.edge === colors.edge
+      ) {
+        return;
+      }
+      colors = next;
+      if (!renderer) return;
+      renderer.setClearColor(next.background);
+      if (roomMesh) setRoomMeshColors(roomMesh, next);
+      if (dimensions) setDimensionLinesColor(dimensions, next);
+      render();
+    },
+    resize(width, height) {
+      if (width <= 0 || height <= 0) return;
+      const previousAspect = aspect();
+      size = { width, height };
+      if (!renderer) return;
+      renderer.setSize(width, height);
+      camera.aspect = aspect();
+      if (!input) return;
+      const room = roomSize(input);
+      applyLimits(room);
+      applySurfaces(false);
+      const fit =
+        defaultView(room, aspect()).distance /
+        defaultView(room, previousAspect).distance;
+      if (transition) {
+        const { target } = transition;
+        transition.target = clampView(
+          { ...target, distance: target.distance * fit },
+          cameraLimits(room, aspect()),
+        );
+        return;
+      }
+      const view = currentView(room);
+      moveTo({ ...view, distance: view.distance * fit }, false);
+    },
+    resetView() {
+      if (!input) return;
+      moveTo(defaultView(roomSize(input), aspect()), true);
+    },
+    topView() {
+      if (!input) return;
+      moveTo(toTopView(currentView(roomSize(input))), true);
+    },
+    handleKey(key) {
+      if (!input || !active || contextLost) return false;
+      const room = roomSize(input);
+      const next = stepView(
+        currentView(room),
+        key,
+        cameraLimits(room, aspect()),
+      );
+      if (!next) return false;
+      moveTo(next, false);
+      return true;
+    },
+    setActive(next) {
+      active = next;
+      if (controls) controls.enabled = next && !contextLost;
+      if (!next) {
+        cancelTransition();
+        clearRestoreTimer();
+      } else if (contextLost) {
+        if (lossReported) startRestoreTimer();
+        else reportLoss();
+      } else {
+        render();
+      }
+    },
+    setReducedMotion(reduced) {
+      reducedMotion = reduced;
+    },
+    dispose() {
+      cancelTransition();
+      clearRestoreTimer();
+      controls?.dispose();
+      controls = null;
+      textures?.dispose();
+      textures = null;
+      applied = null;
+      if (dimensions) {
+        scene.remove(dimensions.object);
+        disposeDimensionLines(dimensions);
+        dimensions = null;
+      }
+      if (roomMesh) {
+        scene.remove(roomMesh.group);
+        disposeRoomMesh(roomMesh);
+        roomMesh = null;
+      }
+      if (renderer) {
+        renderer.domElement.removeEventListener(
+          'webglcontextlost',
+          handleContextLost,
+        );
+        renderer.domElement.removeEventListener(
+          'webglcontextrestored',
+          handleContextRestored,
+        );
+        renderer.domElement.remove();
+        renderer.forceContextLoss();
+        renderer.dispose();
+        renderer = null;
+      }
+    },
+  };
+}

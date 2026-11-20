@@ -20,6 +20,10 @@
   padding: var(--space-16) var(--space-16) var(--space-16);
 }
 
+.picker {
+  display: none;
+}
+
 .content,
 .picker,
 .scene,
@@ -46,11 +50,11 @@
 }
 
 @media (max-width: 767.98px) {
-  .picker {
-    display: none;
+  .aside {
+    display: contents;
   }
 
-  .aside {
+  .costSlot {
     display: contents;
   }
 
@@ -64,21 +68,9 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(
         var(--layout-aside-width-tablet),
-        0.49fr
+        0.5fr
       );
     align-items: stretch;
-  }
-
-  .withPicker {
-    grid-template-columns:
-      minmax(var(--layout-picker-min-width), 4.3fr)
-      minmax(0, 4.5fr)
-      minmax(var(--layout-aside-min-width), 4.2fr);
-  }
-
-  .picker {
-    padding: var(--space-16) var(--space-24);
-    border-right: var(--stroke-1-5) solid var(--line);
   }
 
   .main {
@@ -94,12 +86,23 @@
     padding-bottom: var(--space-16);
   }
 
+  .costSlot {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
   .cost {
     position: static;
-    margin-top: auto;
     max-height: none;
     overflow-y: visible;
     border-top: 0;
+  }
+
+  .costSlot .cost {
+    position: sticky;
+    bottom: 0;
   }
 }
 
@@ -111,11 +114,39 @@
   padding: var(--space-16);
 }
 
+@media (min-width: 768px) and (min-height: 30rem) {
+  .scene {
+    position: sticky;
+    top: var(--space-16);
+    z-index: var(--z-sticky);
+    background: var(--sheet);
+  }
+
+  .scene:has([data-scene-expanded]) {
+    z-index: var(--z-panel);
+  }
+}
+
 @media (min-width: 768px) {
   .single {
     width: 100%;
     max-width: var(--layout-single-width);
     margin-inline: auto;
     padding-inline: var(--space-28);
+  }
+}
+
+@media (min-width: 1024px) {
+  .withPicker {
+    grid-template-columns:
+      minmax(var(--layout-picker-min-width), 1fr)
+      minmax(0, 2fr)
+      minmax(var(--layout-aside-min-width), 1fr);
+  }
+
+  .picker {
+    display: block;
+    padding: var(--space-16) var(--space-24);
+    border-right: var(--stroke-1-5) solid var(--line);
   }
 }

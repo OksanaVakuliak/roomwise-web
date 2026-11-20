@@ -11,8 +11,7 @@ const props = {
   lengthLabel: '4.2 m',
   widthLabel: '3.6 m',
   heightLabel: '2.7 m',
-  cutLabel: 'A',
-  description: 'Bedroom 4.2 by 3.6 m, height 2.7 m, section line A–A',
+  description: 'Bedroom 4.2 by 3.6 m, height 2.7 m',
 };
 
 describe('RoomScene', () => {
@@ -25,12 +24,11 @@ describe('RoomScene', () => {
     expect(screen.getAllByRole('img')).toHaveLength(1);
   });
 
-  it('shows the dimension values and both section marks', () => {
+  it('shows the dimension values', () => {
     const { container } = renderWithProviders(<RoomScene {...props} />);
     expect(screen.getByText('4.2 m')).toHaveAttribute('aria-hidden', 'true');
     expect(screen.getByText('3.6 m')).toBeInTheDocument();
     expect(screen.getByText('2.7 m')).toBeInTheDocument();
-    expect(screen.getAllByText('A')).toHaveLength(2);
     expect(container.querySelector('svg')).toHaveAttribute(
       'aria-hidden',
       'true',
@@ -103,6 +101,20 @@ describe('RoomScene', () => {
     expect(
       container.querySelector(`polygon[fill="url(#${floor.id})"]`),
     ).not.toBeNull();
+  });
+
+  it('fills a colour-only surface without a pattern', () => {
+    const { container } = renderWithProviders(
+      <RoomScene
+        {...props}
+        surfaces={{ walls: { fallbackColor: '#336699' } }}
+      />,
+    );
+    expect(container.querySelector('pattern')).toBeNull();
+    expect(container.querySelector('image')).toBeNull();
+    expect(container.querySelectorAll('polygon[fill="#336699"]')).toHaveLength(
+      2,
+    );
   });
 
   it('keeps pattern ids unique across instances', () => {

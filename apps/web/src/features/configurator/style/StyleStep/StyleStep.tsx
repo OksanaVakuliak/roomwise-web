@@ -3,14 +3,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { useCallback, useRef, useState } from 'react';
-import { ErrorState } from '@/components/system';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
 import {
   Banner,
   Button,
   ConfirmDialog,
   EmptyState,
   ImageWithFallback,
-  Skeleton,
   StyleCard,
   VisuallyHidden,
 } from '@/components/ui';
@@ -200,15 +199,7 @@ export function StyleStep() {
   }
 
   if (!items || !roomTypes) {
-    return (
-      <div className={styles.root} role="status" aria-label={t('loading')}>
-        <div className={styles.list}>
-          {[0, 1, 2].map((key) => (
-            <Skeleton key={key} variant="block" />
-          ))}
-        </div>
-      </div>
-    );
+    return <ZoneSkeleton kind="style" />;
   }
 
   if (items.length === 0) {

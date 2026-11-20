@@ -10,61 +10,112 @@ import {
   useRoomTypes,
 } from '@/lib/api/catalog';
 import type { DraftRoom } from '@/lib/draft/schema';
+import { categoriesOfRoomType } from '@/lib/draft/surfaces';
+import {
+  resolveSceneMaterials,
+  type SurfaceMaterials,
+  type SurfaceProduct,
+  surfaceProductIds,
+} from '@/lib/room-3d/materials';
 
-const SURFACE_KEYS = {
-  FLOOR: 'floor',
-  WALLS: 'walls',
-} as const;
+const NO_SELECTIONS: DraftRoom['selections'] = {};
 
-type SurfaceKey = (typeof SURFACE_KEYS)[keyof typeof SURFACE_KEYS];
+const LOADING: SurfaceMaterials = {
+  floor: { kind: 'neutral', reason: 'loading' },
+  walls: { kind: 'neutral', reason: 'loading' },
+  ceiling: { kind: 'neutral', reason: 'loading' },
+};
 
-export function useRoomSurfaces(room: DraftRoom | null): SceneSurfaces {
+type ProductResult = {
+  data: SurfaceProduct | undefined;
+  isError: boolean;
+};
+
+function combineProducts(results: readonly ProductResult[]) {
+  return results.map(({ data, isError }) => ({ data, isError }));
+}
+
+export function useRoomSurfaces(room: DraftRoom | null): SurfaceMaterials {
   const lang = useLang();
   const ready = useCatalogReady();
-  const { data: roomTypes } = useRoomTypes();
+  const { data: roomTypes, isError: roomTypesFailed } = useRoomTypes();
 
-  const picks = useMemo(() => {
-    const roomType = roomTypes?.items.find(
-      (item) => item.code === room?.roomTypeCode,
-    );
-    const result: { key: SurfaceKey; productId: string }[] = [];
-    const taken = new Set<SurfaceKey>();
-    for (const category of roomType?.categories ?? []) {
-      if (category.surface === 'NONE' || category.surface === 'CEILING') {
-        continue;
-      }
-      const key = SURFACE_KEYS[category.surface];
-      const selection = room?.selections[category.id];
-      if (taken.has(key) || !selection || selection.disabled) {
-        continue;
-      }
-      if (selection.productId === null) {
-        continue;
-      }
-      taken.add(key);
-      result.push({ key, productId: selection.productId });
-    }
-    return result;
-  }, [roomTypes, room]);
+  const categories = useMemo(
+    () =>
+      roomTypes
+        ? categoriesOfRoomType(room?.roomTypeCode ?? null, roomTypes)
+        : [],
+    [roomTypes, room?.roomTypeCode],
+  );
+  const selections = room?.selections ?? NO_SELECTIONS;
+
+  const productIds = useMemo(
+    () => surfaceProductIds(selections, categories),
+    [selections, categories],
+  );
 
   const products = useQueries({
-    queries: picks.map(({ productId }) => ({
+    queries: productIds.map((productId) => ({
       ...productQuery(productId, lang),
       enabled: ready,
     })),
+    combine: combineProducts,
   });
 
-  const surfaces: Partial<Record<SurfaceKey, SceneSurface>> = {};
-  picks.forEach(({ key }, index) => {
-    const surface = products[index]?.data?.surface;
-    if (surface) {
-      surfaces[key] = {
-        textureUrl: surface.texture.url,
-        tileWidthMm: surface.tileWidthMm,
-        tileLengthMm: surface.tileLengthMm,
-        fallbackColor: surface.fallbackColor,
-      };
+  return useMemo(() => {
+    if (!roomTypes && !roomTypesFailed) {
+      return LOADING;
     }
-  });
+    const loaded = new Map<string, SurfaceProduct>();
+    const failed = new Set<string>();
+    products.forEach(({ data, isError }, index) => {
+      const productId = productIds[index];
+      if (data) {
+        loaded.set(data.id, data);
+      } else if (isError && productId !== undefined) {
+        failed.add(productId);
+      }
+    });
+    return resolveSceneMaterials(selections, categories, loaded, failed);
+  }, [
+    roomTypes,
+    roomTypesFailed,
+    products,
+    productIds,
+    selections,
+    categories,
+  ]);
+}
+
+export function toSceneSurfaces({
+  floor,
+  walls,
+}: SurfaceMaterials): SceneSurfaces {
+  const surfaces: SceneSurfaces = {};
+  const floorSurface = toSceneSurface(floor);
+  if (floorSurface) {
+    surfaces.floor = floorSurface;
+  }
+  const wallsSurface = toSceneSurface(walls);
+  if (wallsSurface) {
+    surfaces.walls = wallsSurface;
+  }
   return surfaces;
+}
+
+function toSceneSurface(
+  material: SurfaceMaterials['floor'],
+): SceneSurface | null {
+  if (material.kind === 'texture') {
+    return {
+      textureUrl: material.textureUrl,
+      tileWidthMm: material.textureStepMm.widthMm,
+      tileLengthMm: material.textureStepMm.lengthMm,
+      fallbackColor: material.color,
+    };
+  }
+  if (material.kind === 'color' && material.color !== null) {
+    return { fallbackColor: material.color };
+  }
+  return null;
 }

@@ -3,14 +3,8 @@
 import { type Locale, useLocale, useTranslations } from 'next-intl';
 import { type ReactNode, useCallback, useId, useState } from 'react';
 import { ExchangeRateNote } from '@/components/layout';
-import { ErrorState } from '@/components/system';
-import {
-  CostBar,
-  KeyValueGrid,
-  Link,
-  Skeleton,
-  VisuallyHidden,
-} from '@/components/ui';
+import { ErrorState, ZoneSkeleton } from '@/components/system';
+import { CostBar, KeyValueGrid, Link, VisuallyHidden } from '@/components/ui';
 import { STEP_PATHS } from '@/config/routes';
 import {
   buildEstimateModel,
@@ -53,16 +47,6 @@ function ChangeLink({ href, label }: ChangeLinkProps) {
     <Link href={href}>
       {t('change')} <VisuallyHidden>{label}</VisuallyHidden>
     </Link>
-  );
-}
-
-function ResultLoading() {
-  const t = useTranslations('ResultStep');
-
-  return (
-    <div role="status" aria-label={t('loading')}>
-      <Skeleton variant="block" />
-    </div>
   );
 }
 
@@ -146,7 +130,7 @@ export function ResultStep() {
     if (pricingStatus === 'error') {
       return <ErrorState headingLevel={2} onRetry={checkPricingData} />;
     }
-    return <ResultLoading />;
+    return <ZoneSkeleton kind="result" />;
   }
 
   if (catalogState.status === 'error') {
@@ -154,7 +138,7 @@ export function ResultStep() {
   }
 
   if (catalogState.status === 'loading') {
-    return <ResultLoading />;
+    return <ZoneSkeleton kind="result" />;
   }
 
   const {
@@ -171,7 +155,7 @@ export function ResultStep() {
   });
 
   if (configuration === null || estimate === null) {
-    return <ResultLoading />;
+    return <ZoneSkeleton kind="result" />;
   }
 
   const panel =

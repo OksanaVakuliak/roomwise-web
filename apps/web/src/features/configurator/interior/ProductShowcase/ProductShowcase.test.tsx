@@ -119,6 +119,30 @@ describe('ProductShowcase', () => {
     );
   });
 
+  it('collapses the price breakdown behind a toggle next to the buttons', async () => {
+    const { slot } = await renderShowcase();
+    const name = 'Oak Natural Laminate';
+    const card = cardNamed(slot, name);
+
+    expect(within(card).getAllByRole('button')).toHaveLength(3);
+    expect(
+      within(card).getByRole('button', { name: `Details: ${name}` }),
+    ).toBeInTheDocument();
+    expect(within(card).queryAllByRole('listitem')).toHaveLength(0);
+
+    fireEvent.click(
+      within(card).getByRole('button', {
+        name: `${en.ProductShowcase.showDetails.replace('{name}', name)}`,
+      }),
+    );
+    expect(within(card).getAllByRole('listitem').length).toBeGreaterThan(0);
+    expect(
+      within(card).getByRole('button', {
+        name: en.ProductShowcase.hideDetails.replace('{name}', name),
+      }),
+    ).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('warns on cards of products unfit for the heated floor without blocking them', async () => {
     const base = makeInteriorDraft();
     const bathroom = { ...base.rooms[1], heatedFloor: true };
