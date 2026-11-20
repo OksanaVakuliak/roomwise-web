@@ -64,6 +64,7 @@ export type RoomSceneController = {
 };
 
 const transitionMs = 300;
+const textureAttempts = 3;
 const restoreTimeoutMs = 3000;
 const turn = Math.PI * 2;
 
@@ -89,6 +90,7 @@ type AppliedSurface = {
   material: string;
   url: string | null;
   failed: boolean;
+  attempts: number;
 };
 
 function materialKey(material: SceneMaterial): string {
@@ -135,7 +137,7 @@ export function createRoomSceneController({
   let silent = false;
   let applying = false;
   let frame: number | null = null;
-  let transitionView: CameraView | null = null;
+  let transition: { target: CameraView } | null = null;
   let contextLost = false;
   let lossCount = 0;
   let restoreTimer: ReturnType<typeof setTimeout> | null = null;
@@ -210,7 +212,7 @@ export function createRoomSceneController({
     if (frame === null) return;
     cancelAnimationFrame(frame);
     frame = null;
-    transitionView = null;
+    transition = null;
   }
 
   function moveTo(view: CameraView, animate: boolean) {
@@ -224,7 +226,8 @@ export function createRoomSceneController({
       return;
     }
     const from = currentView(room);
-    transitionView = target;
+    const running = { target };
+    transition = running;
     const start = performance.now();
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / transitionMs);
@@ -232,15 +235,17 @@ export function createRoomSceneController({
       applyView(
         {
           azimuth:
-            from.azimuth + shortestTurn(from.azimuth, target.azimuth) * eased,
-          polar: from.polar + (target.polar - from.polar) * eased,
-          distance: from.distance + (target.distance - from.distance) * eased,
+            from.azimuth +
+            shortestTurn(from.azimuth, running.target.azimuth) * eased,
+          polar: from.polar + (running.target.polar - from.polar) * eased,
+          distance:
+            from.distance + (running.target.distance - from.distance) * eased,
         },
         room,
       );
       render();
       frame = t < 1 ? requestAnimationFrame(step) : null;
-      if (frame === null) transitionView = null;
+      if (frame === null) transition = null;
     };
     frame = requestAnimationFrame(step);
   }
@@ -301,17 +306,22 @@ export function createRoomSceneController({
             ? pickTextureUrl(material, size.width, pixelRatio)
             : null;
         const before = previous?.[surface];
+        const same = before?.material === key && before.url === url;
         if (
           before &&
-          before.material === key &&
-          before.url === url &&
-          !(retryFailed && before.failed)
+          same &&
+          !(retryFailed && before.failed && before.attempts < textureAttempts)
         ) {
           next[surface] = before;
           continue;
         }
         changed = true;
-        next[surface] = { material: key, url, failed: false };
+        next[surface] = {
+          material: key,
+          url,
+          failed: false,
+          attempts: before && same ? before.attempts + 1 : 1,
+        };
         if (before?.material !== key) {
           setRoomMeshSurface(roomMesh, surface, material, colors);
         }
@@ -329,8 +339,10 @@ export function createRoomSceneController({
   }
 
   function keptView(room: RoomSize, previous: RoomSize | null): CameraView {
-    if (!previous || sameSize(previous, room)) return currentView(room);
-    const view = currentView(previous);
+    if (!previous || sameSize(previous, room)) {
+      return transition?.target ?? currentView(room);
+    }
+    const view = transition?.target ?? currentView(previous);
     const fit =
       defaultView(room, aspect()).distance /
       defaultView(previous, aspect()).distance;
@@ -442,8 +454,8 @@ export function createRoomSceneController({
       const keyChanged = !input || input.roomKey !== next.roomKey;
       const sizeChanged = !input || !sameSize(input, next);
       input = next;
-      if (keyChanged || sizeChanged) sync(keyChanged, keyChanged);
-      else if (applySurfaces(false)) render();
+      if (keyChanged || sizeChanged) sync(keyChanged, true);
+      else if (applySurfaces(true)) render();
     },
     setColors(next) {
       if (
@@ -471,14 +483,19 @@ export function createRoomSceneController({
       const room = roomSize(input);
       applyLimits(room);
       applySurfaces(false);
-      const view = transitionView ?? currentView(room);
       const fit =
         defaultView(room, aspect()).distance /
         defaultView(room, previousAspect).distance;
-      moveTo(
-        { ...view, distance: view.distance * fit },
-        transitionView !== null,
-      );
+      if (transition) {
+        const { target } = transition;
+        transition.target = clampView(
+          { ...target, distance: target.distance * fit },
+          cameraLimits(room, aspect()),
+        );
+        return;
+      }
+      const view = currentView(room);
+      moveTo({ ...view, distance: view.distance * fit }, false);
     },
     resetView() {
       if (!input) return;

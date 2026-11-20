@@ -327,6 +327,22 @@ describe('room scene controller', () => {
     );
   });
 
+  it('lands on the scaled target when the size changes during a transition', () => {
+    vi.useFakeTimers();
+    create(false);
+    controller.setInput(input);
+    press('ArrowRight', 3);
+    controller.resetView();
+    vi.advanceTimersByTime(100);
+    const grown = { ...input, lengthM: 10, widthM: 8 };
+    controller.setInput(grown);
+    const [x, y, z] = cameraPosition(defaultView(grown, 800 / 600), grown);
+    expect(lastFrame().camera.position.distanceTo({ x, y, z })).toBeCloseTo(
+      0,
+      3,
+    );
+  });
+
   it('refits the room into a narrower frame after a resize', () => {
     create();
     controller.setInput(input);
@@ -429,6 +445,24 @@ describe('room scene controller', () => {
     const [x, y, z] = cameraTarget(input);
     const distance = lastFrame().camera.position.distanceTo({ x, y, z });
     expect(distance).toBeCloseTo(defaultView(input, 200 / 540).distance, 3);
+  });
+
+  it('finishes a running transition on time while the canvas keeps resizing', () => {
+    vi.useFakeTimers();
+    create(false);
+    controller.setInput(input);
+    press('ArrowRight', 3);
+    controller.resetView();
+    for (let step = 0; step < 15; step += 1) {
+      vi.advanceTimersByTime(16);
+      controller.resize(640 + step * 4, 480);
+    }
+    vi.advanceTimersByTime(120);
+    const [x, y, z] = cameraPosition(defaultView(input, 696 / 480), input);
+    expect(lastFrame().camera.position.distanceTo({ x, y, z })).toBeCloseTo(
+      0,
+      3,
+    );
   });
 
   it('handles known keys and ignores unknown ones without rendering', () => {
@@ -661,25 +695,16 @@ describe('room scene controller', () => {
       expect(mocks.request).toHaveBeenCalledTimes(2);
     });
 
-    it('does not retry a failed texture on an unrelated input change', () => {
+    it('retries a failed texture on the next input change a limited number of times', () => {
       create();
       controller.setInput(withFloor(floorTexture));
-      mocks.request.mock.calls[0][3]();
-      controller.setInput(withFloor(floorTexture));
-      controller.setInput({
-        ...withFloor(floorTexture),
-        surfaces: {
-          ...withFloor(floorTexture).surfaces,
-          walls: {
-            ...floorTexture,
-            productId: 'w',
-            textureUrl: 'https://cdn/w.jpg',
-          },
-        },
-      });
-      expect(
-        mocks.request.mock.calls.filter(([slot]) => slot === 'floor'),
-      ).toHaveLength(1);
+      const floorCalls = () =>
+        mocks.request.mock.calls.filter(([slot]) => slot === 'floor');
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        floorCalls().at(-1)?.[3]();
+        controller.setInput(withFloor(floorTexture));
+      }
+      expect(floorCalls()).toHaveLength(3);
     });
 
     it('retries a failed texture when the room key changes', () => {
