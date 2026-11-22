@@ -91,6 +91,22 @@ describe('Pagination', () => {
     ]);
   });
 
+  it.each([
+    [4, [1, 2, 3, 4, 5, 10], 1],
+    [7, [1, 6, 7, 8, 9, 10], 1],
+  ])(
+    'shows a lone hidden page instead of a gap on page %i',
+    (page, pages, gaps) => {
+      renderPagination({ page, pageCount: 10 });
+      const names = screen
+        .getAllByRole('button')
+        .slice(1, -1)
+        .map((button) => button.getAttribute('aria-label'));
+      expect(names).toEqual(pages.map((value) => `Page ${value}`));
+      expect(screen.getAllByText('…')).toHaveLength(gaps);
+    },
+  );
+
   it('shows every page when the range is short', () => {
     renderPagination({ page: 1, pageCount: 7 });
     expect(screen.queryByText('…')).toBeNull();

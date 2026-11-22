@@ -23,13 +23,17 @@ function buildItems(page: number, pageCount: number): Item[] {
   const start = Math.max(2, Math.min(page - 1, pageCount - 4));
   const end = Math.min(pageCount - 1, Math.max(page + 1, 5));
   const items: Item[] = [1];
-  if (start > 2) {
+  if (start === 3) {
+    items.push(2);
+  } else if (start > 3) {
     items.push('gap-start');
   }
   for (let value = start; value <= end; value += 1) {
     items.push(value);
   }
-  if (end < pageCount - 1) {
+  if (end === pageCount - 2) {
+    items.push(pageCount - 1);
+  } else if (end < pageCount - 2) {
     items.push('gap-end');
   }
   items.push(pageCount);
