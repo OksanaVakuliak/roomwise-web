@@ -1,0 +1,51 @@
+.root {
+  display: grid;
+  gap: var(--space-12);
+}
+
+.toggle {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.toggleLabel {
+  font-family: var(--text-body-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-body-default-size);
+  color: var(--line);
+}
+
+.panel {
+  display: none;
+  gap: var(--space-12);
+}
+
+.panel[data-open] {
+  display: grid;
+}
+
+.filters {
+  display: grid;
+  gap: var(--space-12);
+}
+
+@media (min-width: 768px) {
+  .toggle {
+    display: none;
+  }
+
+  .panel,
+  .panel[data-open] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+    align-items: flex-end;
+  }
+}

@@ -1,0 +1,62 @@
+.root {
+  display: flex;
+  justify-content: center;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-target);
+  min-height: var(--size-target);
+  padding: 0 var(--space-8);
+  border: var(--stroke-1-5) solid var(--line);
+  background: transparent;
+  color: var(--line);
+  font-family: var(--text-body-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-body-default-size);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
+}
+
+.button:not(:disabled, .current):hover {
+  background: var(--fill-a);
+}
+
+.current {
+  background: var(--line);
+  color: var(--sheet);
+}
+
+.button:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.gap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-compact);
+  color: var(--line-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

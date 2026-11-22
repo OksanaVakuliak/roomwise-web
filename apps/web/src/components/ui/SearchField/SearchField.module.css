@@ -1,0 +1,31 @@
+.root {
+  position: relative;
+}
+
+.field input {
+  padding-right: var(--size-target);
+}
+
+.field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clear {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-target);
+  height: var(--size-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--line);
+  cursor: pointer;
+}
+
+.clear:hover {
+  background: var(--fill-a);
+}
