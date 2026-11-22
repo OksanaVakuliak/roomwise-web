@@ -24,8 +24,8 @@ import {
   makeAdminCoefficients,
   makeAdminImageRef,
   makeAdminLead,
+  makeAdminLeadDetails,
   makeAdminLeadRow,
-  makeAdminLeads,
   makeAdminMaterialType,
   makeAdminMaterialTypes,
   makeAdminMe,
@@ -145,7 +145,7 @@ export function createAdminState(): AdminState {
     coefficients: makeAdminCoefficients().items,
     exchangeRate: makeNbuExchangeRate(),
     settings: makeAdminSettings(),
-    leads: makeAdminLeads().items.map((row) => makeAdminLead({ ...row })),
+    leads: makeAdminLeadDetails(),
   };
 }
 
@@ -180,7 +180,7 @@ const notFound = (): MockReply => ({
   body: { error: { code: 'NOT_FOUND' } },
 });
 
-const asBody = (value: unknown): Body =>
+export const asBody = (value: unknown): Body =>
   typeof value === 'object' && value !== null ? (value as Body) : {};
 
 const secured =
@@ -260,6 +260,7 @@ type Resource<T extends Versioned> = {
   inUse?: (item: T, state: AdminState) => AdminFailure | null;
   onCreate?: (item: T, state: AdminState) => void;
   onRemove?: (item: T, state: AdminState) => void;
+  onUpdate?: (previous: T, next: T, state: AdminState) => void;
   readOne?: boolean;
   customList?: boolean;
   noDelete?: boolean;
@@ -298,11 +299,9 @@ function crud<T extends Versioned>(resource: Resource<T>): Route[] {
         const id = adminUuid(++admin.seed);
         const built = resource.build(input, id, admin);
         const order = sortOrderOf(built) === null ? null : items.length;
+        const ordered = order === null ? built : { ...built, sortOrder: order };
         const created = stamped(
-          resource.normalize?.(
-            order === null ? built : { ...built, sortOrder: order },
-            admin,
-          ) ?? built,
+          resource.normalize?.(ordered, admin) ?? ordered,
           admin,
           session,
         );
@@ -328,7 +327,11 @@ function crud<T extends Versioned>(resource: Resource<T>): Route[] {
         }
         const fields =
           resource.merge?.(input, current) ??
-          (withoutKeys(input, ['revision', 'confirmZeroPrice']) as Partial<T>);
+          (withoutKeys(input, [
+            'id',
+            'revision',
+            'confirmZeroPrice',
+          ]) as Partial<T>);
         const merged = { ...current, ...fields };
         const updated = stamped(
           resource.normalize?.(merged, store.admin) ?? merged,
@@ -336,6 +339,7 @@ function crud<T extends Versioned>(resource: Resource<T>): Route[] {
           session,
         );
         replace(store.admin, updated);
+        resource.onUpdate?.(current, updated, store.admin);
         return { body: view(updated, store.admin) };
       }),
     },
@@ -476,6 +480,7 @@ const textureOf = (body: Body, fallback: AdminProduct['texture']) => {
 
 const productFields = (body: Body, current: AdminProduct | null) => ({
   ...withoutKeys(body, [
+    'id',
     'revision',
     'confirmZeroPrice',
     'images',
@@ -587,6 +592,12 @@ const catalogRoutes = (): Route[] => [
     },
     onCreate: (item, state) => adjustProductCount(state, item.categoryId, 1),
     onRemove: (item, state) => adjustProductCount(state, item.categoryId, -1),
+    onUpdate: (previous, next, state) => {
+      if (previous.categoryId !== next.categoryId) {
+        adjustProductCount(state, previous.categoryId, -1);
+        adjustProductCount(state, next.categoryId, 1);
+      }
+    },
   }),
 ];
 
@@ -728,7 +739,7 @@ const styleRoutes = (): Route[] => [
       }),
     merge: (body) =>
       ({
-        ...withoutKeys(body, ['revision', 'imageId']),
+        ...withoutKeys(body, ['id', 'revision', 'imageId']),
         ...('imageId' in body ? { image: imageOf(body.imageId) } : {}),
       }) as Partial<AdminStyle>,
     row: (item) => makeAdminStyleRow(item),
@@ -769,14 +780,32 @@ const styleRoutes = (): Route[] => [
         const product = admin.products.find(
           (item) => item.id === match.productId,
         );
+        const available =
+          product?.status === 'PUBLISHED' &&
+          product.categoryId === pair.categoryId;
         return {
           ...pair,
           productId: product?.id ?? null,
           productName: product?.name ?? null,
-          state: product ? ('FILLED' as const) : ('EMPTY' as const),
+          state: product
+            ? available
+              ? ('FILLED' as const)
+              : ('PRODUCT_UNAVAILABLE' as const)
+            : ('EMPTY' as const),
         };
       });
-      const updated = stamped({ ...current, pairs }, admin, session);
+      const updated = stamped(
+        {
+          ...current,
+          pairs,
+          unfilledCount: pairs.filter((pair) => pair.state === 'EMPTY').length,
+          unavailableCount: pairs.filter(
+            (pair) => pair.state === 'PRODUCT_UNAVAILABLE',
+          ).length,
+        },
+        admin,
+        session,
+      );
       admin.styles[admin.styles.indexOf(current)] = updated;
       return { body: updated };
     }),
@@ -812,7 +841,7 @@ const engineeringRoutes = (): Route[] => [
       }),
     merge: (body) =>
       ({
-        ...withoutKeys(body, ['revision', 'imageId', 'confirmZeroPrice']),
+        ...withoutKeys(body, ['id', 'revision', 'imageId', 'confirmZeroPrice']),
         ...('imageId' in body ? { image: imageOf(body.imageId) } : {}),
       }) as Partial<AdminOption>,
     readOne: true,
@@ -979,9 +1008,7 @@ const pricingRoutes = (): Route[] => [
       const { official } = store.admin.exchangeRate;
       store.admin.exchangeRate = {
         ...store.admin.exchangeRate,
-        active: official
-          ? { ...official, source: 'NBU' }
-          : store.admin.exchangeRate.active,
+        active: official ? { ...official, source: 'NBU' } : null,
         manual: null,
       };
       return { body: store.admin.exchangeRate };
@@ -1136,7 +1163,7 @@ const authRoutes = (): Route[] => [
       return {
         body: role === 'admin' ? makeAdminMe() : makeDemoMe(),
         headers: {
-          'set-cookie': `${SESSION_COOKIE}=${sessionValue(role)}; Path=/; HttpOnly; SameSite=Strict`,
+          'set-cookie': `${SESSION_COOKIE}=${sessionValue(role)}; Path=/api; HttpOnly; SameSite=Strict`,
         },
       };
     },
@@ -1147,7 +1174,7 @@ const authRoutes = (): Route[] => [
     reply: () => ({
       status: 204,
       headers: {
-        'set-cookie': `${SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict`,
+        'set-cookie': `${SESSION_COOKIE}=; Path=/api; Max-Age=0; HttpOnly; SameSite=Strict`,
       },
     }),
   },

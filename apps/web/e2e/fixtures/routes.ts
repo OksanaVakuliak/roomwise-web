@@ -15,7 +15,9 @@ import {
 import { makeSurfaceProducts } from '@/test/fixtures/catalog';
 import {
   type AdminState,
+  addMockLead,
   adminRoutes,
+  asBody,
   createAdminState,
   type Session,
 } from './admin-routes';
@@ -37,11 +39,12 @@ export type MockStore = {
 };
 
 export function createMockStore(): MockStore {
+  const admin = createAdminState();
   return {
     calculations: new Map(),
     idempotent: new Map(),
-    leadCount: 1041,
-    admin: createAdminState(),
+    leadCount: Math.max(0, ...admin.leads.map((lead) => lead.number)),
+    admin,
   };
 }
 
@@ -149,8 +152,15 @@ export const routes: Route[] = [
   {
     method: 'POST',
     pattern: /^\/public\/leads$/,
-    reply: (_match, { store }) => {
+    reply: (_match, { store, body }) => {
       store.leadCount += 1;
+      const input = asBody(body);
+      addMockLead(store, {
+        number: store.leadCount,
+        name: String(input.name ?? ''),
+        phone: String(input.phone ?? ''),
+        comment: typeof input.comment === 'string' ? input.comment : null,
+      });
       return {
         status: 201,
         body: makeLeadCreated({ leadNumber: store.leadCount }),

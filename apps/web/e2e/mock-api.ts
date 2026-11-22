@@ -27,7 +27,7 @@ export async function loginAs(page: Page, role: Session) {
       name: SESSION_COOKIE,
       value: sessionValue(role),
       domain: 'localhost',
-      path: '/',
+      path: '/api',
     },
   ]);
 }
