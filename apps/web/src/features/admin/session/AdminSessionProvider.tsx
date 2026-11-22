@@ -79,8 +79,9 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
     }
     if (data) return { status: 'authenticated', me: data };
     if (isPending) return { status: 'checking' };
+    if (isError) return { status: 'error', retry: refetch };
     return { status: 'anonymous' };
-  }, [data, isPending, isError, error]);
+  }, [data, isPending, isError, error, refetch]);
 
   const onSuccess = useCallback(() => settle('resolve'), [settle]);
   const onCancel = useCallback(() => settle('reject'), [settle]);

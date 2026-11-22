@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { type ReactNode, useEffect, useRef } from 'react';
+import { ErrorState } from '@/components/system';
 import { Skeleton, VisuallyHidden } from '@/components/ui';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { useAdminMe } from '@/lib/admin-api/auth';
@@ -51,6 +52,9 @@ export function AdminSessionGate({ children }: { children: ReactNode }) {
         <Skeleton variant="block" height="12rem" />
       </div>
     );
+  }
+  if (session.status === 'error') {
+    return <ErrorState headingLevel={2} onRetry={session.retry} />;
   }
   if (session.status === 'anonymous') {
     return null;

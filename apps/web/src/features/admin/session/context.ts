@@ -6,6 +6,7 @@ import type { AdminMe } from '@/lib/admin-api/auth';
 export type AdminSession =
   | { status: 'checking' }
   | { status: 'anonymous' }
+  | { status: 'error'; retry: () => Promise<unknown> }
   | { status: 'authenticated'; me: AdminMe };
 
 export type AdminSessionValue = {

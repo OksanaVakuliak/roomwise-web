@@ -1,5 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { type ChangeEvent, useCallback, useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { changePassword } from '@/lib/admin-api/auth';
@@ -8,7 +14,7 @@ import { ApiRequestError } from '@/lib/api/request-error';
 import { createWriteGate } from '@/lib/api/write';
 import { resetWarmup, useWarmup } from '@/lib/warmup';
 import { axe } from '@/test/axe';
-import { adminErrors } from '@/test/fixtures/admin/errors';
+import { adminErrors, makeAdminFailure } from '@/test/fixtures/admin/errors';
 import { makeAdminMe, makeDemoMe } from '@/test/fixtures/admin/me';
 import {
   forEachLocale,
@@ -162,6 +168,21 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
       expect(queryClient.getQueryData(['admin', 'me'])).toBeNull(),
     );
   });
+
+  it('shows a retryable error instead of a blank panel when me fails with a server error', async () => {
+    get.mockResolvedValue(failure(makeAdminFailure(500, 'INTERNAL')));
+    const { router } = setup(locale);
+
+    const alert = await screen.findByRole('alert', {}, { timeout: 8000 });
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('note')).not.toBeInTheDocument();
+
+    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
+    fireEvent.click(within(alert).getByRole('button'));
+
+    expect(await screen.findByLabelText('note')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  }, 15000);
 
   it('reauthenticates on a 401 mutation, repeats it once and keeps the form', async () => {
     get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
