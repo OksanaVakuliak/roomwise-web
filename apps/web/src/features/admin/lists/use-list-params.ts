@@ -100,12 +100,15 @@ function serialize<S extends ListSchema>(params: ListParams<S>): string {
 }
 
 export function useListParams<S extends ListSchema>(
-  schema: S,
+  input: S,
 ): ListParamsApi<S> {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const raw = searchParams.toString();
+
+  const schemaKey = JSON.stringify(input);
+  const schema = useMemo(() => JSON.parse(schemaKey) as S, [schemaKey]);
 
   const params = useMemo(
     () => parseListParams(new URLSearchParams(raw), schema),
@@ -113,28 +116,33 @@ export function useListParams<S extends ListSchema>(
   );
 
   const latest = useRef(params);
-  useEffect(() => {
-    latest.current = params;
-  }, [params]);
+  const inFlight = useRef<string[]>([]);
+  const settled = useRef(raw);
+  const [searchKey, setSearchKey] = useState(0);
 
-  const [search, setSearch] = useState<{
-    q: string;
-    key: number;
-    own: string | null;
-  }>({ q: params.q, key: 0, own: null });
-  if (search.q !== params.q) {
-    setSearch({
-      q: params.q,
-      key: search.own === params.q ? search.key : search.key + 1,
-      own: null,
-    });
-  }
-  const searchKey = search.key;
+  useEffect(() => {
+    if (settled.current === raw) {
+      if (inFlight.current.length === 0) latest.current = params;
+      return;
+    }
+    settled.current = raw;
+    const index = inFlight.current.indexOf(raw);
+    if (index !== -1) {
+      inFlight.current = inFlight.current.slice(index + 1);
+      if (inFlight.current.length === 0) latest.current = params;
+      return;
+    }
+    inFlight.current = [];
+    if (params.q !== latest.current.q) setSearchKey((key) => key + 1);
+    latest.current = params;
+  }, [raw, params]);
 
   const commit = useCallback(
     (next: ListParams<S>, mode: 'push' | 'replace') => {
       latest.current = next;
       const qs = serialize(next);
+      const tail = inFlight.current.at(-1) ?? settled.current;
+      if (qs !== tail) inFlight.current = [...inFlight.current, qs];
       const href = qs ? `${pathname}?${qs}` : pathname;
       router[mode](href, { scroll: false });
     },
@@ -145,7 +153,6 @@ export function useListParams<S extends ListSchema>(
     (value: string) => {
       const q = value.trim().slice(0, MAX_QUERY_LENGTH);
       if (q === latest.current.q) return;
-      setSearch((current) => ({ ...current, own: q }));
       commit({ ...latest.current, q, page: 1 }, 'replace');
     },
     [commit],

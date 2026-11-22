@@ -143,4 +143,69 @@ describe('useListParams', () => {
     act(() => view.router.replace('/en/admin/products?q=zz'));
     expect(api().searchKey).toBe(initial + 1);
   });
+
+  function lag(view: ReturnType<typeof mount>['view']) {
+    const apply = view.router.replace.getMockImplementation();
+    const pending: string[] = [];
+    view.router.replace.mockImplementation((href: string) => {
+      pending.push(href);
+    });
+    view.router.push.mockImplementation((href: string) => {
+      pending.push(href);
+    });
+    return (target: number | string) =>
+      apply?.(typeof target === 'number' ? pending[target] : target);
+  }
+
+  it('keeps searchKey while own URL updates land late', () => {
+    const { view, api } = mount('/admin/products');
+    const land = lag(view);
+    const initial = api().searchKey;
+    act(() => api().setQuery('ab'));
+    act(() => api().setQuery('abc'));
+    act(() => land(0));
+    expect(api().searchKey).toBe(initial);
+    act(() => land(1));
+    expect(api().searchKey).toBe(initial);
+    expect(api().params.q).toBe('abc');
+  });
+
+  it('keeps a filter set before an earlier commit settles', () => {
+    const { view, api } = mount('/admin/products');
+    const land = lag(view);
+    act(() => api().setFilter('status', 'ACTIVE'));
+    act(() => api().setFilter('categoryId', 'c9'));
+    act(() => land(0));
+    act(() => api().setPage(2));
+    act(() => land(1));
+    act(() => land(2));
+    expect(view.location().search).toBe(
+      '?status=ACTIVE&categoryId=c9&sort=name&page=2',
+    );
+  });
+
+  it('treats an unknown URL as external and drops pending commits', () => {
+    const { view, api } = mount('/admin/products');
+    const land = lag(view);
+    const initial = api().searchKey;
+    act(() => api().setQuery('abc'));
+    act(() => land('/en/admin/products?q=zz'));
+    expect(api().searchKey).toBe(initial + 1);
+    expect(api().params.q).toBe('zz');
+    act(() => api().setPage(2));
+    act(() => land('/en/admin/products?q=zz&sort=name&page=2'));
+    expect(view.location().search).toBe('?q=zz&sort=name&page=2');
+  });
+
+  it('does not re-derive params for an inline schema', () => {
+    let api!: ReturnType<typeof useListParams>;
+    function Inline() {
+      api = useListParams({ search: true });
+      return null;
+    }
+    const view = renderWithProviders(<Inline />, { url: '/admin/products' });
+    const first = api.params;
+    view.rerender(<Inline />);
+    expect(api.params).toBe(first);
+  });
 });
