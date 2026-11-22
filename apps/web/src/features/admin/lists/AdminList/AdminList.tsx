@@ -17,7 +17,7 @@ import { adminErrorMessage, toAdminError } from '@/lib/admin-api/errors';
 import type { ListParamsApi, ListSchema } from '../use-list-params';
 import styles from './AdminList.module.css';
 
-const SKELETON_ROWS = 5;
+const SKELETON_KEYS = ['s1', 's2', 's3', 's4', 's5'] as const;
 
 export type AdminListEmpty = {
   title: ReactNode;
@@ -60,15 +60,16 @@ export function AdminList<Row, S extends ListSchema>({
 }: AdminListProps<Row, S>) {
   const t = useTranslations('Admin.list');
   const tRoot = useTranslations();
-  const { params, setPage, setSort } = list;
+  const { params, setPage, clampPage, setSort } = list;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const failed = error !== undefined && error !== null;
 
+  const outOfRange =
+    !failed && !isLoading && total > 0 && params.page > pageCount;
+
   useEffect(() => {
-    if (!failed && !isLoading && total > 0 && params.page > pageCount) {
-      setPage(pageCount);
-    }
-  }, [failed, isLoading, total, params.page, pageCount, setPage]);
+    if (outOfRange) clampPage(pageCount);
+  }, [outOfRange, pageCount, clampPage]);
 
   const getPageLabel = useCallback((page: number) => t('page', { page }), [t]);
 
@@ -112,12 +113,11 @@ export function AdminList<Row, S extends ListSchema>({
         )}
       </Banner>
     );
-  } else if (isLoading) {
+  } else if (isLoading || outOfRange) {
     body = (
       <div className={styles.skeleton} role="status" aria-label={t('loading')}>
-        {Array.from({ length: SKELETON_ROWS }, (_, index) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static placeholders
-          <Skeleton key={index} variant="block" height="3rem" />
+        {SKELETON_KEYS.map((key) => (
+          <Skeleton key={key} variant="block" height="3rem" />
         ))}
       </div>
     );

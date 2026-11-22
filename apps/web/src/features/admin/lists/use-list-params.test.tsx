@@ -24,7 +24,7 @@ function mount(url: string) {
     return null;
   }
   const view = renderWithProviders(<Probe />, { url });
-  return { view, api: () => api };
+  return { view, api: () => api, rerender: () => view.rerender(<Probe />) };
 }
 
 describe('parseListParams', () => {
@@ -116,6 +116,23 @@ describe('useListParams', () => {
     expect(api().isFiltered).toBe(true);
     act(() => api().reset());
     expect(view.location().search).toBe('?sort=-price');
+  });
+
+  it('keeps a typed query when a render happens before the URL updates', () => {
+    const { view, api, rerender } = mount('/admin/products');
+    view.router.replace.mockImplementationOnce(() => {});
+    act(() => api().setQuery('oak'));
+    rerender();
+    act(() => api().setFilter('status', 'ACTIVE'));
+    expect(view.location().search).toBe('?q=oak&status=ACTIVE&sort=name');
+  });
+
+  it('clamps the page with replace', () => {
+    const { view, api } = mount('/admin/products?page=9');
+    act(() => api().clampPage(3));
+    expect(view.router.replace).toHaveBeenCalledTimes(1);
+    expect(view.router.push).not.toHaveBeenCalled();
+    expect(view.location().search).toContain('page=3');
   });
 
   it('changes searchKey only when q changes from outside', () => {

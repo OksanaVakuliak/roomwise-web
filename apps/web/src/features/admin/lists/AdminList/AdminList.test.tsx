@@ -145,7 +145,12 @@ describe.each(forEachLocale)('AdminList (%s)', (locale) => {
   });
 
   it('moves to the last page when the current one is out of range', () => {
-    const { location } = render({ total: 45 }, '/admin/products?page=9');
+    const { location, router } = render(
+      { total: 45 },
+      '/admin/products?page=9',
+    );
     expect(location().search).toContain('page=3');
+    expect(router.replace).toHaveBeenCalledTimes(1);
+    expect(router.push).not.toHaveBeenCalled();
   });
 });

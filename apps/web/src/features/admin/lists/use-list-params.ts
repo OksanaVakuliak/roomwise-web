@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from '@/i18n/navigation';
 
 export type ListFilterName = 'status' | 'categoryId' | 'kind' | 'group';
@@ -30,6 +30,7 @@ export type ListParamsApi<S extends ListSchema> = {
   setQuery: (value: string) => void;
   setFilter: (name: keyof NonNullable<S['filters']>, value: string) => void;
   setPage: (page: number) => void;
+  clampPage: (page: number) => void;
   setSort: (sort: ListSort) => void;
   reset: () => void;
 };
@@ -112,14 +113,23 @@ export function useListParams<S extends ListSchema>(
   );
 
   const latest = useRef(params);
-  latest.current = params;
+  useEffect(() => {
+    latest.current = params;
+  }, [params]);
 
-  const written = useRef(params.q);
-  const [searchKey, setSearchKey] = useState(0);
-  if (written.current !== params.q) {
-    written.current = params.q;
-    setSearchKey((key) => key + 1);
+  const [search, setSearch] = useState<{
+    q: string;
+    key: number;
+    own: string | null;
+  }>({ q: params.q, key: 0, own: null });
+  if (search.q !== params.q) {
+    setSearch({
+      q: params.q,
+      key: search.own === params.q ? search.key : search.key + 1,
+      own: null,
+    });
   }
+  const searchKey = search.key;
 
   const commit = useCallback(
     (next: ListParams<S>, mode: 'push' | 'replace') => {
@@ -135,7 +145,7 @@ export function useListParams<S extends ListSchema>(
     (value: string) => {
       const q = value.trim().slice(0, MAX_QUERY_LENGTH);
       if (q === latest.current.q) return;
-      written.current = q;
+      setSearch((current) => ({ ...current, own: q }));
       commit({ ...latest.current, q, page: 1 }, 'replace');
     },
     [commit],
@@ -168,6 +178,14 @@ export function useListParams<S extends ListSchema>(
     [commit],
   );
 
+  const clampPage = useCallback(
+    (page: number) => {
+      const next = Number.isInteger(page) && page >= 1 ? page : 1;
+      commit({ ...latest.current, page: next }, 'replace');
+    },
+    [commit],
+  );
+
   const setSort = useCallback(
     (sort: ListSort) => {
       if (!schema.sortKeys?.includes(sort.key)) return;
@@ -190,6 +208,7 @@ export function useListParams<S extends ListSchema>(
     setQuery,
     setFilter,
     setPage,
+    clampPage,
     setSort,
     reset,
   };
