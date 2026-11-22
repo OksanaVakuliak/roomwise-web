@@ -10,7 +10,7 @@ import {
 
 const STYLES = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  '../../../../../styles',
+  '../../../../../../styles',
 );
 
 function readStyles(file: string): string {

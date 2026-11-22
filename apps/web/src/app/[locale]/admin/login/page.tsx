@@ -32,8 +32,10 @@ export default function AdminLoginPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   return (
-    <Suspense>
-      <LoginPage />
-    </Suspense>
+    <main>
+      <Suspense>
+        <LoginPage />
+      </Suspense>
+    </main>
   );
 }

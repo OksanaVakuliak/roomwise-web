@@ -10,8 +10,8 @@ import {
   renderWithProviders,
 } from '@/test/render-with-providers';
 import { setViewport } from '@/test/viewports';
-import en from '../../../../../messages/en.json';
-import uk from '../../../../../messages/uk.json';
+import en from '../../../../../../messages/en.json';
+import uk from '../../../../../../messages/uk.json';
 import { Showcase } from './Showcase';
 import { SHOWCASE_SECTIONS } from './sections';
 

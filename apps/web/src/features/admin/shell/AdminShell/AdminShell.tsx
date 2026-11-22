@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { type ReactNode, useCallback, useState } from 'react';
-import { PreferenceSwitches } from '@/components/layout';
+import { MAIN_ID, PreferenceSwitches, SkipLink } from '@/components/layout';
 import {
   Brand,
   Button,
@@ -55,6 +55,7 @@ export function AdminShell({ children, newLeads }: AdminShellProps) {
 
   return (
     <div className={styles.root}>
+      <SkipLink />
       {resetAt ? (
         <DemoBanner resetAt={resetAt} label={tDemo('banner')} />
       ) : null}
@@ -89,7 +90,9 @@ export function AdminShell({ children, newLeads }: AdminShellProps) {
         <aside className={styles.sidebar}>
           <AdminNavigation newLeads={newLeads} />
         </aside>
-        <div className={styles.main}>{children}</div>
+        <main id={MAIN_ID} tabIndex={-1} className={styles.main}>
+          {children}
+        </main>
       </div>
       <SidePanel
         open={menuOpen}
