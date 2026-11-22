@@ -98,9 +98,15 @@ async function sendWithRetry<T>(
   }
 }
 
+export type WriteOptions = { retry?: boolean };
+
 export type WriteGate = {
   blockedForSeconds: () => number;
-  write: <T>(send: WriteSender<T>, idempotencyKey: string) => Promise<T>;
+  write: <T>(
+    send: WriteSender<T>,
+    idempotencyKey: string,
+    options?: WriteOptions,
+  ) => Promise<T>;
 };
 
 export function createWriteGate(now: () => number = Date.now): WriteGate {
@@ -109,7 +115,7 @@ export function createWriteGate(now: () => number = Date.now): WriteGate {
     Math.max(0, Math.ceil((blockedUntil - now()) / 1000));
   return {
     blockedForSeconds,
-    async write(send, idempotencyKey) {
+    async write(send, idempotencyKey, options) {
       const remaining = blockedForSeconds();
       if (remaining > 0) {
         throw new RateLimitedError(
@@ -122,7 +128,9 @@ export function createWriteGate(now: () => number = Date.now): WriteGate {
         );
       }
       try {
-        return await sendWithRetry(send, idempotencyKey);
+        return options?.retry === false
+          ? await attempt(send, idempotencyKey)
+          : await sendWithRetry(send, idempotencyKey);
       } catch (failure) {
         if (
           failure instanceof ApiRequestError &&

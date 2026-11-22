@@ -75,6 +75,14 @@ describe('createWriteGate', () => {
     expect(send.mock.calls).toEqual([['key-1'], ['key-1']]);
   });
 
+  it('sends once when retry is disabled', async () => {
+    const send = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    await expect(
+      createWriteGate().write(send, 'key-1', { retry: false }),
+    ).rejects.toMatchObject({ status: 0, apiError: { code: 'network' } });
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
   it('gives up after the second network error', async () => {
     const send = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
     await expect(createWriteGate().write(send, 'key-1')).rejects.toMatchObject({

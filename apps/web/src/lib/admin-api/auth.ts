@@ -24,6 +24,7 @@ export function login(gate: WriteGate, body: LoginBody): Promise<AdminMe> {
   return gate.write(
     () => api.POST('/api/v1/admin/auth/login', { body }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -51,7 +52,7 @@ export function me(): Promise<AdminMe> {
 
 export function useAdminMe() {
   const ready = useCatalogReady();
-  return useQuery({
+  return useQuery<AdminMe | null>({
     queryKey: adminKeys.me(),
     queryFn: me,
     enabled: ready,
@@ -76,9 +77,19 @@ export function useLogout() {
   const queryClient = useQueryClient();
   const [gate] = useState(createWriteGate);
   return useMutation({
-    mutationFn: () => logout(gate),
+    mutationFn: () =>
+      logout(gate).catch((failure: unknown) => {
+        if (failure instanceof ApiRequestError && failure.status === 401) {
+          return;
+        }
+        throw failure;
+      }),
     onSuccess: () => {
-      queryClient.removeQueries({ queryKey: adminKeys.all() });
+      queryClient.removeQueries({
+        queryKey: adminKeys.all(),
+        predicate: (query) => query.queryKey[1] !== 'me',
+      });
+      queryClient.setQueryData<AdminMe | null>(adminKeys.me(), null);
     },
   });
 }

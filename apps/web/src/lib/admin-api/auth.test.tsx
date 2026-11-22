@@ -68,6 +68,15 @@ describe('login', () => {
     });
   });
 
+  it('does not repeat the post after a network failure', async () => {
+    post.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    await expect(
+      login(createWriteGate(), { login: 'a', password: 'b' }),
+    ).rejects.toMatchObject({ status: 0 });
+    expect(post).toHaveBeenCalledTimes(1);
+  });
+
   it('surfaces invalid credentials', async () => {
     const { status, body } = adminErrors.invalidCredentials();
     post.mockResolvedValue({ error: body, response: { status } });
@@ -197,18 +206,34 @@ describe('useLogin and useLogout', () => {
     expect(queryClient.getQueryData(adminKeys.me())).toEqual(admin);
   });
 
-  it('drops admin queries after logout', async () => {
+  it('signs out mounted observers and drops other admin queries', async () => {
     post.mockResolvedValue({ response: { status: 204 } });
     const { queryClient, wrapper } = setup();
-    queryClient.setQueryData(adminKeys.me(), makeAdminMe());
+    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
     queryClient.setQueryData(adminKeys.area('catalog', 'list'), []);
+
+    const { result } = renderHook(
+      () => ({ me: useAdminMe(), logout: useLogout() }),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.me.data).toBeTruthy());
+    await act(() => result.current.logout.mutateAsync());
+
+    await waitFor(() => expect(result.current.me.data).toBeNull());
+    expect(
+      queryClient.getQueryData(adminKeys.area('catalog', 'list')),
+    ).toBeUndefined();
+  });
+
+  it('signs out even when the session already expired', async () => {
+    const { status, body } = adminErrors.unauthenticated();
+    post.mockResolvedValue({ error: body, response: { status } });
+    const { queryClient, wrapper } = setup();
+    queryClient.setQueryData(adminKeys.me(), makeAdminMe());
 
     const { result } = renderHook(() => useLogout(), { wrapper });
     await act(() => result.current.mutateAsync());
 
-    expect(queryClient.getQueryData(adminKeys.me())).toBeUndefined();
-    expect(
-      queryClient.getQueryData(adminKeys.area('catalog', 'list')),
-    ).toBeUndefined();
+    expect(queryClient.getQueryData(adminKeys.me())).toBeNull();
   });
 });
