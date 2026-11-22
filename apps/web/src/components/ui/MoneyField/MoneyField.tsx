@@ -7,7 +7,9 @@ import {
   useRef,
   useState,
 } from 'react';
+import { cx } from '@/lib/cx';
 import { NumberField, type NumberFieldProps } from '../NumberField/NumberField';
+import styles from './MoneyField.module.css';
 
 export type MoneyFieldProps = Omit<
   NumberFieldProps,
@@ -69,6 +71,7 @@ export function MoneyField({
   negativeMessage,
   invalidMessage,
   error,
+  className,
   ...rest
 }: MoneyFieldProps) {
   const [text, setText] = useState(formatCents(valueCents));
@@ -117,6 +120,7 @@ export function MoneyField({
   return (
     <NumberField
       {...rest}
+      className={cx(styles.root, className)}
       decimal
       unit={currency}
       value={text}

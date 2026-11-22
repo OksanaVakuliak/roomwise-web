@@ -6,11 +6,13 @@ import {
   type MouseEvent,
   type ReactElement,
 } from 'react';
+import { cx } from '@/lib/cx';
 import { Tooltip } from '../Tooltip/Tooltip';
+import styles from './DisabledReason.module.css';
 
 export type DisabledReasonProps = {
   reason: string;
-  children: ReactElement<{ 'aria-describedby'?: string }>;
+  children: ReactElement<{ 'aria-describedby'?: string; className?: string }>;
 };
 
 function block(event: MouseEvent | KeyboardEvent) {
@@ -29,6 +31,7 @@ export function DisabledReason({ reason, children }: DisabledReasonProps) {
     <Tooltip content={reason}>
       {cloneElement(children, {
         'aria-disabled': true,
+        className: cx(children.props.className, styles.target),
         onClick: block,
         onKeyDown: blockKey,
         onKeyUp: blockKey,
