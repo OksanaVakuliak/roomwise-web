@@ -6,6 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import PanelLayout from '@/app/[locale]/admin/(panel)/layout';
 import { api } from '@/lib/api/client';
 import { resetWarmup, useWarmup } from '@/lib/warmup';
 import { axe } from '@/test/axe';
@@ -15,6 +16,8 @@ import {
   forEachLocale,
   renderWithProviders,
 } from '@/test/render-with-providers';
+import en from '../../../../messages/en.json';
+import uk from '../../../../messages/uk.json';
 import { AdminSessionGate, AdminSessionProvider } from '../session';
 import { AdminShell } from './index';
 
@@ -58,6 +61,8 @@ const setup = (
     </AdminSessionProvider>,
     { locale, url },
   );
+
+const catalogs = { en, uk };
 
 const sidebar = () => screen.getByRole('complementary');
 
@@ -135,6 +140,23 @@ describe.each(forEachLocale)('AdminShell (%s)', (locale) => {
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
     );
+  });
+
+  it('offers a retry instead of an endless skeleton when the warm-up failed', async () => {
+    useWarmup.setState({ server: 'failed' });
+    get.mockReturnValue(new Promise(() => {}));
+    renderWithProviders(
+      <AdminSessionProvider>
+        <PanelLayout>
+          <h1>content</h1>
+        </PanelLayout>
+      </AdminSessionProvider>,
+      { locale, url: '/admin' },
+    );
+
+    expect(
+      await screen.findByText(catalogs[locale].SystemStates.warmupFailedTitle),
+    ).toBeInTheDocument();
   });
 
   it('signs out, clears the cache and replaces the location', async () => {
