@@ -1483,5 +1483,10 @@
     "newLeads": "{count, plural, one {# new lead} other {# new leads}}",
     "account": "Account",
     "logout": "Sign out"
+  },
+  "AdminShell": {
+    "caption": "admin panel",
+    "brandLink": "Roomwise admin panel, home",
+    "logoutFailed": "Could not sign out. Try again."
   }
 }

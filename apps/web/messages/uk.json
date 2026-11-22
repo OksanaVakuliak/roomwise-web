@@ -1483,5 +1483,10 @@
     "newLeads": "{count, plural, one {# нова заявка} few {# нові заявки} many {# нових заявок} other {# нової заявки}}",
     "account": "Обліковий запис",
     "logout": "Вийти"
+  },
+  "AdminShell": {
+    "caption": "адмінка",
+    "brandLink": "Адмінка Roomwise, головна",
+    "logoutFailed": "Не вдалося вийти. Спробуйте ще раз."
   }
 }
