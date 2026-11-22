@@ -23,6 +23,9 @@ export function isEqual(a: unknown, b: unknown): boolean {
   }
   if (Array.isArray(a) !== Array.isArray(b)) return false;
   if (!Array.isArray(a) && !(isPlain(a) && isPlain(b))) return false;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((item, i) => isEqual(item, b[i]));
+  }
   const left = a as Record<string, unknown>;
   const right = b as Record<string, unknown>;
   const keys = definedKeys(left);

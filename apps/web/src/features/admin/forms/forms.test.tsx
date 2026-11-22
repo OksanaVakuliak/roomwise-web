@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from '@/lib/api/request-error';
 import { toast, useToasts } from '@/lib/toast';
 import { axe } from '@/test/axe';
-import { adminErrors } from '@/test/fixtures/admin/errors';
+import { adminErrors, makeAdminFailure } from '@/test/fixtures/admin/errors';
 import {
   forEachLocale,
   renderWithProviders,
@@ -26,6 +26,7 @@ const fail = (failure: { status: number; body: unknown }) =>
   new ApiRequestError(failure.status, failure.body);
 
 type HarnessProps = {
+  fallbackHref?: string;
   save: (
     values: Values,
     revision: string | null,
@@ -34,7 +35,7 @@ type HarnessProps = {
   }>;
 };
 
-function Harness({ save }: HarnessProps) {
+function Harness({ save, fallbackHref }: HarnessProps) {
   const fetchLatest = useCallback(
     async () => ({
       values: latest,
@@ -49,7 +50,7 @@ function Harness({ save }: HarnessProps) {
     revision: 'r1',
     fetchLatest,
   });
-  const { dialog } = useLeaveGuard(form.dirty);
+  const { dialog } = useLeaveGuard(form.dirty, { fallbackHref });
   const notify = useSaveToast();
   const { setField, submit } = form;
   const onChange = useCallback(
@@ -89,6 +90,73 @@ function Harness({ save }: HarnessProps) {
       <SaveBar dirty={form.dirty} saving={form.saving} onSave={onSave} />
       <a href="/en/admin/other">other</a>
       {dialog}
+    </div>
+  );
+}
+
+type Nested = {
+  name: { en: string; uk: string };
+  items: { x: string }[];
+};
+
+const nestedInitial: Nested = {
+  name: { en: 'a', uk: 'б' },
+  items: [{ x: '1' }, { x: '2' }],
+};
+
+function NestedHarness() {
+  const fetchLatest = useCallback(
+    async () => ({
+      values: nestedInitial,
+      revision: 'r2',
+      changedBy: null,
+      changedAt: null,
+    }),
+    [],
+  );
+  const form = useAdminForm<Nested>({
+    initial: nestedInitial,
+    revision: 'r1',
+    fetchLatest,
+  });
+  const { setField, setValues, submit } = form;
+  const save = useCallback(async () => {
+    throw fail(
+      makeAdminFailure(400, 'VALIDATION_FAILED', {
+        fields: [
+          { path: 'name.en', code: 'REQUIRED' },
+          { path: 'name.uk', code: 'REQUIRED' },
+          { path: 'items[0].x', code: 'REQUIRED' },
+          { path: 'items[1].x', code: 'REQUIRED' },
+        ],
+      }),
+    );
+  }, []);
+  const editEn = useCallback(
+    () => setField('name', { ...form.values.name, en: 'z' }),
+    [setField, form.values.name],
+  );
+  const editItem = useCallback(
+    () =>
+      setValues((current) => ({
+        ...current,
+        items: [{ x: '1' }, { x: 'changed' }],
+      })),
+    [setValues],
+  );
+  const onSubmit = useCallback(() => void submit(save), [submit, save]);
+  return (
+    <div>
+      <output data-testid="errors">{Object.keys(form.errors).join(',')}</output>
+      <button type="button" onClick={onSubmit}>
+        submit
+      </button>
+      <button type="button" onClick={editEn}>
+        edit en
+      </button>
+      <button type="button" onClick={editItem}>
+        edit item
+      </button>
     </div>
   );
 }
@@ -278,6 +346,100 @@ describe.each(forEachLocale)('admin forms (%s)', (locale) => {
     expect(screen.queryByRole('button', { name: labels.leave })).toBeNull();
     push.mockRestore();
     go.mockRestore();
+  });
+
+  it('clears only the errors whose values changed', async () => {
+    renderWithProviders(<NestedHarness />, { locale });
+    fireEvent.click(screen.getByRole('button', { name: 'submit' }));
+    await waitFor(() =>
+      expect(screen.getByTestId('errors').textContent).toBe(
+        'name.en,name.uk,items[0].x,items[1].x',
+      ),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'edit en' }));
+    expect(screen.getByTestId('errors').textContent).toBe(
+      'name.uk,items[0].x,items[1].x',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'edit item' }));
+    expect(screen.getByTestId('errors').textContent).toBe('name.uk,items[0].x');
+  });
+
+  it('stays and keeps guarding when Back leaves the page out of range', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const go = vi.spyOn(window.history, 'go').mockImplementation(() => {});
+    const { router } = renderWithProviders(<Harness save={vi.fn()} />, {
+      locale,
+    });
+    edit('Birch');
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    fireEvent.click(screen.getByRole('button', { name: labels.leave }));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(router.push).not.toHaveBeenCalled();
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    expect(screen.getByRole('button', { name: labels.leave })).toBeVisible();
+    go.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('goes to the fallback when Back is out of range', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const go = vi.spyOn(window.history, 'go').mockImplementation(() => {});
+    const { router } = renderWithProviders(
+      <Harness save={vi.fn()} fallbackHref="/en/admin/list" />,
+      { locale },
+    );
+    edit('Birch');
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    fireEvent.click(screen.getByRole('button', { name: labels.leave }));
+    expect(router.push).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(router.push).toHaveBeenCalledWith('/en/admin/list');
+    go.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('skips the fallback when the history navigation arrives', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const go = vi.spyOn(window.history, 'go').mockImplementation(() => {});
+    const { router } = renderWithProviders(
+      <Harness save={vi.fn()} fallbackHref="/en/admin/list" />,
+      { locale },
+    );
+    edit('Birch');
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    fireEvent.click(screen.getByRole('button', { name: labels.leave }));
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      vi.advanceTimersByTime(300);
+    });
+    expect(router.push).not.toHaveBeenCalled();
+    go.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('ignores popstate that lands on another URL', () => {
+    renderWithProviders(<Harness save={vi.fn()} />, { locale });
+    edit('Birch');
+    window.history.replaceState(null, '', '/elsewhere');
+    const push = vi.spyOn(window.history, 'pushState');
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: labels.leave })).toBeNull();
+    push.mockRestore();
   });
 
   it('keeps a single history sentinel across save and edit cycles', async () => {

@@ -14,6 +14,9 @@ import { ConfirmDialog } from '@/components/ui';
 type Pending = { kind: 'link'; href: string } | { kind: 'history' };
 
 const SENTINEL = '__leaveGuard';
+const LEAVE_TIMEOUT_MS = 300;
+
+type LeaveGuardOptions = { fallbackHref?: string };
 
 const onSentinel = () =>
   Boolean((window.history.state as Record<string, unknown> | null)?.[SENTINEL]);
@@ -53,14 +56,27 @@ function internalTarget(event: MouseEvent): string | null {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-export function useLeaveGuard(dirty: boolean): { dialog: ReactNode } {
+export function useLeaveGuard(
+  dirty: boolean,
+  { fallbackHref }: LeaveGuardOptions = {},
+): { dialog: ReactNode } {
   const t = useTranslations('Admin.form.leave');
   const router = useRouter();
   const [pending, setPending] = useState<Pending | null>(null);
   const leaving = useRef(false);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const guardedUrl = useRef('');
+
+  const clearLeaveTimer = useCallback(() => {
+    if (leaveTimer.current !== null) clearTimeout(leaveTimer.current);
+    leaveTimer.current = null;
+  }, []);
+
+  useEffect(() => clearLeaveTimer, [clearLeaveTimer]);
 
   useEffect(() => {
     if (!dirty) return;
+    guardedUrl.current = window.location.href;
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
     };
@@ -72,7 +88,11 @@ export function useLeaveGuard(dirty: boolean): { dialog: ReactNode } {
       setPending({ kind: 'link', href });
     };
     const onPopState = () => {
-      if (leaving.current) return;
+      if (leaving.current) {
+        clearLeaveTimer();
+        return;
+      }
+      if (window.location.href !== guardedUrl.current) return;
       pushSentinel();
       setPending({ kind: 'history' });
     };
@@ -85,7 +105,7 @@ export function useLeaveGuard(dirty: boolean): { dialog: ReactNode } {
       document.removeEventListener('click', onClick, true);
       window.removeEventListener('popstate', onPopState);
     };
-  }, [dirty]);
+  }, [dirty, clearLeaveTimer]);
 
   const cancel = useCallback(() => setPending(null), []);
 
@@ -97,8 +117,13 @@ export function useLeaveGuard(dirty: boolean): { dialog: ReactNode } {
     } else if (target?.kind === 'history') {
       leaving.current = true;
       window.history.go(-2);
+      leaveTimer.current = setTimeout(() => {
+        leaveTimer.current = null;
+        leaving.current = false;
+        if (fallbackHref) router.push(fallbackHref);
+      }, LEAVE_TIMEOUT_MS);
     }
-  }, [pending, router]);
+  }, [pending, router, fallbackHref]);
 
   return {
     dialog: (

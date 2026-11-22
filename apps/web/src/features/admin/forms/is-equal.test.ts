@@ -8,6 +8,13 @@ describe('isEqual', () => {
     expect(isEqual({ a: 1 }, { a: undefined })).toBe(false);
   });
 
+  it('compares arrays by length and index', () => {
+    expect(isEqual([undefined], [])).toBe(false);
+    expect(isEqual([1, undefined], [1])).toBe(false);
+    expect(isEqual([undefined], [undefined])).toBe(true);
+    expect(isEqual({ a: [undefined] }, { a: [] })).toBe(false);
+  });
+
   it('compares dates by time', () => {
     expect(isEqual(new Date(5), new Date(5))).toBe(true);
     expect(isEqual(new Date(5), new Date(6))).toBe(false);

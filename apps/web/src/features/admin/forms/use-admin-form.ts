@@ -59,8 +59,27 @@ export type AdminForm<T extends object> = {
 
 type Baseline<T> = { initial: T; revision: string | null };
 
-const touches = (path: string, key: string) =>
-  path === key || path.startsWith(`${key}.`) || path.startsWith(`${key}[`);
+const valueAt = (root: unknown, path: string) => {
+  let current = root;
+  for (const segment of path.match(/[^.[\]]+/g) ?? []) {
+    if (typeof current !== 'object' || current === null) break;
+    current = (current as Record<string, unknown>)[segment];
+  }
+  return current;
+};
+
+const dropChanged = (
+  errors: Record<string, string>,
+  previous: unknown,
+  next: unknown,
+) => {
+  const kept = Object.entries(errors).filter(([path]) =>
+    isEqual(valueAt(previous, path), valueAt(next, path)),
+  );
+  return kept.length === Object.keys(errors).length
+    ? errors
+    : Object.fromEntries(kept);
+};
 
 export function useAdminForm<T extends object>({
   initial,
@@ -78,6 +97,8 @@ export function useAdminForm<T extends object>({
   const [conflictRevealed, setConflictRevealed] = useState(false);
   const [saving, setSaving] = useState(false);
   const busy = useRef(false);
+  const latestValues = useRef(values);
+  latestValues.current = values;
 
   const dirty = !isEqual(values, baseline.initial);
 
@@ -91,20 +112,19 @@ export function useAdminForm<T extends object>({
   }, [conflict, conflictRevealed, values]);
 
   const setField = useCallback(<K extends keyof T>(key: K, value: T[K]) => {
-    setValuesState((current) => ({ ...current, [key]: value }));
-    setErrors((current) => {
-      const name = String(key);
-      const kept = Object.entries(current).filter(
-        ([path]) => !touches(path, name),
-      );
-      return kept.length === Object.keys(current).length
-        ? current
-        : Object.fromEntries(kept);
-    });
+    const previous = latestValues.current;
+    const next = { ...previous, [key]: value };
+    latestValues.current = next;
+    setValuesState(next);
+    setErrors((current) => dropChanged(current, previous, next));
   }, []);
 
   const setValues = useCallback((next: T | ((current: T) => T)) => {
-    setValuesState(next);
+    const previous = latestValues.current;
+    const resolved = typeof next === 'function' ? next(previous) : next;
+    latestValues.current = resolved;
+    setValuesState(resolved);
+    setErrors((current) => dropChanged(current, previous, resolved));
   }, []);
 
   const clearError = useCallback((path: string) => {
