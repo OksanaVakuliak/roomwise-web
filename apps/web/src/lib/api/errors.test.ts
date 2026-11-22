@@ -79,6 +79,11 @@ describe('errorMessageKey', () => {
     'IDEMPOTENCY_KEY_CONFLICT',
     'PHONE_INVALID',
     'EMPTY_ESTIMATE',
+    'COEFFICIENT_IN_USE',
+    'KEY_TAKEN',
+    'RULE_EXISTS',
+    'UNKNOWN_COEFFICIENT',
+    'FORMULA_INVALID',
   ])('recognises the %s code', (code) => {
     expect(BACKEND_ERROR_CODES).toContain(code);
     expect(parseApiError({ error: { code } })).toEqual({ code });
