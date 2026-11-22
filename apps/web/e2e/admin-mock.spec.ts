@@ -70,6 +70,17 @@ test('signs in as the demo user and forbids password changes', async ({
   expect(password.body.error.code).toBe('DEMO_FORBIDDEN');
 });
 
+test('lets the demo user find leads only by exact number', async ({ page }) => {
+  await loginAs(page, 'demo');
+  type Leads = { items: { number: number; name: string; status: string }[] };
+  const byName = await call<Leads>(page, 'GET', '/admin/leads?q=Client');
+  expect(byName.body.items).toHaveLength(0);
+  const byNumber = await call<Leads>(page, 'GET', '/admin/leads?q=1042');
+  expect(byNumber.body.items).toMatchObject([{ number: 1042, name: 'T•••' }]);
+  const all = await call<Leads>(page, 'GET', '/admin/leads');
+  expect(all.body.items.map((lead) => lead.status)).not.toContain('SPAM');
+});
+
 test('shows a public lead in the admin leads list', async ({ page }) => {
   await loginAs(page, 'admin');
   const created = await call<{ leadNumber: number }>(

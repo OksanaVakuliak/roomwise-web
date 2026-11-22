@@ -1129,17 +1129,19 @@ const leadRoutes = (): Route[] => [
       const term = url.searchParams.get('q')?.trim() ?? '';
       const status = url.searchParams.get('status');
       const digits = term.replace(/\D/g, '');
+      const fullSearch = session !== 'demo';
       const matching = store.admin.leads
-        .map((lead) => leadView(lead, session))
         .filter(
           (lead) =>
-            (!status || lead.status === status) &&
+            (status ? lead.status === status : lead.status !== 'SPAM') &&
             (!term ||
-              lowerIncludes(lead.name, term) ||
-              (digits !== '' &&
+              (fullSearch && lowerIncludes(lead.name, term)) ||
+              (fullSearch &&
+                digits !== '' &&
                 lead.phone.replace(/\D/g, '').includes(digits)) ||
               (/^\d+$/.test(term) && lead.number === Number(term))),
         )
+        .map((lead) => leadView(lead, session))
         .sort(
           (a, b) =>
             b.createdAt.localeCompare(a.createdAt) || b.number - a.number,
@@ -1298,9 +1300,23 @@ const authRoutes = (): Route[] => [
           texture: `https://res.cloudinary.example.com/roomwise/${id}/texture.webp`,
           width: 1200,
           height: 800,
+          realSizeMm: null,
         },
       };
     }),
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/admin\/images\/([^/]+)$/,
+    reply: secured(([, id], { body }) => ({
+      body: {
+        ...makeAdminImageRef(id),
+        texture: `https://res.cloudinary.example.com/roomwise/${id}/texture.webp`,
+        width: 1200,
+        height: 800,
+        realSizeMm: asBody(body).realSizeMm ?? null,
+      },
+    })),
   },
 ];
 
