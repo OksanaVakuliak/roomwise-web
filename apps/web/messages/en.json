@@ -1498,6 +1498,14 @@
     "account": "Account",
     "logout": "Sign out"
   },
+  "AdminHome": {
+    "title": "Home",
+    "leadsTitle": "Leads",
+    "leadsLoading": "Loading new leads",
+    "leadsFailed": "Could not load the number of new leads.",
+    "newLeads": "{count, plural, =0 {No new leads} other {New leads: #}}",
+    "sections": "Sections"
+  },
   "AdminShell": {
     "caption": "admin panel",
     "brandLink": "Roomwise admin panel, home",

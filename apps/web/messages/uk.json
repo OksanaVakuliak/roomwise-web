@@ -1498,6 +1498,14 @@
     "account": "Обліковий запис",
     "logout": "Вийти"
   },
+  "AdminHome": {
+    "title": "Головна",
+    "leadsTitle": "Заявки",
+    "leadsLoading": "Завантаження нових заявок",
+    "leadsFailed": "Не вдалося завантажити кількість нових заявок.",
+    "newLeads": "{count, plural, =0 {Нових заявок немає} other {Нові заявки: #}}",
+    "sections": "Розділи"
+  },
   "AdminShell": {
     "caption": "адмінка",
     "brandLink": "Адмінка Roomwise, головна",
