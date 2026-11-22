@@ -100,7 +100,7 @@ export function AdminShell({ children, newLeads }: AdminShellProps) {
         title={tNav('menu')}
         closeLabel={tNav('closeMenu')}
       >
-        <AdminNavigation newLeads={newLeads} />
+        <AdminNavigation newLeads={newLeads} onNavigate={closeMenu} />
       </SidePanel>
     </div>
   );

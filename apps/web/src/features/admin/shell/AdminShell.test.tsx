@@ -118,6 +118,25 @@ describe.each(forEachLocale)('AdminShell (%s)', (locale) => {
     expect(await axe(document.body)).toHaveNoViolations();
   });
 
+  it('closes the phone menu when the current page link is tapped', async () => {
+    setup(locale);
+    await screen.findByRole('heading', { name: 'content' });
+
+    const menu = screen.getAllByRole('button').find((button) => {
+      return button.getAttribute('aria-haspopup') === 'dialog';
+    });
+    fireEvent.click(menu as HTMLElement);
+    const dialog = await screen.findByRole('dialog');
+    const current = within(dialog)
+      .getAllByRole('link')
+      .find((link) => link.getAttribute('aria-current') === 'page');
+    fireEvent.click(current as HTMLElement);
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+  });
+
   it('signs out, clears the cache and replaces the location', async () => {
     post.mockResolvedValue({ data: true, response: { status: 204 } });
     const { queryClient } = setup(locale);

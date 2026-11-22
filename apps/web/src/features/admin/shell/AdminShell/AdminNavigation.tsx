@@ -6,9 +6,13 @@ import { isActive, NAV_GROUPS, NAV_HOME, type NavItem } from './nav';
 
 type AdminNavigationProps = {
   newLeads?: number;
+  onNavigate?: () => void;
 };
 
-export function AdminNavigation({ newLeads = 0 }: AdminNavigationProps) {
+export function AdminNavigation({
+  newLeads = 0,
+  onNavigate,
+}: AdminNavigationProps) {
   const t = useTranslations('AdminNav');
   const pathname = usePathname();
 
@@ -17,6 +21,7 @@ export function AdminNavigation({ newLeads = 0 }: AdminNavigationProps) {
       <Link
         href={item.href}
         className={styles.link}
+        onClick={onNavigate}
         aria-current={isActive(pathname, item.href) ? 'page' : undefined}
       >
         {t(item.key)}
