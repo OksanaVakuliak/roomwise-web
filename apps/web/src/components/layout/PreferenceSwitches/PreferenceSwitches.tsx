@@ -32,7 +32,7 @@ export function PreferenceSwitches({
 
   const hydrated = usePreferencesHydration();
   useSystemThemeWatcher();
-  useExchangeRateSync(hydrated);
+  useExchangeRateSync(withCurrency && hydrated);
 
   const { currency } = useDisplayCurrency();
   const theme = usePreferences((state) => state.theme);
