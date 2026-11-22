@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import type { Locale } from 'next-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminSessionProvider } from '@/features/admin/session';
@@ -6,7 +6,7 @@ import { api } from '@/lib/api/client';
 import { toast, useToasts } from '@/lib/toast';
 import { resetWarmup, useWarmup } from '@/lib/warmup';
 import { axe } from '@/test/axe';
-import { makeAdminFailure } from '@/test/fixtures/admin/errors';
+import { adminErrors, makeAdminFailure } from '@/test/fixtures/admin/errors';
 import { makeAdminMe, makeDemoMe } from '@/test/fixtures/admin/me';
 import {
   forEachLocale,
@@ -142,6 +142,28 @@ describe.each(forEachLocale)('AdminAccount (%s)', (locale) => {
     fireEvent.click(screen.getByRole('button', { name: t.submit }));
 
     expect(await screen.findByText(t.wrongPassword)).toBeInTheDocument();
+  });
+
+  it('shows no expired-session banner when the reauth dialog is cancelled', async () => {
+    post.mockResolvedValue(failure(adminErrors.unauthenticated()));
+    const { t } = await setup(locale);
+    fill(t, {
+      current: 'old-password',
+      next: 'new-password-1',
+      confirm: 'new-password-1',
+    });
+    fireEvent.click(screen.getByRole('button', { name: t.submit }));
+
+    const dialog = await screen.findByRole('dialog');
+    const buttons = dialog.querySelectorAll('button[type="button"]');
+    fireEvent.click(buttons[buttons.length - 1] as HTMLButtonElement);
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+    const expired = catalogs[locale as 'en' | 'uk'].AdminErrors.unauthenticated;
+    expect(screen.queryByText(expired)).not.toBeInTheDocument();
+    expect(within(document.body).queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('explains why the form is unavailable in demo and sends nothing', async () => {

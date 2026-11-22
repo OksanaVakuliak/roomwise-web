@@ -84,7 +84,8 @@ export function AdminAccount() {
   const showBanner =
     failure !== null &&
     failure.kind !== 'validation' &&
-    failure.kind !== 'invalidCredentials';
+    failure.kind !== 'invalidCredentials' &&
+    failure.kind !== 'unauthenticated';
 
   const login = session.status === 'authenticated' ? session.me.login : '';
   const disabled = !can.allowed;
