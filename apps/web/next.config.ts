@@ -3,6 +3,7 @@ import { withSerwist } from '@serwist/turbopack';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 import { z } from 'zod';
+import { adminHeaders } from './src/lib/admin-headers';
 import { buildRevision } from './src/lib/pwa/revision';
 
 const parsedApiOrigin = z.url().safeParse(process.env.API_ORIGIN);
@@ -21,6 +22,9 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: buildRevision(),
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN?.trim() ?? '',
+  },
+  async headers() {
+    return [adminHeaders];
   },
   async rewrites() {
     return [

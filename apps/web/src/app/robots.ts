@@ -6,7 +6,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: routing.locales.map((locale) => `/${locale}/showcase`),
+      disallow: ['showcase', 'admin'].flatMap((path) =>
+        routing.locales.map((locale) => `/${locale}/${path}`),
+      ),
     },
   };
 }
