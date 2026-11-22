@@ -148,6 +148,17 @@ describe('logout and changePassword', () => {
       }),
     ).rejects.toMatchObject({ status: 403 });
   });
+
+  it('rejects an empty error response', async () => {
+    post.mockResolvedValue({ error: undefined, response: { status: 401 } });
+
+    await expect(
+      changePassword(createWriteGate(), {
+        currentPassword: 'a',
+        newPassword: 'b',
+      }),
+    ).rejects.toMatchObject({ status: 401 });
+  });
 });
 
 describe('me', () => {

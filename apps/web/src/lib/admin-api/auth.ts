@@ -17,7 +17,7 @@ type EmptyResult = { error?: unknown; response: { status: number } };
 
 const acknowledged = (result: EmptyResult) => ({
   ...result,
-  data: result.error === undefined ? true : undefined,
+  data: result.response.status < 400 ? true : undefined,
 });
 
 export function login(gate: WriteGate, body: LoginBody): Promise<AdminMe> {
