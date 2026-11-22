@@ -7,6 +7,7 @@ import { Skeleton, VisuallyHidden } from '@/components/ui';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { useAdminMe } from '@/lib/admin-api/auth';
 import { toAdminError } from '@/lib/admin-api/errors';
+import { adminKeys } from '@/lib/admin-api/keys';
 import { useAdminSession } from './context';
 
 export function AdminSessionGate({ children }: { children: ReactNode }) {
@@ -25,6 +26,7 @@ export function AdminSessionGate({ children }: { children: ReactNode }) {
     const redirect = () => {
       if (redirected.current) return;
       redirected.current = true;
+      queryClient.setQueryData(adminKeys.me(), null);
       const next = `${pathname}${window.location.search}`;
       router.replace(`/admin/login?next=${encodeURIComponent(next)}`);
     };

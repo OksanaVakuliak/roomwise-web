@@ -120,6 +120,49 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
     await waitFor(() => expect(router.replace).toHaveBeenCalledTimes(1));
   });
 
+  it('treats the session as anonymous when a refetch of me returns 401', async () => {
+    get.mockResolvedValueOnce({
+      data: makeAdminMe(),
+      response: { status: 200 },
+    });
+    get.mockResolvedValue(failure(adminErrors.unauthenticated()));
+    const { router, queryClient } = setup(locale);
+    await screen.findByLabelText('note');
+
+    await act(async () => {
+      window.dispatchEvent(
+        Object.assign(new Event('pageshow'), { persisted: true }),
+      );
+    });
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledTimes(1));
+    expect(
+      decodeURIComponent(String(router.replace.mock.calls[0]?.[0])),
+    ).toContain('/admin/login?next=/');
+    expect(screen.queryByLabelText('note')).not.toBeInTheDocument();
+    expect(queryClient.getQueryData(['admin', 'me'])).toBeNull();
+  });
+
+  it('makes the session anonymous when another read returns 401', async () => {
+    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
+    const { queryClient } = setup(locale);
+    await screen.findByLabelText('note');
+
+    const { status, body } = adminErrors.unauthenticated();
+    await act(async () => {
+      await queryClient
+        .fetchQuery({
+          queryKey: ['admin', 'leads'],
+          queryFn: () => Promise.reject(new ApiRequestError(status, body)),
+        })
+        .catch(() => undefined);
+    });
+
+    await waitFor(() =>
+      expect(queryClient.getQueryData(['admin', 'me'])).toBeNull(),
+    );
+  });
+
   it('reauthenticates on a 401 mutation, repeats it once and keeps the form', async () => {
     get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
     post

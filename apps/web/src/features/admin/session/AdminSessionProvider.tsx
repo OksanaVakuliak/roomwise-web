@@ -72,11 +72,15 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
     [requestReauth],
   );
 
-  const { data, isPending } = query;
+  const { data, isPending, isError, error } = query;
   const session = useMemo<AdminSession>(() => {
+    if (isError && toAdminError(error).kind === 'unauthenticated') {
+      return { status: 'anonymous' };
+    }
     if (data) return { status: 'authenticated', me: data };
-    return { status: isPending ? 'checking' : 'anonymous' };
-  }, [data, isPending]);
+    if (isPending) return { status: 'checking' };
+    return { status: 'anonymous' };
+  }, [data, isPending, isError, error]);
 
   const onSuccess = useCallback(() => settle('resolve'), [settle]);
   const onCancel = useCallback(() => settle('reject'), [settle]);
