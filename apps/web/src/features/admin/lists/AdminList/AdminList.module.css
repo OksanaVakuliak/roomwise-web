@@ -1,0 +1,19 @@
+.root {
+  display: grid;
+  gap: var(--space-16);
+}
+
+.toolbar {
+  display: grid;
+  gap: var(--space-12);
+}
+
+.skeleton {
+  display: grid;
+  gap: var(--space-12);
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+}
