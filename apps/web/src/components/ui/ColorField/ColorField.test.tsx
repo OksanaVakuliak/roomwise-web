@@ -102,6 +102,35 @@ describe('ColorField', () => {
     expect(screen.getByLabelText('Pick colour')).toHaveValue('#112233');
   });
 
+  it('does not show an error for an empty value before any edit', () => {
+    renderWithProviders(
+      <ColorField label="Colour" value="" onChange={vi.fn()} {...props} />,
+    );
+    expect(screen.queryByText('Use #RRGGBB')).toBeNull();
+    expect(screen.getByLabelText('Colour')).not.toHaveAttribute('aria-invalid');
+    expect(screen.getByLabelText('Pick colour')).toHaveValue('#000000');
+  });
+
+  it('resyncs invalid text when resetKey changes to the same value', () => {
+    const field = (resetKey: number) => (
+      <ColorField
+        label="Colour"
+        value="#3b3f45"
+        resetKey={resetKey}
+        onChange={vi.fn()}
+        {...props}
+      />
+    );
+    const { rerender } = renderWithProviders(field(0));
+    fireEvent.change(screen.getByLabelText('Colour'), {
+      target: { value: '#12' },
+    });
+    expect(screen.getByText('Use #RRGGBB')).toBeInTheDocument();
+    rerender(field(1));
+    expect(screen.getByLabelText('Colour')).toHaveValue('#3b3f45');
+    expect(screen.queryByText('Use #RRGGBB')).toBeNull();
+  });
+
   it('shows the consumer error', () => {
     renderWithProviders(
       <ColorField

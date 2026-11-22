@@ -72,6 +72,7 @@ function Harness({ save }: HarnessProps) {
           differing: form.differing,
           conflict: form.conflict?.revision ?? null,
           error: form.error?.kind ?? null,
+          resetKey: form.resetKey,
         })}
       </output>
       {form.conflict ? (
@@ -170,6 +171,7 @@ describe.each(forEachLocale)('admin forms (%s)', (locale) => {
     );
     expect(state().conflict).toBeNull();
     expect(state().dirty).toBe(false);
+    expect(state().resetKey).toBe(1);
     expect(screen.getByLabelText('name')).toHaveValue('Pine');
   });
 

@@ -46,6 +46,7 @@ export type AdminForm<T extends object> = {
   conflict: AdminFormConflict<T> | null;
   conflictRevealed: boolean;
   differing: readonly string[];
+  resetKey: number;
   setField: <K extends keyof T>(key: K, value: T[K]) => void;
   setValues: (next: T | ((current: T) => T)) => void;
   clearError: (path: string) => void;
@@ -71,6 +72,7 @@ export function useAdminForm<T extends object>({
   const [values, setValuesState] = useState<T>(initial);
   const [currentRevision, setCurrentRevision] = useState(revision);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [resetKey, setResetKey] = useState(0);
   const [error, setError] = useState<AdminError | null>(null);
   const [conflict, setConflict] = useState<AdminFormConflict<T> | null>(null);
   const [conflictRevealed, setConflictRevealed] = useState(false);
@@ -120,6 +122,7 @@ export function useAdminForm<T extends object>({
     setError(null);
     setConflict(null);
     setConflictRevealed(false);
+    setResetKey((key) => key + 1);
   }, [baseline]);
 
   const submit = useCallback(
@@ -190,6 +193,7 @@ export function useAdminForm<T extends object>({
     setError(null);
     setConflict(null);
     setConflictRevealed(false);
+    setResetKey((key) => key + 1);
   }, [conflict]);
 
   const dismissConflict = useCallback(() => {
@@ -209,6 +213,7 @@ export function useAdminForm<T extends object>({
     conflict,
     conflictRevealed,
     differing,
+    resetKey,
     setField,
     setValues,
     clearError,

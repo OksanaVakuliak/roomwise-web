@@ -18,6 +18,7 @@ export type MoneyFieldProps = Omit<
   valueCents: number | null;
   onChange: (cents: number | null) => void;
   onValidityChange?: (valid: boolean) => void;
+  resetKey?: string | number;
   currency?: string;
   negativeMessage: string;
   invalidMessage: string;
@@ -52,8 +53,9 @@ function formatCents(cents: number | null): string {
   if (cents === null) {
     return '';
   }
-  const fraction = String(cents % 100).padStart(2, '0');
-  return `${Math.floor(cents / 100)}.${fraction}`;
+  const abs = Math.abs(cents);
+  const fraction = String(abs % 100).padStart(2, '0');
+  return `${cents < 0 ? '-' : ''}${Math.floor(abs / 100)}.${fraction}`;
 }
 
 function centsOf(parsed: Parsed): number | null | undefined {
@@ -67,6 +69,7 @@ export function MoneyField({
   valueCents,
   onChange,
   onValidityChange,
+  resetKey,
   currency = 'USD',
   negativeMessage,
   invalidMessage,
@@ -76,11 +79,16 @@ export function MoneyField({
 }: MoneyFieldProps) {
   const [text, setText] = useState(formatCents(valueCents));
   const [seen, setSeen] = useState(valueCents);
+  const [seenKey, setSeenKey] = useState(resetKey);
   const parsed = parseMoney(text);
   const cents = centsOf(parsed);
   const stale =
     cents === undefined ? valueCents !== null : cents !== valueCents;
-  if (valueCents !== seen) {
+  if (resetKey !== seenKey) {
+    setSeenKey(resetKey);
+    setSeen(valueCents);
+    setText(formatCents(valueCents));
+  } else if (valueCents !== seen) {
     setSeen(valueCents);
     if (stale) {
       setText(formatCents(valueCents));

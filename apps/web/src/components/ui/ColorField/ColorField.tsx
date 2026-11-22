@@ -11,6 +11,7 @@ export type ColorFieldProps = {
   onChange: (value: string) => void;
   pickerLabel: string;
   invalidMessage: string;
+  resetKey?: string | number;
   hint?: string;
   error?: string;
   required?: boolean;
@@ -28,6 +29,7 @@ export function ColorField({
   onChange,
   pickerLabel,
   invalidMessage,
+  resetKey,
   hint,
   error,
   required,
@@ -38,7 +40,14 @@ export function ColorField({
 }: ColorFieldProps) {
   const [text, setText] = useState(value);
   const [seen, setSeen] = useState(value);
-  if (value !== seen) {
+  const [seenKey, setSeenKey] = useState(resetKey);
+  const [edited, setEdited] = useState(false);
+  if (resetKey !== seenKey) {
+    setSeenKey(resetKey);
+    setSeen(value);
+    setText(value);
+    setEdited(false);
+  } else if (value !== seen) {
     setSeen(value);
     if (text.toLowerCase() !== value.toLowerCase()) {
       setText(value);
@@ -46,12 +55,18 @@ export function ColorField({
   }
 
   const valid = HEX_COLOR.test(text);
-  const message = error ?? (valid ? undefined : invalidMessage);
+  const message = error ?? (edited && !valid ? invalidMessage : undefined);
+  const pickerValue = HEX_COLOR.test(text)
+    ? text.toLowerCase()
+    : HEX_COLOR.test(value)
+      ? value.toLowerCase()
+      : '#000000';
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const next = event.target.value;
       setText(next);
+      setEdited(true);
       if (HEX_COLOR.test(next)) {
         onChange(next.toLowerCase());
       }
@@ -73,7 +88,7 @@ export function ColorField({
           <input
             type="color"
             aria-label={pickerLabel}
-            value={valid ? text.toLowerCase() : value}
+            value={pickerValue}
             disabled={disabled}
             className={styles.picker}
             onChange={handleChange}

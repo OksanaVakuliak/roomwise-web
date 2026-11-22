@@ -141,6 +141,40 @@ describe('MoneyField', () => {
     expect(screen.getByLabelText('Price')).toHaveValue('25.50');
   });
 
+  it('formats negative cents with a leading minus', () => {
+    renderWithProviders(
+      <MoneyField
+        label="Price"
+        valueCents={-250}
+        onChange={vi.fn()}
+        {...messages}
+      />,
+    );
+    expect(screen.getByLabelText('Price')).toHaveValue('-2.50');
+  });
+
+  it('resyncs invalid text when resetKey changes to the same value', () => {
+    const onValidityChange = vi.fn();
+    const field = (resetKey: number) => (
+      <MoneyField
+        label="Price"
+        valueCents={100}
+        resetKey={resetKey}
+        onChange={vi.fn()}
+        onValidityChange={onValidityChange}
+        {...messages}
+      />
+    );
+    const { rerender } = renderWithProviders(field(0));
+    type('abc');
+    expect(onValidityChange).toHaveBeenLastCalledWith(false);
+    rerender(field(0));
+    expect(screen.getByLabelText('Price')).toHaveValue('abc');
+    rerender(field(1));
+    expect(screen.getByLabelText('Price')).toHaveValue('1.00');
+    expect(onValidityChange).toHaveBeenLastCalledWith(true);
+  });
+
   it('prefers the consumer error', () => {
     renderWithProviders(
       <MoneyField
