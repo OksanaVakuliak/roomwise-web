@@ -1,6 +1,12 @@
 'use client';
 
-import { type ChangeEvent, useCallback, useState } from 'react';
+import {
+  type ChangeEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { mergeControl } from '@/lib/form';
 import { FormField } from '../FormField/FormField';
 import styles from './ColorField.module.css';
@@ -9,6 +15,7 @@ export type ColorFieldProps = {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onValidityChange?: (valid: boolean) => void;
   pickerLabel: string;
   invalidMessage: string;
   resetKey?: string | number;
@@ -27,6 +34,7 @@ export function ColorField({
   label,
   value,
   onChange,
+  onValidityChange,
   pickerLabel,
   invalidMessage,
   resetKey,
@@ -54,7 +62,14 @@ export function ColorField({
     }
   }
 
-  const valid = HEX_COLOR.test(text);
+  const valid = HEX_COLOR.test(text) || (!required && text === '');
+  const reported = useRef(true);
+  useEffect(() => {
+    if (valid !== reported.current) {
+      reported.current = valid;
+      onValidityChange?.(valid);
+    }
+  }, [valid, onValidityChange]);
   const message = error ?? (edited && !valid ? invalidMessage : undefined);
   const pickerValue = HEX_COLOR.test(text)
     ? text.toLowerCase()
@@ -69,9 +84,11 @@ export function ColorField({
       setEdited(true);
       if (HEX_COLOR.test(next)) {
         onChange(next.toLowerCase());
+      } else if (next === '' && !required) {
+        onChange('');
       }
     },
-    [onChange],
+    [onChange, required],
   );
 
   return (

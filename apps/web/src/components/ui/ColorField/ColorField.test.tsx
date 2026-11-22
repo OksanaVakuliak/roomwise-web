@@ -56,7 +56,7 @@ describe('ColorField', () => {
     expect(screen.getByLabelText('Colour')).toHaveValue('#ff0000');
   });
 
-  it.each(['#12345', '123456', '#GGGGGG', ''])(
+  it.each(['#12345', '123456', '#GGGGGG'])(
     'shows an error and does not emit %j',
     (text) => {
       const onChange = vi.fn();
@@ -80,6 +80,53 @@ describe('ColorField', () => {
       expect(screen.getByLabelText('Pick colour')).toHaveValue('#3b3f45');
     },
   );
+
+  it('emits an empty value and stays valid for an optional field', () => {
+    const onChange = vi.fn();
+    const onValidityChange = vi.fn();
+    renderWithProviders(
+      <ColorField
+        label="Colour"
+        value="#3b3f45"
+        onChange={onChange}
+        onValidityChange={onValidityChange}
+        {...props}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText('Colour'), {
+      target: { value: '' },
+    });
+    expect(onChange).toHaveBeenCalledWith('');
+    expect(onValidityChange).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Colour')).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('reports invalid and resyncs through resetKey', () => {
+    const onChange = vi.fn();
+    const onValidityChange = vi.fn();
+    const field = (resetKey: number) => (
+      <ColorField
+        label="Colour"
+        value="#3b3f45"
+        required
+        resetKey={resetKey}
+        onChange={onChange}
+        onValidityChange={onValidityChange}
+        {...props}
+      />
+    );
+    const { rerender } = renderWithProviders(field(0));
+    expect(onValidityChange).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: '' },
+    });
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onValidityChange).toHaveBeenLastCalledWith(false);
+    expect(screen.getByText('Use #RRGGBB')).toBeInTheDocument();
+    rerender(field(1));
+    expect(onValidityChange).toHaveBeenLastCalledWith(true);
+    expect(screen.getByRole('textbox')).toHaveValue('#3b3f45');
+  });
 
   it('syncs the text when the value changes from outside', () => {
     const { rerender } = renderWithProviders(

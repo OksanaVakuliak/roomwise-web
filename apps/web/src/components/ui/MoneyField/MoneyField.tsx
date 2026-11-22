@@ -2,6 +2,7 @@
 
 import {
   type ChangeEvent,
+  type FocusEvent,
   useCallback,
   useEffect,
   useRef,
@@ -75,6 +76,7 @@ export function MoneyField({
   invalidMessage,
   error,
   className,
+  onBlur,
   ...rest
 }: MoneyFieldProps) {
   const [text, setText] = useState(formatCents(valueCents));
@@ -116,13 +118,26 @@ export function MoneyField({
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const next = event.target.value;
-      setText(next);
       const nextCents = centsOf(parseMoney(next));
+      setText(next);
       if (nextCents !== undefined) {
         onChange(nextCents);
       }
     },
     [onChange],
+  );
+
+  const handleBlur = useCallback(
+    (event: FocusEvent<HTMLInputElement>) => {
+      setText((current) => {
+        const trimmed = current.trim();
+        return trimmed.startsWith('-') && centsOf(parseMoney(trimmed)) === 0
+          ? trimmed.slice(1)
+          : current;
+      });
+      onBlur?.(event);
+    },
+    [onBlur],
   );
 
   return (
@@ -134,6 +149,7 @@ export function MoneyField({
       value={text}
       error={message}
       onChange={handleChange}
+      onBlur={handleBlur}
     />
   );
 }

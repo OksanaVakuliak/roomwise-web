@@ -175,11 +175,46 @@ describe('MoneyField', () => {
     expect(onValidityChange).toHaveBeenLastCalledWith(true);
   });
 
+  it('keeps the minus while typing a negative amount', () => {
+    renderWithProviders(
+      <MoneyField
+        label="Price"
+        valueCents={0}
+        onChange={vi.fn()}
+        {...messages}
+      />,
+    );
+    type('-0');
+    type('-0.5');
+    expect(screen.getByLabelText('Price')).toHaveValue('-0.5');
+    expect(screen.getByText(messages.negativeMessage)).toBeInTheDocument();
+  });
+
+  it.each(['-0', '-0.00'])(
+    'normalizes %j so the native pattern matches',
+    (text) => {
+      const onChange = vi.fn();
+      renderWithProviders(
+        <MoneyField
+          label="Price"
+          valueCents={0}
+          onChange={onChange}
+          {...messages}
+        />,
+      );
+      type(text);
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      fireEvent.blur(screen.getByLabelText('Price'));
+      expect(screen.getByLabelText('Price')).toHaveValue(text.slice(1));
+      expect(screen.getByLabelText('Price')).toBeValid();
+    },
+  );
+
   it('prefers the consumer error', () => {
     renderWithProviders(
       <MoneyField
         label="Price"
-        valueCents={100}
+        valueCents={0}
         error="Server says no"
         onChange={vi.fn()}
         {...messages}
