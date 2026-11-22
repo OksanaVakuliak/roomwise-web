@@ -90,7 +90,7 @@ async function answer(route: Route, store: MockStore) {
     store,
     url,
     body: parseBody(request),
-    raw: request.postData(),
+    raw: request.postDataBuffer()?.toString('latin1') ?? null,
     session,
   });
   const status = reply.status ?? 200;

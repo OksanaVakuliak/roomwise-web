@@ -164,11 +164,16 @@ export function createAdminState(): AdminState {
   ];
   return {
     seed: 20000,
-    imageSizes: Object.fromEntries(
-      products.flatMap(({ texture }) =>
-        texture ? [[texture.id, texture.realSizeMm]] : [],
+    imageSizes: {
+      ...Object.fromEntries(
+        Object.values(adminIds.images).map((id) => [id, null]),
       ),
-    ),
+      ...Object.fromEntries(
+        products.flatMap(({ texture }) =>
+          texture ? [[texture.id, texture.realSizeMm]] : [],
+        ),
+      ),
+    },
     roomTypes: makeAdminRoomTypes().items,
     categories: makeAdminCategories().items,
     materialTypes: makeAdminMaterialTypes().items,
@@ -221,6 +226,7 @@ const notFound = (): MockReply => ({
 });
 
 const LEAD_STATUSES = ['NEW', 'IN_PROGRESS', 'DONE', 'REJECTED', 'SPAM'];
+const PUBLICATION_STATUSES = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
 const SEARCH_MAX = 100;
 const REAL_SIZE_MAX = 10_000;
 const INVALID = Symbol('invalid');
@@ -759,11 +765,15 @@ const productsList: Route = {
   pattern: /^\/admin\/products$/,
   reply: secured((_match, { store, url }) => {
     const term = searchTerm(url);
-    if (term === INVALID) {
-      return failure(adminErrors.validation());
-    }
     const categoryId = url.searchParams.get('categoryId');
     const status = url.searchParams.get('status');
+    if (
+      term === INVALID ||
+      (categoryId !== null && !UUID.test(categoryId)) ||
+      (status !== null && !PUBLICATION_STATUSES.includes(status))
+    ) {
+      return failure(adminErrors.validation());
+    }
     const matching = store.admin.products
       .filter(
         (product) =>
@@ -1356,7 +1366,11 @@ const authRoutes = (): Route[] => [
     reply: secured((_match, { store, raw }) => {
       const field = multipartField(raw, 'realSizeMm');
       const realSizeMm =
-        field === undefined || field === '' ? null : realSizeOf(Number(field));
+        field === undefined || field === ''
+          ? null
+          : /^\d+$/.test(field)
+            ? realSizeOf(Number(field))
+            : INVALID;
       if (realSizeMm === INVALID) {
         return failure(adminErrors.validation());
       }

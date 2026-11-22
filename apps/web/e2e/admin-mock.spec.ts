@@ -107,6 +107,33 @@ test('applies a new texture size to the product that uses it', async ({
   expect(product.body.texture.realSizeMm).toBe(300);
 });
 
+test('stores the real size sent with an image upload', async ({ page }) => {
+  await loginAs(page, 'admin');
+  const upload = (realSizeMm: string) =>
+    page.evaluate(async (value) => {
+      const form = new FormData();
+      form.append('file', new Blob(['png'], { type: 'image/png' }), 'a.png');
+      form.append('realSizeMm', value);
+      const response = await fetch('/api/v1/admin/images', {
+        method: 'POST',
+        body: form,
+      });
+      return { status: response.status, body: await response.json() };
+    }, realSizeMm);
+  expect((await upload('3e2')).status).toBe(400);
+  expect((await upload('')).body.realSizeMm).toBeNull();
+  const uploaded = await upload('600');
+  expect(uploaded.status).toBe(201);
+  expect(uploaded.body.realSizeMm).toBe(600);
+  const patched = await call<{ realSizeMm: number }>(
+    page,
+    'PATCH',
+    `/admin/images/${adminIds.images.laminate}`,
+    { realSizeMm: 300 },
+  );
+  expect(patched.status).toBe(200);
+});
+
 test('shows a public lead in the admin leads list', async ({ page }) => {
   await loginAs(page, 'admin');
   const created = await call<{ leadNumber: number }>(
