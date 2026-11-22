@@ -1459,6 +1459,20 @@
       "fill": "Увійти як демо"
     }
   },
+  "AdminAccount": {
+    "title": "Обліковий запис",
+    "login": "Логін",
+    "passwordTitle": "Зміна пароля",
+    "currentPassword": "Поточний пароль",
+    "newPassword": "Новий пароль",
+    "newPasswordHint": "Щонайменше 12 символів",
+    "confirmPassword": "Повторіть новий пароль",
+    "mismatch": "Паролі не збігаються",
+    "wrongPassword": "Поточний пароль неправильний",
+    "submit": "Змінити пароль",
+    "submitting": "Змінюємо пароль",
+    "changed": "Пароль змінено"
+  },
   "AdminNav": {
     "label": "Розділи адмінки",
     "menu": "Меню",

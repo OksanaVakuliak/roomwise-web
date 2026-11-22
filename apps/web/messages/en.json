@@ -1459,6 +1459,20 @@
       "fill": "Sign in as demo"
     }
   },
+  "AdminAccount": {
+    "title": "Account",
+    "login": "Login",
+    "passwordTitle": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "newPasswordHint": "At least 12 characters",
+    "confirmPassword": "Repeat new password",
+    "mismatch": "Passwords do not match",
+    "wrongPassword": "Current password is incorrect",
+    "submit": "Change password",
+    "submitting": "Changing password",
+    "changed": "Password changed"
+  },
   "AdminNav": {
     "label": "Admin sections",
     "menu": "Menu",
