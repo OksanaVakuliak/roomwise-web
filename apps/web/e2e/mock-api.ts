@@ -76,7 +76,11 @@ async function answer(route: Route, store: MockStore) {
     }
     const replay = store.idempotent.get(key);
     if (replay) {
-      await route.fulfill({ status: replay.status, json: replay.body });
+      await route.fulfill({
+        status: replay.status,
+        json: replay.body,
+        headers: replay.headers,
+      });
       return;
     }
   }
@@ -106,10 +110,14 @@ async function answer(route: Route, store: MockStore) {
 
   const etag = etagOf(JSON.stringify(reply.body));
   if (request.headers()['if-none-match'] === etag) {
-    await route.fulfill({ status: 304, headers: { etag } });
+    await route.fulfill({ status: 304, headers: { ...reply.headers, etag } });
     return;
   }
-  await route.fulfill({ status, json: reply.body, headers: { etag } });
+  await route.fulfill({
+    status,
+    json: reply.body,
+    headers: { ...reply.headers, etag },
+  });
 }
 
 export async function installMockApi(

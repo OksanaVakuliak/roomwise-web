@@ -14,6 +14,7 @@ import {
   type AdminRule,
   type AdminSettings,
   type AdminStyle,
+  type AdminStylePair,
   adminActor,
   adminErrors,
   adminIds,
@@ -40,7 +41,6 @@ import {
   makeAdminRules,
   makeAdminSettings,
   makeAdminStyle,
-  makeAdminStylePair,
   makeAdminStyleRow,
   makeAdminStyles,
   makeArchivedProduct,
@@ -85,46 +85,75 @@ export function sessionFromCookie(header: string | undefined): Session | null {
 type Versioned = Stamp & { id: string };
 type Body = Record<string, unknown>;
 
+export type StyleRecord = Omit<
+  AdminStyle,
+  'pairs' | 'unfilledCount' | 'unavailableCount'
+> & { defaults: Record<string, string> };
+
 export type AdminState = {
   seed: number;
   roomTypes: AdminRoomType[];
   categories: AdminCategory[];
   materialTypes: AdminMaterialType[];
   products: AdminProduct[];
-  styles: AdminStyle[];
+  styles: StyleRecord[];
   packageItems: AdminPackageItem[];
   options: AdminOption[];
   rules: AdminRule[];
-  categoriesWithoutRule: { id: string; name: AdminCategory['name'] }[];
   coefficients: AdminCoefficient[];
   exchangeRate: AdminExchangeRate;
   settings: AdminSettings;
   leads: AdminLead[];
 };
 
-const stylePairs: Record<string, AdminStyle['pairs']> = {
-  [adminIds.styles.classic]: [makeAdminStylePair()],
-  [adminIds.styles.draft]: [],
+const pairKey = (roomTypeId: string, categoryId: string) =>
+  `${roomTypeId}:${categoryId}`;
+
+const seedDefaults: Record<string, Record<string, string>> = {
+  [adminIds.styles.modern]: {
+    [pairKey(adminIds.roomTypes.LIVING_ROOM, adminIds.categories.flooring)]:
+      adminIds.products.laminate,
+    [pairKey(adminIds.roomTypes.LIVING_ROOM, adminIds.categories.wallFinish)]:
+      adminIds.products.inStyle,
+    [pairKey(adminIds.roomTypes.BEDROOM, adminIds.categories.flooring)]:
+      adminIds.products.archived,
+  },
+  [adminIds.styles.classic]: {
+    [pairKey(adminIds.roomTypes.LIVING_ROOM, adminIds.categories.flooring)]:
+      adminIds.products.laminate,
+  },
+};
+
+const styleRecord = (
+  style: AdminStyle,
+  defaults: Record<string, string> = {},
+): StyleRecord => {
+  const {
+    pairs: _pairs,
+    unfilledCount: _unfilled,
+    unavailableCount: _unavailable,
+    ...rest
+  } = style;
+  return { ...rest, defaults };
 };
 
 export function createAdminState(): AdminState {
   const styles = makeAdminStyles().items.map((row) =>
-    makeAdminStyle({
-      id: row.id,
-      name: row.name,
-      description: row.description,
-      image: row.image,
-      status: row.status,
-      sortOrder: row.sortOrder,
-      revision: row.revision,
-      updatedAt: row.updatedAt,
-      updatedBy: row.updatedBy,
-      unfilledCount: row.unfilledPairs,
-      unavailableCount: row.unavailablePairs,
-      ...(stylePairs[row.id] ? { pairs: stylePairs[row.id] } : {}),
-    }),
+    styleRecord(
+      makeAdminStyle({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        image: row.image,
+        status: row.status,
+        sortOrder: row.sortOrder,
+        revision: row.revision,
+        updatedAt: row.updatedAt,
+        updatedBy: row.updatedBy,
+      }),
+      seedDefaults[row.id],
+    ),
   );
-  const rules = makeAdminRules();
   return {
     seed: 20000,
     roomTypes: makeAdminRoomTypes().items,
@@ -140,8 +169,7 @@ export function createAdminState(): AdminState {
     styles,
     packageItems: makeAdminPackageItems().items,
     options: makeAdminOptions().items,
-    rules: rules.items,
-    categoriesWithoutRule: rules.categoriesWithoutRule,
+    rules: makeAdminRules().items,
     coefficients: makeAdminCoefficients().items,
     exchangeRate: makeNbuExchangeRate(),
     settings: makeAdminSettings(),
@@ -156,11 +184,16 @@ export function addMockLead(
   const { leads } = store.admin;
   const number = Math.max(0, ...leads.map((lead) => lead.number)) + 1;
   const id = adminUuid(++store.admin.seed);
+  const now = new Date().toISOString();
   const lead = makeAdminLead({
     id,
     number,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    consentAt: now,
     status: 'NEW',
+    statusHistory: [
+      { fromStatus: null, toStatus: 'NEW', changedAt: now, changedBy: null },
+    ],
     ...overrides,
   });
   leads.push(lead);
@@ -214,10 +247,10 @@ const stamped = <T extends Versioned>(
 const isStale = (item: { revision: string }, body: Body) =>
   body.revision !== item.revision;
 
-const blankName = (body: Body) => {
-  const name = body.name as { en?: string } | undefined;
-  return name !== undefined && !name.en?.trim();
-};
+const englishName = (body: Body) =>
+  (body.name as { en?: string } | undefined)?.en?.trim();
+
+const blankName = (body: Body) => body.name !== undefined && !englishName(body);
 
 const hasMissingTranslation = (item: object) =>
   Object.values(item).some(
@@ -253,14 +286,10 @@ type Resource<T extends Versioned> = {
   collection: (state: AdminState) => T[];
   build: (body: Body, id: string, state: AdminState) => T;
   merge?: (body: Body, current: T) => Partial<T>;
-  normalize?: (item: T, state: AdminState) => T;
   row?: (item: T, state: AdminState) => unknown;
   view?: (item: T, state: AdminState) => unknown;
   listExtra?: (state: AdminState) => object;
   inUse?: (item: T, state: AdminState) => AdminFailure | null;
-  onCreate?: (item: T, state: AdminState) => void;
-  onRemove?: (item: T, state: AdminState) => void;
-  onUpdate?: (previous: T, next: T, state: AdminState) => void;
   readOne?: boolean;
   customList?: boolean;
   noDelete?: boolean;
@@ -291,22 +320,19 @@ function crud<T extends Versioned>(resource: Resource<T>): Route[] {
       pattern: new RegExp(`^${base}$`),
       reply: secured((_match, { store, body, session }) => {
         const input = asBody(body);
-        if (blankName(input)) {
+        if (!englishName(input)) {
           return failure(adminErrors.validation());
         }
         const { admin } = store;
         const items = resource.collection(admin);
         const id = adminUuid(++admin.seed);
         const built = resource.build(input, id, admin);
-        const order = sortOrderOf(built) === null ? null : items.length;
-        const ordered = order === null ? built : { ...built, sortOrder: order };
-        const created = stamped(
-          resource.normalize?.(ordered, admin) ?? ordered,
-          admin,
-          session,
-        );
+        const order =
+          Math.max(-1, ...items.map((item) => sortOrderOf(item) ?? -1)) + 1;
+        const ordered =
+          sortOrderOf(built) === null ? built : { ...built, sortOrder: order };
+        const created = stamped(ordered, admin, session);
         items.push(created);
-        resource.onCreate?.(created, admin);
         return { status: 201, body: view(created, admin) };
       }),
     },
@@ -333,13 +359,8 @@ function crud<T extends Versioned>(resource: Resource<T>): Route[] {
             'confirmZeroPrice',
           ]) as Partial<T>);
         const merged = { ...current, ...fields };
-        const updated = stamped(
-          resource.normalize?.(merged, store.admin) ?? merged,
-          store.admin,
-          session,
-        );
+        const updated = stamped(merged, store.admin, session);
         replace(store.admin, updated);
-        resource.onUpdate?.(current, updated, store.admin);
         return { body: view(updated, store.admin) };
       }),
     },
@@ -378,7 +399,6 @@ function crud<T extends Versioned>(resource: Resource<T>): Route[] {
         }
         const items = resource.collection(store.admin);
         items.splice(items.indexOf(current), 1);
-        resource.onRemove?.(current, store.admin);
         return { status: 204 };
       }),
     });
@@ -495,24 +515,112 @@ const stylesWhere = (
   uses: (pair: AdminStyle['pairs'][number]) => boolean,
 ) =>
   state.styles
-    .filter((style) => style.pairs.some(uses))
+    .filter((style) => stylePairsOf(style, state).some(uses))
     .map(({ id, name }) => ({ id, name }));
 
+const stylePairsOf = (
+  style: StyleRecord,
+  state: AdminState,
+): AdminStylePair[] =>
+  state.roomTypes.flatMap((roomType) =>
+    roomType.categories.flatMap(({ id: categoryId }): AdminStylePair[] => {
+      const category = state.categories.find((item) => item.id === categoryId);
+      if (!category) {
+        return [];
+      }
+      const product = state.products.find(
+        (item) => item.id === style.defaults[pairKey(roomType.id, categoryId)],
+      );
+      const base = {
+        roomTypeCode: roomType.code,
+        roomTypeId: roomType.id,
+        categoryId,
+        categoryName: category.name,
+      };
+      if (!product) {
+        return [
+          {
+            ...base,
+            productId: null,
+            productName: null,
+            state: 'EMPTY' as const,
+          },
+        ];
+      }
+      const available =
+        product.status === 'PUBLISHED' && product.categoryId === categoryId;
+      return [
+        {
+          ...base,
+          productId: product.id,
+          productName: product.name,
+          state: available
+            ? ('FILLED' as const)
+            : ('PRODUCT_UNAVAILABLE' as const),
+        },
+      ];
+    }),
+  );
+
+const styleView = (style: StyleRecord, state: AdminState): AdminStyle => {
+  const { defaults: _defaults, ...rest } = style;
+  const pairs = stylePairsOf(style, state);
+  return {
+    ...rest,
+    pairs,
+    unfilledCount: pairs.filter((pair) => pair.state === 'EMPTY').length,
+    unavailableCount: pairs.filter(
+      (pair) => pair.state === 'PRODUCT_UNAVAILABLE',
+    ).length,
+  };
+};
+
+const categoryView = (
+  item: AdminCategory,
+  state: AdminState,
+): AdminCategory => ({
+  ...item,
+  productCount: state.products.filter(
+    (product) => product.categoryId === item.id,
+  ).length,
+});
+
+const roomTypeView = (
+  item: AdminRoomType,
+  state: AdminState,
+): AdminRoomType => ({
+  ...item,
+  categories: item.categories.flatMap(({ id }) => {
+    const category = state.categories.find((entry) => entry.id === id);
+    return category
+      ? [
+          {
+            id,
+            name: category.name,
+            status: category.status,
+            surface: category.surface,
+          },
+        ]
+      : [];
+  }),
+});
+
+const formulaKeys = (item: AdminRule) =>
+  [item.quantityFormula, item.costFormula, item.laborFormula].flatMap(
+    (formula) => formula?.match(/\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g) ?? [],
+  );
+
 const coefficientKeysOf = (item: AdminRule, state: AdminState) => {
-  const formulas = [item.quantityFormula, item.costFormula, item.laborFormula];
   const known = new Set(
     state.coefficients.map((coefficient) => coefficient.key),
   );
-  const found = formulas.flatMap(
-    (formula) => formula?.match(/\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g) ?? [],
-  );
-  return [...new Set(found)].filter((key) => known.has(key));
+  return [...new Set(formulaKeys(item))].filter((key) => known.has(key));
 };
 
 const withUsage = (item: AdminCoefficient, state: AdminState) => ({
   ...item,
   usedBy: state.rules
-    .filter((rule) => rule.coefficientKeys.includes(item.key))
+    .filter((rule) => formulaKeys(rule).includes(item.key))
     .map((rule) => ({ ruleId: rule.id, ruleName: rule.name })),
   usedByOptions: state.options
     .filter((option) => option.priceCoefficientKeys.includes(item.key))
@@ -534,16 +642,18 @@ const catalogRoutes = (): Route[] => [
         productCount: 0,
         roomTypeCodes: [],
       }),
+    view: categoryView,
     withStatus: true,
     inUse: (item, state) =>
-      item.productCount > 0 || item.roomTypeCodes.length > 0
+      categoryView(item, state).productCount > 0 ||
+      item.roomTypeCodes.length > 0
         ? {
             status: 409,
             body: {
               error: {
                 code: 'CATEGORY_IN_USE',
                 params: {
-                  productCount: item.productCount,
+                  productCount: categoryView(item, state).productCount,
                   roomTypeCodes: item.roomTypeCodes,
                   styles: stylesWhere(
                     state,
@@ -590,31 +700,8 @@ const catalogRoutes = (): Route[] => [
           }
         : null;
     },
-    onCreate: (item, state) => adjustProductCount(state, item.categoryId, 1),
-    onRemove: (item, state) => adjustProductCount(state, item.categoryId, -1),
-    onUpdate: (previous, next, state) => {
-      if (previous.categoryId !== next.categoryId) {
-        adjustProductCount(state, previous.categoryId, -1);
-        adjustProductCount(state, next.categoryId, 1);
-      }
-    },
   }),
 ];
-
-const adjustProductCount = (
-  state: AdminState,
-  categoryId: string,
-  delta: number,
-) => {
-  const index = state.categories.findIndex((item) => item.id === categoryId);
-  if (index !== -1) {
-    const current = state.categories[index];
-    state.categories[index] = {
-      ...current,
-      productCount: Math.max(0, current.productCount + delta),
-    };
-  }
-};
 
 const productsList: Route = {
   method: 'GET',
@@ -647,7 +734,11 @@ const roomTypeRoutes = (): Route[] => [
     method: 'GET',
     pattern: /^\/admin\/room-types$/,
     reply: secured((_match, { store }) => ({
-      body: { items: store.admin.roomTypes },
+      body: {
+        items: store.admin.roomTypes.map((item) =>
+          roomTypeView(item, store.admin),
+        ),
+      },
     })),
   },
   {
@@ -667,12 +758,18 @@ const roomTypeRoutes = (): Route[] => [
         return failure(adminErrors.validation());
       }
       const updated = stamped(
-        { ...current, name: input.name as AdminRoomType['name'] },
+        {
+          ...current,
+          name:
+            'name' in input
+              ? (input.name as AdminRoomType['name'])
+              : current.name,
+        },
         admin,
         session,
       );
       admin.roomTypes[admin.roomTypes.indexOf(current)] = updated;
-      return { body: updated };
+      return { body: roomTypeView(updated, admin) };
     }),
   },
   {
@@ -717,32 +814,31 @@ const roomTypeRoutes = (): Route[] => [
       });
       const updated = stamped({ ...current, categories }, admin, session);
       admin.roomTypes[admin.roomTypes.indexOf(current)] = updated;
-      return { body: updated };
+      return { body: roomTypeView(updated, admin) };
     }),
   },
 ];
 
 const styleRoutes = (): Route[] => [
-  ...crud<AdminStyle>({
+  ...crud<StyleRecord>({
     path: 'styles',
     collection: (state) => state.styles,
-    build: (body, id, state) =>
-      makeAdminStyle({
-        ...(withoutKeys(body, ['imageId']) as Partial<AdminStyle>),
-        id,
-        status: 'DRAFT',
-        sortOrder: state.styles.length,
-        image: imageOf(body.imageId),
-        pairs: [],
-        unfilledCount: 0,
-        unavailableCount: 0,
-      }),
+    build: (body, id) =>
+      styleRecord(
+        makeAdminStyle({
+          ...(withoutKeys(body, ['imageId']) as Partial<AdminStyle>),
+          id,
+          status: 'DRAFT',
+          image: imageOf(body.imageId),
+        }),
+      ),
     merge: (body) =>
       ({
         ...withoutKeys(body, ['id', 'revision', 'imageId']),
         ...('imageId' in body ? { image: imageOf(body.imageId) } : {}),
-      }) as Partial<AdminStyle>,
-    row: (item) => makeAdminStyleRow(item),
+      }) as Partial<StyleRecord>,
+    view: styleView,
+    row: (item, state) => makeAdminStyleRow(styleView(item, state)),
     readOne: true,
     withStatus: true,
     orderKey: 'styleIds',
@@ -768,46 +864,22 @@ const styleRoutes = (): Route[] => [
               productId: string | null;
             }[]
           | undefined) ?? [];
-      const pairs = current.pairs.map((pair) => {
-        const match = items.find(
-          (item) =>
-            item.roomTypeId === pair.roomTypeId &&
-            item.categoryId === pair.categoryId,
-        );
-        if (!match) {
-          return pair;
+      const defaults = new Map(Object.entries(current.defaults));
+      for (const item of items) {
+        const key = pairKey(item.roomTypeId, item.categoryId);
+        if (item.productId) {
+          defaults.set(key, item.productId);
+        } else {
+          defaults.delete(key);
         }
-        const product = admin.products.find(
-          (item) => item.id === match.productId,
-        );
-        const available =
-          product?.status === 'PUBLISHED' &&
-          product.categoryId === pair.categoryId;
-        return {
-          ...pair,
-          productId: product?.id ?? null,
-          productName: product?.name ?? null,
-          state: product
-            ? available
-              ? ('FILLED' as const)
-              : ('PRODUCT_UNAVAILABLE' as const)
-            : ('EMPTY' as const),
-        };
-      });
+      }
       const updated = stamped(
-        {
-          ...current,
-          pairs,
-          unfilledCount: pairs.filter((pair) => pair.state === 'EMPTY').length,
-          unavailableCount: pairs.filter(
-            (pair) => pair.state === 'PRODUCT_UNAVAILABLE',
-          ).length,
-        },
+        { ...current, defaults: Object.fromEntries(defaults) },
         admin,
         session,
       );
       admin.styles[admin.styles.indexOf(current)] = updated;
-      return { body: updated };
+      return { body: styleView(updated, admin) };
     }),
   },
 ];
@@ -856,15 +928,26 @@ const pricingRoutes = (): Route[] => [
     collection: (state) => state.rules,
     build: (body, id) =>
       makeAdminRule({ ...(body as Partial<AdminRule>), id, orphaned: false }),
-    normalize: (item, state) => ({
+    view: (item, state) => ({
       ...item,
       coefficientKeys: coefficientKeysOf(item, state),
     }),
     listExtra: (state) => ({
-      categoriesWithoutRule: state.categoriesWithoutRule.filter(
-        (category) =>
-          !state.rules.some((rule) => rule.categoryId === category.id),
-      ),
+      categoriesWithoutRule: state.categories
+        .filter(
+          (category) =>
+            !state.rules.some(
+              (rule) =>
+                rule.level === 'CATEGORY' &&
+                !rule.orphaned &&
+                rule.categoryId === category.id,
+            ),
+        )
+        .map(({ id, name }) => ({ id, name }))
+        .sort(
+          (a, b) =>
+            a.name.en.localeCompare(b.name.en) || a.id.localeCompare(b.id),
+        ),
     }),
     orderKey: 'ids',
   }),
@@ -1018,13 +1101,19 @@ const pricingRoutes = (): Route[] => [
 
 const maskName = (name: string) => `${Array.from(name.trim())[0] ?? ''}•••`;
 
+const maskEmail = (email: string) => {
+  const trimmed = email.trim();
+  const at = trimmed.lastIndexOf('@');
+  const local = at === -1 ? trimmed : trimmed.slice(0, at);
+  const domain = at === -1 ? '' : trimmed.slice(at + 1);
+  return `${maskName(local)}@•••.${domain.split('.').pop() ?? ''}`;
+};
+
 const maskLead = (lead: AdminLead): AdminLead => ({
   ...lead,
   name: maskName(lead.name),
   phone: `+${lead.phone.match(/^\+(\d{1,3})/)?.[1] ?? ''}•••${lead.phone.replace(/\D/g, '').slice(-2)}`,
-  email: lead.email
-    ? `${maskName(lead.email.split('@')[0])}@•••.${lead.email.split('.').pop()}`
-    : null,
+  email: lead.email ? maskEmail(lead.email) : null,
   comment: null,
   masked: true,
 });
@@ -1041,6 +1130,7 @@ const leadRoutes = (): Route[] => [
       const status = url.searchParams.get('status');
       const digits = term.replace(/\D/g, '');
       const matching = store.admin.leads
+        .map((lead) => leadView(lead, session))
         .filter(
           (lead) =>
             (!status || lead.status === status) &&
@@ -1057,7 +1147,7 @@ const leadRoutes = (): Route[] => [
       const { items, ...rest } = pageOf(matching, url);
       return {
         body: {
-          items: items.map((lead) => makeAdminLeadRow(leadView(lead, session))),
+          items: items.map(makeAdminLeadRow),
           ...rest,
         },
       };

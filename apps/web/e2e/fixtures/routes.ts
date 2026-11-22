@@ -34,17 +34,14 @@ export type MockReply = {
 export type MockStore = {
   calculations: Map<string, VersionView>;
   idempotent: Map<string, MockReply>;
-  leadCount: number;
   admin: AdminState;
 };
 
 export function createMockStore(): MockStore {
-  const admin = createAdminState();
   return {
     calculations: new Map(),
     idempotent: new Map(),
-    leadCount: Math.max(0, ...admin.leads.map((lead) => lead.number)),
-    admin,
+    admin: createAdminState(),
   };
 }
 
@@ -77,6 +74,16 @@ const withSurface = (productId: string) =>
 
 const lookup = (store: MockStore, publicId: string) =>
   store.calculations.get(publicId);
+
+const nonEmptyString = (value: unknown) =>
+  typeof value === 'string' && value !== '' ? value : null;
+
+const calculationRefOf = (value: unknown) => {
+  const { publicId, versionNumber } = asBody(value);
+  return typeof publicId === 'string' && typeof versionNumber === 'number'
+    ? { publicId, versionNumber }
+    : null;
+};
 
 export const routes: Route[] = [
   ...adminRoutes,
@@ -153,17 +160,35 @@ export const routes: Route[] = [
     method: 'POST',
     pattern: /^\/public\/leads$/,
     reply: (_match, { store, body }) => {
-      store.leadCount += 1;
       const input = asBody(body);
-      addMockLead(store, {
-        number: store.leadCount,
+      const reference = calculationRefOf(input.calculation);
+      const version = reference ? lookup(store, reference.publicId) : undefined;
+      const resolved = version?.number === reference?.versionNumber;
+      const draft = asBody(input.draft);
+      const lead = addMockLead(store, {
         name: String(input.name ?? ''),
         phone: String(input.phone ?? ''),
-        comment: typeof input.comment === 'string' ? input.comment : null,
+        email: nonEmptyString(input.email),
+        comment: nonEmptyString(input.comment),
+        locale: input.locale === 'uk' ? 'uk' : 'en',
+        consentText: String(asBody(input.consent).text ?? ''),
+        ...(typeof draft.clientTotalUsdCents === 'number'
+          ? { totalUsdCents: draft.clientTotalUsdCents }
+          : {}),
+        ...(version && resolved
+          ? {
+              calculation: version,
+              totalUsdCents: version.totals.usdCents,
+              expiredAtSubmission: version.expired,
+            }
+          : {}),
       });
       return {
         status: 201,
-        body: makeLeadCreated({ leadNumber: store.leadCount }),
+        body: makeLeadCreated({
+          leadNumber: lead.number,
+          ...(reference ? { calculation: reference } : {}),
+        }),
       };
     },
   },
