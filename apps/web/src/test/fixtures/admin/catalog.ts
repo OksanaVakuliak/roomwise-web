@@ -45,7 +45,7 @@ export function makeAdminCategory(
     surface: 'FLOOR',
     requiresPutty: false,
     status: 'PUBLISHED',
-    productCount: 4,
+    productCount: 2,
     roomTypeCodes: ['LIVING_ROOM', 'BEDROOM', 'KITCHEN', 'HALLWAY'],
     ...makeStamp(),
     ...overrides,
@@ -62,7 +62,7 @@ export function makeAdminCategories(): AdminCategoriesResponse {
         wastePercent: 8,
         surface: 'WALLS',
         requiresPutty: true,
-        productCount: 3,
+        productCount: 2,
         roomTypeCodes: ['LIVING_ROOM', 'BEDROOM', 'KITCHEN', 'BATHROOM'],
       }),
       makeAdminCategory({
@@ -71,7 +71,7 @@ export function makeAdminCategories(): AdminCategoriesResponse {
         wastePercent: 5,
         surface: 'CEILING',
         requiresPutty: true,
-        productCount: 2,
+        productCount: 0,
         roomTypeCodes: ['LIVING_ROOM', 'BEDROOM'],
       }),
       makeAdminCategory({
@@ -79,7 +79,7 @@ export function makeAdminCategories(): AdminCategoriesResponse {
         name: { en: 'Plumbing fixtures', uk: 'Сантехніка' },
         wastePercent: 0,
         surface: 'NONE',
-        productCount: 2,
+        productCount: 0,
         roomTypeCodes: ['BATHROOM'],
       }),
       makeAdminCategory({

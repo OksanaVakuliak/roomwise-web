@@ -130,9 +130,9 @@ export function makeMaskedAdminLead(
   overrides: Partial<AdminLead> = {},
 ): AdminLead {
   return makeAdminLead({
-    name: 'T*** C***',
-    phone: '+380 ** *** ** 01',
-    email: 'c***@example.com',
+    name: 'T•••',
+    phone: '+380•••01',
+    email: 'c•••@•••.com',
     comment: null,
     masked: true,
     ...overrides,
