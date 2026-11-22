@@ -103,7 +103,7 @@ export function toAdminError(failure: unknown): AdminError {
 export type AdminErrorMessage = {
   namespace: 'AdminErrors' | 'Errors';
   key: string;
-  values?: { seconds: number };
+  values?: Record<string, number>;
 };
 
 export function adminErrorMessage(error: AdminError): AdminErrorMessage {
@@ -120,4 +120,48 @@ export function adminErrorMessage(error: AdminError): AdminErrorMessage {
     default:
       return { namespace: 'AdminErrors', key: error.kind };
   }
+}
+
+const BOUND_CODES = {
+  TOO_SHORT: 'min',
+  TOO_FEW: 'min',
+  TOO_SMALL: 'min',
+  TOO_LONG: 'max',
+  TOO_MANY: 'max',
+  TOO_BIG: 'max',
+} as const;
+
+const PLAIN_FIELD_CODES = new Set([
+  'INVALID_TYPE',
+  'INVALID_FORMAT',
+  'INVALID_VALUE',
+  'NOT_MULTIPLE_OF',
+  'TRANSLATION_MISSING',
+]);
+
+const INVALID_FIELD: AdminErrorMessage = {
+  namespace: 'AdminErrors',
+  key: 'field.invalid',
+};
+
+export function fieldErrorMessage(field: AdminFieldError): AdminErrorMessage {
+  const { code } = field;
+  if (code in BOUND_CODES) {
+    const bound = BOUND_CODES[code as keyof typeof BOUND_CODES];
+    const value = isRecord(field.params) ? field.params[bound] : undefined;
+    return typeof value === 'number'
+      ? {
+          namespace: 'AdminErrors',
+          key: `field.${code}`,
+          values: { [bound]: value },
+        }
+      : INVALID_FIELD;
+  }
+  if (PLAIN_FIELD_CODES.has(code)) {
+    return { namespace: 'AdminErrors', key: `field.${code}` };
+  }
+  const known = errorMessageKey(code);
+  return known === 'unknown'
+    ? INVALID_FIELD
+    : { namespace: 'Errors', key: known };
 }

@@ -3,7 +3,12 @@ import { ApiRequestError } from '@/lib/api/request-error';
 import { adminErrors, makeAdminFailure } from '@/test/fixtures/admin/errors';
 import en from '../../../messages/en.json';
 import uk from '../../../messages/uk.json';
-import { type AdminError, adminErrorMessage, toAdminError } from './errors';
+import {
+  type AdminError,
+  adminErrorMessage,
+  fieldErrorMessage,
+  toAdminError,
+} from './errors';
 
 const fail = ({ status, body }: { status: number; body: unknown }) =>
   new ApiRequestError(status, body);
@@ -170,7 +175,7 @@ describe('adminErrorMessage', () => {
   ])('has every key in the %s AdminErrors catalog', (_locale, catalog) => {
     for (const error of kinds) {
       const { namespace, key } = adminErrorMessage(error);
-      const messages: Record<string, string> = catalog[namespace];
+      const messages: Record<string, unknown> = catalog[namespace];
       expect(messages[key]).toBeTruthy();
     }
   });
@@ -179,5 +184,75 @@ describe('adminErrorMessage', () => {
     expect(Object.keys(uk.AdminErrors).sort()).toEqual(
       Object.keys(en.AdminErrors).sort(),
     );
+  });
+});
+
+describe('fieldErrorMessage', () => {
+  it('passes the bound for size codes', () => {
+    expect(
+      fieldErrorMessage({
+        path: 'name.en',
+        code: 'TOO_SHORT',
+        params: { min: 2 },
+      }),
+    ).toEqual({
+      namespace: 'AdminErrors',
+      key: 'field.TOO_SHORT',
+      values: { min: 2 },
+    });
+    expect(
+      fieldErrorMessage({
+        path: 'wastePercent',
+        code: 'TOO_BIG',
+        params: { max: 100 },
+      }),
+    ).toEqual({
+      namespace: 'AdminErrors',
+      key: 'field.TOO_BIG',
+      values: { max: 100 },
+    });
+  });
+
+  it('falls back to the generic field text when the bound is missing', () => {
+    expect(fieldErrorMessage({ path: 'x', code: 'TOO_SMALL' })).toEqual({
+      namespace: 'AdminErrors',
+      key: 'field.invalid',
+    });
+  });
+
+  it('uses the backend message for business codes', () => {
+    expect(fieldErrorMessage({ path: 'code', code: 'CODE_TAKEN' })).toEqual({
+      namespace: 'Errors',
+      key: 'CODE_TAKEN',
+    });
+  });
+
+  it('uses the generic field text for unknown codes', () => {
+    expect(fieldErrorMessage({ path: 'x', code: 'SOMETHING' })).toEqual({
+      namespace: 'AdminErrors',
+      key: 'field.invalid',
+    });
+  });
+
+  it.each([
+    ['en', en],
+    ['uk', uk],
+  ])('has every field key in the %s catalog', (_locale, catalog) => {
+    const codes = [
+      'TOO_SHORT',
+      'TOO_LONG',
+      'TOO_FEW',
+      'TOO_MANY',
+      'TOO_SMALL',
+      'TOO_BIG',
+      'INVALID_TYPE',
+      'INVALID_FORMAT',
+      'INVALID_VALUE',
+      'NOT_MULTIPLE_OF',
+      'TRANSLATION_MISSING',
+      'invalid',
+    ];
+    const field: Record<string, string> = catalog.AdminErrors.field;
+    expect(Object.keys(field).sort()).toEqual([...codes].sort());
   });
 });

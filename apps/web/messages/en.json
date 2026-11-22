@@ -1334,6 +1334,66 @@
     "invalidCredentials": "Invalid login or password.",
     "validation": "Check the highlighted fields.",
     "formula": "The formula contains errors.",
-    "unavailable": "Cannot reach the server. Try again."
+    "unavailable": "Cannot reach the server. Try again.",
+    "field": {
+      "TOO_SHORT": "Enter at least {min} characters",
+      "TOO_LONG": "Enter no more than {max} characters",
+      "TOO_FEW": "Choose at least {min}",
+      "TOO_MANY": "Choose no more than {max}",
+      "TOO_SMALL": "Enter a value of at least {min}",
+      "TOO_BIG": "Enter a value of no more than {max}",
+      "INVALID_TYPE": "Enter a valid value",
+      "INVALID_FORMAT": "Check the format",
+      "INVALID_VALUE": "Choose one of the allowed values",
+      "NOT_MULTIPLE_OF": "Too many decimal places",
+      "TRANSLATION_MISSING": "Fill in this language before publishing",
+      "invalid": "Check this field"
+    }
+  },
+  "Admin": {
+    "list": {
+      "search": "Search",
+      "clearSearch": "Clear search",
+      "filters": "Filters",
+      "resetFilters": "Reset filters",
+      "noMatchesTitle": "Nothing found",
+      "noMatchesText": "Try changing the search or the filters.",
+      "errorTitle": "Could not load the list",
+      "retry": "Retry",
+      "loading": "Loading the list",
+      "pagination": "List pages",
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "page": "Page {page}"
+    },
+    "form": {
+      "actions": "Form actions",
+      "save": "Save",
+      "saving": "Saving",
+      "unsaved": "Unsaved changes",
+      "clean": "No unsaved changes",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "archive": "Archive",
+      "delete": "Delete",
+      "saved": "Saved",
+      "savedCost": "Saved. Applies to new calculations; saved ones do not change.",
+      "leave": {
+        "title": "Leave without saving?",
+        "description": "You have unsaved changes. If you leave this page, they will be lost.",
+        "confirm": "Leave",
+        "cancel": "Stay",
+        "close": "Close"
+      },
+      "conflict": {
+        "title": "This record was changed by {user} at {time}",
+        "unknownUser": "someone else",
+        "keptMine": "Your values are kept until you take the current ones.",
+        "revealed": "Fields that differ from the current version are highlighted: {count}.",
+        "show": "Show the current version",
+        "accept": "Take the current",
+        "dismiss": "Cancel"
+      }
+    }
   }
 }
