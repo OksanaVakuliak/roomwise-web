@@ -1394,6 +1394,60 @@
         "accept": "Take the current",
         "dismiss": "Cancel"
       }
+    },
+    "toasts": {
+      "label": "Notifications",
+      "dismiss": "Dismiss notification"
+    },
+    "demo": {
+      "banner": "Demo mode. All changes reset at",
+      "unavailable": "Not available in demo mode"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "ARCHIVED": "Archived",
+      "NEW": "New",
+      "IN_PROGRESS": "In progress",
+      "DONE": "Done",
+      "REJECTED": "Rejected",
+      "SPAM": "Spam"
+    },
+    "fields": {
+      "languages": {
+        "en": "English",
+        "uk": "Ukrainian"
+      },
+      "requiredForPublish": "Required for publishing",
+      "negativePrice": "The price cannot be negative",
+      "invalidPrice": "Enter an amount with up to two decimal places",
+      "colorPicker": "Pick a color",
+      "invalidColor": "Enter a color as #RRGGBB"
     }
+  },
+  "AdminNav": {
+    "label": "Admin sections",
+    "menu": "Menu",
+    "closeMenu": "Close menu",
+    "home": "Home",
+    "catalog": "Catalog",
+    "categories": "Categories",
+    "roomTypes": "Room types",
+    "materialTypes": "Material types",
+    "products": "Products",
+    "styles": "Styles",
+    "engineering": "Engineering",
+    "package": "Base package",
+    "engineeringOptions": "Engineering options",
+    "options": "Extra options",
+    "pricing": "Pricing",
+    "rules": "Rules",
+    "coefficients": "Coefficients",
+    "exchangeRate": "Exchange rate",
+    "settings": "Settings",
+    "leads": "Leads",
+    "newLeads": "{count, plural, one {# new lead} other {# new leads}}",
+    "account": "Account",
+    "logout": "Sign out"
   }
 }

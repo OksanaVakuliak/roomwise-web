@@ -1394,6 +1394,60 @@
         "accept": "Взяти актуальні",
         "dismiss": "Скасувати"
       }
+    },
+    "toasts": {
+      "label": "Сповіщення",
+      "dismiss": "Закрити сповіщення"
+    },
+    "demo": {
+      "banner": "Демо-режим. Усі зміни буде скинуто",
+      "unavailable": "Недоступно в демо-режимі"
+    },
+    "status": {
+      "DRAFT": "Чернетка",
+      "PUBLISHED": "Опубліковано",
+      "ARCHIVED": "В архіві",
+      "NEW": "Нова",
+      "IN_PROGRESS": "У роботі",
+      "DONE": "Виконана",
+      "REJECTED": "Відхилена",
+      "SPAM": "Спам"
+    },
+    "fields": {
+      "languages": {
+        "en": "Англійська",
+        "uk": "Українська"
+      },
+      "requiredForPublish": "Обов'язково для публікації",
+      "negativePrice": "Ціна не може бути від'ємною",
+      "invalidPrice": "Введіть суму з не більше ніж двома знаками після коми",
+      "colorPicker": "Обрати колір",
+      "invalidColor": "Введіть колір у форматі #RRGGBB"
     }
+  },
+  "AdminNav": {
+    "label": "Розділи адмінки",
+    "menu": "Меню",
+    "closeMenu": "Закрити меню",
+    "home": "Головна",
+    "catalog": "Каталог",
+    "categories": "Категорії",
+    "roomTypes": "Типи приміщень",
+    "materialTypes": "Типи матеріалу",
+    "products": "Товари",
+    "styles": "Стилі",
+    "engineering": "Інженерія",
+    "package": "Базовий пакет",
+    "engineeringOptions": "Інженерні опції",
+    "options": "Додаткові опції",
+    "pricing": "Ціноутворення",
+    "rules": "Правила",
+    "coefficients": "Коефіцієнти",
+    "exchangeRate": "Курс валют",
+    "settings": "Налаштування",
+    "leads": "Заявки",
+    "newLeads": "{count, plural, one {# нова заявка} few {# нові заявки} many {# нових заявок} other {# нової заявки}}",
+    "account": "Обліковий запис",
+    "logout": "Вийти"
   }
 }
