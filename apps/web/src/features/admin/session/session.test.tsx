@@ -138,9 +138,8 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
     expect(await axe(document.body)).toHaveNoViolations();
 
     const inputs = dialog.querySelectorAll('input');
-    fireEvent.change(inputs[0] as HTMLInputElement, {
-      target: { value: 'admin' },
-    });
+    expect(inputs[0]).toHaveValue(makeAdminMe().login);
+    expect(inputs[0]).toHaveAttribute('readonly');
     fireEvent.change(inputs[1] as HTMLInputElement, {
       target: { value: 'secret' },
     });
@@ -153,6 +152,9 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
     expect(post).toHaveBeenCalledTimes(3);
     expect(post.mock.calls[0]?.[0]).toBe('/api/v1/admin/auth/password');
     expect(post.mock.calls[1]?.[0]).toBe('/api/v1/admin/auth/login');
+    expect(post.mock.calls[1]?.[1]).toMatchObject({
+      body: { login: makeAdminMe().login, password: 'secret' },
+    });
     expect(post.mock.calls[2]?.[0]).toBe('/api/v1/admin/auth/password');
     expect(screen.getByLabelText('note')).toHaveValue('draft text');
   });

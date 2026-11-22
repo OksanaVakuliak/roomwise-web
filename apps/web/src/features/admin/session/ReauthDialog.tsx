@@ -5,6 +5,7 @@ import { type ChangeEvent, type FormEvent, useCallback, useState } from 'react';
 import { Button, Modal, TextField } from '@/components/ui';
 import { useLogin } from '@/lib/admin-api/auth';
 import { adminErrorMessage, toAdminError } from '@/lib/admin-api/errors';
+import { useAdminSession } from './context';
 
 type ReauthDialogProps = {
   open: boolean;
@@ -15,7 +16,11 @@ type ReauthDialogProps = {
 function ReauthForm({ onSuccess, onCancel }: Omit<ReauthDialogProps, 'open'>) {
   const t = useTranslations('Admin.session.reauth');
   const tRoot = useTranslations();
-  const [login, setLogin] = useState('');
+  const { session } = useAdminSession();
+  const knownLogin =
+    session.status === 'authenticated' ? session.me.login : null;
+  const [typedLogin, setLogin] = useState('');
+  const login = knownLogin ?? typedLogin;
   const [password, setPassword] = useState('');
   const mutation = useLogin();
 
@@ -48,6 +53,7 @@ function ReauthForm({ onSuccess, onCancel }: Omit<ReauthDialogProps, 'open'>) {
         value={login}
         autoComplete="username"
         required
+        readOnly={knownLogin !== null}
         onChange={onLoginChange}
       />
       <TextField
