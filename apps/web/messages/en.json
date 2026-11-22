@@ -1402,7 +1402,24 @@
     },
     "demo": {
       "banner": "Demo mode. All changes reset at",
-      "unavailable": "Not available in demo mode"
+      "unavailable": "Not available in demo mode",
+      "reason": {
+        "password": "The password cannot be changed in demo mode",
+        "leads": "Leads cannot be changed in demo mode",
+        "settings": "Settings cannot be changed in demo mode"
+      }
+    },
+    "session": {
+      "checking": "Checking your session",
+      "reauth": {
+        "title": "Session expired",
+        "text": "Sign in again to continue. Everything you entered is kept.",
+        "login": "Login",
+        "password": "Password",
+        "submit": "Sign in",
+        "cancel": "Cancel",
+        "close": "Close"
+      }
     },
     "status": {
       "DRAFT": "Draft",
