@@ -13,6 +13,20 @@ import { ConfirmDialog } from '@/components/ui';
 
 type Pending = { kind: 'link'; href: string } | { kind: 'history' };
 
+const SENTINEL = '__leaveGuard';
+
+const onSentinel = () =>
+  Boolean((window.history.state as Record<string, unknown> | null)?.[SENTINEL]);
+
+const pushSentinel = () => {
+  const current = window.history.state as Record<string, unknown> | null;
+  window.history.pushState(
+    { ...current, [SENTINEL]: true },
+    '',
+    window.location.href,
+  );
+};
+
 const hasModifier = (event: MouseEvent) =>
   event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
 
@@ -43,7 +57,7 @@ export function useLeaveGuard(dirty: boolean): { dialog: ReactNode } {
   const t = useTranslations('Admin.form.leave');
   const router = useRouter();
   const [pending, setPending] = useState<Pending | null>(null);
-  const sentinel = useRef(false);
+  const leaving = useRef(false);
 
   useEffect(() => {
     if (!dirty) return;
@@ -58,13 +72,11 @@ export function useLeaveGuard(dirty: boolean): { dialog: ReactNode } {
       setPending({ kind: 'link', href });
     };
     const onPopState = () => {
-      window.history.pushState(window.history.state, '', window.location.href);
+      if (leaving.current) return;
+      pushSentinel();
       setPending({ kind: 'history' });
     };
-    if (!sentinel.current) {
-      window.history.pushState(window.history.state, '', window.location.href);
-      sentinel.current = true;
-    }
+    if (!onSentinel()) pushSentinel();
     window.addEventListener('beforeunload', onBeforeUnload);
     document.addEventListener('click', onClick, true);
     window.addEventListener('popstate', onPopState);
@@ -83,6 +95,7 @@ export function useLeaveGuard(dirty: boolean): { dialog: ReactNode } {
     if (target?.kind === 'link') {
       router.push(target.href);
     } else if (target?.kind === 'history') {
+      leaving.current = true;
       window.history.go(-2);
     }
   }, [pending, router]);

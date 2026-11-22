@@ -148,6 +148,7 @@ export function useAdminForm<T extends object>({
             setError(toAdminError(latestFailure));
           }
         } else if (adminError.kind === 'validation') {
+          setError(adminError);
           setErrors(
             Object.fromEntries(
               adminError.fields.map((field) => {
@@ -186,6 +187,7 @@ export function useAdminForm<T extends object>({
     setValuesState(conflict.values);
     setCurrentRevision(conflict.revision);
     setErrors({});
+    setError(null);
     setConflict(null);
     setConflictRevealed(false);
   }, [conflict]);

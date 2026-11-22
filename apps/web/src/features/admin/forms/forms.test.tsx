@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { type ChangeEvent, useCallback } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from '@/lib/api/request-error';
 import { toast, useToasts } from '@/lib/toast';
 import { axe } from '@/test/axe';
@@ -71,6 +71,7 @@ function Harness({ save }: HarnessProps) {
           first: form.firstErrorPath,
           differing: form.differing,
           conflict: form.conflict?.revision ?? null,
+          error: form.error?.kind ?? null,
         })}
       </output>
       {form.conflict ? (
@@ -110,6 +111,10 @@ describe.each(forEachLocale)('admin forms (%s)', (locale) => {
           show: 'Показати актуальну',
           tooBig: 'Значення має бути не більше ніж 100',
         };
+
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+  });
 
   it('tracks dirty against the initial values', () => {
     renderWithProviders(<Harness save={vi.fn()} />, { locale });
@@ -219,6 +224,102 @@ describe.each(forEachLocale)('admin forms (%s)', (locale) => {
     expect(push).toHaveBeenCalledTimes(1);
     push.mockRestore();
   });
+
+  it('sets a form-level error for validation failures without fields', async () => {
+    const save = vi.fn().mockRejectedValue(
+      fail({
+        status: 400,
+        body: { error: { code: 'TRANSLATION_MISSING' } },
+      }),
+    );
+    renderWithProviders(<Harness save={save} />, { locale });
+    edit('Birch');
+    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    await waitFor(() => expect(state().error).toBe('validation'));
+    expect(state().errors).toEqual({});
+  });
+
+  it('keeps saving on the adopted revision after dismissing a revealed conflict', async () => {
+    const save = vi
+      .fn()
+      .mockRejectedValueOnce(fail(adminErrors.staleRevision()))
+      .mockResolvedValue({ revision: 'r3' });
+    renderWithProviders(<Harness save={save} />, { locale });
+    edit('Birch');
+    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    fireEvent.click(await screen.findByRole('button', { name: labels.show }));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: locale === 'en' ? 'Cancel' : 'Скасувати',
+      }),
+    );
+    expect(state().conflict).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    await waitFor(() => expect(state().revision).toBe('r3'));
+    expect(save).toHaveBeenLastCalledWith({ name: 'Birch', price: 10 }, 'r2');
+  });
+
+  it('does not reopen the dialog when leaving after Back', async () => {
+    const go = vi.spyOn(window.history, 'go').mockImplementation(() => {});
+    renderWithProviders(<Harness save={vi.fn()} />, { locale });
+    edit('Birch');
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    fireEvent.click(await screen.findByRole('button', { name: labels.leave }));
+    expect(go).toHaveBeenCalledWith(-2);
+    const push = vi.spyOn(window.history, 'pushState');
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: labels.leave })).toBeNull();
+    push.mockRestore();
+    go.mockRestore();
+  });
+
+  it('keeps a single history sentinel across save and edit cycles', async () => {
+    const save = vi.fn().mockResolvedValue({ revision: 'r5' });
+    const back = vi.spyOn(window.history, 'back');
+    renderWithProviders(<Harness save={save} />, { locale });
+    const marked = () =>
+      Boolean(
+        (window.history.state as Record<string, unknown> | null)?.__leaveGuard,
+      );
+    const start = window.history.length;
+    expect(marked()).toBe(false);
+    edit('Birch');
+    expect(marked()).toBe(true);
+    expect(window.history.length).toBe(start + 1);
+    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    await waitFor(() => expect(state().dirty).toBe(false));
+    edit('Cedar');
+    expect(marked()).toBe(true);
+    expect(window.history.length).toBe(start + 1);
+    expect(back).not.toHaveBeenCalled();
+    back.mockRestore();
+  });
+
+  it.each([null, 'garbage'])(
+    'renders the conflict title without a time for %s',
+    (changedAt) => {
+      renderWithProviders(
+        <ConflictBanner
+          changedBy="ann"
+          changedAt={changedAt}
+          revealed={false}
+          differingCount={0}
+          onReveal={vi.fn()}
+          onAccept={vi.fn()}
+          onDismiss={vi.fn()}
+        />,
+        { locale },
+      );
+      expect(
+        screen.getByText(locale === 'en' ? /changed by ann$/ : /змінив ann$/),
+      ).toBeInTheDocument();
+    },
+  );
 
   it('renders SaveBar actions and has no a11y violations', async () => {
     const onDelete = vi.fn();

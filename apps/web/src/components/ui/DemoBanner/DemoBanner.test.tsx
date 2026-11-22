@@ -36,6 +36,16 @@ describe('DemoBanner', () => {
     expect(enText).not.toBe(ukText);
   });
 
+  it('renders only the label when the reset time is invalid', async () => {
+    const { container } = renderWithProviders(
+      <DemoBanner resetAt="not-a-date" label="Demo data resets" />,
+    );
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Demo data resets',
+    );
+    expect(container.querySelector('time')).toBeNull();
+  });
+
   it.each(forEachLocale)('has no axe violations in %s', async (locale) => {
     const { container } = renderWithProviders(
       <DemoBanner resetAt={RESET_AT} label="Resets" />,

@@ -1387,6 +1387,7 @@
       },
       "conflict": {
         "title": "This record was changed by {user} at {time}",
+        "titleNoTime": "This record was changed by {user}",
         "unknownUser": "someone else",
         "keptMine": "Your values are kept until you take the current ones.",
         "revealed": "Fields that differ from the current version are highlighted: {count}.",

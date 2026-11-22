@@ -13,6 +13,8 @@ export type DemoBannerProps = {
 export function DemoBanner({ resetAt, label }: DemoBannerProps) {
   const format = useFormatter();
   const [announced, setAnnounced] = useState(false);
+  const reset = new Date(resetAt);
+  const valid = !Number.isNaN(reset.getTime());
 
   useEffect(() => {
     setAnnounced(true);
@@ -24,13 +26,18 @@ export function DemoBanner({ resetAt, label }: DemoBannerProps) {
       <p className={styles.text}>
         {announced ? (
           <>
-            {label}{' '}
-            <time className={styles.time} dateTime={resetAt}>
-              {format.dateTime(new Date(resetAt), {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
-            </time>
+            {label}
+            {valid ? (
+              <>
+                {' '}
+                <time className={styles.time} dateTime={resetAt}>
+                  {format.dateTime(reset, {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  })}
+                </time>
+              </>
+            ) : null}
           </>
         ) : null}
       </p>

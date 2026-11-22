@@ -25,17 +25,17 @@ export function ConflictBanner({
 }: ConflictBannerProps) {
   const t = useTranslations('Admin.form.conflict');
   const format = useFormatter();
-  const time = changedAt
-    ? format.dateTime(new Date(changedAt), {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      })
-    : '';
+  const date = changedAt ? new Date(changedAt) : null;
+  const time =
+    date && !Number.isNaN(date.getTime())
+      ? format.dateTime(date, { dateStyle: 'medium', timeStyle: 'short' })
+      : null;
+  const user = changedBy ?? t('unknownUser');
 
   return (
     <Banner
       variant="warning"
-      title={t('title', { user: changedBy ?? t('unknownUser'), time })}
+      title={time ? t('title', { user, time }) : t('titleNoTime', { user })}
       action={
         <div className={styles.actions}>
           {revealed ? null : (
