@@ -1,0 +1,65 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--empty-measure);
+  margin: 0 auto;
+  padding: var(--space-28) var(--space-16);
+}
+
+.lead {
+  margin: 0;
+  color: var(--line-2);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.countdown {
+  margin: 0;
+  color: var(--line-2);
+}
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border: var(--stroke-1-5) dashed var(--line-2);
+}
+
+.demoTitle {
+  margin: 0;
+  font-family: var(--text-title-s-family);
+  font-weight: var(--text-title-s-weight);
+  font-size: var(--text-title-s-size);
+  line-height: var(--text-title-s-line);
+}
+
+.demoText {
+  margin: 0;
+  color: var(--line-2);
+}
+
+.credentials {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4) var(--space-12);
+  margin: 0;
+}
+
+.credentials dt {
+  color: var(--line-2);
+}
+
+.credentials dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

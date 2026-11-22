@@ -1443,6 +1443,22 @@
       "invalidColor": "Enter a color as #RRGGBB"
     }
   },
+  "AdminAuth": {
+    "title": "Admin sign-in",
+    "lead": "Sign in to manage the catalog, prices and leads.",
+    "login": "Login",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in",
+    "locked": "Too many failed attempts. Sign-in is temporarily blocked.",
+    "rateLimited": "Too many sign-in attempts. Please wait a little.",
+    "retryIn": "You can try again in {seconds} s.",
+    "demo": {
+      "title": "Demo access",
+      "text": "Explore the admin panel with a demo account. Changes are limited and reset on a schedule.",
+      "fill": "Sign in as demo"
+    }
+  },
   "AdminNav": {
     "label": "Admin sections",
     "menu": "Menu",
