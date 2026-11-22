@@ -13,6 +13,12 @@ import {
   type VersionView,
 } from '@/test/fixtures';
 import { makeSurfaceProducts } from '@/test/fixtures/catalog';
+import {
+  type AdminState,
+  adminRoutes,
+  createAdminState,
+  type Session,
+} from './admin-routes';
 
 export type Json = unknown;
 
@@ -20,22 +26,36 @@ export type MockReply = {
   status?: number;
   body?: Json;
   etag?: boolean;
+  headers?: Record<string, string>;
 };
 
 export type MockStore = {
   calculations: Map<string, VersionView>;
   idempotent: Map<string, MockReply>;
   leadCount: number;
+  admin: AdminState;
 };
 
 export function createMockStore(): MockStore {
-  return { calculations: new Map(), idempotent: new Map(), leadCount: 1041 };
+  return {
+    calculations: new Map(),
+    idempotent: new Map(),
+    leadCount: 1041,
+    admin: createAdminState(),
+  };
 }
 
-type Route = {
-  method: 'GET' | 'POST';
+export type RouteContext = {
+  store: MockStore;
+  url: URL;
+  body: unknown;
+  session: Session | null;
+};
+
+export type Route = {
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   pattern: RegExp;
-  reply: (match: RegExpMatchArray, request: { store: MockStore }) => MockReply;
+  reply: (match: RegExpMatchArray, context: RouteContext) => MockReply;
 };
 
 const ok = (body: Json): MockReply => ({ status: 200, body, etag: true });
@@ -56,6 +76,7 @@ const lookup = (store: MockStore, publicId: string) =>
   store.calculations.get(publicId);
 
 export const routes: Route[] = [
+  ...adminRoutes,
   { method: 'GET', pattern: /^\/health$/, reply: () => ok({ status: 'ok' }) },
   {
     method: 'GET',
