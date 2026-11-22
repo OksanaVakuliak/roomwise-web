@@ -139,14 +139,14 @@ export function makeMaskedAdminLead(
   });
 }
 
-export function makeAdminLeads(): AdminLeadsResponse {
+export function makeAdminLeadDetails(): AdminLead[] {
   const note: AdminLeadNote = {
     id: adminUuid(9200),
     text: 'Called, agreed a visit on Friday.',
     createdAt: '2026-11-19T09:00:00.000Z',
     author: adminActor,
   };
-  const leads: AdminLead[] = [
+  return [
     makeAdminLead(),
     makeAdminLead({
       id: adminIds.leads.inProgress,
@@ -192,6 +192,9 @@ export function makeAdminLeads(): AdminLeadsResponse {
       status: 'SPAM',
     }),
   ];
-  const items = leads.map(makeAdminLeadRow);
+}
+
+export function makeAdminLeads(): AdminLeadsResponse {
+  const items = makeAdminLeadDetails().map(makeAdminLeadRow);
   return { items, page: 1, pageSize: 20, total: items.length };
 }

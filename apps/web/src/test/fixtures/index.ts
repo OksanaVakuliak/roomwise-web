@@ -55,6 +55,7 @@ export {
   type AdminLeadsResponse,
   makeAdminLead,
   makeAdminLeadCalculation,
+  makeAdminLeadDetails,
   makeAdminLeadRow,
   makeAdminLeads,
   makeMaskedAdminLead,

@@ -9,7 +9,8 @@ import {
   makeAdminProducts,
   makeAdminRoomTypes,
   makeAdminRules,
-  makeAdminStyles,
+  makeAdminStyle,
+  makeAdminStylePair,
   makeDemoMe,
   makeStaleExchangeRate,
 } from './index';
@@ -31,11 +32,26 @@ describe('admin fixtures', () => {
   });
 
   it('keeps product and style references consistent', () => {
-    const products = makeAdminProducts().items.map((product) => product.id);
-    for (const style of makeAdminStyles().items) {
-      expect(style.id).toBeTruthy();
+    const products = makeAdminProducts().items;
+    const productIds = products.map((product) => product.id);
+    const categoryIds = makeAdminCategories().items.map((item) => item.id);
+    const roomTypeIds = makeAdminRoomTypes().items.map((item) => item.id);
+    expect(new Set(productIds).size).toBe(productIds.length);
+    for (const product of products) {
+      expect(categoryIds).toContain(product.categoryId);
     }
-    expect(new Set(products).size).toBe(products.length);
+    for (const style of [
+      makeAdminStyle(),
+      makeAdminStyle({ pairs: [makeAdminStylePair()] }),
+    ]) {
+      for (const pair of style.pairs) {
+        expect(
+          pair.productId === null || productIds.includes(pair.productId),
+        ).toBe(true);
+        expect(categoryIds).toContain(pair.categoryId);
+        expect(roomTypeIds).toContain(pair.roomTypeId);
+      }
+    }
   });
 
   it('covers every rule level, a base component and an orphan', () => {
