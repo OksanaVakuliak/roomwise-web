@@ -1,0 +1,57 @@
+.wrap {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-8);
+}
+
+.picker {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: var(--size-target);
+  height: var(--size-target);
+  padding: var(--space-4);
+  border: var(--stroke-1-5) solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  cursor: pointer;
+}
+
+.picker:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.control {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--size-target);
+  padding: 0 var(--space-12);
+  border: var(--stroke-1-5) solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--line);
+  font-family: var(--text-number-step-family);
+  font-weight: var(--text-number-step-weight);
+  font-size: var(--text-number-step-size);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
+}
+
+.control:hover {
+  background: var(--fill-a);
+}
+
+.control[aria-invalid="true"] {
+  border-color: var(--heat);
+  box-shadow: inset var(--stroke-2) 0 0 var(--heat);
+}
+
+.control:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  background: var(--fill-a);
+}
