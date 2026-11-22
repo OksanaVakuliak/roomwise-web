@@ -77,8 +77,34 @@ test('lets the demo user find leads only by exact number', async ({ page }) => {
   expect(byName.body.items).toHaveLength(0);
   const byNumber = await call<Leads>(page, 'GET', '/admin/leads?q=1042');
   expect(byNumber.body.items).toMatchObject([{ number: 1042, name: 'T•••' }]);
+  const blank = await call(page, 'GET', '/admin/leads?q=%20%20');
+  expect(blank.status).toBe(400);
   const all = await call<Leads>(page, 'GET', '/admin/leads');
   expect(all.body.items.map((lead) => lead.status)).not.toContain('SPAM');
+});
+
+test('applies a new texture size to the product that uses it', async ({
+  page,
+}) => {
+  await loginAs(page, 'admin');
+  const textureId = adminIds.images.texture;
+  const invalid = await call(page, 'PATCH', `/admin/images/${textureId}`, {
+    realSizeMm: 0,
+  });
+  expect(invalid.status).toBe(400);
+  const patched = await call<{ realSizeMm: number }>(
+    page,
+    'PATCH',
+    `/admin/images/${textureId}`,
+    { realSizeMm: 300 },
+  );
+  expect(patched.body.realSizeMm).toBe(300);
+  const product = await call<{ texture: { realSizeMm: number } }>(
+    page,
+    'GET',
+    `/admin/products/${adminIds.products.textured}`,
+  );
+  expect(product.body.texture.realSizeMm).toBe(300);
 });
 
 test('shows a public lead in the admin leads list', async ({ page }) => {

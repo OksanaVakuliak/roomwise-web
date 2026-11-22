@@ -92,6 +92,7 @@ export type StyleRecord = Omit<
 
 export type AdminState = {
   seed: number;
+  imageSizes: Record<string, number | null>;
   roomTypes: AdminRoomType[];
   categories: AdminCategory[];
   materialTypes: AdminMaterialType[];
@@ -154,18 +155,24 @@ export function createAdminState(): AdminState {
       seedDefaults[row.id],
     ),
   );
+  const products = [
+    makeAdminProduct(),
+    makeDraftProductWithoutUk(),
+    makeTexturedProduct(),
+    makeArchivedProduct(),
+    makeProductInStyle(),
+  ];
   return {
     seed: 20000,
+    imageSizes: Object.fromEntries(
+      products.flatMap(({ texture }) =>
+        texture ? [[texture.id, texture.realSizeMm]] : [],
+      ),
+    ),
     roomTypes: makeAdminRoomTypes().items,
     categories: makeAdminCategories().items,
     materialTypes: makeAdminMaterialTypes().items,
-    products: [
-      makeAdminProduct(),
-      makeDraftProductWithoutUk(),
-      makeTexturedProduct(),
-      makeArchivedProduct(),
-      makeProductInStyle(),
-    ],
+    products,
     styles,
     packageItems: makeAdminPackageItems().items,
     options: makeAdminOptions().items,
@@ -211,6 +218,40 @@ const failure = ({ status, body }: AdminFailure): MockReply => ({
 const notFound = (): MockReply => ({
   status: 404,
   body: { error: { code: 'NOT_FOUND' } },
+});
+
+const LEAD_STATUSES = ['NEW', 'IN_PROGRESS', 'DONE', 'REJECTED', 'SPAM'];
+const SEARCH_MAX = 100;
+const REAL_SIZE_MAX = 10_000;
+const INVALID = Symbol('invalid');
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const searchTerm = (url: URL): string | typeof INVALID => {
+  const raw = url.searchParams.get('q');
+  if (raw === null) {
+    return '';
+  }
+  const term = raw.trim();
+  return term.length === 0 || term.length > SEARCH_MAX ? INVALID : term;
+};
+
+const realSizeOf = (value: unknown): number | null | typeof INVALID =>
+  value === null ||
+  (Number.isInteger(value) &&
+    Number(value) > 0 &&
+    Number(value) <= REAL_SIZE_MAX)
+    ? (value as number | null)
+    : INVALID;
+
+const multipartField = (raw: string | null, name: string) =>
+  raw?.match(new RegExp(`name="${name}"\\r?\\n\\r?\\n([^\\r\\n]*)`))?.[1];
+
+const mockImage = (id: string, realSizeMm: number | null) => ({
+  ...makeAdminImageRef(id),
+  texture: `https://res.cloudinary.example.com/roomwise/${id}/texture.webp`,
+  width: 1200,
+  height: 800,
+  realSizeMm,
 });
 
 export const asBody = (value: unknown): Body =>
@@ -493,7 +534,7 @@ const textureOf = (body: Body, fallback: AdminProduct['texture']) => {
         id,
         url: `https://res.cloudinary.example.com/roomwise/${id}/texture.webp`,
         previewUrl: `https://res.cloudinary.example.com/roomwise/${id}/preview.webp`,
-        realSizeMm: Number(body.tileWidthMm ?? 600),
+        realSizeMm: null,
       }
     : null;
 };
@@ -688,6 +729,16 @@ const catalogRoutes = (): Route[] => [
     merge: (body, current) =>
       productFields(body, current) as Partial<AdminProduct>,
     row: (item) => makeAdminProductRow(item),
+    view: (item, state) =>
+      item.texture
+        ? {
+            ...item,
+            texture: {
+              ...item.texture,
+              realSizeMm: state.imageSizes[item.texture.id] ?? null,
+            },
+          }
+        : item,
     readOne: true,
     customList: true,
     withStatus: true,
@@ -707,7 +758,10 @@ const productsList: Route = {
   method: 'GET',
   pattern: /^\/admin\/products$/,
   reply: secured((_match, { store, url }) => {
-    const term = url.searchParams.get('q')?.trim() ?? '';
+    const term = searchTerm(url);
+    if (term === INVALID) {
+      return failure(adminErrors.validation());
+    }
     const categoryId = url.searchParams.get('categoryId');
     const status = url.searchParams.get('status');
     const matching = store.admin.products
@@ -1126,14 +1180,22 @@ const leadRoutes = (): Route[] => [
     method: 'GET',
     pattern: /^\/admin\/leads$/,
     reply: secured((_match, { store, url, session }) => {
-      const term = url.searchParams.get('q')?.trim() ?? '';
+      const term = searchTerm(url);
       const status = url.searchParams.get('status');
+      if (
+        term === INVALID ||
+        (status !== null && !LEAD_STATUSES.includes(status))
+      ) {
+        return failure(adminErrors.validation());
+      }
       const digits = term.replace(/\D/g, '');
       const fullSearch = session !== 'demo';
       const matching = store.admin.leads
         .filter(
           (lead) =>
-            (status ? lead.status === status : lead.status !== 'SPAM') &&
+            (status !== null
+              ? lead.status === status
+              : lead.status !== 'SPAM') &&
             (!term ||
               (fullSearch && lowerIncludes(lead.name, term)) ||
               (fullSearch &&
@@ -1291,32 +1353,37 @@ const authRoutes = (): Route[] => [
   {
     method: 'POST',
     pattern: /^\/admin\/images$/,
-    reply: secured((_match, { store }) => {
+    reply: secured((_match, { store, raw }) => {
+      const field = multipartField(raw, 'realSizeMm');
+      const realSizeMm =
+        field === undefined || field === '' ? null : realSizeOf(Number(field));
+      if (realSizeMm === INVALID) {
+        return failure(adminErrors.validation());
+      }
       const id = adminUuid(++store.admin.seed);
-      return {
-        status: 201,
-        body: {
-          ...makeAdminImageRef(id),
-          texture: `https://res.cloudinary.example.com/roomwise/${id}/texture.webp`,
-          width: 1200,
-          height: 800,
-          realSizeMm: null,
-        },
-      };
+      store.admin.imageSizes[id] = realSizeMm;
+      return { status: 201, body: mockImage(id, realSizeMm) };
     }),
   },
   {
     method: 'PATCH',
     pattern: /^\/admin\/images\/([^/]+)$/,
-    reply: secured(([, id], { body }) => ({
-      body: {
-        ...makeAdminImageRef(id),
-        texture: `https://res.cloudinary.example.com/roomwise/${id}/texture.webp`,
-        width: 1200,
-        height: 800,
-        realSizeMm: asBody(body).realSizeMm ?? null,
-      },
-    })),
+    reply: secured(([, id], { store, body }) => {
+      const input = asBody(body);
+      const realSizeMm = realSizeOf(input.realSizeMm);
+      if (
+        !UUID.test(id) ||
+        !('realSizeMm' in input) ||
+        realSizeMm === INVALID
+      ) {
+        return failure(adminErrors.validation());
+      }
+      if (!(id in store.admin.imageSizes)) {
+        return notFound();
+      }
+      store.admin.imageSizes[id] = realSizeMm;
+      return { body: mockImage(id, realSizeMm) };
+    }),
   },
 ];
 

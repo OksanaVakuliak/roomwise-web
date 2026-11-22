@@ -49,6 +49,7 @@ export type RouteContext = {
   store: MockStore;
   url: URL;
   body: unknown;
+  raw: string | null;
   session: Session | null;
 };
 
