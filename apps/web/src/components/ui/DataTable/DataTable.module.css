@@ -58,3 +58,102 @@ tbody tr:last-child .cell {
 .empty {
   padding: var(--space-16);
 }
+
+.sortButton {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+th[aria-sort="ascending"] .sortButton::after {
+  content: "↑";
+}
+
+th[aria-sort="descending"] .sortButton::after {
+  content: "↓";
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background: var(--fill-a);
+}
+
+@media (max-width: 767.98px) {
+  .auto {
+    overflow-x: visible;
+  }
+
+  .auto .table {
+    min-width: 0;
+  }
+
+  .auto .table,
+  .auto thead,
+  .auto tbody,
+  .auto tr,
+  .auto .cell {
+    display: block;
+  }
+
+  .auto thead tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    padding: var(--space-10) var(--space-12);
+    border-bottom: var(--stroke-1-2) solid var(--line);
+    background: var(--fill-a);
+  }
+
+  .auto .head {
+    padding: 0;
+    border: 0;
+  }
+
+  .auto .head:not(.sortable) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .auto tbody tr {
+    padding: var(--space-8) 0;
+    border-bottom: var(--stroke-1-2) solid var(--line);
+  }
+
+  .auto tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .auto .cell {
+    display: flex;
+    gap: var(--space-12);
+    justify-content: space-between;
+    border-bottom: 0;
+    text-align: right;
+  }
+
+  .auto .cell[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: var(--text-label-size);
+    font-weight: var(--text-pref-weight);
+    text-align: left;
+  }
+
+  .auto .empty {
+    display: block;
+    text-align: left;
+  }
+}
