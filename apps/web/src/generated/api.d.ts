@@ -207,6 +207,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/images/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ImagesController_updateRealSize"];
+        trace?: never;
+    };
     "/api/v1/admin/room-types": {
         parameters: {
             query?: never;
@@ -1173,6 +1189,10 @@ export interface components {
             texture: string;
             width: number;
             height: number;
+            realSizeMm: number | null;
+        };
+        PatchImageDto: {
+            realSizeMm: number | null;
         };
         RoomTypeAdminListResponseDto_Output: {
             items: {
@@ -3745,6 +3765,7 @@ export interface operations {
                 "multipart/form-data": {
                     /** Format: binary */
                     file: string;
+                    realSizeMm?: number;
                 };
             };
         };
@@ -3804,6 +3825,58 @@ export interface operations {
             };
             /** @description IMAGE_STORAGE_FAILED */
             502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ImagesController_updateRealSize: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchImageDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminImageDto_Output"];
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UNAUTHENTICATED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description NOT_FOUND */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4331,6 +4404,7 @@ export interface operations {
                 pageSize?: number;
                 categoryId?: string;
                 status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                q?: string;
             };
             header?: never;
             path?: never;
@@ -6656,6 +6730,7 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
                 status?: "NEW" | "IN_PROGRESS" | "DONE" | "REJECTED" | "SPAM";
+                q?: string;
             };
             header?: never;
             path?: never;

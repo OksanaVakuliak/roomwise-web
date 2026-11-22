@@ -13,6 +13,14 @@ import {
   type VersionView,
 } from '@/test/fixtures';
 import { makeSurfaceProducts } from '@/test/fixtures/catalog';
+import {
+  type AdminState,
+  addMockLead,
+  adminRoutes,
+  asBody,
+  createAdminState,
+  type Session,
+} from './admin-routes';
 
 export type Json = unknown;
 
@@ -20,22 +28,35 @@ export type MockReply = {
   status?: number;
   body?: Json;
   etag?: boolean;
+  headers?: Record<string, string>;
 };
 
 export type MockStore = {
   calculations: Map<string, VersionView>;
   idempotent: Map<string, MockReply>;
-  leadCount: number;
+  admin: AdminState;
 };
 
 export function createMockStore(): MockStore {
-  return { calculations: new Map(), idempotent: new Map(), leadCount: 1041 };
+  return {
+    calculations: new Map(),
+    idempotent: new Map(),
+    admin: createAdminState(),
+  };
 }
 
-type Route = {
-  method: 'GET' | 'POST';
+export type RouteContext = {
+  store: MockStore;
+  url: URL;
+  body: unknown;
+  raw: string | null;
+  session: Session | null;
+};
+
+export type Route = {
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   pattern: RegExp;
-  reply: (match: RegExpMatchArray, request: { store: MockStore }) => MockReply;
+  reply: (match: RegExpMatchArray, context: RouteContext) => MockReply;
 };
 
 const ok = (body: Json): MockReply => ({ status: 200, body, etag: true });
@@ -55,7 +76,18 @@ const withSurface = (productId: string) =>
 const lookup = (store: MockStore, publicId: string) =>
   store.calculations.get(publicId);
 
+const nonEmptyString = (value: unknown) =>
+  typeof value === 'string' && value !== '' ? value : null;
+
+const calculationRefOf = (value: unknown) => {
+  const { publicId, versionNumber } = asBody(value);
+  return typeof publicId === 'string' && typeof versionNumber === 'number'
+    ? { publicId, versionNumber }
+    : null;
+};
+
 export const routes: Route[] = [
+  ...adminRoutes,
   { method: 'GET', pattern: /^\/health$/, reply: () => ok({ status: 'ok' }) },
   {
     method: 'GET',
@@ -128,11 +160,36 @@ export const routes: Route[] = [
   {
     method: 'POST',
     pattern: /^\/public\/leads$/,
-    reply: (_match, { store }) => {
-      store.leadCount += 1;
+    reply: (_match, { store, body }) => {
+      const input = asBody(body);
+      const reference = calculationRefOf(input.calculation);
+      const version = reference ? lookup(store, reference.publicId) : undefined;
+      const resolved = version?.number === reference?.versionNumber;
+      const draft = asBody(input.draft);
+      const lead = addMockLead(store, {
+        name: String(input.name ?? ''),
+        phone: String(input.phone ?? ''),
+        email: nonEmptyString(input.email),
+        comment: nonEmptyString(input.comment),
+        locale: input.locale === 'uk' ? 'uk' : 'en',
+        consentText: String(asBody(input.consent).text ?? ''),
+        ...(typeof draft.clientTotalUsdCents === 'number'
+          ? { totalUsdCents: draft.clientTotalUsdCents }
+          : {}),
+        ...(version && resolved
+          ? {
+              calculation: version,
+              totalUsdCents: version.totals.usdCents,
+              expiredAtSubmission: version.expired,
+            }
+          : {}),
+      });
       return {
         status: 201,
-        body: makeLeadCreated({ leadNumber: store.leadCount }),
+        body: makeLeadCreated({
+          leadNumber: lead.number,
+          ...(reference ? { calculation: reference } : {}),
+        }),
       };
     },
   },

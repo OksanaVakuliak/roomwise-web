@@ -17,3 +17,5 @@ export function walk(dir: string): string[] {
     return statSync(full).isDirectory() ? walk(full) : [full];
   });
 }
+
+export const NO_INNER_HTML_DIRS = inSrc(['features/admin', 'components/ui']);
