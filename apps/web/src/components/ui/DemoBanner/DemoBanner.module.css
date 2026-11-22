@@ -1,0 +1,24 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-16);
+  border-bottom: var(--stroke-1-2) solid var(--line);
+  background: var(--tape);
+  color: var(--line);
+}
+
+.icon {
+  flex: none;
+}
+
+.text {
+  margin: 0;
+  font-family: var(--text-body-default-family);
+  font-size: var(--text-body-default-size);
+  line-height: 1.35;
+}
+
+.time {
+  font-weight: 600;
+}

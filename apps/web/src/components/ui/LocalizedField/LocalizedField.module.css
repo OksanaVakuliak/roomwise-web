@@ -1,0 +1,33 @@
+.root {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: var(--space-6);
+  padding: 0;
+  color: var(--line);
+  font-family: var(--text-button-default-family);
+  font-weight: var(--text-button-default-weight);
+  font-size: var(--text-label-size);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.fields > * {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .fields {
+    flex-direction: row;
+    gap: var(--space-16);
+  }
+}

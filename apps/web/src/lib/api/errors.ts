@@ -48,6 +48,11 @@ export const BACKEND_ERROR_CODES = [
   'IDEMPOTENCY_KEY_CONFLICT',
   'PHONE_INVALID',
   'EMPTY_ESTIMATE',
+  'COEFFICIENT_IN_USE',
+  'KEY_TAKEN',
+  'RULE_EXISTS',
+  'UNKNOWN_COEFFICIENT',
+  'FORMULA_INVALID',
 ] as const;
 
 export type BackendErrorCode = (typeof BACKEND_ERROR_CODES)[number];

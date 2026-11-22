@@ -1,0 +1,18 @@
+.root {
+  position: fixed;
+  inset-block-end: var(--space-16);
+  inset-inline: var(--space-16);
+  z-index: var(--z-toast);
+  display: grid;
+  justify-items: end;
+  gap: var(--space-8);
+  pointer-events: none;
+}
+
+.root > * {
+  pointer-events: auto;
+}
+
+.root:empty {
+  display: none;
+}
