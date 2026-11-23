@@ -223,6 +223,38 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
     expect(screen.getByLabelText('note')).toHaveValue('draft text');
   });
 
+  it('keeps the form and skips the redirect on a background 401 while reauthing', async () => {
+    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
+    post.mockResolvedValue(failure(adminErrors.unauthenticated()));
+    const { router, queryClient } = setup(locale);
+
+    fireEvent.change(await screen.findByLabelText('note'), {
+      target: { value: 'draft text' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'save' }));
+    await screen.findByRole('dialog');
+
+    const { status, body } = adminErrors.unauthenticated();
+    await act(async () => {
+      await queryClient
+        .fetchQuery({
+          queryKey: ['admin', 'leads'],
+          queryFn: () => Promise.reject(new ApiRequestError(status, body)),
+        })
+        .catch(() => undefined);
+      await queryClient
+        .fetchQuery({
+          queryKey: ['admin', 'me'],
+          queryFn: () => Promise.reject(new ApiRequestError(status, body)),
+        })
+        .catch(() => undefined);
+    });
+
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByLabelText('note')).toHaveValue('draft text');
+  });
+
   it('fails the mutation when the dialog is cancelled', async () => {
     get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
     post.mockResolvedValue(failure(adminErrors.unauthenticated()));

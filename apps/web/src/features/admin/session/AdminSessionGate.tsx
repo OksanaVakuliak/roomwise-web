@@ -12,7 +12,7 @@ import { adminKeys } from '@/lib/admin-api/keys';
 import { useAdminSession } from './context';
 
 export function AdminSessionGate({ children }: { children: ReactNode }) {
-  const { session } = useAdminSession();
+  const { session, reauthing } = useAdminSession();
   const t = useTranslations('Admin.session');
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -31,6 +31,7 @@ export function AdminSessionGate({ children }: { children: ReactNode }) {
       const next = `${pathname}${window.location.search}`;
       router.replace(`/admin/login?next=${encodeURIComponent(next)}`);
     };
+    if (reauthing) return;
     if (expired) redirect();
     return queryClient.getQueryCache().subscribe((event) => {
       if (
@@ -42,7 +43,7 @@ export function AdminSessionGate({ children }: { children: ReactNode }) {
         redirect();
       }
     });
-  }, [expired, pathname, queryClient, router]);
+  }, [expired, pathname, queryClient, reauthing, router]);
 
   if (session.status === 'checking') {
     return (

@@ -74,21 +74,25 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
 
   const { data, isPending, isError, error } = query;
   const session = useMemo<AdminSession>(() => {
-    if (isError && toAdminError(error).kind === 'unauthenticated') {
+    if (
+      isError &&
+      toAdminError(error).kind === 'unauthenticated' &&
+      !(open && data)
+    ) {
       return { status: 'anonymous' };
     }
     if (data) return { status: 'authenticated', me: data };
     if (isPending) return { status: 'checking' };
     if (isError) return { status: 'error', retry: refetch };
     return { status: 'anonymous' };
-  }, [data, isPending, isError, error, refetch]);
+  }, [data, isPending, isError, error, refetch, open]);
 
   const onSuccess = useCallback(() => settle('resolve'), [settle]);
   const onCancel = useCallback(() => settle('reject'), [settle]);
 
   const value = useMemo<AdminSessionValue>(
-    () => ({ session, requestReauth, withReauth }),
-    [session, requestReauth, withReauth],
+    () => ({ session, reauthing: open, requestReauth, withReauth }),
+    [session, open, requestReauth, withReauth],
   );
 
   return (

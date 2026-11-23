@@ -23,7 +23,7 @@ import styles from './AdminAccount.module.css';
 export function AdminAccount() {
   const t = useTranslations('AdminAccount');
   const tRoot = useTranslations();
-  const { session, withReauth } = useAdminSession();
+  const { session, reauthing, withReauth } = useAdminSession();
   const can = useCan('change-password');
   const mutation = useChangePassword();
   const { mutateAsync, reset } = mutation;
@@ -85,7 +85,7 @@ export function AdminAccount() {
     failure !== null &&
     failure.kind !== 'validation' &&
     failure.kind !== 'invalidCredentials' &&
-    failure.kind !== 'unauthenticated';
+    !(failure.kind === 'unauthenticated' && reauthing);
 
   const login = session.status === 'authenticated' ? session.me.login : '';
   const disabled = !can.allowed;
