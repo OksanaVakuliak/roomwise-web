@@ -4,8 +4,8 @@ import { act, screen, within } from '@testing-library/react';
 import type { AnchorHTMLAttributes } from 'react';
 import { Suspense } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import ObjectPage from '@/app/[locale]/configurator/object/page';
-import HomePage from '@/app/[locale]/page';
+import ObjectPage from '@/app/[locale]/(site)/configurator/object/page';
+import HomePage from '@/app/[locale]/(site)/page';
 import { axe } from '@/test/axe';
 import {
   forEachLocale,
@@ -161,7 +161,7 @@ describe.each(forEachPage)('page shell: %s', (name) => {
 
 describe('skip link', () => {
   const layoutSource = readFileSync(
-    resolve(import.meta.dirname, '../../app/[locale]/layout.tsx'),
+    resolve(import.meta.dirname, '../../app/[locale]/(site)/layout.tsx'),
     'utf8',
   );
 
@@ -180,7 +180,7 @@ describe('skip link', () => {
     },
   );
 
-  it('targets the id the locale layout puts on main', () => {
+  it('targets the id the site layout puts on main', () => {
     expect(MAIN_ID).toBe('main');
     expect(layoutSource).not.toMatch(/const MAIN_ID/);
     expect(layoutSource).toMatch(/<main id=\{MAIN_ID\} tabIndex=\{-1\}>/);

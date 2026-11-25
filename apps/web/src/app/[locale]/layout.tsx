@@ -4,20 +4,8 @@ import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { ReactNode } from 'react';
-import {
-  AppFooter,
-  AppHeader,
-  ExchangeRateNotice,
-  MAIN_ID,
-  NoticeProvider,
-  NoticeStack,
-  SkipLink,
-} from '@/components/layout';
-import {
-  PricingDataSync,
-  UpdateNotice,
-  WarmupStarter,
-} from '@/components/system';
+import { NoticeProvider } from '@/components/layout';
+import { WarmupStarter } from '@/components/system';
 import { routing } from '@/i18n/routing';
 import { SHORT_NAME, workerUrl } from '@/lib/pwa';
 import { QueryProvider } from '@/lib/query';
@@ -83,17 +71,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
             <QueryProvider>
               <NoticeProvider>
                 <WarmupStarter />
-                <PricingDataSync />
-                <SkipLink />
-                <AppHeader />
-                <main id={MAIN_ID} tabIndex={-1}>
-                  {children}
-                </main>
-                <AppFooter />
-                <NoticeStack>
-                  <ExchangeRateNotice />
-                  <UpdateNotice />
-                </NoticeStack>
+                {children}
               </NoticeProvider>
             </QueryProvider>
           </NextIntlClientProvider>

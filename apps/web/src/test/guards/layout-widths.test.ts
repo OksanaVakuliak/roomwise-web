@@ -8,6 +8,9 @@ const SRC = resolve(import.meta.dirname, '../..');
 const SMALLEST = Math.min(...VIEWPORTS);
 const TABLET = 768;
 const PICKER_STYLES = 'components/layout/StepLayout/StepLayout.module.css';
+const ADMIN_SHELL_STYLES =
+  'features/admin/shell/AdminShell/AdminShell.module.css';
+const ADMIN_SIDEBAR_BREAKPOINT = 1024;
 const ROOT_PX = 16;
 const SCALING_FROM = 1440;
 const PX_ALLOWLIST = new Set([
@@ -297,6 +300,10 @@ describe('layout widths guard', () => {
       (item) =>
         item.minWidth > TABLET &&
         !rel(item.file).includes('/(dev)/') &&
+        !(
+          rel(item.file) === ADMIN_SHELL_STYLES &&
+          item.minWidth === ADMIN_SIDEBAR_BREAKPOINT
+        ) &&
         !(
           rel(item.file) === PICKER_STYLES &&
           item.minWidth === WIDE_BREAKPOINT &&

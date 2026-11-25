@@ -36,6 +36,10 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
-    env: { API_ORIGIN: process.env.API_ORIGIN ?? 'http://localhost:4000' },
+    env: {
+      API_ORIGIN: process.env.API_ORIGIN ?? 'http://localhost:4000',
+      NEXT_PUBLIC_DEMO_ADMIN_LOGIN: 'demo',
+      NEXT_PUBLIC_DEMO_ADMIN_PASSWORD: 'demo-password',
+    },
   },
 });

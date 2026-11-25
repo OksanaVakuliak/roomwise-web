@@ -1,0 +1,59 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.leads {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.leadsLink {
+  align-self: flex-start;
+  font-size: var(--text-number-meta-size);
+  font-weight: 600;
+}
+
+.error {
+  margin: 0;
+  color: var(--line);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(var(--layout-picker-min-width), 100%), 1fr)
+    );
+  gap: var(--space-12);
+  margin: var(--space-12) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  padding: var(--space-12) var(--space-16);
+  border: var(--stroke-1) solid var(--hair);
+  background: var(--sheet);
+}
+
+.cardTitle {
+  margin: 0 0 var(--space-4);
+  color: var(--line-2);
+  font-size: var(--text-label-size);
+  font-weight: 600;
+}
+
+.cardList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cardLink {
+  display: flex;
+  align-items: center;
+  min-height: var(--size-target);
+}

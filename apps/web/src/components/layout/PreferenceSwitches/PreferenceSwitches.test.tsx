@@ -6,10 +6,15 @@ import { PreferenceSwitches } from './PreferenceSwitches';
 
 const hydration = vi.hoisted(() => ({ hydrated: false }));
 const navigation = vi.hoisted(() => ({ replace: vi.fn() }));
+const loadRate = vi.hoisted(() => vi.fn(async () => {}));
 
 vi.mock('@/i18n/navigation', () => ({
   useRouter: () => ({ replace: navigation.replace }),
   usePathname: () => '/configurator',
+}));
+vi.mock('@/stores/exchange-rate', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/stores/exchange-rate')>()),
+  loadExchangeRate: loadRate,
 }));
 vi.mock('@/stores/use-preferences-hydration', () => ({
   usePreferencesHydration: () => hydration.hydrated,
@@ -78,6 +83,19 @@ describe('PreferenceSwitches', () => {
     fireEvent.click(currency);
 
     expect(usePreferences.getState().currency).toBe('UAH');
+  });
+
+  it('loads the exchange rate for a stored UAH currency only when the currency switch is shown', () => {
+    hydration.hydrated = true;
+    loadRate.mockClear();
+
+    renderWithProviders(<PreferenceSwitches withCurrency={false} />, {
+      currency: 'UAH',
+    });
+    expect(loadRate).not.toHaveBeenCalled();
+
+    renderWithProviders(<PreferenceSwitches />, { currency: 'UAH' });
+    expect(loadRate).toHaveBeenCalledOnce();
   });
 
   it('exposes the buttons as plain actions, not toggles', () => {

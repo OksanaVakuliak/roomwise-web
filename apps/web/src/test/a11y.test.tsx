@@ -2,8 +2,8 @@ import { act } from '@testing-library/react';
 import type { AnchorHTMLAttributes } from 'react';
 import { type ReactElement, Suspense } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import ObjectPage from '@/app/[locale]/configurator/object/page';
-import HomePage from '@/app/[locale]/page';
+import ObjectPage from '@/app/[locale]/(site)/configurator/object/page';
+import HomePage from '@/app/[locale]/(site)/page';
 import { blockingViolations } from '@/test/axe';
 import {
   forEachLocale,

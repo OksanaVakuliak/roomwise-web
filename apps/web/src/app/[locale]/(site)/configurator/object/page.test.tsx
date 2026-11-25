@@ -7,8 +7,8 @@ import {
   forEachLocale,
   renderWithProviders,
 } from '@/test/render-with-providers';
-import en from '../../../../../messages/en.json';
-import StylePage, { generateMetadata } from './page';
+import en from '../../../../../../messages/en.json';
+import ObjectPage, { generateMetadata } from './page';
 
 vi.mock('next-intl/server', () => ({
   setRequestLocale: vi.fn(),
@@ -21,7 +21,7 @@ async function renderPage(locale: 'en' | 'uk') {
   await act(async () => {
     result = renderWithProviders(
       <Suspense>
-        <StylePage params={Promise.resolve({ locale })} />
+        <ObjectPage params={Promise.resolve({ locale })} />
       </Suspense>,
       { locale },
     );
@@ -30,10 +30,10 @@ async function renderPage(locale: 'en' | 'uk') {
   return result;
 }
 
-describe('StylePage', () => {
+describe('ObjectPage', () => {
   it.each([
-    ['en', '/en/configurator/style'],
-    ['uk', '/uk/configurator/style'],
+    ['en', '/en/configurator/object'],
+    ['uk', '/uk/configurator/object'],
   ] as const)('declares alternates for %s', async (locale, canonical) => {
     vi.mocked(getTranslations).mockResolvedValue(
       ((key: string) => key) as unknown as Awaited<
@@ -45,13 +45,13 @@ describe('StylePage', () => {
       params: Promise.resolve({ locale }),
     });
 
-    expect(metadata.title).toBe('style');
+    expect(metadata.title).toBe('object');
     expect(metadata.alternates).toEqual({
       canonical,
       languages: {
-        en: '/en/configurator/style',
-        uk: '/uk/configurator/style',
-        'x-default': '/configurator/style',
+        en: '/en/configurator/object',
+        uk: '/uk/configurator/object',
+        'x-default': '/configurator/object',
       },
     });
   });
@@ -72,7 +72,7 @@ describe('StylePage', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: en.ConfiguratorSteps.heading.style,
+        name: en.ConfiguratorSteps.heading.object,
       }),
     ).toBeInTheDocument();
   });

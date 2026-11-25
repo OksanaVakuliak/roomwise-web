@@ -1402,7 +1402,24 @@
     },
     "demo": {
       "banner": "Demo mode. All changes reset at",
-      "unavailable": "Not available in demo mode"
+      "unavailable": "Not available in demo mode",
+      "reason": {
+        "password": "The password cannot be changed in demo mode",
+        "leads": "Leads cannot be changed in demo mode",
+        "settings": "Settings cannot be changed in demo mode"
+      }
+    },
+    "session": {
+      "checking": "Checking your session",
+      "reauth": {
+        "title": "Session expired",
+        "text": "Sign in again to continue. Everything you entered is kept.",
+        "login": "Login",
+        "password": "Password",
+        "submit": "Sign in",
+        "cancel": "Cancel",
+        "close": "Close"
+      }
     },
     "status": {
       "DRAFT": "Draft",
@@ -1425,6 +1442,36 @@
       "colorPicker": "Pick a color",
       "invalidColor": "Enter a color as #RRGGBB"
     }
+  },
+  "AdminAuth": {
+    "title": "Admin sign-in",
+    "lead": "Sign in to manage the catalog, prices and leads.",
+    "login": "Login",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in",
+    "locked": "Too many failed attempts. Sign-in is temporarily blocked.",
+    "rateLimited": "Too many sign-in attempts. Please wait a little.",
+    "retryIn": "You can try again in {seconds} s.",
+    "demo": {
+      "title": "Demo access",
+      "text": "Explore the admin panel with a demo account. Changes are limited and reset on a schedule.",
+      "fill": "Sign in as demo"
+    }
+  },
+  "AdminAccount": {
+    "title": "Account",
+    "login": "Login",
+    "passwordTitle": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "newPasswordHint": "At least 12 characters",
+    "confirmPassword": "Repeat new password",
+    "mismatch": "Passwords do not match",
+    "wrongPassword": "Current password is incorrect",
+    "submit": "Change password",
+    "submitting": "Changing password",
+    "changed": "Password changed"
   },
   "AdminNav": {
     "label": "Admin sections",
@@ -1450,5 +1497,18 @@
     "newLeads": "{count, plural, one {# new lead} other {# new leads}}",
     "account": "Account",
     "logout": "Sign out"
+  },
+  "AdminHome": {
+    "title": "Home",
+    "leadsTitle": "Leads",
+    "leadsLoading": "Loading new leads",
+    "leadsFailed": "Could not load the number of new leads.",
+    "newLeads": "{count, plural, =0 {No new leads} other {New leads: #}}",
+    "sections": "Sections"
+  },
+  "AdminShell": {
+    "caption": "admin panel",
+    "brandLink": "Roomwise admin panel, home",
+    "logoutFailed": "Could not sign out. Try again."
   }
 }
