@@ -1,0 +1,13 @@
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 1;
+  border: var(--stroke-1-5) solid var(--line);
+  background-color: var(--fallback);
+}
+
+.textured {
+  background-image: var(--texture);
+  background-size: var(--tile-w) var(--tile-l);
+  background-repeat: repeat;
+}

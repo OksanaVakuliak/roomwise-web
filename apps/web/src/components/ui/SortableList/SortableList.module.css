@@ -1,0 +1,55 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8);
+  border: var(--stroke-1-5) solid var(--line);
+  background: var(--paper);
+  transform: var(--sortable-transform);
+  transition: var(--sortable-transition);
+}
+
+.dragging {
+  position: relative;
+  z-index: 1;
+  background: var(--fill-a);
+}
+
+.handle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-target);
+  height: var(--size-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--line);
+  cursor: grab;
+  touch-action: none;
+}
+
+.dragging .handle {
+  cursor: grabbing;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.moves {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-4);
+}
