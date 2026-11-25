@@ -29,16 +29,18 @@ export function AdminHome() {
           <Link href="/admin/leads?status=NEW" className={styles.leadsLink}>
             {t('newLeads', { count: leads.data })}
           </Link>
-        ) : leads.isError ? (
+        ) : null}
+        {leads.isError ? (
           <p role="alert" className={styles.error}>
             {t('leadsFailed')}
           </p>
-        ) : (
+        ) : null}
+        {leads.data === undefined && !leads.isError ? (
           <div role="status">
             <VisuallyHidden>{t('leadsLoading')}</VisuallyHidden>
             <Skeleton variant="block" height="3rem" />
           </div>
-        )}
+        ) : null}
       </section>
       <section aria-labelledby={sectionsId}>
         <SectionHeader id={sectionsId} title={t('sections')} />
