@@ -24,6 +24,7 @@ export * from './Gallery/Gallery';
 export * from './Hatch/Hatch';
 export * from './Icon/Icon';
 export * from './IconButton/IconButton';
+export * from './ImageUploader/ImageUploader';
 export * from './ImageWithFallback/ImageWithFallback';
 export * from './KeyValueGrid/KeyValueGrid';
 export * from './Link/Link';
