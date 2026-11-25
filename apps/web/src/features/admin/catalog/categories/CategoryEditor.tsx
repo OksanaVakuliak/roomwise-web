@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { type ChangeEvent, useCallback, useState } from 'react';
+import { type ChangeEvent, useCallback, useRef, useState } from 'react';
 import {
   Banner,
   Checkbox,
@@ -19,6 +19,8 @@ import {
   useLeaveGuard,
   useSaveToast,
 } from '@/features/admin/forms';
+import { isEqual } from '@/features/admin/forms/is-equal';
+import { useAdminSession } from '@/features/admin/session';
 import { useRouter } from '@/i18n/navigation';
 import {
   type AdminCategory,
@@ -49,6 +51,12 @@ const LIST_HREF = '/admin/catalog/categories';
 type InUse = { productCount: number; roomTypes: string[]; styles: string[] };
 
 type Status = AdminCategory['status'];
+
+type Applied = {
+  revision: string;
+  submitted: CategoryValues;
+  values: CategoryValues;
+};
 
 const strings = (value: unknown): string[] =>
   Array.isArray(value)
@@ -81,6 +89,8 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
   const format = useFormatter();
   const router = useRouter();
   const notify = useSaveToast();
+  const { withReauth } = useAdminSession();
+  const applied = useRef<Applied | null>(null);
   const create = useCreateCategory();
   const update = useUpdateCategory();
   const changeStatus = useChangeCategoryStatus();
@@ -92,6 +102,7 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
   const id = category?.id;
 
   const fetchLatest = useCallback(async () => {
+    applied.current = null;
     const items = await fetchCategories();
     const latest = items.find((item) => item.id === id);
     if (!latest) throw new Error('missing');
@@ -124,16 +135,21 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
         requiresPutty: current.requiresPutty,
       };
       if (!id) {
-        const created = await createAsync(body);
+        const created = await withReauth(() => createAsync(body));
         return { revision: created.revision, values: toValues(created) };
       }
-      const updated = await updateAsync({
-        id,
-        body: { ...body, revision: revision ?? '' },
-      });
+      const updated = await withReauth(() =>
+        updateAsync({
+          id,
+          body: {
+            ...body,
+            revision: applied.current?.revision ?? revision ?? '',
+          },
+        }),
+      );
       return { revision: updated.revision, values: toValues(updated) };
     },
-    [id, createAsync, updateAsync],
+    [id, withReauth, createAsync, updateAsync],
   );
 
   const onSave = useCallback(async () => {
@@ -142,6 +158,7 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
       values.requiresPutty !== initial.requiresPutty;
     const ok = await submit(persist);
     if (!ok) return;
+    applied.current = null;
     notify({ affectsCost });
     if (!id) router.push(LIST_HREF);
   }, [values, initial, submit, persist, notify, id, router]);
@@ -151,17 +168,31 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
       if (!id) return;
       const ok = await submit(async (current, revision) => {
         if (status === 'PUBLISHED') requireTranslations(current.name);
+        const prior = applied.current;
         let next = { revision, values: current };
-        if (dirty) next = await persist(current, revision);
-        const changed = await statusAsync({
-          id,
-          body: { status, revision: next.revision ?? '' },
-        });
+        if (prior && isEqual(prior.submitted, current)) {
+          next = prior;
+        } else if (dirty) {
+          const saved = await persist(current, revision);
+          applied.current = {
+            revision: saved.revision,
+            submitted: current,
+            values: saved.values,
+          };
+          next = saved;
+        }
+        const changed = await withReauth(() =>
+          statusAsync({
+            id,
+            body: { status, revision: next.revision ?? '' },
+          }),
+        );
+        applied.current = null;
         return { revision: changed.revision, values: next.values };
       });
       if (ok) notify();
     },
-    [id, dirty, submit, persist, statusAsync, notify],
+    [id, dirty, submit, persist, withReauth, statusAsync, notify],
   );
 
   const status = category?.status;
@@ -177,7 +208,7 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
     setConfirmingDelete(false);
     setDeleteError(null);
     try {
-      await removeAsync(id);
+      await withReauth(() => removeAsync(id));
     } catch (failure) {
       const error = toAdminError(failure);
       if (error.kind === 'inUse') setInUse(readInUse(error, locale));
@@ -186,7 +217,7 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
     }
     notify();
     router.push(LIST_HREF);
-  }, [id, removeAsync, locale, notify, router]);
+  }, [id, withReauth, removeAsync, locale, notify, router]);
 
   const closeInUse = useCallback(() => setInUse(null), []);
   const archiveInstead = useCallback(async () => {

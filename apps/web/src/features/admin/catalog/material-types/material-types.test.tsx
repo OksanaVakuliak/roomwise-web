@@ -112,6 +112,47 @@ describe.each(forEachLocale)('AdminMaterialTypes (%s)', (locale) => {
     );
   });
 
+  it('asks before closing the panel with unsaved edits', async () => {
+    const { t } = await setup(locale);
+    fireEvent.click(screen.getByRole('button', { name: t.add }));
+    const dialog = await screen.findByRole('dialog');
+    const code = within(dialog).getByLabelText(new RegExp(t.code));
+    fireEvent.change(code, { target: { value: 'TILE' } });
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    const leave = catalogs[locale as 'en' | 'uk'].Admin.form.leave;
+    const confirm = await screen.findByRole('dialog', { name: leave.title });
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: leave.cancel }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: leave.title }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(code).toHaveValue('TILE');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.click(
+      within(
+        await screen.findByRole('dialog', { name: leave.title }),
+      ).getByRole('button', { name: leave.confirm }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+  });
+
+  it('closes a clean panel without asking', async () => {
+    const { t } = await setup(locale);
+    fireEvent.click(screen.getByRole('button', { name: t.add }));
+    await screen.findByRole('dialog');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+  });
+
   it('shows CODE_TAKEN at the code field', async () => {
     post.mockResolvedValue(failure(makeAdminFailure(409, 'CODE_TAKEN')));
     const { t, labels } = await setup(locale);

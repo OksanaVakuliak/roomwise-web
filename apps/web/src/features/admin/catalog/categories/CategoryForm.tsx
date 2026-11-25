@@ -26,7 +26,7 @@ export function CategoryForm({ categoryId }: CategoryFormProps) {
 
   if (categoryId === undefined) return <CategoryEditor />;
 
-  if (query.error) {
+  if (query.error && query.data === undefined) {
     const message = adminErrorMessage(toAdminError(query.error));
     return (
       <div className={styles.root}>

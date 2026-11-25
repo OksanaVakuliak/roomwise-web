@@ -74,6 +74,20 @@ export function useLeaveGuard(
 
   useEffect(() => clearLeaveTimer, [clearLeaveTimer]);
 
+  useEffect(
+    () => () => {
+      if (
+        guardedUrl.current !== '' &&
+        guardedUrl.current === window.location.href &&
+        !leaving.current &&
+        onSentinel()
+      ) {
+        window.history.back();
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!dirty) return;
     guardedUrl.current = window.location.href;

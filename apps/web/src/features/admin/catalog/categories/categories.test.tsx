@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import type { Locale } from 'next-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AdminSessionProvider } from '@/features/admin/session';
 import { api } from '@/lib/api/client';
 import { toast, useToasts } from '@/lib/toast';
 import { resetWarmup, useWarmup } from '@/lib/warmup';
@@ -11,9 +12,11 @@ import {
   makeAdminCategory,
   makeAdminRoomTypes,
 } from '@/test/fixtures/admin/catalog';
-import { adminErrors } from '@/test/fixtures/admin/errors';
+import { adminErrors, makeAdminFailure } from '@/test/fixtures/admin/errors';
 import { adminIds, adminUuid } from '@/test/fixtures/admin/ids';
+import { makeAdminMe } from '@/test/fixtures/admin/me';
 import {
+  createTestQueryClient,
   forEachLocale,
   renderWithProviders,
 } from '@/test/render-with-providers';
@@ -24,6 +27,8 @@ import { CategoryForm, CategoryList } from './index';
 vi.mock('@/lib/api/client', () => ({
   api: { GET: vi.fn(), POST: vi.fn(), PATCH: vi.fn(), DELETE: vi.fn() },
 }));
+
+const authMeUrl = '/api/v1/admin/auth/me';
 
 const get = vi.mocked(api.GET) as unknown as ReturnType<typeof vi.fn>;
 const post = vi.mocked(api.POST) as unknown as ReturnType<typeof vi.fn>;
@@ -47,9 +52,11 @@ function mockList(items: AdminCategory[] = makeAdminCategories().items) {
   get.mockImplementation((path: string) =>
     path === listUrl
       ? Promise.resolve(ok({ items }))
-      : path === roomTypesUrl
-        ? Promise.resolve(ok(makeAdminRoomTypes()))
-        : Promise.reject(new Error(`unexpected GET ${path}`)),
+      : path === authMeUrl
+        ? Promise.resolve(ok(makeAdminMe()))
+        : path === roomTypesUrl
+          ? Promise.resolve(ok(makeAdminRoomTypes()))
+          : Promise.reject(new Error(`unexpected GET ${path}`)),
   );
 }
 
@@ -61,6 +68,7 @@ const texts = (locale: Locale) => {
     fields: catalog.Admin.fields,
     errors: catalog.AdminErrors,
     status: catalog.Admin.status,
+    reauth: catalog.Admin.session.reauth,
   };
 };
 
@@ -80,12 +88,22 @@ const roomTypeNames = (locale: Locale, codes: string[]) =>
 
 const flooring = makeAdminCategory();
 
-function renderEdit(locale: Locale, category: AdminCategory = flooring) {
+function renderEdit(
+  locale: Locale,
+  category: AdminCategory = flooring,
+  queryClient = createTestQueryClient(),
+) {
   mockList([category]);
-  return renderWithProviders(<CategoryForm categoryId={category.id} />, {
-    locale,
-    url: `/admin/catalog/categories/${category.id}`,
-  });
+  return renderWithProviders(
+    <AdminSessionProvider>
+      <CategoryForm categoryId={category.id} />
+    </AdminSessionProvider>,
+    {
+      locale,
+      url: `/admin/catalog/categories/${category.id}`,
+      queryClient,
+    },
+  );
 }
 
 const toastMessages = () =>
@@ -186,10 +204,15 @@ describe.each(forEachLocale)('CategoryForm (%s)', (locale) => {
   it('creates a category from both language names', async () => {
     mockList();
     post.mockResolvedValue(ok(makeAdminCategory({ id: adminUuid(777) })));
-    const { router, container } = renderWithProviders(<CategoryForm />, {
-      locale,
-      url: '/admin/catalog/categories/new',
-    });
+    const { router, container } = renderWithProviders(
+      <AdminSessionProvider>
+        <CategoryForm />
+      </AdminSessionProvider>,
+      {
+        locale,
+        url: '/admin/catalog/categories/new',
+      },
+    );
     expect(await axe(container)).toHaveNoViolations();
 
     fireEvent.change(screen.getByLabelText(nameLabel(locale, 'en')), {
@@ -339,12 +362,82 @@ describe.each(forEachLocale)('CategoryForm (%s)', (locale) => {
     ).toBeInTheDocument();
   });
 
+  it('retries the status change from the saved revision after the first attempt fails', async () => {
+    const draft = makeAdminCategory({ status: 'DRAFT', revision: 'r1' });
+    patch.mockResolvedValue(ok({ ...draft, wastePercent: 12, revision: 'r2' }));
+    post
+      .mockResolvedValueOnce(failure(makeAdminFailure(403, 'FORBIDDEN')))
+      .mockResolvedValueOnce(
+        ok({ ...draft, wastePercent: 12, status: 'PUBLISHED', revision: 'r3' }),
+      );
+    renderEdit(locale, draft);
+    fireEvent.change(await screen.findByLabelText(new RegExp(t.form.waste)), {
+      target: { value: '12' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: form.publish }));
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: form.publish }),
+      ).not.toBeDisabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: form.publish }));
+
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(2));
+    expect(post).toHaveBeenLastCalledWith(statusUrl, {
+      params: { path: { id: draft.id } },
+      body: { status: 'PUBLISHED', revision: 'r2' },
+    });
+    expect(patch).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps unsaved edits when a background refetch fails', async () => {
+    const queryClient = createTestQueryClient();
+    renderEdit(locale, flooring, queryClient);
+    const waste = await screen.findByLabelText(new RegExp(t.form.waste));
+    fireEvent.change(waste, { target: { value: '33' } });
+    get.mockImplementation((path: string) =>
+      path === authMeUrl
+        ? Promise.resolve(ok(makeAdminMe()))
+        : Promise.resolve(failure(makeAdminFailure(403, 'FORBIDDEN'))),
+    );
+    await queryClient.invalidateQueries();
+
+    await waitFor(() =>
+      expect(
+        queryClient
+          .getQueryCache()
+          .getAll()
+          .some((query) => query.state.fetchFailureCount > 0),
+      ).toBe(true),
+    );
+    expect(screen.queryByText(t.form.loadFailed)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(new RegExp(t.form.waste))).toHaveValue(33);
+  });
+
+  it('opens the reauth dialog when the session expired during a save', async () => {
+    patch.mockResolvedValueOnce(failure(adminErrors.unauthenticated()));
+    renderEdit(locale);
+    const waste = await screen.findByLabelText(new RegExp(t.form.waste));
+    fireEvent.change(waste, { target: { value: '12' } });
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+
+    expect(
+      await screen.findByRole('dialog', { name: texts(locale).reauth.title }),
+    ).toBeInTheDocument();
+  });
+
   it('shows a not-found state for an unknown category', async () => {
     mockList();
-    renderWithProviders(<CategoryForm categoryId={adminUuid(999)} />, {
-      locale,
-      url: `/admin/catalog/categories/${adminUuid(999)}`,
-    });
+    renderWithProviders(
+      <AdminSessionProvider>
+        <CategoryForm categoryId={adminUuid(999)} />
+      </AdminSessionProvider>,
+      {
+        locale,
+        url: `/admin/catalog/categories/${adminUuid(999)}`,
+      },
+    );
     expect(await screen.findByText(t.form.notFoundText)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: t.form.back })).toBeInTheDocument();
   });

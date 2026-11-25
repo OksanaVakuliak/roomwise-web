@@ -424,7 +424,7 @@ export function RoomTypeForm({ code }: RoomTypeFormProps) {
   const { refetch } = query;
   const retry = useCallback(() => void refetch(), [refetch]);
 
-  if (query.error) {
+  if (query.error && !query.data) {
     const message = adminErrorMessage(toAdminError(query.error));
     return (
       <div className={styles.root}>

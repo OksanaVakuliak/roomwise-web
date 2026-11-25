@@ -1,7 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { type ChangeEvent, type FormEvent, useCallback, useMemo } from 'react';
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
 import {
   Banner,
   LocalizedField,
@@ -43,9 +49,14 @@ const toValues = (item: AdminMaterialType): Values => ({
 type MaterialTypeFormProps = {
   item: AdminMaterialType | null;
   onSaved: () => void;
+  onDirtyChange: (dirty: boolean) => void;
 };
 
-export function MaterialTypeForm({ item, onSaved }: MaterialTypeFormProps) {
+export function MaterialTypeForm({
+  item,
+  onSaved,
+  onDirtyChange,
+}: MaterialTypeFormProps) {
   const t = useTranslations('AdminCatalog.materialTypes');
   const tStatus = useTranslations('Admin.status');
   const tFields = useTranslations('Admin.fields');
@@ -77,6 +88,12 @@ export function MaterialTypeForm({ item, onSaved }: MaterialTypeFormProps) {
     fetchLatest,
   });
   const { dialog } = useLeaveGuard(form.dirty);
+  const { dirty } = form;
+
+  useEffect(() => {
+    onDirtyChange(dirty);
+    return () => onDirtyChange(false);
+  }, [dirty, onDirtyChange]);
   const { setField, submit } = form;
   const { mutateAsync: createAsync } = create;
   const { mutateAsync: updateAsync } = update;

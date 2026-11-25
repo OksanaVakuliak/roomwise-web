@@ -442,6 +442,29 @@ describe.each(forEachLocale)('admin forms (%s)', (locale) => {
     push.mockRestore();
   });
 
+  it('removes the history sentinel when unmounted on the guarded page', () => {
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
+    const { unmount } = renderWithProviders(<Harness save={vi.fn()} />, {
+      locale,
+    });
+    edit('Birch');
+    unmount();
+    expect(back).toHaveBeenCalledTimes(1);
+    back.mockRestore();
+  });
+
+  it('leaves history alone when unmounted after navigating away', () => {
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
+    const { unmount } = renderWithProviders(<Harness save={vi.fn()} />, {
+      locale,
+    });
+    edit('Birch');
+    window.history.replaceState(null, '', '/elsewhere');
+    unmount();
+    expect(back).not.toHaveBeenCalled();
+    back.mockRestore();
+  });
+
   it('keeps a single history sentinel across save and edit cycles', async () => {
     const save = vi.fn().mockResolvedValue({ revision: 'r5' });
     const back = vi.spyOn(window.history, 'back');

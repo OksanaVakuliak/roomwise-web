@@ -11,10 +11,11 @@ import {
   makeAdminRoomType,
   makeAdminRoomTypes,
 } from '@/test/fixtures/admin/catalog';
-import { adminErrors } from '@/test/fixtures/admin/errors';
+import { adminErrors, makeAdminFailure } from '@/test/fixtures/admin/errors';
 import { adminIds } from '@/test/fixtures/admin/ids';
 import { makeAdminMe } from '@/test/fixtures/admin/me';
 import {
+  createTestQueryClient,
   forEachLocale,
   renderWithProviders,
 } from '@/test/render-with-providers';
@@ -118,7 +119,10 @@ describe.each(forEachLocale)('RoomTypeForm (%s)', (locale) => {
     ] as string;
   const lighting = adminIds.categories.unpublishedLighting;
 
-  function renderEdit(code = 'LIVING_ROOM') {
+  function renderEdit(
+    code = 'LIVING_ROOM',
+    queryClient = createTestQueryClient(),
+  ) {
     mockData();
     return renderWithProviders(
       <AdminSessionProvider>
@@ -127,6 +131,7 @@ describe.each(forEachLocale)('RoomTypeForm (%s)', (locale) => {
       {
         locale,
         url: `/admin/catalog/room-types/${code}`,
+        queryClient,
       },
     );
   }
@@ -257,6 +262,38 @@ describe.each(forEachLocale)('RoomTypeForm (%s)', (locale) => {
         },
       }),
     );
+  });
+
+  it('keeps unsaved edits when a background refetch fails', async () => {
+    const queryClient = createTestQueryClient();
+    renderEdit('LIVING_ROOM', queryClient);
+    const english = await screen.findByLabelText(
+      `${t.form.name} (${texts(locale).fields.languages.en})`,
+    );
+    fireEvent.change(english, { target: { value: 'Lounge' } });
+    get.mockImplementation((path: string) =>
+      path === roomTypesUrl
+        ? Promise.resolve(failure(makeAdminFailure(403, 'FORBIDDEN')))
+        : path === categoriesUrl
+          ? Promise.resolve(ok(makeAdminCategories()))
+          : Promise.resolve(ok(makeAdminMe())),
+    );
+    await queryClient.invalidateQueries();
+
+    await waitFor(() =>
+      expect(
+        queryClient
+          .getQueryCache()
+          .getAll()
+          .some((query) => query.state.fetchFailureCount > 0),
+      ).toBe(true),
+    );
+    expect(screen.queryByText(t.form.loadFailed)).not.toBeInTheDocument();
+    expect(
+      screen.getByLabelText(
+        `${t.form.name} (${texts(locale).fields.languages.en})`,
+      ),
+    ).toHaveValue('Lounge');
   });
 
   it('shows the conflict banner on a stale revision', async () => {

@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   Banner,
   Button,
+  ConfirmDialog,
   DataTable,
   type DataTableColumn,
   EmptyState,
@@ -42,14 +43,25 @@ export function AdminMaterialTypes() {
   const query = useMaterialTypes();
   const { refetch } = query;
   const [search, setSearch] = useState('');
+  const tLeave = useTranslations('Admin.form.leave');
   const [panel, setPanel] = useState<Panel | null>(null);
+  const [panelDirty, setPanelDirty] = useState(false);
+  const [confirmingClose, setConfirmingClose] = useState(false);
 
   const openCreate = useCallback(() => setPanel({ kind: 'create' }), []);
   const openEdit = useCallback(
     (item: AdminMaterialType) => setPanel({ kind: 'edit', item }),
     [],
   );
-  const closePanel = useCallback(() => setPanel(null), []);
+  const closePanel = useCallback(() => {
+    setConfirmingClose(false);
+    setPanel(null);
+  }, []);
+  const requestClose = useCallback(() => {
+    if (panelDirty) setConfirmingClose(true);
+    else closePanel();
+  }, [panelDirty, closePanel]);
+  const stayInPanel = useCallback(() => setConfirmingClose(false), []);
   const retry = useCallback(() => {
     void refetch();
   }, [refetch]);
@@ -160,7 +172,7 @@ export function AdminMaterialTypes() {
       {body}
       <SidePanel
         open={panel !== null}
-        onClose={closePanel}
+        onClose={requestClose}
         title={panel?.kind === 'edit' ? t('editTitle') : t('createTitle')}
         closeLabel={t('close')}
       >
@@ -169,9 +181,21 @@ export function AdminMaterialTypes() {
             key={panel.kind === 'edit' ? panel.item.id : 'create'}
             item={panel.kind === 'edit' ? panel.item : null}
             onSaved={closePanel}
+            onDirtyChange={setPanelDirty}
           />
         ) : null}
       </SidePanel>
+      <ConfirmDialog
+        open={confirmingClose}
+        title={tLeave('title')}
+        description={tLeave('description')}
+        confirmLabel={tLeave('confirm')}
+        cancelLabel={tLeave('cancel')}
+        closeLabel={tLeave('close')}
+        tone="danger"
+        onConfirm={closePanel}
+        onCancel={stayInPanel}
+      />
     </div>
   );
 }
