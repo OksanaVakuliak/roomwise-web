@@ -1510,5 +1510,35 @@
     "caption": "admin panel",
     "brandLink": "Roomwise admin panel, home",
     "logoutFailed": "Could not sign out. Try again."
+  },
+  "AdminCatalog": {
+    "materialTypes": {
+      "title": "Material types",
+      "caption": "Material types",
+      "search": "Search by code or name",
+      "add": "Add material type",
+      "createTitle": "New material type",
+      "editTitle": "Edit material type",
+      "close": "Close",
+      "columnCode": "Code",
+      "columnName": "Name",
+      "columnStatus": "Status",
+      "columnUpdated": "Changed",
+      "columnActions": "Actions",
+      "edit": "Edit {code}",
+      "emptyTitle": "No material types yet",
+      "emptyText": "Add the first material type to use it in products.",
+      "noMatchesTitle": "Nothing found",
+      "noMatchesText": "Try changing the search.",
+      "loading": "Loading material types",
+      "loadFailed": "Could not load material types",
+      "retry": "Retry",
+      "code": "Code",
+      "codeHint": "Latin letters, digits and underscores. Cannot be changed later.",
+      "name": "Name",
+      "status": "Status"
+    },
+    "categories": {},
+    "products": {}
   }
 }
