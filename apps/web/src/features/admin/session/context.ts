@@ -12,6 +12,7 @@ export type AdminSession =
 export type AdminSessionValue = {
   session: AdminSession;
   reauthing: boolean;
+  declined: boolean;
   requestReauth: () => Promise<void>;
   withReauth: <T>(run: () => Promise<T>) => Promise<T>;
 };

@@ -214,6 +214,56 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
     expect(post).toHaveBeenCalledTimes(calls);
   });
 
+  it('redirects after one cancel when me also failed while the dialog was open', async () => {
+    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
+    post.mockResolvedValue(failure(adminErrors.unauthenticated()));
+    const { router, queryClient } = setup(locale);
+    fireEvent.click(await screen.findByRole('button', { name: 'save' }));
+    const dialog = await screen.findByRole('dialog');
+
+    const { status, body } = adminErrors.unauthenticated();
+    await act(async () => {
+      await queryClient
+        .fetchQuery({
+          queryKey: ['admin', 'me'],
+          queryFn: () => Promise.reject(new ApiRequestError(status, body)),
+        })
+        .catch(() => undefined);
+    });
+    fireEvent.click(
+      within(dialog).getByRole('button', {
+        name: locale === 'uk' ? 'Скасувати' : 'Cancel',
+      }),
+    );
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('invalidates admin reads after signing in again', async () => {
+    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
+    post
+      .mockResolvedValueOnce(failure(adminErrors.unauthenticated()))
+      .mockResolvedValueOnce({ data: makeAdminMe(), response: { status: 200 } })
+      .mockResolvedValueOnce({ data: true, response: { status: 204 } });
+    const { queryClient } = setup(locale);
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+    fireEvent.click(await screen.findByRole('button', { name: 'save' }));
+    const dialog = await screen.findByRole('dialog');
+
+    fireEvent.change(dialog.querySelectorAll('input')[1] as HTMLInputElement, {
+      target: { value: 'secret' },
+    });
+    fireEvent.submit(dialog.querySelector('form') as HTMLFormElement);
+
+    await waitFor(() =>
+      expect(screen.getByTestId('state')).toHaveTextContent('success'),
+    );
+    expect(invalidate).toHaveBeenCalledWith(
+      expect.objectContaining({ queryKey: ['admin'] }),
+    );
+  });
+
   it('shows a retryable error instead of a blank panel when me fails with a server error', async () => {
     get.mockResolvedValue(failure(makeAdminFailure(500, 'INTERNAL')));
     const { router } = setup(locale);
@@ -300,19 +350,17 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
     expect(screen.getByLabelText('note')).toHaveValue('draft text');
   });
 
-  it('fails the mutation when the dialog is cancelled', async () => {
+  it('fails the mutation and leaves for login when the dialog is cancelled', async () => {
     get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
     post.mockResolvedValue(failure(adminErrors.unauthenticated()));
-    setup(locale);
+    const { router } = setup(locale);
 
     fireEvent.click(await screen.findByRole('button', { name: 'save' }));
     const dialog = await screen.findByRole('dialog');
     const buttons = dialog.querySelectorAll('button[type="button"]');
     fireEvent.click(buttons[buttons.length - 1] as HTMLButtonElement);
 
-    await waitFor(() =>
-      expect(screen.getByTestId('state')).toHaveTextContent('error'),
-    );
+    await waitFor(() => expect(router.replace).toHaveBeenCalledTimes(1));
     expect(post).toHaveBeenCalledTimes(1);
   });
 

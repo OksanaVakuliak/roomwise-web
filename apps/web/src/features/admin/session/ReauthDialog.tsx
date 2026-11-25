@@ -1,7 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { type ChangeEvent, type FormEvent, useCallback, useState } from 'react';
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { Button, Modal, TextField } from '@/components/ui';
 import { useLogin } from '@/lib/admin-api/auth';
 import { adminErrorMessage, toAdminError } from '@/lib/admin-api/errors';
@@ -34,7 +40,11 @@ function ReauthForm({ onSuccess, onCancel }: Omit<ReauthDialogProps, 'open'>) {
   const remaining = useRateLimitCountdown(limitSeconds);
   const blocked = limitSeconds > 0 && remaining > 0;
 
-  const { mutate } = mutation;
+  const { mutate, reset } = mutation;
+
+  useEffect(() => {
+    if (limitSeconds > 0 && remaining === 0) reset();
+  }, [limitSeconds, remaining, reset]);
   const onSubmit = useCallback(
     (event: FormEvent) => {
       event.preventDefault();

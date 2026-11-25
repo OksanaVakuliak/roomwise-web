@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
   type ReactNode,
   useCallback,
@@ -10,6 +11,7 @@ import {
 } from 'react';
 import { useAdminMe } from '@/lib/admin-api/auth';
 import { toAdminError } from '@/lib/admin-api/errors';
+import { adminKeys } from '@/lib/admin-api/keys';
 import {
   type AdminSession,
   AdminSessionContext,
@@ -21,9 +23,15 @@ type Waiter = { resolve: () => void; reject: () => void };
 
 export function AdminSessionProvider({ children }: { children: ReactNode }) {
   const query = useAdminMe();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [declined, setDeclined] = useState(false);
   const waiters = useRef<Waiter[]>([]);
-  const { refetch } = query;
+  const { refetch, dataUpdatedAt } = query;
+
+  useEffect(() => {
+    if (dataUpdatedAt > 0) setDeclined(false);
+  }, [dataUpdatedAt]);
 
   useEffect(() => {
     const onPageShow = (event: PageTransitionEvent) => {
@@ -35,14 +43,25 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('pageshow', onPageShow);
   }, [refetch]);
 
-  const settle = useCallback((outcome: 'resolve' | 'reject') => {
-    const pending = waiters.current;
-    waiters.current = [];
-    setOpen(false);
-    for (const waiter of pending) {
-      waiter[outcome]();
-    }
-  }, []);
+  const settle = useCallback(
+    (outcome: 'resolve' | 'reject') => {
+      const pending = waiters.current;
+      waiters.current = [];
+      setOpen(false);
+      if (outcome === 'reject') {
+        setDeclined(true);
+      } else {
+        void queryClient.invalidateQueries({
+          queryKey: adminKeys.all(),
+          predicate: (cached) => cached.queryKey[1] !== 'me',
+        });
+      }
+      for (const waiter of pending) {
+        waiter[outcome]();
+      }
+    },
+    [queryClient],
+  );
 
   const requestReauth = useCallback(
     () =>
@@ -77,7 +96,7 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
     if (
       isError &&
       toAdminError(error).kind === 'unauthenticated' &&
-      !(open && data)
+      !(data && !declined)
     ) {
       return { status: 'anonymous' };
     }
@@ -85,14 +104,20 @@ export function AdminSessionProvider({ children }: { children: ReactNode }) {
     if (isPending) return { status: 'checking' };
     if (isError) return { status: 'error', retry: refetch };
     return { status: 'anonymous' };
-  }, [data, isPending, isError, error, refetch, open]);
+  }, [data, isPending, isError, error, refetch, declined]);
 
   const onSuccess = useCallback(() => settle('resolve'), [settle]);
   const onCancel = useCallback(() => settle('reject'), [settle]);
 
   const value = useMemo<AdminSessionValue>(
-    () => ({ session, reauthing: open, requestReauth, withReauth }),
-    [session, open, requestReauth, withReauth],
+    () => ({
+      session,
+      reauthing: open,
+      declined,
+      requestReauth,
+      withReauth,
+    }),
+    [session, open, declined, requestReauth, withReauth],
   );
 
   return (
