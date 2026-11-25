@@ -1623,6 +1623,118 @@
           "title": "No products yet",
           "text": "Add the first product to the catalog."
         }
+      },
+      "form": {
+        "title": "Product",
+        "newTitle": "New product",
+        "editTitle": "Product: {name}",
+        "lastChanged": "Last changed {time} by {user}",
+        "lastChangedAnon": "Last changed {time}",
+        "loading": "Loading the product",
+        "loadFailed": "Could not load the product",
+        "retry": "Retry",
+        "notFoundTitle": "Product not found",
+        "notFoundText": "It may have been deleted. Go back to the list.",
+        "back": "Back to products",
+        "loadingOptions": "Loading options",
+        "sections": {
+          "details": "Details",
+          "pricing": "Price and cost",
+          "images": "Images"
+        },
+        "name": "Name",
+        "description": "Description",
+        "brand": "Brand",
+        "manufacturer": "Manufacturer",
+        "category": "Category",
+        "categoryPlaceholder": "Choose a category",
+        "materialType": "Material type",
+        "materialTypePlaceholder": "Choose a material type",
+        "color": "Color",
+        "size": "Size",
+        "price": "Price",
+        "unit": "Unit",
+        "units": {
+          "SQM": "Square metre",
+          "LINEAR_M": "Linear metre",
+          "PIECE": "Piece"
+        },
+        "waste": "Own waste",
+        "wasteUnit": "%",
+        "wasteHint": "Optional, from 0 to 100. Replaces the category waste for this product.",
+        "heatedFloor": "Compatible with heated floor",
+        "images": {
+          "label": "Images",
+          "add": "Add images",
+          "empty": "No images yet",
+          "list": "Product images",
+          "primary": "Primary",
+          "progress": "Uploading",
+          "previewAlt": "Image {n}",
+          "remove": "Remove image {n}",
+          "drag": "Drag image {n}",
+          "moveUp": "Move image {n} up",
+          "moveDown": "Move image {n} down",
+          "wrongType": "{name}: use a JPEG, PNG or WebP image",
+          "tooLarge": "{name}: the file is larger than {max} MB",
+          "instructions": "Press space to pick up an image, use the arrow keys to move it, press space again to drop it.",
+          "announce": {
+            "start": "Picked up image {n}",
+            "over": "Over position {n}",
+            "end": "Dropped at position {n}",
+            "cancel": "Move of image {n} cancelled"
+          },
+          "unfinished": "Some images are still uploading or failed. Wait for them or remove them before saving."
+        },
+        "attributes": {
+          "title": "Attributes",
+          "name": "Attribute {n} name",
+          "value": "Attribute {n} value",
+          "add": "Add attribute",
+          "remove": "Remove attribute {n}",
+          "limit": "No more than {max} attributes."
+        },
+        "texture": {
+          "title": "3D texture",
+          "hint": "Required to publish products of categories that show on a 3D surface.",
+          "image": "Texture image",
+          "choose": "Choose image",
+          "empty": "No texture yet",
+          "uploaded": "Texture uploaded",
+          "required": "Upload a texture before publishing",
+          "progress": "Uploading the texture",
+          "tileWidth": "Tile width",
+          "tileLength": "Tile length",
+          "mm": "mm",
+          "fallback": "Fallback color",
+          "preview": "Texture repeated on a 2 by 2 metre square"
+        },
+        "zeroPrice": {
+          "title": "Save with a zero price?",
+          "description": "The price is 0. The product will be counted as free in new calculations.",
+          "confirm": "Yes, zero price",
+          "cancel": "Cancel",
+          "close": "Close"
+        },
+        "delete": {
+          "title": "Delete this product?",
+          "description": "The product will be deleted permanently. This cannot be undone.",
+          "confirm": "Delete",
+          "cancel": "Cancel",
+          "close": "Close"
+        },
+        "inUse": {
+          "title": "The product is in use",
+          "intro": "It cannot be deleted while styles use it. Archive it instead to hide it from new calculations.",
+          "styles": "Styles: {list}",
+          "archive": "Archive instead",
+          "cancel": "Cancel",
+          "close": "Close"
+        },
+        "warnings": {
+          "USED_AS_DEFAULT_MATERIAL": "This product is still the default material in styles: {list}.",
+          "dismiss": "Dismiss"
+        }
       }
     },
     "roomTypes": {
