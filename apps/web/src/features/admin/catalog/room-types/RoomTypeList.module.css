@@ -1,0 +1,12 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.skeleton {
+  display: grid;
+  gap: var(--space-12);
+}

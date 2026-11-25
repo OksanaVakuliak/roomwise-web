@@ -1624,6 +1624,44 @@
           "text": "Add the first product to the catalog."
         }
       }
+    },
+    "roomTypes": {
+      "title": "Room types",
+      "caption": "Room types",
+      "columns": {
+        "name": "Name",
+        "categories": "Categories",
+        "updated": "Updated"
+      },
+      "form": {
+        "editTitle": "Room type: {name}",
+        "name": "Name",
+        "lastChanged": "Last changed {time} by {user}",
+        "lastChangedAnon": "Last changed {time}",
+        "categoriesTitle": "Categories of the room",
+        "categoriesNote": "The order here is the order in the configurator. Changes apply to new calculations; saved ones do not change.",
+        "categoriesEmpty": "No categories yet. Add the first one below.",
+        "addLabel": "Add a category",
+        "addPlaceholder": "Choose a category",
+        "addNone": "All categories are already in the set",
+        "add": "Add",
+        "draftMark": "{name} (draft)",
+        "remove": "Remove {name}",
+        "drag": "Drag {name}",
+        "moveUp": "Move {name} up",
+        "moveDown": "Move {name} down",
+        "pickedUp": "Picked up {name}, position {position} of {total}.",
+        "movedOver": "{name} moved to position {position} of {total}.",
+        "dropped": "{name} dropped at position {position} of {total}.",
+        "cancelled": "Move of {name} cancelled.",
+        "instructions": "Press space to pick up a category, arrow keys to move it, space to drop, escape to cancel.",
+        "loading": "Loading the room type",
+        "loadFailed": "Could not load the room type",
+        "retry": "Retry",
+        "notFoundTitle": "Room type not found",
+        "notFoundText": "Check the address or go back to the list.",
+        "back": "Back to room types"
+      }
     }
   }
 }
