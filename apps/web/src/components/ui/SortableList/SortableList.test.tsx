@@ -17,6 +17,8 @@ const dragLabel = (row: Row) => `Drag ${row.name}`;
 const moveUpLabel = (row: Row) => `Up ${row.name}`;
 const moveDownLabel = (row: Row) => `Down ${row.name}`;
 
+const isBeta = (row: Row) => row.id === 'b';
+
 function setup(overrides: Partial<SortableListProps<Row>> = {}) {
   const onReorder = vi.fn();
   const view = render(
@@ -72,6 +74,15 @@ describe('SortableList', () => {
     expect(screen.getByRole('button', { name: 'Down Gamma' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Down Alpha' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Up Gamma' })).toBeEnabled();
+  });
+
+  it('disables the handle and move buttons of rows the predicate marks', () => {
+    setup({ isDisabled: isBeta });
+    expect(screen.getByRole('button', { name: 'Drag Beta' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Up Beta' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Down Beta' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Drag Alpha' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Down Alpha' })).toBeEnabled();
   });
 
   it('gives each drag handle the screen reader instructions from props', () => {

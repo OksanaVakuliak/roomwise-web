@@ -1695,6 +1695,7 @@
           "limit": "No more than {max} attributes."
         },
         "texture": {
+          "dismissError": "Dismiss the upload error",
           "title": "3D texture",
           "hint": "Required to publish products of categories that show on a 3D surface.",
           "image": "Texture image",

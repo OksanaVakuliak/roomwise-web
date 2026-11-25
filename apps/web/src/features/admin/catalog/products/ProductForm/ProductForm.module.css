@@ -57,6 +57,12 @@
   width: 100%;
 }
 
+.uploadErrorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
 .uploadError,
 .note {
   margin: 0;

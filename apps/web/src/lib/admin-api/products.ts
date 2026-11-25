@@ -160,7 +160,24 @@ export function useUpdateProduct() {
 }
 
 export function useDeleteProduct() {
-  return useProductMutation((gate, id: string) => deleteProduct(gate, id));
+  const queryClient = useQueryClient();
+  const [gate] = useState(createWriteGate);
+  return useMutation({
+    mutationFn: (id: string) => deleteProduct(gate, id),
+    onSuccess: async (_result, id) => {
+      queryClient.removeQueries({
+        queryKey: adminKeys.area('catalog', 'products', 'item', id),
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: adminKeys.area('catalog', 'products'),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminKeys.area('catalog', 'categories'),
+        }),
+      ]);
+    },
+  });
 }
 
 export function useChangeProductStatus() {

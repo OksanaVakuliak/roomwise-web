@@ -44,7 +44,7 @@ export function ProductForm({ productId }: ProductFormProps) {
     );
   }
 
-  if (query.error) {
+  if (query.error && !query.data) {
     const message = adminErrorMessage(toAdminError(query.error));
     return (
       <div className={styles.root}>

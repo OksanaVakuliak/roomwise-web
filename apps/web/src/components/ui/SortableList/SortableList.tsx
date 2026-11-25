@@ -35,6 +35,7 @@ export type SortableListProps<T> = {
   moveDownLabel: (item: T) => string;
   announcements: Announcements;
   screenReaderInstructions: string;
+  isDisabled?: (item: T) => boolean;
   className?: string;
 };
 
@@ -42,6 +43,7 @@ type RowProps = {
   id: string;
   index: number;
   last: boolean;
+  disabled: boolean;
   content: ReactNode;
   dragLabel: string;
   moveUpLabel: string;
@@ -53,6 +55,7 @@ function SortableRow({
   id,
   index,
   last,
+  disabled,
   content,
   dragLabel,
   moveUpLabel,
@@ -67,7 +70,7 @@ function SortableRow({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({ id, disabled });
 
   const moveUp = useCallback(() => onMove(index, index - 1), [index, onMove]);
   const moveDown = useCallback(() => onMove(index, index + 1), [index, onMove]);
@@ -90,6 +93,7 @@ function SortableRow({
         type="button"
         className={styles.handle}
         aria-label={dragLabel}
+        disabled={disabled}
       >
         <Icon name="grip" size="lg" />
       </button>
@@ -98,13 +102,13 @@ function SortableRow({
         <IconButton
           icon="chevronUp"
           label={moveUpLabel}
-          disabled={index === 0}
+          disabled={disabled || index === 0}
           onClick={moveUp}
         />
         <IconButton
           icon="chevronDown"
           label={moveDownLabel}
-          disabled={last}
+          disabled={disabled || last}
           onClick={moveDown}
         />
       </div>
@@ -123,6 +127,7 @@ export function SortableList<T>({
   moveDownLabel,
   announcements,
   screenReaderInstructions,
+  isDisabled,
   className,
 }: SortableListProps<T>) {
   const sensors = useSensors(
@@ -167,6 +172,7 @@ export function SortableList<T>({
               id={ids[index]}
               index={index}
               last={index === items.length - 1}
+              disabled={isDisabled?.(item) ?? false}
               content={renderItem(item, { index })}
               dragLabel={dragLabel(item)}
               moveUpLabel={moveUpLabel(item)}

@@ -5,6 +5,7 @@ import { type ChangeEvent, useCallback, useId } from 'react';
 import {
   ColorField,
   FileField,
+  IconButton,
   NumberField,
   Progress,
   SectionHeader,
@@ -24,6 +25,7 @@ export type ProductTextureProps = {
     key: K,
     value: ProductValues[K],
   ) => void;
+  onDismissUpload: (localId: string) => void;
   onFile: (file: File) => void;
   onColorValidity: (valid: boolean) => void;
 };
@@ -39,6 +41,7 @@ export function ProductTexture({
   upload,
   resetKey,
   onField,
+  onDismissUpload,
   onFile,
   onColorValidity,
 }: ProductTextureProps) {
@@ -57,6 +60,10 @@ export function ProductTexture({
     },
     [onFile],
   );
+  const uploadId = upload?.localId;
+  const dismissUpload = useCallback(() => {
+    if (uploadId) onDismissUpload(uploadId);
+  }, [uploadId, onDismissUpload]);
   const handleWidth = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
       onField('tileWidthMm', event.target.value),
@@ -92,9 +99,16 @@ export function ProductTexture({
         />
       ) : null}
       {upload?.state === 'error' && upload.errorText ? (
-        <p className={styles.uploadError} role="alert">
-          {upload.errorText}
-        </p>
+        <div className={styles.uploadErrorRow}>
+          <p className={styles.uploadError} role="alert">
+            {upload.errorText}
+          </p>
+          <IconButton
+            icon="close"
+            label={t('dismissError')}
+            onClick={dismissUpload}
+          />
+        </div>
       ) : null}
       <div className={styles.pair}>
         <NumberField

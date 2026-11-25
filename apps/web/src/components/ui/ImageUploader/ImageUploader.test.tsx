@@ -129,12 +129,39 @@ describe('ImageUploader', () => {
   });
 
   it('marks the primary item and calls onPrimary', () => {
-    const { onPrimary } = setup();
+    const second: ImageUploaderItem = {
+      ...items[0],
+      localId: 'd',
+      primary: false,
+    };
+    const { onPrimary } = setup({ items: [items[0], second] });
     const buttons = screen.getAllByRole('button', { name: /^Primary/ });
     expect(buttons[0]).toHaveAttribute('aria-pressed', 'true');
     expect(buttons[1]).toHaveAttribute('aria-pressed', 'false');
     fireEvent.click(buttons[1]);
-    expect(onPrimary).toHaveBeenCalledWith('b');
+    expect(onPrimary).toHaveBeenCalledWith('d');
+  });
+
+  it('disables primary, drag and move controls of rows that are not done', () => {
+    const { onPrimary, onReorder } = setup();
+    const buttons = screen.getAllByRole('button', { name: /^Primary/ });
+    expect(buttons[0]).toBeEnabled();
+    expect(buttons[1]).toBeDisabled();
+    expect(buttons[2]).toBeDisabled();
+    for (const id of ['b', 'c']) {
+      expect(
+        screen.getByRole('button', { name: `Drag image ${id}` }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: `Up image ${id}` }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: `Down image ${id}` }),
+      ).toBeDisabled();
+    }
+    fireEvent.click(buttons[1]);
+    expect(onPrimary).not.toHaveBeenCalled();
+    expect(onReorder).not.toHaveBeenCalled();
   });
 
   it('calls onRemove with the local id', () => {

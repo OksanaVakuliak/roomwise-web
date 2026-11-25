@@ -1,6 +1,8 @@
 import type { components } from '@/generated/api';
 import { ApiRequestError } from '@/lib/api/request-error';
-import { RateLimitedError } from '@/lib/api/write';
+import { isServerUnavailable } from '@/lib/api/server-unavailable';
+import { RateLimitedError, waitUntilReady } from '@/lib/api/write';
+import { rewarm } from '@/lib/warmup';
 
 export type UploadedImage = components['schemas']['AdminImageDto_Output'];
 
@@ -60,28 +62,36 @@ function toFailure(status: number, text: string): ApiRequestError {
   if (error.apiError.code !== 'unknown') {
     return error;
   }
+  if (isServerUnavailable(status, error.apiError)) {
+    void rewarm();
+    return failure(0, 'network');
+  }
   switch (status) {
     case 413:
       return failure(status, 'PAYLOAD_TOO_LARGE');
     case 415:
       return failure(status, 'UNSUPPORTED_IMAGE_TYPE');
-    case 502:
-      return failure(status, 'IMAGE_STORAGE_FAILED');
     default:
       return error;
   }
 }
 
-export function uploadImage(
+const aborted = () => new DOMException('Aborted', 'AbortError');
+
+export async function uploadImage(
   file: File,
   { realSizeMm, onProgress, signal }: UploadOptions = {},
 ): Promise<UploadedImage> {
   const invalid = validateImageFile(file);
   if (invalid) {
-    return Promise.reject(invalid);
+    throw invalid;
   }
   if (signal?.aborted) {
-    return Promise.reject(new DOMException('Aborted', 'AbortError'));
+    throw aborted();
+  }
+  await waitUntilReady();
+  if (signal?.aborted) {
+    throw aborted();
   }
   return new Promise<UploadedImage>((resolve, reject) => {
     const request = new XMLHttpRequest();
@@ -117,7 +127,7 @@ export function uploadImage(
     request.ontimeout = request.onerror;
     request.onabort = () => {
       finish();
-      reject(new DOMException('Aborted', 'AbortError'));
+      reject(aborted());
     };
     signal?.addEventListener('abort', abort, { once: true });
     request.send(form);

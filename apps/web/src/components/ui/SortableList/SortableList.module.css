@@ -39,6 +39,11 @@
   touch-action: none;
 }
 
+.handle:disabled {
+  cursor: default;
+  opacity: var(--opacity-disabled);
+}
+
 .dragging .handle {
   cursor: grabbing;
 }

@@ -21,13 +21,20 @@ export type UploadOptions = { realSizeMm?: number };
 
 type UseUploadsOptions = {
   single?: boolean;
+  keepPreview?: boolean;
   describe: (failure: unknown) => string;
   onDone: (done: UploadDone) => void;
 };
 
-export function useUploads({ single, describe, onDone }: UseUploadsOptions) {
+export function useUploads({
+  single,
+  keepPreview,
+  describe,
+  onDone,
+}: UseUploadsOptions) {
   const [entries, setEntries] = useState<UploadEntry[]>([]);
   const urls = useRef(new Set<string>());
+  const delivered = useRef(new Set<string>());
   const controllers = useRef(new Map<string, AbortController>());
   const latest = useRef({ describe, onDone });
   latest.current = { describe, onDone };
@@ -50,8 +57,18 @@ export function useUploads({ single, describe, onDone }: UseUploadsOptions) {
   }, []);
 
   const release = useCallback((url: string) => {
+    delivered.current.delete(url);
     if (urls.current.delete(url)) URL.revokeObjectURL(url);
   }, []);
+
+  const prune = useCallback(
+    (keep: string[]) => {
+      for (const url of [...delivered.current]) {
+        if (!keep.includes(url)) release(url);
+      }
+    },
+    [release],
+  );
 
   const remove = useCallback(
     (localId: string) => {
@@ -88,6 +105,8 @@ export function useUploads({ single, describe, onDone }: UseUploadsOptions) {
           current.filter((entry) => entry.localId !== localId),
         );
         latest.current.onDone({ localId, previewUrl, image });
+        if (keepPreview) delivered.current.add(previewUrl);
+        else release(previewUrl);
       } catch (failure) {
         if (controller.signal.aborted) return;
         controllers.current.delete(localId);
@@ -97,7 +116,7 @@ export function useUploads({ single, describe, onDone }: UseUploadsOptions) {
         });
       }
     },
-    [patch],
+    [patch, keepPreview, release],
   );
 
   const add = useCallback(
@@ -111,7 +130,19 @@ export function useUploads({ single, describe, onDone }: UseUploadsOptions) {
     [single, entries, remove, start],
   );
 
-  const busy = entries.length > 0;
+  const clear = useCallback(() => {
+    setEntries((current) => {
+      if (current.length === 0) return current;
+      for (const entry of current) {
+        controllers.current.get(entry.localId)?.abort();
+        controllers.current.delete(entry.localId);
+        release(entry.previewUrl);
+      }
+      return [];
+    });
+  }, [release]);
 
-  return { entries, add, remove, release, busy };
+  const busy = entries.some((entry) => entry.state === 'uploading');
+
+  return { entries, add, remove, clear, release, prune, busy };
 }

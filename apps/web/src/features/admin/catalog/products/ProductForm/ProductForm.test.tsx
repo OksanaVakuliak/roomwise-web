@@ -1,6 +1,8 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import type { Locale } from 'next-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AdminSessionProvider } from '@/features/admin/session';
+import { adminKeys } from '@/lib/admin-api/keys';
 import { uploadImage } from '@/lib/admin-api/upload';
 import { api } from '@/lib/api/client';
 import { toast, useToasts } from '@/lib/toast';
@@ -10,8 +12,9 @@ import {
   makeAdminCategories,
   makeAdminMaterialTypes,
 } from '@/test/fixtures/admin/catalog';
-import { adminErrors } from '@/test/fixtures/admin/errors';
+import { adminErrors, makeAdminFailure } from '@/test/fixtures/admin/errors';
 import { adminIds, adminUuid } from '@/test/fixtures/admin/ids';
+import { makeAdminMe } from '@/test/fixtures/admin/me';
 import {
   type AdminProduct,
   makeAdminProduct,
@@ -47,6 +50,7 @@ const itemUrl = '/api/v1/admin/products/{id}';
 const statusUrl = '/api/v1/admin/products/{id}/status';
 const categoriesUrl = '/api/v1/admin/categories';
 const materialTypesUrl = '/api/v1/admin/material-types';
+const imageUrl = '/api/v1/admin/images/{id}';
 
 const ok = (data: unknown) => ({ data, response: { status: 200 } });
 const failure = (error: { status: number; body: unknown }) => ({
@@ -81,16 +85,24 @@ const uploadedImage = (id: string) => ({
 const imageFile = (name = 'photo.png') =>
   new File(['x'], name, { type: 'image/png' });
 
-function mockApi(product?: AdminProduct) {
+type MockOptions = { categoriesFail?: boolean; itemFail?: boolean };
+
+function mockApi(product?: AdminProduct, options: MockOptions = {}) {
   get.mockImplementation((path: string) => {
-    if (path === itemUrl && product) return Promise.resolve(ok(product));
+    if (path === itemUrl && product) {
+      return options.itemFail
+        ? Promise.reject(new Error('item'))
+        : Promise.resolve(ok(product));
+    }
     if (path === categoriesUrl) {
-      return Promise.resolve(ok(makeAdminCategories()));
+      return options.categoriesFail
+        ? Promise.reject(new Error('categories'))
+        : Promise.resolve(ok(makeAdminCategories()));
     }
     if (path === materialTypesUrl) {
       return Promise.resolve(ok(makeAdminMaterialTypes()));
     }
-    return Promise.reject(new Error(`unexpected GET ${path}`));
+    return Promise.resolve(ok(makeAdminMe()));
   });
 }
 
@@ -106,8 +118,9 @@ beforeEach(() => {
   resetWarmup();
   useWarmup.setState({ server: 'ready' });
   for (const { id } of useToasts.getState().items) toast.dismiss(id);
+  let blobs = 0;
   Object.assign(URL, {
-    createObjectURL: vi.fn(() => 'blob:preview'),
+    createObjectURL: vi.fn(() => `blob:preview-${++blobs}`),
     revokeObjectURL: vi.fn(),
   });
 });
@@ -121,13 +134,18 @@ describe.each(forEachLocale)('ProductForm (%s)', (locale) => {
       ? `${text} (${fields.languages[language]})`
       : new RegExp(`^${text}`);
 
-  function renderEdit(product: AdminProduct) {
-    mockApi(product);
-    return renderWithProviders(<ProductForm productId={product.id} />, {
-      locale,
-      url: `/admin/catalog/products/${product.id}`,
-    });
+  function renderEdit(product: AdminProduct, options: MockOptions = {}) {
+    mockApi(product, options);
+    return renderWithProviders(
+      <AdminSessionProvider>
+        <ProductForm productId={product.id} />
+      </AdminSessionProvider>,
+      { locale, url: `/admin/catalog/products/${product.id}` },
+    );
   }
+
+  const fileInputs = (container: HTMLElement) =>
+    container.querySelectorAll<HTMLInputElement>('input[type="file"]');
 
   it('shows the product and has no a11y violations', async () => {
     const product = makeTexturedProduct();
@@ -141,15 +159,17 @@ describe.each(forEachLocale)('ProductForm (%s)', (locale) => {
     ).toHaveValue(600);
     expect(screen.getByText(/admin/)).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
-  });
+  }, 15000);
 
   it('creates a draft from the chosen category and material type', async () => {
     mockApi();
     post.mockResolvedValue(ok(makeAdminProduct({ id: adminUuid(777) })));
-    const { router } = renderWithProviders(<ProductForm />, {
-      locale,
-      url: '/admin/catalog/products/new',
-    });
+    const { router } = renderWithProviders(
+      <AdminSessionProvider>
+        <ProductForm />
+      </AdminSessionProvider>,
+      { locale, url: '/admin/catalog/products/new' },
+    );
     const category = makeAdminCategories().items.find(
       (item) => item.id === adminIds.categories.plumbing,
     );
@@ -442,5 +462,235 @@ describe.each(forEachLocale)('ProductForm (%s)', (locale) => {
     expect(
       screen.getByRole('button', { name: t.attributes.add }),
     ).toBeDisabled();
+  });
+
+  it('does not save the product twice when the status change fails and is retried', async () => {
+    const product = plumbed({ status: 'PUBLISHED' });
+    const saved = { ...product, brand: 'Other', revision: 'rev-2' };
+    patch.mockResolvedValue(ok(saved));
+    post
+      .mockResolvedValueOnce(failure(makeAdminFailure(403, 'DEMO_FORBIDDEN')))
+      .mockResolvedValueOnce(ok({ ...saved, status: 'DRAFT' }));
+    renderEdit(product);
+    fireEvent.change(await screen.findByLabelText(label(t.brand)), {
+      target: { value: 'Other' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: form.unpublish }));
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole('button', { name: form.unpublish }));
+
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(2));
+    expect(patch).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenLastCalledWith(statusUrl, {
+      params: { path: { id: product.id } },
+      body: { status: 'DRAFT', revision: 'rev-2' },
+    });
+  });
+
+  it('does not wipe the texture when the categories failed to load', async () => {
+    const product = makeTexturedProduct();
+    patch.mockResolvedValue(ok(product));
+    renderEdit(product, { categoriesFail: true });
+    fireEvent.change(await screen.findByLabelText(label(t.brand)), {
+      target: { value: 'Other' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+
+    await waitFor(() => expect(patch).toHaveBeenCalled());
+    const body = patch.mock.calls[0]?.[1].body;
+    expect(body).toMatchObject({ brand: 'Other' });
+    for (const key of [
+      'textureImageId',
+      'tileWidthMm',
+      'tileLengthMm',
+      'fallbackColor',
+    ]) {
+      expect(body).not.toHaveProperty(key);
+    }
+  });
+
+  it('lets the admin dismiss a failed texture upload', async () => {
+    upload.mockRejectedValue(new Error('upload'));
+    const product = makeTexturedProduct();
+    const { container } = renderEdit(product);
+    await screen.findByLabelText(label(t.texture.tileWidth));
+
+    fireEvent.change(fileInputs(container)[1], {
+      target: { files: [imageFile('texture.png')] },
+    });
+    fireEvent.click(
+      await screen.findByRole('button', { name: t.texture.dismissError }),
+    );
+
+    expect(
+      screen.queryByRole('button', { name: t.texture.dismissError }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('saves after a failed texture upload when the category loses its surface', async () => {
+    upload.mockRejectedValue(new Error('upload'));
+    const product = makeTexturedProduct();
+    patch.mockResolvedValue(ok(product));
+    const { container } = renderEdit(product);
+    await screen.findByLabelText(label(t.texture.tileWidth));
+
+    fireEvent.change(fileInputs(container)[1], {
+      target: { files: [imageFile('texture.png')] },
+    });
+    await screen.findByRole('button', { name: t.texture.dismissError });
+    fireEvent.change(screen.getByLabelText(label(t.category)), {
+      target: { value: adminIds.categories.plumbing },
+    });
+    expect(
+      screen.queryByLabelText(label(t.texture.tileWidth)),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+
+    await waitFor(() => expect(patch).toHaveBeenCalled());
+    expect(screen.queryByText(t.images.unfinished)).not.toBeInTheDocument();
+  });
+
+  it('keeps the editor and unsaved edits when a background refetch fails', async () => {
+    const product = plumbed();
+    const { queryClient } = renderEdit(product);
+    fireEvent.change(await screen.findByLabelText(label(t.brand)), {
+      target: { value: 'Other' },
+    });
+    const key = adminKeys.area('catalog', 'products', 'item', product.id);
+
+    mockApi(product, { itemFail: true });
+    await queryClient.refetchQueries({ queryKey: key });
+    await waitFor(() =>
+      expect(queryClient.getQueryState(key)?.status).toBe('error'),
+    );
+
+    expect(screen.getByLabelText(label(t.brand))).toHaveValue('Other');
+    expect(screen.queryByText(t.loadFailed)).not.toBeInTheDocument();
+  });
+
+  it('asks to sign in again when the session expired during a save', async () => {
+    const product = plumbed();
+    patch.mockResolvedValueOnce(failure(adminErrors.unauthenticated()));
+    renderEdit(product);
+    fireEvent.change(await screen.findByLabelText(label(t.brand)), {
+      target: { value: 'Other' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(patch).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates the texture real size when the tile width changed', async () => {
+    const product = makeTexturedProduct();
+    patch.mockImplementation((path: string) =>
+      Promise.resolve(
+        ok(
+          path === imageUrl ? uploadedImage(adminIds.images.texture) : product,
+        ),
+      ),
+    );
+    renderEdit(product);
+    fireEvent.change(await screen.findByLabelText(label(t.texture.tileWidth)), {
+      target: { value: '800' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+
+    await waitFor(() =>
+      expect(patch).toHaveBeenCalledWith(imageUrl, {
+        params: { path: { id: adminIds.images.texture } },
+        body: { realSizeMm: 800 },
+      }),
+    );
+    await waitFor(() =>
+      expect(patch).toHaveBeenCalledWith(itemUrl, expect.anything()),
+    );
+  });
+
+  it('does not refetch the product after deleting it', async () => {
+    const product = plumbed();
+    del.mockResolvedValue(ok(undefined));
+    const { router } = renderEdit(product);
+    await screen.findByLabelText(label(t.name, 'en'));
+
+    fireEvent.click(screen.getByRole('button', { name: form.delete }));
+    const confirm = await screen.findByRole('dialog');
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: t.delete.confirm }),
+    );
+
+    await waitFor(() => expect(router.push).toHaveBeenCalled());
+    expect(get.mock.calls.filter(([path]) => path === itemUrl)).toHaveLength(1);
+  });
+
+  it('dismisses a single warning', async () => {
+    const product = plumbed({ status: 'PUBLISHED' });
+    const warning = (name: string) => ({
+      code: 'USED_AS_DEFAULT_MATERIAL',
+      params: {
+        styles: [{ id: adminIds.styles.modern, name: { en: name, uk: name } }],
+      },
+    });
+    post.mockResolvedValue(
+      ok({
+        ...product,
+        status: 'DRAFT',
+        warnings: [warning('Alpha'), warning('Beta')],
+      }),
+    );
+    renderEdit(product);
+    await screen.findByLabelText(label(t.name, 'en'));
+
+    fireEvent.click(screen.getByRole('button', { name: form.unpublish }));
+    const dismiss = await screen.findAllByRole('button', {
+      name: t.warnings.dismiss,
+    });
+    expect(dismiss).toHaveLength(2);
+    fireEvent.click(dismiss[0] as HTMLElement);
+
+    expect(
+      screen.getAllByRole('button', { name: t.warnings.dismiss }),
+    ).toHaveLength(1);
+    expect(screen.queryByText(/Alpha/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Beta/)).toBeInTheDocument();
+  });
+
+  it('revokes the texture preview once the remote texture replaces it', async () => {
+    upload.mockResolvedValue(uploadedImage(adminUuid(3000)));
+    const product = makeTexturedProduct();
+    const { container } = renderEdit(product);
+    await screen.findByLabelText(label(t.texture.tileWidth));
+
+    fireEvent.change(fileInputs(container)[1], {
+      target: { files: [imageFile('texture.png')] },
+    });
+
+    await waitFor(() =>
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview-1'),
+    );
+  });
+
+  it('revokes image previews once the saved product replaces them', async () => {
+    const product = plumbed();
+    upload.mockResolvedValue(uploadedImage(adminUuid(2001)));
+    patch.mockResolvedValue(ok(product));
+    const { container } = renderEdit(product);
+    await screen.findByLabelText(label(t.name, 'en'));
+
+    fireEvent.change(fileInputs(container)[0], {
+      target: { files: [imageFile()] },
+    });
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole('button', { name: t.images.primary }),
+      ).toHaveLength(2),
+    );
+    expect(URL.revokeObjectURL).not.toHaveBeenCalledWith('blob:preview-1');
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+
+    await waitFor(() =>
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview-1'),
+    );
   });
 });

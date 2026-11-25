@@ -252,13 +252,25 @@ export function assertValid(
   }
 }
 
+const surfaceFields = (
+  values: ProductValues,
+  hasSurface: boolean | null,
+): Partial<CreateProductBody> => {
+  if (hasSurface === null) return {};
+  return {
+    textureImageId: hasSurface ? values.textureImageId : null,
+    tileWidthMm: hasSurface ? parseWholeNumber(values.tileWidthMm) : null,
+    tileLengthMm: hasSurface ? parseWholeNumber(values.tileLengthMm) : null,
+    fallbackColor:
+      hasSurface && values.fallbackColor !== '' ? values.fallbackColor : null,
+  };
+};
+
 export function toBody(
   values: ProductValues,
-  hasSurface: boolean,
+  hasSurface: boolean | null,
   confirmZeroPrice: boolean,
 ): CreateProductBody {
-  const width = hasSurface ? parseWholeNumber(values.tileWidthMm) : null;
-  const length = hasSurface ? parseWholeNumber(values.tileLengthMm) : null;
   return {
     categoryId: values.categoryId,
     materialTypeId: values.materialTypeId,
@@ -278,17 +290,13 @@ export function toBody(
       isPrimary: image.primary,
     })),
     attributes: values.attributes,
-    textureImageId: hasSurface ? values.textureImageId : null,
-    tileWidthMm: width,
-    tileLengthMm: length,
-    fallbackColor:
-      hasSurface && values.fallbackColor !== '' ? values.fallbackColor : null,
+    ...surfaceFields(values, hasSurface),
   };
 }
 
 export const toPatchBody = (
   values: ProductValues,
-  hasSurface: boolean,
+  hasSurface: boolean | null,
   confirmZeroPrice: boolean,
   revision: string,
 ): UpdateProductBody => ({

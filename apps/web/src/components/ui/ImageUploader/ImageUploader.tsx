@@ -93,6 +93,7 @@ function UploaderRow({
         type="button"
         className={styles.primary}
         aria-pressed={item.primary}
+        disabled={item.state !== 'done'}
         onClick={choosePrimary}
       >
         {item.primary ? <Icon name="check" /> : null}
@@ -104,6 +105,7 @@ function UploaderRow({
 }
 
 const getKey = (item: ImageUploaderItem) => item.localId;
+const isPending = (item: ImageUploaderItem) => item.state !== 'done';
 
 export function ImageUploader({
   items,
@@ -193,6 +195,7 @@ export function ImageUploader({
         <SortableList
           items={items}
           getKey={getKey}
+          isDisabled={isPending}
           renderItem={renderItem}
           onReorder={onReorder}
           label={listLabel}

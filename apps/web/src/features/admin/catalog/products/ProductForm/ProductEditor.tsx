@@ -1,7 +1,15 @@
 'use client';
 
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { type ChangeEvent, useCallback, useId, useState } from 'react';
+import {
+  type ChangeEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Banner,
   Checkbox,
@@ -22,6 +30,8 @@ import {
   useLeaveGuard,
   useSaveToast,
 } from '@/features/admin/forms';
+import { isEqual } from '@/features/admin/forms/is-equal';
+import { useAdminSession } from '@/features/admin/session';
 import { useRouter } from '@/i18n/navigation';
 import { useCategories, useMaterialTypes } from '@/lib/admin-api/catalog';
 import {
@@ -29,6 +39,7 @@ import {
   adminErrorMessage,
   toAdminError,
 } from '@/lib/admin-api/errors';
+import { useUpdateImage } from '@/lib/admin-api/images';
 import {
   type AdminProduct,
   fetchProduct,
@@ -79,6 +90,36 @@ function readStyles(error: AdminError, locale: 'en' | 'uk'): string[] {
 const styleNames = (warning: ProductWarning, locale: 'en' | 'uk') =>
   warning.params.styles.map((style) => style.name[locale]).join(', ');
 
+type WarningBannerProps = {
+  warning: ProductWarning & { key: string };
+  text: string;
+  dismissLabel: string;
+  onDismiss: (key: string) => void;
+};
+
+function WarningBanner({
+  warning,
+  text,
+  dismissLabel,
+  onDismiss,
+}: WarningBannerProps) {
+  const dismiss = useCallback(
+    () => onDismiss(warning.key),
+    [warning.key, onDismiss],
+  );
+  return (
+    <Banner variant="warning" onDismiss={dismiss} dismissLabel={dismissLabel}>
+      {text}
+    </Banner>
+  );
+}
+
+type Applied = {
+  source: ProductValues;
+  revision: string | null;
+  values: ProductValues;
+};
+
 export type ProductEditorProps = { product?: AdminProduct };
 
 export function ProductEditor({ product }: ProductEditorProps) {
@@ -97,6 +138,10 @@ export function ProductEditor({ product }: ProductEditorProps) {
   const update = useUpdateProduct();
   const changeStatus = useChangeProductStatus();
   const remove = useDeleteProduct();
+  const updateTexture = useUpdateImage();
+  const { withReauth } = useAdminSession();
+  const applied = useRef<Applied | null>(null);
+  const textureSizes = useRef(new Map<string, number | null>());
   const categories = useCategories();
   const materialTypes = useMaterialTypes();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -113,6 +158,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
   const id = product?.id;
 
   const fetchLatest = useCallback(async () => {
+    applied.current = null;
     if (!id) throw new Error('missing');
     const latest = await fetchProduct(id);
     return {
@@ -134,6 +180,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
   const { mutateAsync: updateAsync } = update;
   const { mutateAsync: statusAsync } = changeStatus;
   const { mutateAsync: removeAsync } = remove;
+  const { mutateAsync: updateTextureAsync } = updateTexture;
 
   const describe = useCallback(
     (failure: unknown) => {
@@ -158,15 +205,21 @@ export function ProductEditor({ product }: ProductEditorProps) {
     [setValues],
   );
   const setTexture = useCallback(
-    ({ image }: UploadDone) =>
+    ({ image }: UploadDone) => {
+      textureSizes.current.set(image.id, image.realSizeMm);
       setValues((current) => ({
         ...current,
         textureImageId: image.id,
         texturePreviewUrl: image.texture,
-      })),
+      }));
+    },
     [setValues],
   );
-  const imageUploads = useUploads({ describe, onDone: addImage });
+  const imageUploads = useUploads({
+    keepPreview: true,
+    describe,
+    onDone: addImage,
+  });
   const textureUploads = useUploads({
     single: true,
     describe,
@@ -178,6 +231,19 @@ export function ProductEditor({ product }: ProductEditorProps) {
     (category) => category.id === values.categoryId,
   )?.surface;
   const hasSurface = surface !== undefined && surface !== 'NONE';
+  const bodySurface = surface === undefined ? null : hasSurface;
+  const clearTexture = textureUploads.clear;
+  const pruneImages = imageUploads.prune;
+
+  useEffect(() => {
+    if (!hasSurface) clearTexture();
+  }, [hasSurface, clearTexture]);
+
+  const previews = useMemo(
+    () => values.images.map((image) => image.previewUrl),
+    [values.images],
+  );
+  useEffect(() => pruneImages(previews), [previews, pruneImages]);
 
   const persist = useCallback(
     async (
@@ -185,25 +251,65 @@ export function ProductEditor({ product }: ProductEditorProps) {
       revision: string | null,
       confirmedZero: boolean,
     ) => {
+      if (applied.current && isEqual(applied.current.source, current)) {
+        return applied.current;
+      }
       assertValid(current, {
         hasSurface,
         publish: false,
         priceValid,
         colorValid,
       });
-      if (!id) {
-        const created = await createAsync(
-          toBody(current, hasSurface, confirmedZero),
-        );
-        return { revision: created.revision, values: toValues(created) };
+      const imageId = current.textureImageId;
+      const width = wholeMm(current.tileWidthMm);
+      if (hasSurface && imageId && width !== undefined) {
+        const known =
+          textureSizes.current.get(imageId) ??
+          (product?.texture?.id === imageId
+            ? product.texture.realSizeMm
+            : undefined);
+        if (known !== undefined && known !== width) {
+          await withReauth(() =>
+            updateTextureAsync({ id: imageId, body: { realSizeMm: width } }),
+          );
+          textureSizes.current.set(imageId, width);
+        }
       }
-      const updated = await updateAsync({
-        id,
-        body: toPatchBody(current, hasSurface, confirmedZero, revision ?? ''),
-      });
-      return { revision: updated.revision, values: toValues(updated) };
+      const saved = id
+        ? await withReauth(() =>
+            updateAsync({
+              id,
+              body: toPatchBody(
+                current,
+                bodySurface,
+                confirmedZero,
+                applied.current?.revision ?? revision ?? '',
+              ),
+            }),
+          )
+        : await withReauth(() =>
+            createAsync(toBody(current, bodySurface, confirmedZero)),
+          );
+      const result = {
+        source: current,
+        revision: saved.revision,
+        values: toValues(saved),
+      };
+      applied.current = result;
+      return result;
     },
-    [id, hasSurface, priceValid, colorValid, createAsync, updateAsync],
+    [
+      id,
+      product,
+      hasSurface,
+      bodySurface,
+      priceValid,
+      colorValid,
+      withReauth,
+      createAsync,
+      updateAsync,
+      updateTextureAsync,
+    ],
   );
 
   const execute = useCallback(
@@ -224,6 +330,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
           persist(current, revision, confirmedZero),
         );
         if (!ok) return;
+        applied.current = null;
         notify({ affectsCost: cost });
         if (!id) router.push(LIST_HREF);
         return;
@@ -239,11 +346,15 @@ export function ProductEditor({ product }: ProductEditorProps) {
           });
         }
         let next = { revision, values: current };
-        if (dirty) next = await persist(current, revision, confirmedZero);
-        const changed = await statusAsync({
-          id,
-          body: { status: action, revision: next.revision ?? '' },
-        });
+        if (dirty || applied.current) {
+          next = await persist(current, revision, confirmedZero);
+        }
+        const changed = await withReauth(() =>
+          statusAsync({
+            id,
+            body: { status: action, revision: next.revision ?? '' },
+          }),
+        );
         setWarnings(
           (changed.warnings ?? []).map((warning) => ({
             ...warning,
@@ -252,7 +363,9 @@ export function ProductEditor({ product }: ProductEditorProps) {
         );
         return { revision: changed.revision, values: toValues(changed) };
       });
-      if (ok) notify({ affectsCost: cost });
+      if (!ok) return;
+      applied.current = null;
+      notify({ affectsCost: cost });
     },
     [
       unfinished,
@@ -262,6 +375,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
       submit,
       persist,
       statusAsync,
+      withReauth,
       notify,
       id,
       router,
@@ -290,14 +404,18 @@ export function ProductEditor({ product }: ProductEditorProps) {
   const openDelete = useCallback(() => setConfirmingDelete(true), []);
   const closeDelete = useCallback(() => setConfirmingDelete(false), []);
   const closeInUse = useCallback(() => setInUse(null), []);
-  const dismissWarnings = useCallback(() => setWarnings([]), []);
+  const dismissWarning = useCallback(
+    (key: string) =>
+      setWarnings((current) => current.filter((item) => item.key !== key)),
+    [],
+  );
 
   const onDelete = useCallback(async () => {
     if (!id) return;
     setConfirmingDelete(false);
     setDeleteError(null);
     try {
-      await removeAsync(id);
+      await withReauth(() => removeAsync(id));
     } catch (failure) {
       const error = toAdminError(failure);
       if (error.kind === 'inUse') setInUse(readStyles(error, locale));
@@ -306,7 +424,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
     }
     notify();
     router.push(LIST_HREF);
-  }, [id, removeAsync, locale, notify, router]);
+  }, [id, removeAsync, withReauth, locale, notify, router]);
 
   const archiveInstead = useCallback(() => {
     setInUse(null);
@@ -357,6 +475,8 @@ export function ProductEditor({ product }: ProductEditorProps) {
       addTexture([file], { realSizeMm: wholeMm(values.tileWidthMm) }),
     [addTexture, values.tileWidthMm],
   );
+
+  const removeTextureUpload = textureUploads.remove;
 
   const onName = useCallback(
     (name: LocalizedValue) => setField('name', name),
@@ -486,16 +606,15 @@ export function ProductEditor({ product }: ProductEditorProps) {
         <Banner variant="warning">{t('images.unfinished')}</Banner>
       ) : null}
       {warnings.map((warning) => (
-        <Banner
+        <WarningBanner
           key={warning.key}
-          variant="warning"
-          onDismiss={dismissWarnings}
-          dismissLabel={t('warnings.dismiss')}
-        >
-          {t(`warnings.${warning.code}`, {
+          warning={warning}
+          text={t(`warnings.${warning.code}`, {
             list: styleNames(warning, locale),
           })}
-        </Banner>
+          dismissLabel={t('warnings.dismiss')}
+          onDismiss={dismissWarning}
+        />
       ))}
       <div className={styles.form}>
         <section className={styles.section} aria-labelledby={detailsId}>
@@ -633,6 +752,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
             values={values}
             errors={form.errors}
             upload={textureUploads.entries[0]}
+            onDismissUpload={removeTextureUpload}
             resetKey={form.resetKey}
             onField={setField}
             onFile={uploadTexture}

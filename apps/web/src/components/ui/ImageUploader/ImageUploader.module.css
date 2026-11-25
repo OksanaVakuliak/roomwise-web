@@ -58,8 +58,13 @@
     color var(--duration-fast) var(--ease-standard);
 }
 
-.primary:hover {
+.primary:hover:not(:disabled) {
   background: var(--fill-a);
+}
+
+.primary:disabled {
+  cursor: default;
+  opacity: var(--opacity-disabled);
 }
 
 .primary:focus-visible {

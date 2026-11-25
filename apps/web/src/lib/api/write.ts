@@ -36,7 +36,7 @@ export class RateLimitedError extends ApiRequestError {
 const networkFailure = () =>
   new ApiRequestError(0, { error: { code: 'network' } });
 
-function waitUntilReady(): Promise<void> {
+export function waitUntilReady(): Promise<void> {
   const settle = (resolve: () => void, reject: (reason: Error) => void) => {
     const status = selectWarmupStatus(useWarmup.getState());
     if (status === 'ready') {

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RateLimitedError } from '@/lib/api/write';
+import { resetWarmup, rewarm, useWarmup } from '@/lib/warmup';
 import { adminErrors } from '@/test/fixtures/admin/errors';
 import {
   IMAGE_ACCEPT,
@@ -7,6 +8,11 @@ import {
   uploadImage,
   validateImageFile,
 } from './upload';
+
+vi.mock('@/lib/warmup', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/warmup')>()),
+  rewarm: vi.fn(() => Promise.resolve()),
+}));
 
 class FakeXhr {
   static instances: FakeXhr[] = [];
@@ -64,7 +70,15 @@ const imageFile = (type = 'image/png', size = 1024, name = 'a.png') =>
 
 const sent = () => FakeXhr.instances;
 
+const started = async (count = 1) => {
+  await vi.waitFor(() => expect(sent()).toHaveLength(count));
+  return sent();
+};
+
 beforeEach(() => {
+  vi.clearAllMocks();
+  resetWarmup();
+  useWarmup.setState({ server: 'ready' });
   FakeXhr.instances = [];
   vi.stubGlobal('XMLHttpRequest', FakeXhr);
 });
@@ -113,7 +127,7 @@ describe('uploadImage', () => {
     const file = imageFile();
     const onProgress = vi.fn();
     const promise = uploadImage(file, { realSizeMm: 600, onProgress });
-    const [xhr] = sent();
+    const [xhr] = await started();
 
     expect(xhr?.method).toBe('POST');
     expect(xhr?.url).toBe('/api/v1/admin/images');
@@ -132,22 +146,46 @@ describe('uploadImage', () => {
     ]);
   });
 
-  it('omits realSizeMm when not given', () => {
+  it('omits realSizeMm when not given', async () => {
     void uploadImage(imageFile());
 
-    expect(sent()[0]?.body?.has('realSizeMm')).toBe(false);
+    expect((await started())[0]?.body?.has('realSizeMm')).toBe(false);
+  });
+
+  it('waits for the server to be ready before sending', async () => {
+    useWarmup.setState({ server: 'warming' });
+    const promise = uploadImage(imageFile());
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(sent()).toHaveLength(0);
+
+    useWarmup.setState({ server: 'ready' });
+    const [xhr] = await started();
+    xhr?.respond(201, { id: 'img' });
+    await expect(promise).resolves.toEqual({ id: 'img' });
+  });
+
+  it('fails as a network error when the server never became ready', async () => {
+    useWarmup.setState({ server: 'failed' });
+
+    await expect(uploadImage(imageFile())).rejects.toMatchObject({
+      status: 0,
+      apiError: { code: 'network' },
+    });
+    expect(sent()).toHaveLength(0);
   });
 
   it('maps 413 and 415 responses', async () => {
     const tooLarge = uploadImage(imageFile());
-    sent()[0]?.respond(413, {});
+    (await started(1))[0]?.respond(413, {});
     await expect(tooLarge).rejects.toMatchObject({
       status: 413,
       apiError: { code: 'PAYLOAD_TOO_LARGE' },
     });
 
     const unsupported = uploadImage(imageFile());
-    sent()[1]?.respond(415, { error: { code: 'UNSUPPORTED_IMAGE_TYPE' } });
+    (await started(2))[1]?.respond(415, {
+      error: { code: 'UNSUPPORTED_IMAGE_TYPE' },
+    });
     await expect(unsupported).rejects.toMatchObject({
       status: 415,
       apiError: { code: 'UNSUPPORTED_IMAGE_TYPE' },
@@ -157,7 +195,7 @@ describe('uploadImage', () => {
   it('maps 429 to RateLimitedError with the wait', async () => {
     const { status, body } = adminErrors.rateLimited(17);
     const promise = uploadImage(imageFile());
-    sent()[0]?.respond(status, body);
+    (await started())[0]?.respond(status, body);
 
     const failure = await promise.catch((error: unknown) => error);
 
@@ -165,9 +203,11 @@ describe('uploadImage', () => {
     expect(failure).toMatchObject({ retryAfterSeconds: 17 });
   });
 
-  it('maps 502 to an image storage failure', async () => {
+  it('keeps the image storage failure when the body says so', async () => {
     const promise = uploadImage(imageFile());
-    sent()[0]?.respond(502, {});
+    (await started())[0]?.respond(502, {
+      error: { code: 'IMAGE_STORAGE_FAILED' },
+    });
 
     await expect(promise).rejects.toMatchObject({
       status: 502,
@@ -175,9 +215,23 @@ describe('uploadImage', () => {
     });
   });
 
+  it.each([502, 503, 504])(
+    'maps a bare %i gateway error to the network error and rewarms',
+    async (status) => {
+      const promise = uploadImage(imageFile());
+      (await started())[0]?.respond(status, {});
+
+      await expect(promise).rejects.toMatchObject({
+        status: 0,
+        apiError: { code: 'network' },
+      });
+      expect(rewarm).toHaveBeenCalled();
+    },
+  );
+
   it('maps a network error', async () => {
     const promise = uploadImage(imageFile());
-    sent()[0]?.onerror?.();
+    (await started())[0]?.onerror?.();
 
     await expect(promise).rejects.toMatchObject({
       status: 0,
@@ -188,10 +242,26 @@ describe('uploadImage', () => {
   it('aborts through the signal', async () => {
     const controller = new AbortController();
     const promise = uploadImage(imageFile(), { signal: controller.signal });
+    await started();
 
     controller.abort();
 
     await expect(promise).rejects.toMatchObject({ name: 'AbortError' });
     expect(sent()[0]?.aborted).toBe(true);
+  });
+
+  it('does not send when aborted while waiting for the server', async () => {
+    useWarmup.setState({ server: 'warming' });
+    const controller = new AbortController();
+    const promise = uploadImage(imageFile(), { signal: controller.signal });
+    const settled = expect(promise).rejects.toMatchObject({
+      name: 'AbortError',
+    });
+
+    controller.abort();
+    useWarmup.setState({ server: 'ready' });
+
+    await settled;
+    expect(sent()).toHaveLength(0);
   });
 });
