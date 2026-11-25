@@ -5,6 +5,7 @@ import { unwrap, useCatalogReady } from '@/lib/api/catalog';
 import { api } from '@/lib/api/client';
 import { ApiRequestError } from '@/lib/api/request-error';
 import { createWriteGate, type WriteGate } from '@/lib/api/write';
+import { acknowledged } from './acknowledged';
 import { adminKeys } from './keys';
 
 type Schemas = components['schemas'];
@@ -12,13 +13,6 @@ type Schemas = components['schemas'];
 export type AdminMe = Schemas['AdminMeDto_Output'];
 export type LoginBody = Schemas['LoginDto'];
 export type ChangePasswordBody = Schemas['ChangePasswordDto'];
-
-type EmptyResult = { error?: unknown; response: { status: number } };
-
-const acknowledged = (result: EmptyResult) => ({
-  ...result,
-  data: result.response.status < 400 ? true : undefined,
-});
 
 export function login(gate: WriteGate, body: LoginBody): Promise<AdminMe> {
   return gate.write(
