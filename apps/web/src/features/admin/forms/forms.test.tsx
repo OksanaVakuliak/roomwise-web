@@ -50,7 +50,9 @@ function Harness({ save, fallbackHref }: HarnessProps) {
     revision: 'r1',
     fetchLatest,
   });
-  const { dialog } = useLeaveGuard(form.dirty, { fallbackHref });
+  const { dialog, allowLeave } = useLeaveGuard(form.dirty, {
+    fallbackHref,
+  });
   const notify = useSaveToast();
   const { setField, submit } = form;
   const onChange = useCallback(
@@ -88,6 +90,9 @@ function Harness({ save, fallbackHref }: HarnessProps) {
         />
       ) : null}
       <SaveBar dirty={form.dirty} saving={form.saving} onSave={onSave} />
+      <button type="button" onClick={allowLeave}>
+        allow leave
+      </button>
       <a href="/en/admin/other">other</a>
       {dialog}
     </div>
@@ -450,6 +455,18 @@ describe.each(forEachLocale)('admin forms (%s)', (locale) => {
     edit('Birch');
     unmount();
     expect(back).toHaveBeenCalledTimes(1);
+    back.mockRestore();
+  });
+
+  it('leaves history alone when unmounted after an intentional leave', () => {
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
+    const { unmount } = renderWithProviders(<Harness save={vi.fn()} />, {
+      locale,
+    });
+    edit('Birch');
+    fireEvent.click(screen.getByRole('button', { name: 'allow leave' }));
+    unmount();
+    expect(back).not.toHaveBeenCalled();
     back.mockRestore();
   });
 

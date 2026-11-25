@@ -205,6 +205,20 @@ describe('categories', () => {
     expect(post).toHaveBeenCalledWith('/api/v1/admin/categories', { body });
   });
 
+  it('sends a create once and rejects when the network fails', async () => {
+    const body = {
+      name: { en: 'Walls', uk: 'Стіни' },
+      wastePercent: 10,
+      surface: 'WALLS' as const,
+      requiresPutty: true,
+    };
+    post.mockRejectedValue(new Error('offline'));
+    await expect(createCategory(createWriteGate(), body)).rejects.toMatchObject(
+      { status: 0 },
+    );
+    expect(post).toHaveBeenCalledTimes(1);
+  });
+
   it('updates with the revision', async () => {
     const category = makeAdminCategory();
     patch.mockResolvedValue({ data: category, response: { status: 200 } });

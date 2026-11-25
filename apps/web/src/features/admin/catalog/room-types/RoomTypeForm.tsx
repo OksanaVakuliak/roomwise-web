@@ -308,9 +308,7 @@ function RoomTypeEditor({ item }: RoomTypeEditorProps) {
 
   const failure = form.error;
   const message =
-    failure !== null &&
-    failure.kind !== 'validation' &&
-    failure.kind !== 'stale'
+    failure !== null && failure.kind !== 'stale'
       ? adminErrorMessage(failure)
       : null;
 

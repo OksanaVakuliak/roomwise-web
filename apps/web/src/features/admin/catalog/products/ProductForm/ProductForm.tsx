@@ -27,7 +27,10 @@ export function ProductForm({ productId }: ProductFormProps) {
 
   if (productId === undefined) return <ProductEditor />;
 
-  if (query.error instanceof ApiRequestError && query.error.status === 404) {
+  const missing =
+    query.error instanceof ApiRequestError && query.error.status === 404;
+
+  if (missing && !query.data) {
     return (
       <div className={styles.root}>
         <PageTitle>{t('title')}</PageTitle>
@@ -72,5 +75,14 @@ export function ProductForm({ productId }: ProductFormProps) {
     );
   }
 
-  return <ProductEditor product={query.data} />;
+  return (
+    <div className={styles.root}>
+      {missing ? (
+        <Banner variant="warning" title={t('deletedElsewhereTitle')}>
+          {t('deletedElsewhereText')}
+        </Banner>
+      ) : null}
+      <ProductEditor product={query.data} />
+    </div>
+  );
 }

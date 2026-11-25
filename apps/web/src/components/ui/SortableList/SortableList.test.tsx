@@ -18,6 +18,7 @@ const moveUpLabel = (row: Row) => `Up ${row.name}`;
 const moveDownLabel = (row: Row) => `Down ${row.name}`;
 
 const isBeta = (row: Row) => row.id === 'b';
+const isGamma = (row: Row) => row.id === 'c';
 
 function setup(overrides: Partial<SortableListProps<Row>> = {}) {
   const onReorder = vi.fn();
@@ -83,6 +84,19 @@ describe('SortableList', () => {
     expect(screen.getByRole('button', { name: 'Down Beta' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Drag Alpha' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Down Alpha' })).toBeEnabled();
+  });
+
+  it('disables Down on the last enabled item when disabled rows follow it', () => {
+    const { onReorder } = setup({ isDisabled: isGamma });
+    expect(screen.getByRole('button', { name: 'Down Beta' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Down Alpha' }));
+    expect(onReorder).toHaveBeenCalledWith([rows[1], rows[0], rows[2]]);
+  });
+
+  it('skips disabled rows when moving across them', () => {
+    const { onReorder } = setup({ isDisabled: isBeta });
+    fireEvent.click(screen.getByRole('button', { name: 'Down Alpha' }));
+    expect(onReorder).toHaveBeenCalledWith([rows[1], rows[2], rows[0]]);
   });
 
   it('gives each drag handle the screen reader instructions from props', () => {

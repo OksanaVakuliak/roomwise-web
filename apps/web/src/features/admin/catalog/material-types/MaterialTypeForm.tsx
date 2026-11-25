@@ -151,10 +151,7 @@ export function MaterialTypeForm({
   const failure = form.error;
   const codeTaken = failure?.kind === 'other' && failure.code === 'CODE_TAKEN';
   const message =
-    failure !== null &&
-    failure.kind !== 'validation' &&
-    failure.kind !== 'stale' &&
-    !codeTaken
+    failure !== null && failure.kind !== 'stale' && !codeTaken
       ? adminErrorMessage(failure)
       : null;
 

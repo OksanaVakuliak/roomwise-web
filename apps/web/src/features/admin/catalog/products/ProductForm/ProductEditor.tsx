@@ -174,7 +174,9 @@ export function ProductEditor({ product }: ProductEditorProps) {
     revision: product?.revision ?? null,
     fetchLatest,
   });
-  const { dialog } = useLeaveGuard(form.dirty, { fallbackHref: LIST_HREF });
+  const { dialog, allowLeave } = useLeaveGuard(form.dirty, {
+    fallbackHref: LIST_HREF,
+  });
   const { values, initial, dirty, setField, setValues, submit } = form;
   const { mutateAsync: createAsync } = create;
   const { mutateAsync: updateAsync } = update;
@@ -216,11 +218,13 @@ export function ProductEditor({ product }: ProductEditorProps) {
     [setValues],
   );
   const imageUploads = useUploads({
+    withReauth,
     keepPreview: true,
     describe,
     onDone: addImage,
   });
   const textureUploads = useUploads({
+    withReauth,
     single: true,
     describe,
     onDone: setTexture,
@@ -414,9 +418,11 @@ export function ProductEditor({ product }: ProductEditorProps) {
     if (!id) return;
     setConfirmingDelete(false);
     setDeleteError(null);
+    const stay = allowLeave();
     try {
       await withReauth(() => removeAsync(id));
     } catch (failure) {
+      stay();
       const error = toAdminError(failure);
       if (error.kind === 'inUse') setInUse(readStyles(error, locale));
       else setDeleteError(error);
@@ -424,7 +430,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
     }
     notify();
     router.push(LIST_HREF);
-  }, [id, removeAsync, withReauth, locale, notify, router]);
+  }, [id, removeAsync, withReauth, locale, notify, router, allowLeave]);
 
   const archiveInstead = useCallback(() => {
     setInUse(null);

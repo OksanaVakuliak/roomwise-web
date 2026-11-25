@@ -42,7 +42,8 @@ export type SortableListProps<T> = {
 type RowProps = {
   id: string;
   index: number;
-  last: boolean;
+  upTo: number | null;
+  downTo: number | null;
   disabled: boolean;
   content: ReactNode;
   dragLabel: string;
@@ -54,7 +55,8 @@ type RowProps = {
 function SortableRow({
   id,
   index,
-  last,
+  upTo,
+  downTo,
   disabled,
   content,
   dragLabel,
@@ -72,8 +74,12 @@ function SortableRow({
     isDragging,
   } = useSortable({ id, disabled });
 
-  const moveUp = useCallback(() => onMove(index, index - 1), [index, onMove]);
-  const moveDown = useCallback(() => onMove(index, index + 1), [index, onMove]);
+  const moveUp = useCallback(() => {
+    if (upTo !== null) onMove(index, upTo);
+  }, [index, upTo, onMove]);
+  const moveDown = useCallback(() => {
+    if (downTo !== null) onMove(index, downTo);
+  }, [index, downTo, onMove]);
 
   const vars: Record<string, string> = {};
   const moved = CSS.Transform.toString(transform);
@@ -102,13 +108,13 @@ function SortableRow({
         <IconButton
           icon="chevronUp"
           label={moveUpLabel}
-          disabled={disabled || index === 0}
+          disabled={disabled || upTo === null}
           onClick={moveUp}
         />
         <IconButton
           icon="chevronDown"
           label={moveDownLabel}
-          disabled={disabled || last}
+          disabled={disabled || downTo === null}
           onClick={moveDown}
         />
       </div>
@@ -137,13 +143,16 @@ export function SortableList<T>({
     }),
   );
   const ids = items.map(getKey);
+  const blocked = items.map((item) => isDisabled?.(item) ?? false);
+  const enabled = blocked.flatMap((off, index) => (off ? [] : [index]));
 
   const move = useCallback(
     (from: number, to: number) => {
       if (from === to || to < 0 || to >= items.length) return;
+      if (blocked[from] || blocked[to]) return;
       onReorder(arrayMove(items, from, to));
     },
-    [items, onReorder],
+    [items, blocked, onReorder],
   );
 
   const handleDragEnd = useCallback(
@@ -171,8 +180,9 @@ export function SortableList<T>({
               key={ids[index]}
               id={ids[index]}
               index={index}
-              last={index === items.length - 1}
-              disabled={isDisabled?.(item) ?? false}
+              upTo={enabled[enabled.indexOf(index) - 1] ?? null}
+              downTo={enabled[enabled.indexOf(index) + 1] ?? null}
+              disabled={blocked[index]}
               content={renderItem(item, { index })}
               dragLabel={dragLabel(item)}
               moveUpLabel={moveUpLabel(item)}

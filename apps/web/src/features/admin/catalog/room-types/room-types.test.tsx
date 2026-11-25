@@ -66,6 +66,7 @@ const texts = (locale: Locale) => {
     t: catalog.AdminCatalog.roomTypes,
     form: catalog.Admin.form,
     fields: catalog.Admin.fields,
+    errors: catalog.AdminErrors,
   };
 };
 
@@ -111,7 +112,7 @@ describe.each(forEachLocale)('RoomTypeList (%s)', (locale) => {
 });
 
 describe.each(forEachLocale)('RoomTypeForm (%s)', (locale) => {
-  const { t, form } = texts(locale);
+  const { t, form, errors } = texts(locale);
   const saveName = new RegExp(`^${form.save}$`);
   const nameOf = (id: string) =>
     makeAdminCategories().items.find((category) => category.id === id)?.name[
@@ -305,6 +306,21 @@ describe.each(forEachLocale)('RoomTypeForm (%s)', (locale) => {
     expect(
       await screen.findByRole('button', { name: form.conflict.accept }),
     ).toBeInTheDocument();
+  });
+
+  it('shows a banner for a validation error on a field the form does not render', async () => {
+    put.mockResolvedValue(
+      failure(
+        makeAdminFailure(400, 'VALIDATION_FAILED', {
+          fields: [{ path: 'categoryIds[1]', code: 'REQUIRED' }],
+        }),
+      ),
+    );
+    renderEdit();
+    await addLighting();
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+
+    expect(await screen.findByText(errors.validation)).toBeInTheDocument();
   });
 
   it('shows a not-found state for an unknown code', async () => {

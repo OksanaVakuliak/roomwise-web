@@ -59,6 +59,7 @@ export function createProduct(
   return gate.write(
     () => api.POST('/api/v1/admin/products', { body }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -74,6 +75,7 @@ export function updateProduct(
         body,
       }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -89,6 +91,7 @@ export async function deleteProduct(
         }),
       ),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -104,6 +107,7 @@ export function changeProductStatus(
         body,
       }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 

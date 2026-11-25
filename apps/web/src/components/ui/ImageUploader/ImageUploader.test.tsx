@@ -171,9 +171,19 @@ describe('ImageUploader', () => {
   });
 
   it('reorders with the Down button', () => {
-    const { onReorder } = setup();
+    const settled = items.map((item) => ({ ...item, state: 'done' as const }));
+    const { onReorder } = setup({ items: settled });
     fireEvent.click(screen.getByRole('button', { name: 'Down image a' }));
-    expect(onReorder).toHaveBeenCalledWith([items[1], items[0], items[2]]);
+    expect(onReorder).toHaveBeenCalledWith([
+      settled[1],
+      settled[0],
+      settled[2],
+    ]);
+  });
+
+  it('disables Down on the last settled image when unsettled ones follow', () => {
+    setup();
+    expect(screen.getByRole('button', { name: 'Down image a' })).toBeDisabled();
   });
 
   it('has no accessibility violations', async () => {

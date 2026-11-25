@@ -58,6 +58,11 @@ type Applied = {
   values: CategoryValues;
 };
 
+const costChanged = (values: CategoryValues, initial: CategoryValues) =>
+  values.wastePercent !== initial.wastePercent ||
+  values.requiresPutty !== initial.requiresPutty ||
+  values.surface !== initial.surface;
+
 const strings = (value: unknown): string[] =>
   Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string')
@@ -119,7 +124,9 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
     revision: category?.revision ?? null,
     fetchLatest,
   });
-  const { dialog } = useLeaveGuard(form.dirty, { fallbackHref: LIST_HREF });
+  const { dialog, allowLeave } = useLeaveGuard(form.dirty, {
+    fallbackHref: LIST_HREF,
+  });
   const { values, initial, dirty, setField, submit } = form;
   const { mutateAsync: createAsync } = create;
   const { mutateAsync: updateAsync } = update;
@@ -153,9 +160,7 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
   );
 
   const onSave = useCallback(async () => {
-    const affectsCost =
-      values.wastePercent !== initial.wastePercent ||
-      values.requiresPutty !== initial.requiresPutty;
+    const affectsCost = costChanged(values, initial);
     const ok = await submit(persist);
     if (!ok) return;
     applied.current = null;
@@ -166,6 +171,7 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
   const moveTo = useCallback(
     async (status: Status) => {
       if (!id) return;
+      const affectsCost = costChanged(values, initial);
       const ok = await submit(async (current, revision) => {
         if (status === 'PUBLISHED') requireTranslations(current.name);
         const prior = applied.current;
@@ -190,9 +196,19 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
         applied.current = null;
         return { revision: changed.revision, values: next.values };
       });
-      if (ok) notify();
+      if (ok) notify({ affectsCost });
     },
-    [id, dirty, submit, persist, withReauth, statusAsync, notify],
+    [
+      id,
+      dirty,
+      values,
+      initial,
+      submit,
+      persist,
+      withReauth,
+      statusAsync,
+      notify,
+    ],
   );
 
   const status = category?.status;
@@ -207,9 +223,11 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
     if (!id) return;
     setConfirmingDelete(false);
     setDeleteError(null);
+    const stay = allowLeave();
     try {
       await withReauth(() => removeAsync(id));
     } catch (failure) {
+      stay();
       const error = toAdminError(failure);
       if (error.kind === 'inUse') setInUse(readInUse(error, locale));
       else setDeleteError(error);
@@ -217,7 +235,7 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
     }
     notify();
     router.push(LIST_HREF);
-  }, [id, withReauth, removeAsync, locale, notify, router]);
+  }, [id, withReauth, removeAsync, locale, notify, router, allowLeave]);
 
   const closeInUse = useCallback(() => setInUse(null), []);
   const archiveInstead = useCallback(async () => {

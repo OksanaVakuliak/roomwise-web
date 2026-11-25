@@ -1579,7 +1579,9 @@
         "retry": "Retry",
         "notFoundTitle": "Category not found",
         "notFoundText": "It may have been deleted. Go back to the list.",
-        "back": "Back to categories"
+        "back": "Back to categories",
+        "deletedElsewhereTitle": "This category was deleted",
+        "deletedElsewhereText": "It was deleted in another session. You can keep your edits, but saving will fail."
       },
       "delete": {
         "title": "Delete this category?",
@@ -1636,6 +1638,8 @@
         "notFoundTitle": "Product not found",
         "notFoundText": "It may have been deleted. Go back to the list.",
         "back": "Back to products",
+        "deletedElsewhereTitle": "This product was deleted",
+        "deletedElsewhereText": "It was deleted in another session. You can keep your edits, but saving will fail.",
         "loadingOptions": "Loading options",
         "sections": {
           "details": "Details",

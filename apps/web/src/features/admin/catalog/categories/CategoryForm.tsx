@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   Banner,
   Button,
@@ -10,7 +10,7 @@ import {
   PageTitle,
   Skeleton,
 } from '@/components/ui';
-import { useCategory } from '@/lib/admin-api/catalog';
+import { type AdminCategory, useCategory } from '@/lib/admin-api/catalog';
 import { adminErrorMessage, toAdminError } from '@/lib/admin-api/errors';
 import { CategoryEditor } from './CategoryEditor';
 import styles from './CategoryForm.module.css';
@@ -23,6 +23,8 @@ export function CategoryForm({ categoryId }: CategoryFormProps) {
   const query = useCategory(categoryId);
   const { refetch } = query;
   const retry = useCallback(() => void refetch(), [refetch]);
+  const lastSeen = useRef<AdminCategory | null>(null);
+  if (query.data) lastSeen.current = query.data;
 
   if (categoryId === undefined) return <CategoryEditor />;
 
@@ -54,7 +56,8 @@ export function CategoryForm({ categoryId }: CategoryFormProps) {
     );
   }
 
-  if (query.data === null) {
+  const category = query.data ?? lastSeen.current;
+  if (!category) {
     return (
       <div className={styles.root}>
         <PageTitle>{t('title')}</PageTitle>
@@ -71,5 +74,14 @@ export function CategoryForm({ categoryId }: CategoryFormProps) {
     );
   }
 
-  return <CategoryEditor category={query.data} />;
+  return (
+    <div className={styles.root}>
+      {query.data === null ? (
+        <Banner variant="warning" title={t('form.deletedElsewhereTitle')}>
+          {t('form.deletedElsewhereText')}
+        </Banner>
+      ) : null}
+      <CategoryEditor category={category} />
+    </div>
+  );
 }

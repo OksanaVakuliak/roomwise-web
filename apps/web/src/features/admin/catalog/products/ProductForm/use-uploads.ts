@@ -20,6 +20,7 @@ export type UploadDone = {
 export type UploadOptions = { realSizeMm?: number };
 
 type UseUploadsOptions = {
+  withReauth: <T>(run: () => Promise<T>) => Promise<T>;
   single?: boolean;
   keepPreview?: boolean;
   describe: (failure: unknown) => string;
@@ -27,6 +28,7 @@ type UseUploadsOptions = {
 };
 
 export function useUploads({
+  withReauth,
   single,
   keepPreview,
   describe,
@@ -95,11 +97,13 @@ export function useUploads({
         { localId, previewUrl, progress: 0, state: 'uploading' },
       ]);
       try {
-        const image = await uploadImage(file, {
-          ...options,
-          signal: controller.signal,
-          onProgress: (progress) => patch(localId, { progress }),
-        });
+        const image = await withReauth(() =>
+          uploadImage(file, {
+            ...options,
+            signal: controller.signal,
+            onProgress: (progress) => patch(localId, { progress }),
+          }),
+        );
         controllers.current.delete(localId);
         setEntries((current) =>
           current.filter((entry) => entry.localId !== localId),
@@ -116,7 +120,7 @@ export function useUploads({
         });
       }
     },
-    [patch, keepPreview, release],
+    [patch, keepPreview, release, withReauth],
   );
 
   const add = useCallback(

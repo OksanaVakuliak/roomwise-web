@@ -59,7 +59,7 @@ function internalTarget(event: MouseEvent): string | null {
 export function useLeaveGuard(
   dirty: boolean,
   { fallbackHref }: LeaveGuardOptions = {},
-): { dialog: ReactNode } {
+): { dialog: ReactNode; allowLeave: () => () => void } {
   const t = useTranslations('Admin.form.leave');
   const router = useRouter();
   const [pending, setPending] = useState<Pending | null>(null);
@@ -121,6 +121,13 @@ export function useLeaveGuard(
     };
   }, [dirty, clearLeaveTimer]);
 
+  const allowLeave = useCallback(() => {
+    leaving.current = true;
+    return () => {
+      leaving.current = false;
+    };
+  }, []);
+
   const cancel = useCallback(() => setPending(null), []);
 
   const confirm = useCallback(() => {
@@ -140,6 +147,7 @@ export function useLeaveGuard(
   }, [pending, router, fallbackHref]);
 
   return {
+    allowLeave,
     dialog: (
       <ConfirmDialog
         open={pending !== null}

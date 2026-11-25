@@ -5,6 +5,7 @@ import { AdminSessionProvider } from '@/features/admin/session';
 import { adminKeys } from '@/lib/admin-api/keys';
 import { uploadImage } from '@/lib/admin-api/upload';
 import { api } from '@/lib/api/client';
+import { ApiRequestError } from '@/lib/api/request-error';
 import { toast, useToasts } from '@/lib/toast';
 import { resetWarmup, useWarmup } from '@/lib/warmup';
 import { axe } from '@/test/axe';
@@ -571,6 +572,33 @@ describe.each(forEachLocale)('ProductForm (%s)', (locale) => {
     expect(screen.queryByText(t.loadFailed)).not.toBeInTheDocument();
   });
 
+  it('keeps the editor and warns when a refetch finds the product deleted', async () => {
+    const product = plumbed();
+    const { queryClient } = renderEdit(product);
+    fireEvent.change(await screen.findByLabelText(label(t.brand)), {
+      target: { value: 'Other' },
+    });
+    get.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === itemUrl
+          ? failure({
+              status: 404,
+              body: { error: { code: 'PRODUCT_NOT_FOUND' } },
+            })
+          : ok(makeAdminMe()),
+      ),
+    );
+    await queryClient.refetchQueries({
+      queryKey: adminKeys.area('catalog', 'products', 'item', product.id),
+    });
+
+    expect(
+      await screen.findByText(t.deletedElsewhereTitle),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(label(t.brand))).toHaveValue('Other');
+    expect(screen.queryByText(t.notFoundTitle)).not.toBeInTheDocument();
+  });
+
   it('asks to sign in again when the session expired during a save', async () => {
     const product = plumbed();
     patch.mockResolvedValueOnce(failure(adminErrors.unauthenticated()));
@@ -582,6 +610,22 @@ describe.each(forEachLocale)('ProductForm (%s)', (locale) => {
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(patch).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks to sign in again when the session expired during an upload', async () => {
+    upload.mockRejectedValueOnce(
+      new ApiRequestError(401, adminErrors.unauthenticated().body),
+    );
+    upload.mockResolvedValue(uploadedImage(adminUuid(4001)));
+    const { container } = renderEdit(plumbed());
+    await screen.findByLabelText(label(t.brand));
+
+    fireEvent.change(fileInputs(container)[0], {
+      target: { files: [imageFile()] },
+    });
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(upload).toHaveBeenCalledTimes(1);
   });
 
   it('updates the texture real size when the tile width changed', async () => {

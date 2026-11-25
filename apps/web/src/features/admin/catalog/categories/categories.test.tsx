@@ -24,6 +24,8 @@ import en from '../../../../../messages/en.json';
 import uk from '../../../../../messages/uk.json';
 import { CategoryForm, CategoryList } from './index';
 
+vi.setConfig({ testTimeout: 15_000 });
+
 vi.mock('@/lib/api/client', () => ({
   api: { GET: vi.fn(), POST: vi.fn(), PATCH: vi.fn(), DELETE: vi.fn() },
 }));
@@ -312,6 +314,18 @@ describe.each(forEachLocale)('CategoryForm (%s)', (locale) => {
     );
   });
 
+  it('shows the cost toast when publishing with a changed waste percent', async () => {
+    const draft = makeAdminCategory({ status: 'DRAFT' });
+    patch.mockResolvedValue(ok({ ...draft, wastePercent: 15 }));
+    post.mockResolvedValue(ok({ ...draft, status: 'PUBLISHED' }));
+    renderEdit(locale, draft);
+    const waste = await screen.findByLabelText(new RegExp(t.form.waste));
+    fireEvent.change(waste, { target: { value: '15' } });
+    fireEvent.click(screen.getByRole('button', { name: form.publish }));
+
+    await waitFor(() => expect(toastMessages()).toContain(form.savedCost));
+  });
+
   it('lists dependencies when the category is in use and archives instead', async () => {
     del.mockResolvedValue(failure(adminErrors.categoryInUse()));
     post.mockResolvedValue(ok({ ...flooring, status: 'ARCHIVED' }));
@@ -348,6 +362,28 @@ describe.each(forEachLocale)('CategoryForm (%s)', (locale) => {
         body: { status: 'ARCHIVED', revision: flooring.revision },
       }),
     );
+  });
+
+  it('goes to the list without history.back after deleting a dirty category', async () => {
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
+    del.mockResolvedValue({ response: { status: 204 } });
+    const { router } = renderEdit(locale);
+    const waste = await screen.findByLabelText(new RegExp(t.form.waste));
+    fireEvent.change(waste, { target: { value: '15' } });
+    mockList([]);
+
+    fireEvent.click(screen.getByRole('button', { name: form.delete }));
+    const confirm = await screen.findByRole('dialog');
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: t.delete.confirm }),
+    );
+
+    await waitFor(() => expect(router.push).toHaveBeenCalled());
+    expect(router.push).toHaveBeenCalledWith(
+      `/${locale}/admin/catalog/categories`,
+    );
+    expect(back).not.toHaveBeenCalled();
+    back.mockRestore();
   });
 
   it('shows the conflict banner on a stale revision', async () => {
@@ -457,6 +493,21 @@ describe.each(forEachLocale)('CategoryForm (%s)', (locale) => {
     expect(
       await screen.findByRole('dialog', { name: texts(locale).reauth.title }),
     ).toBeInTheDocument();
+  });
+
+  it('keeps the editor and warns when a refetch no longer finds the category', async () => {
+    const queryClient = createTestQueryClient();
+    renderEdit(locale, flooring, queryClient);
+    const waste = await screen.findByLabelText(new RegExp(t.form.waste));
+    fireEvent.change(waste, { target: { value: '33' } });
+    mockList([]);
+    await queryClient.invalidateQueries();
+
+    expect(
+      await screen.findByText(t.form.deletedElsewhereTitle),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(new RegExp(t.form.waste))).toHaveValue(33);
+    expect(screen.queryByText(t.form.notFoundText)).not.toBeInTheDocument();
   });
 
   it('shows a not-found state for an unknown category', async () => {

@@ -50,6 +50,7 @@ export function renameRoomType(
         body,
       }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -65,6 +66,7 @@ export function replaceRoomTypeCategories(
         body,
       }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -75,6 +77,7 @@ export function createCategory(
   return gate.write(
     () => api.POST('/api/v1/admin/categories', { body }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -90,6 +93,7 @@ export function updateCategory(
         body,
       }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -105,6 +109,7 @@ export async function deleteCategory(
         }),
       ),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -120,6 +125,7 @@ export function changeCategoryStatus(
         body,
       }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -130,6 +136,7 @@ export function createMaterialType(
   return gate.write(
     () => api.POST('/api/v1/admin/material-types', { body }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -145,6 +152,7 @@ export function updateMaterialType(
         body,
       }),
     crypto.randomUUID(),
+    { retry: false },
   );
 }
 
@@ -234,7 +242,14 @@ export function useUpdateCategory() {
 }
 
 export function useDeleteCategory() {
-  return useCatalogMutation((gate, id: string) => deleteCategory(gate, id));
+  const queryClient = useQueryClient();
+  const [gate] = useState(createWriteGate);
+  return useMutation({
+    mutationFn: (id: string) => deleteCategory(gate, id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: catalogArea() });
+    },
+  });
 }
 
 export function useChangeCategoryStatus() {
