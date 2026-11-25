@@ -6,6 +6,7 @@ import { Button, Modal, TextField } from '@/components/ui';
 import { useLogin } from '@/lib/admin-api/auth';
 import { adminErrorMessage, toAdminError } from '@/lib/admin-api/errors';
 import { useAdminSession } from './context';
+import { useRateLimitCountdown } from './use-rate-limit-countdown';
 
 type ReauthDialogProps = {
   open: boolean;
@@ -24,17 +25,23 @@ function ReauthForm({ onSuccess, onCancel }: Omit<ReauthDialogProps, 'open'>) {
   const [password, setPassword] = useState('');
   const mutation = useLogin();
 
-  const error = mutation.error
-    ? adminErrorMessage(toAdminError(mutation.error))
-    : null;
+  const failure = mutation.error ? toAdminError(mutation.error) : null;
+  const error = failure ? adminErrorMessage(failure) : null;
+  const limitSeconds =
+    failure?.kind === 'locked' || failure?.kind === 'rateLimited'
+      ? failure.retryAfterSeconds
+      : 0;
+  const remaining = useRateLimitCountdown(limitSeconds);
+  const blocked = limitSeconds > 0 && remaining > 0;
 
   const { mutate } = mutation;
   const onSubmit = useCallback(
     (event: FormEvent) => {
       event.preventDefault();
+      if (blocked) return;
       mutate({ login, password }, { onSuccess });
     },
-    [mutate, login, password, onSuccess],
+    [blocked, mutate, login, password, onSuccess],
   );
   const onLoginChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => setLogin(event.target.value),
@@ -68,6 +75,7 @@ function ReauthForm({ onSuccess, onCancel }: Omit<ReauthDialogProps, 'open'>) {
                 `${error.namespace}.${error.key}` as never,
                 {
                   ...error.values,
+                  ...(limitSeconds > 0 ? { seconds: remaining } : {}),
                 } as never,
               )
             : undefined
@@ -77,7 +85,12 @@ function ReauthForm({ onSuccess, onCancel }: Omit<ReauthDialogProps, 'open'>) {
       <Button type="button" onClick={onCancel}>
         {t('cancel')}
       </Button>
-      <Button type="submit" kind="fill" loading={mutation.isPending}>
+      <Button
+        type="submit"
+        kind="fill"
+        disabled={blocked}
+        loading={mutation.isPending}
+      >
         {t('submit')}
       </Button>
     </form>

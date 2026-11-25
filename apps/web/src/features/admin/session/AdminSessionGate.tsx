@@ -12,27 +12,49 @@ import { adminKeys } from '@/lib/admin-api/keys';
 import { useAdminSession } from './context';
 
 export function AdminSessionGate({ children }: { children: ReactNode }) {
-  const { session, reauthing } = useAdminSession();
+  const { session, reauthing, requestReauth } = useAdminSession();
   const t = useTranslations('Admin.session');
   const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
   const me = useAdminMe();
   const redirected = useRef(false);
+  const recovering = useRef(false);
 
-  const expired =
-    me.isError && toAdminError(me.error).kind === 'unauthenticated';
+  const anonymous = session.status === 'anonymous';
+  const hadSession = me.data != null;
 
   useEffect(() => {
-    const redirect = () => {
+    const leave = () => {
       if (redirected.current) return;
       redirected.current = true;
+      queryClient.removeQueries({
+        queryKey: adminKeys.all(),
+        predicate: (query) => query.queryKey[1] !== 'me',
+      });
       queryClient.setQueryData(adminKeys.me(), null);
       const next = `${pathname}${window.location.search}`;
       router.replace(`/admin/login?next=${encodeURIComponent(next)}`);
     };
+    const recover = () => {
+      if (recovering.current || redirected.current) return;
+      recovering.current = true;
+      requestReauth()
+        .then(() => {
+          recovering.current = false;
+          void queryClient.invalidateQueries({ queryKey: adminKeys.all() });
+        })
+        .catch(() => {
+          recovering.current = false;
+          leave();
+        });
+    };
+    const onUnauthenticated = () => {
+      if (queryClient.getQueryData(adminKeys.me())) recover();
+      else leave();
+    };
     if (reauthing) return;
-    if (expired) redirect();
+    if (anonymous) onUnauthenticated();
     return queryClient.getQueryCache().subscribe((event) => {
       if (
         event.type === 'updated' &&
@@ -40,10 +62,10 @@ export function AdminSessionGate({ children }: { children: ReactNode }) {
         event.query.queryKey[0] === 'admin' &&
         toAdminError(event.action.error).kind === 'unauthenticated'
       ) {
-        redirect();
+        onUnauthenticated();
       }
     });
-  }, [expired, pathname, queryClient, reauthing, router]);
+  }, [anonymous, pathname, queryClient, reauthing, requestReauth, router]);
 
   if (session.status === 'checking') {
     return (
@@ -57,7 +79,7 @@ export function AdminSessionGate({ children }: { children: ReactNode }) {
   if (session.status === 'error') {
     return <ErrorState headingLevel={2} onRetry={session.retry} />;
   }
-  if (session.status === 'anonymous') {
+  if (anonymous && !hadSession) {
     return null;
   }
   return children;

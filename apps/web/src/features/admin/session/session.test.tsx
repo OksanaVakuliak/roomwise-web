@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { type QueryClient, useMutation } from '@tanstack/react-query';
 import {
   act,
   fireEvent,
@@ -108,12 +108,7 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
     expect(screen.queryByLabelText('note')).not.toBeInTheDocument();
   });
 
-  it('redirects when a later read returns 401', async () => {
-    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
-    const { router, queryClient } = setup(locale);
-    await screen.findByLabelText('note');
-    expect(router.replace).not.toHaveBeenCalled();
-
+  const failLeads = async (queryClient: QueryClient) => {
     const { status, body } = adminErrors.unauthenticated();
     await act(async () => {
       await queryClient
@@ -123,17 +118,32 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
         })
         .catch(() => undefined);
     });
-    await waitFor(() => expect(router.replace).toHaveBeenCalledTimes(1));
+  };
+
+  it('asks to sign in again and keeps the form when a later read returns 401', async () => {
+    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
+    const { router, queryClient } = setup(locale);
+    fireEvent.change(await screen.findByLabelText('note'), {
+      target: { value: 'draft text' },
+    });
+
+    await failLeads(queryClient);
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('note')).toHaveValue('draft text');
   });
 
-  it('treats the session as anonymous when a refetch of me returns 401', async () => {
+  it('asks to sign in again when a refetch of me returns 401', async () => {
     get.mockResolvedValueOnce({
       data: makeAdminMe(),
       response: { status: 200 },
     });
     get.mockResolvedValue(failure(adminErrors.unauthenticated()));
-    const { router, queryClient } = setup(locale);
-    await screen.findByLabelText('note');
+    const { router } = setup(locale);
+    fireEvent.change(await screen.findByLabelText('note'), {
+      target: { value: 'draft text' },
+    });
 
     await act(async () => {
       window.dispatchEvent(
@@ -141,32 +151,67 @@ describe.each(forEachLocale)('admin session (%s)', (locale) => {
       );
     });
 
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('note')).toHaveValue('draft text');
+  });
+
+  it('redirects and drops cached admin data when that sign-in is cancelled', async () => {
+    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
+    const { router, queryClient } = setup(locale);
+    await screen.findByLabelText('note');
+    queryClient.setQueryData(['admin', 'leads', 'new-count'], 7);
+
+    await failLeads(queryClient);
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(
+      within(dialog).getByRole('button', {
+        name: locale === 'uk' ? 'Скасувати' : 'Cancel',
+      }),
+    );
+
     await waitFor(() => expect(router.replace).toHaveBeenCalledTimes(1));
     expect(
       decodeURIComponent(String(router.replace.mock.calls[0]?.[0])),
     ).toContain('/admin/login?next=/');
-    expect(screen.queryByLabelText('note')).not.toBeInTheDocument();
     expect(queryClient.getQueryData(['admin', 'me'])).toBeNull();
+    expect(
+      queryClient.getQueryData(['admin', 'leads', 'new-count']),
+    ).toBeUndefined();
   });
 
-  it('makes the session anonymous when another read returns 401', async () => {
+  it('redirects instead of rendering nothing when the session is already cleared', async () => {
     get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
-    const { queryClient } = setup(locale);
+    const { router, queryClient } = setup(locale);
     await screen.findByLabelText('note');
 
-    const { status, body } = adminErrors.unauthenticated();
-    await act(async () => {
-      await queryClient
-        .fetchQuery({
-          queryKey: ['admin', 'leads'],
-          queryFn: () => Promise.reject(new ApiRequestError(status, body)),
-        })
-        .catch(() => undefined);
+    act(() => {
+      queryClient.setQueryData(['admin', 'me'], null);
     });
 
-    await waitFor(() =>
-      expect(queryClient.getQueryData(['admin', 'me'])).toBeNull(),
-    );
+    await waitFor(() => expect(router.replace).toHaveBeenCalledTimes(1));
+    expect(screen.queryByLabelText('note')).not.toBeInTheDocument();
+  });
+
+  it('blocks sign-in in the dialog while the rate limit counts down', async () => {
+    get.mockResolvedValue({ data: makeAdminMe(), response: { status: 200 } });
+    post.mockResolvedValue(failure(adminErrors.unauthenticated()));
+    setup(locale);
+    fireEvent.click(await screen.findByRole('button', { name: 'save' }));
+    const dialog = await screen.findByRole('dialog');
+
+    post.mockResolvedValue(failure(adminErrors.rateLimited(30)));
+    const password = dialog.querySelectorAll('input')[1] as HTMLInputElement;
+    fireEvent.change(password, { target: { value: 'secret' } });
+    fireEvent.submit(dialog.querySelector('form') as HTMLFormElement);
+
+    const submit = within(dialog).getByRole('button', {
+      name: locale === 'uk' ? 'Увійти' : 'Sign in',
+    });
+    await waitFor(() => expect(submit).toBeDisabled());
+    const calls = post.mock.calls.length;
+    fireEvent.submit(dialog.querySelector('form') as HTMLFormElement);
+    expect(post).toHaveBeenCalledTimes(calls);
   });
 
   it('shows a retryable error instead of a blank panel when me fails with a server error', async () => {

@@ -25,19 +25,19 @@ export function AdminHome() {
       <PageTitle>{t('title')}</PageTitle>
       <section aria-labelledby={leadsId} className={styles.leads}>
         <SectionHeader id={leadsId} title={t('leadsTitle')} />
-        {leads.isError ? (
+        {leads.data !== undefined ? (
+          <Link href="/admin/leads?status=NEW" className={styles.leadsLink}>
+            {t('newLeads', { count: leads.data })}
+          </Link>
+        ) : leads.isError ? (
           <p role="alert" className={styles.error}>
             {t('leadsFailed')}
           </p>
-        ) : leads.data === undefined ? (
+        ) : (
           <div role="status">
             <VisuallyHidden>{t('leadsLoading')}</VisuallyHidden>
             <Skeleton variant="block" height="3rem" />
           </div>
-        ) : (
-          <Link href="/admin/leads?status=NEW" className={styles.leadsLink}>
-            {t('newLeads', { count: leads.data })}
-          </Link>
         )}
       </section>
       <section aria-labelledby={sectionsId}>
