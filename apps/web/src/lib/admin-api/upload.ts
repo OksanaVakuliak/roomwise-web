@@ -78,6 +78,25 @@ function toFailure(status: number, text: string): ApiRequestError {
 
 const aborted = () => new DOMException('Aborted', 'AbortError');
 
+function readyOrAborted(signal: AbortSignal | undefined): Promise<void> {
+  if (!signal) return waitUntilReady();
+  return new Promise<void>((resolve, reject) => {
+    const abort = () => reject(aborted());
+    signal.addEventListener('abort', abort, { once: true });
+    waitUntilReady().then(
+      () => {
+        signal.removeEventListener('abort', abort);
+        if (signal.aborted) reject(aborted());
+        else resolve();
+      },
+      (reason: unknown) => {
+        signal.removeEventListener('abort', abort);
+        reject(reason);
+      },
+    );
+  });
+}
+
 export async function uploadImage(
   file: File,
   { realSizeMm, onProgress, signal }: UploadOptions = {},
@@ -89,10 +108,7 @@ export async function uploadImage(
   if (signal?.aborted) {
     throw aborted();
   }
-  await waitUntilReady();
-  if (signal?.aborted) {
-    throw aborted();
-  }
+  await readyOrAborted(signal);
   return new Promise<UploadedImage>((resolve, reject) => {
     const request = new XMLHttpRequest();
     const form = new FormData();

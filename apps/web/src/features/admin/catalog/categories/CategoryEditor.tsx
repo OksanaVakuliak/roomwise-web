@@ -172,7 +172,7 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
         let next = { revision, values: current };
         if (prior && isEqual(prior.submitted, current)) {
           next = prior;
-        } else if (dirty) {
+        } else if (dirty || prior) {
           const saved = await persist(current, revision);
           applied.current = {
             revision: saved.revision,

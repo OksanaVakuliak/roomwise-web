@@ -264,4 +264,14 @@ describe('uploadImage', () => {
     await settled;
     expect(sent()).toHaveLength(0);
   });
+
+  it('rejects at once when aborted before the server becomes ready', async () => {
+    useWarmup.setState({ server: 'warming' });
+    const controller = new AbortController();
+    const promise = uploadImage(imageFile(), { signal: controller.signal });
+    controller.abort();
+
+    await expect(promise).rejects.toMatchObject({ name: 'AbortError' });
+    expect(sent()).toHaveLength(0);
+  });
 });

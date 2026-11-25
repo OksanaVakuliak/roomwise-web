@@ -263,11 +263,11 @@ export function ProductEditor({ product }: ProductEditorProps) {
       const imageId = current.textureImageId;
       const width = wholeMm(current.tileWidthMm);
       if (hasSurface && imageId && width !== undefined) {
-        const known =
-          textureSizes.current.get(imageId) ??
-          (product?.texture?.id === imageId
+        const known = textureSizes.current.has(imageId)
+          ? textureSizes.current.get(imageId)
+          : product?.texture?.id === imageId
             ? product.texture.realSizeMm
-            : undefined);
+            : undefined;
         if (known !== undefined && known !== width) {
           await withReauth(() =>
             updateTextureAsync({ id: imageId, body: { realSizeMm: width } }),
@@ -319,7 +319,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
         return;
       }
       setBlocked(false);
-      const persisting = action === 'save' || dirty;
+      const persisting = action === 'save' || dirty || applied.current !== null;
       if (persisting && values.priceCents === 0 && !confirmedZero) {
         setZeroAction(action);
         return;

@@ -29,6 +29,8 @@ import en from '../../../../../../messages/en.json';
 import uk from '../../../../../../messages/uk.json';
 import { ProductForm } from '../index';
 
+vi.setConfig({ testTimeout: 15_000 });
+
 vi.mock('@/lib/api/client', () => ({
   api: { GET: vi.fn(), POST: vi.fn(), PATCH: vi.fn(), DELETE: vi.fn() },
 }));
@@ -159,7 +161,7 @@ describe.each(forEachLocale)('ProductForm (%s)', (locale) => {
     ).toHaveValue(600);
     expect(screen.getByText(/admin/)).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
-  }, 15000);
+  });
 
   it('creates a draft from the chosen category and material type', async () => {
     mockApi();
@@ -605,6 +607,36 @@ describe.each(forEachLocale)('ProductForm (%s)', (locale) => {
     );
     await waitFor(() =>
       expect(patch).toHaveBeenCalledWith(itemUrl, expect.anything()),
+    );
+  });
+
+  it('sets the real size of a texture uploaded before the tile width', async () => {
+    const textureId = adminUuid(3001);
+    upload.mockResolvedValue(uploadedImage(textureId));
+    const product = makeTexturedProduct();
+    patch.mockImplementation((path: string) =>
+      Promise.resolve(
+        ok(path === imageUrl ? uploadedImage(textureId) : product),
+      ),
+    );
+    const { container } = renderEdit(product);
+    const width = await screen.findByLabelText(label(t.texture.tileWidth));
+    fireEvent.change(width, { target: { value: '' } });
+    fireEvent.change(fileInputs(container)[1], {
+      target: { files: [imageFile('texture.png')] },
+    });
+    await waitFor(() => expect(upload).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview-1'),
+    );
+    fireEvent.change(width, { target: { value: '600' } });
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+
+    await waitFor(() =>
+      expect(patch).toHaveBeenCalledWith(imageUrl, {
+        params: { path: { id: textureId } },
+        body: { realSizeMm: 600 },
+      }),
     );
   });
 

@@ -391,6 +391,38 @@ describe.each(forEachLocale)('CategoryForm (%s)', (locale) => {
     expect(patch).toHaveBeenCalledTimes(1);
   });
 
+  it('saves reverted values from the saved revision before retrying the status', async () => {
+    const draft = makeAdminCategory({ status: 'DRAFT', revision: 'r1' });
+    patch
+      .mockResolvedValueOnce(ok({ ...draft, wastePercent: 12, revision: 'r2' }))
+      .mockResolvedValueOnce(ok({ ...draft, revision: 'r3' }));
+    post
+      .mockResolvedValueOnce(failure(makeAdminFailure(403, 'FORBIDDEN')))
+      .mockResolvedValueOnce(
+        ok({ ...draft, status: 'PUBLISHED', revision: 'r4' }),
+      );
+    renderEdit(locale, draft);
+    const waste = await screen.findByLabelText(new RegExp(t.form.waste));
+    fireEvent.change(waste, { target: { value: '12' } });
+    fireEvent.click(screen.getByRole('button', { name: form.publish }));
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: form.publish }),
+      ).not.toBeDisabled(),
+    );
+    fireEvent.change(waste, { target: { value: String(draft.wastePercent) } });
+    fireEvent.click(screen.getByRole('button', { name: form.publish }));
+
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(2));
+    expect(patch).toHaveBeenCalledTimes(2);
+    expect(patch.mock.calls[1][1].body.revision).toBe('r2');
+    expect(post).toHaveBeenLastCalledWith(statusUrl, {
+      params: { path: { id: draft.id } },
+      body: { status: 'PUBLISHED', revision: 'r3' },
+    });
+  });
+
   it('keeps unsaved edits when a background refetch fails', async () => {
     const queryClient = createTestQueryClient();
     renderEdit(locale, flooring, queryClient);
