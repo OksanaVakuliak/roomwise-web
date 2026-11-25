@@ -77,10 +77,10 @@ export function LoginPage() {
     [],
   );
   const fillDemo = useCallback(() => {
-    if (!demo) return;
-    setLogin(demo.demoLogin);
-    setPassword(demo.demoPassword);
-  }, [demo]);
+    if (!demoLogin || !demoPassword) return;
+    setLogin(demoLogin);
+    setPassword(demoPassword);
+  }, [demoLogin, demoPassword]);
 
   let banner = null;
   if (failure) {

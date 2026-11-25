@@ -32,17 +32,24 @@ export function AdminAccount() {
   const [confirm, setConfirm] = useState('');
   const [mismatch, setMismatch] = useState(false);
 
-  const handler = useCallback(
-    (set: (value: string) => void) =>
-      (event: ChangeEvent<HTMLInputElement>) => {
-        set(event.target.value);
-        setMismatch(false);
-      },
+  const onCurrentChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setCurrent(event.target.value);
+      setMismatch(false);
+    },
     [],
   );
-  const onCurrentChange = handler(setCurrent);
-  const onNextChange = handler(setNext);
-  const onConfirmChange = handler(setConfirm);
+  const onNextChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setNext(event.target.value);
+    setMismatch(false);
+  }, []);
+  const onConfirmChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setConfirm(event.target.value);
+      setMismatch(false);
+    },
+    [],
+  );
 
   const onSubmit = useCallback(
     async (event: FormEvent) => {
