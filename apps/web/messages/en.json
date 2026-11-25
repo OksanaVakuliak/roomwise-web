@@ -1538,7 +1538,67 @@
       "name": "Name",
       "status": "Status"
     },
-    "categories": {},
+    "categories": {
+      "title": "Categories",
+      "caption": "Categories",
+      "search": "Search by name",
+      "add": "New category",
+      "newTitle": "New category",
+      "editTitle": "Category: {name}",
+      "statusFilter": "Status",
+      "allStatuses": "All statuses",
+      "columns": {
+        "name": "Name",
+        "surface": "Surface",
+        "waste": "Waste, %",
+        "status": "Status",
+        "products": "Products",
+        "updated": "Updated"
+      },
+      "empty": {
+        "title": "No categories yet",
+        "text": "Create the first category to group products."
+      },
+      "surfaces": {
+        "NONE": "None",
+        "FLOOR": "Floor",
+        "WALLS": "Walls",
+        "CEILING": "Ceiling"
+      },
+      "form": {
+        "name": "Name",
+        "waste": "Waste",
+        "wasteUnit": "%",
+        "wasteHint": "From 0 to 100. Applies to new calculations; saved ones do not change.",
+        "surface": "3D surface",
+        "requiresPutty": "Requires putty",
+        "lastChanged": "Last changed {time} by {user}",
+        "lastChangedAnon": "Last changed {time}",
+        "loading": "Loading the category",
+        "loadFailed": "Could not load the category",
+        "retry": "Retry",
+        "notFoundTitle": "Category not found",
+        "notFoundText": "It may have been deleted. Go back to the list.",
+        "back": "Back to categories"
+      },
+      "delete": {
+        "title": "Delete this category?",
+        "description": "The category will be deleted permanently. This cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel",
+        "close": "Close"
+      },
+      "inUse": {
+        "title": "The category is in use",
+        "intro": "It cannot be deleted while other items depend on it. Archive it instead to hide it from new calculations.",
+        "products": "Products: {count}",
+        "roomTypes": "Room types: {list}",
+        "styles": "Styles: {list}",
+        "archive": "Archive instead",
+        "cancel": "Cancel",
+        "close": "Close"
+      }
+    },
     "products": {}
   }
 }

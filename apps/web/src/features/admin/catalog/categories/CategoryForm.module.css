@@ -1,0 +1,34 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--empty-measure);
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.meta {
+  margin: 0;
+  color: var(--line-2);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.dependencies {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0;
+  padding-left: var(--space-16);
+}
