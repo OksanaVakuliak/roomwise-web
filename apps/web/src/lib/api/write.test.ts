@@ -83,6 +83,31 @@ describe('createWriteGate', () => {
     expect(send).toHaveBeenCalledTimes(1);
   });
 
+  it('retries only a write the server never received when asked to', async () => {
+    const send = vi
+      .fn()
+      .mockResolvedValueOnce(failure(503, undefined))
+      .mockResolvedValueOnce(ok('saved'));
+    await expect(
+      createWriteGate().write(send, 'key-1', { retry: 'unreached' }),
+    ).resolves.toBe('saved');
+    expect(send).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not resend a write that may have reached the server', async () => {
+    const timedOut = vi.fn().mockResolvedValue(failure(504, undefined));
+    await expect(
+      createWriteGate().write(timedOut, 'key-1', { retry: 'unreached' }),
+    ).rejects.toMatchObject({ status: 0, apiError: { code: 'network' } });
+    expect(timedOut).toHaveBeenCalledTimes(1);
+
+    const dropped = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    await expect(
+      createWriteGate().write(dropped, 'key-2', { retry: 'unreached' }),
+    ).rejects.toMatchObject({ status: 0, apiError: { code: 'network' } });
+    expect(dropped).toHaveBeenCalledTimes(1);
+  });
+
   it('gives up after the second network error', async () => {
     const send = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
     await expect(createWriteGate().write(send, 'key-1')).rejects.toMatchObject({

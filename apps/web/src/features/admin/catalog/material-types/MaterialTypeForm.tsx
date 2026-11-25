@@ -38,6 +38,8 @@ type Values = { code: string; name: LocalizedValue; status: Status };
 
 const STATUSES: readonly Status[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
 
+const RENDERED_FIELDS = ['code', 'name.en', 'name.uk', 'status'];
+
 const EMPTY: Values = { code: '', name: { en: '', uk: '' }, status: 'DRAFT' };
 
 const toValues = (item: AdminMaterialType): Values => ({
@@ -151,7 +153,11 @@ export function MaterialTypeForm({
   const failure = form.error;
   const codeTaken = failure?.kind === 'other' && failure.code === 'CODE_TAKEN';
   const message =
-    failure !== null && failure.kind !== 'stale' && !codeTaken
+    failure !== null &&
+    failure.kind !== 'stale' &&
+    !codeTaken &&
+    (failure.kind !== 'validation' ||
+      failure.fields.some((field) => !RENDERED_FIELDS.includes(field.path)))
       ? adminErrorMessage(failure)
       : null;
 

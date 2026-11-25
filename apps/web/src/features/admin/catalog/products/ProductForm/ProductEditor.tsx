@@ -418,18 +418,17 @@ export function ProductEditor({ product }: ProductEditorProps) {
     if (!id) return;
     setConfirmingDelete(false);
     setDeleteError(null);
-    const stay = allowLeave();
     try {
       await withReauth(() => removeAsync(id));
     } catch (failure) {
-      stay();
       const error = toAdminError(failure);
       if (error.kind === 'inUse') setInUse(readStyles(error, locale));
       else setDeleteError(error);
       return;
     }
     notify();
-    router.push(LIST_HREF);
+    allowLeave();
+    router.replace(LIST_HREF);
   }, [id, removeAsync, withReauth, locale, notify, router, allowLeave]);
 
   const archiveInstead = useCallback(() => {

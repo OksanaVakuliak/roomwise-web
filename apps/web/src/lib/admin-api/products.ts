@@ -59,7 +59,7 @@ export function createProduct(
   return gate.write(
     () => api.POST('/api/v1/admin/products', { body }),
     crypto.randomUUID(),
-    { retry: false },
+    { retry: 'unreached' },
   );
 }
 
@@ -75,7 +75,7 @@ export function updateProduct(
         body,
       }),
     crypto.randomUUID(),
-    { retry: false },
+    { retry: 'unreached' },
   );
 }
 
@@ -91,7 +91,7 @@ export async function deleteProduct(
         }),
       ),
     crypto.randomUUID(),
-    { retry: false },
+    { retry: 'unreached' },
   );
 }
 
@@ -107,7 +107,7 @@ export function changeProductStatus(
         body,
       }),
     crypto.randomUUID(),
-    { retry: false },
+    { retry: 'unreached' },
   );
 }
 
@@ -175,6 +175,7 @@ export function useDeleteProduct() {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: adminKeys.area('catalog', 'products'),
+          predicate: (query) => query.queryKey[4] !== id,
         }),
         queryClient.invalidateQueries({
           queryKey: adminKeys.area('catalog', 'categories'),

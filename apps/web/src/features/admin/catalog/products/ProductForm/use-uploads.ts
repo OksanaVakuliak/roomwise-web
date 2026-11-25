@@ -97,13 +97,14 @@ export function useUploads({
         { localId, previewUrl, progress: 0, state: 'uploading' },
       ]);
       try {
-        const image = await withReauth(() =>
-          uploadImage(file, {
+        const image = await withReauth(() => {
+          patch(localId, { progress: 0 });
+          return uploadImage(file, {
             ...options,
             signal: controller.signal,
             onProgress: (progress) => patch(localId, { progress }),
-          }),
-        );
+          });
+        });
         controllers.current.delete(localId);
         setEntries((current) =>
           current.filter((entry) => entry.localId !== localId),

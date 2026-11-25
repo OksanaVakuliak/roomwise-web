@@ -1,4 +1,10 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import type { Locale } from 'next-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminSessionProvider } from '@/features/admin/session';
@@ -696,8 +702,97 @@ describe.each(forEachLocale)('ProductForm (%s)', (locale) => {
       within(confirm).getByRole('button', { name: t.delete.confirm }),
     );
 
-    await waitFor(() => expect(router.push).toHaveBeenCalled());
+    await waitFor(() => expect(router.replace).toHaveBeenCalled());
+    expect(router.replace).toHaveBeenCalledWith(
+      `/${locale}/admin/catalog/products`,
+    );
+    expect(router.push).not.toHaveBeenCalled();
     expect(get.mock.calls.filter(([path]) => path === itemUrl)).toHaveLength(1);
+  });
+
+  it('never renders the not-found state after deleting the product', async () => {
+    const product = plumbed();
+    del.mockResolvedValue(ok(undefined));
+    const { router } = renderEdit(product);
+    await screen.findByLabelText(label(t.name, 'en'));
+    const original = get.getMockImplementation() as (
+      path: string,
+    ) => Promise<unknown>;
+    get.mockImplementation((path: string) =>
+      path === itemUrl
+        ? Promise.resolve(failure(makeAdminFailure(404, 'NOT_FOUND')))
+        : original(path),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: form.delete }));
+    const confirm = await screen.findByRole('dialog');
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: t.delete.confirm }),
+    );
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalled());
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+    expect(screen.queryByText(t.notFoundTitle)).not.toBeInTheDocument();
+    expect(get.mock.calls.filter(([path]) => path === itemUrl)).toHaveLength(1);
+  });
+
+  it('keeps the leave guard on while a delete is pending', async () => {
+    let finish: (value: unknown) => void = () => {};
+    del.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    const { router } = renderEdit(plumbed());
+    fireEvent.change(await screen.findByLabelText(label(t.brand)), {
+      target: { value: 'Other' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: form.delete }));
+    const confirm = await screen.findByRole('dialog');
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: t.delete.confirm }),
+    );
+    await waitFor(() => expect(del).toHaveBeenCalled());
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    expect(
+      await screen.findByRole('dialog', {
+        name: catalogs[lang].Admin.form.leave.title,
+      }),
+    ).toBeInTheDocument();
+    expect(router.replace).not.toHaveBeenCalled();
+    finish(ok(undefined));
+  });
+
+  it('restarts the upload progress from zero after signing in again', async () => {
+    upload.mockImplementationOnce(
+      async (_file: File, options: { onProgress: (value: number) => void }) => {
+        options.onProgress(70);
+        throw new ApiRequestError(401, adminErrors.unauthenticated().body);
+      },
+    );
+    upload.mockImplementation(() => new Promise(() => undefined));
+    post.mockResolvedValue(ok(makeAdminMe()));
+    const { container } = renderEdit(plumbed());
+    await screen.findByLabelText(label(t.brand));
+
+    fireEvent.change(fileInputs(container)[0], {
+      target: { files: [imageFile()] },
+    });
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(dialog.querySelectorAll('input')[1] as HTMLInputElement, {
+      target: { value: 'secret' },
+    });
+    fireEvent.submit(dialog.querySelector('form') as HTMLFormElement);
+
+    await waitFor(() => expect(upload).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-valuenow',
+        '0',
+      ),
+    );
   });
 
   it('dismisses a single warning', async () => {

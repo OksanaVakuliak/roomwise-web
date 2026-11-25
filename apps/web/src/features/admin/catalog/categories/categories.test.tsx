@@ -1,4 +1,10 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import type { Locale } from 'next-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminSessionProvider } from '@/features/admin/session';
@@ -378,12 +384,94 @@ describe.each(forEachLocale)('CategoryForm (%s)', (locale) => {
       within(confirm).getByRole('button', { name: t.delete.confirm }),
     );
 
-    await waitFor(() => expect(router.push).toHaveBeenCalled());
-    expect(router.push).toHaveBeenCalledWith(
+    await waitFor(() => expect(router.replace).toHaveBeenCalled());
+    expect(router.replace).toHaveBeenCalledWith(
       `/${locale}/admin/catalog/categories`,
     );
+    expect(router.push).not.toHaveBeenCalled();
     expect(back).not.toHaveBeenCalled();
     back.mockRestore();
+  });
+
+  it('removes the row from the list and shows no deleted-elsewhere banner after deleting', async () => {
+    del.mockResolvedValue({ response: { status: 204 } });
+    const queryClient = createTestQueryClient();
+    const { router } = renderEdit(locale, flooring, queryClient);
+    await screen.findByLabelText(new RegExp(t.form.waste));
+    mockList([]);
+
+    fireEvent.click(screen.getByRole('button', { name: form.delete }));
+    const confirm = await screen.findByRole('dialog');
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: t.delete.confirm }),
+    );
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalled());
+    await queryClient.invalidateQueries();
+    const cached = queryClient.getQueryData<AdminCategory[]>([
+      'admin',
+      'catalog',
+      'categories',
+    ]);
+    expect(cached?.some((item) => item.id === flooring.id)).toBe(false);
+    expect(
+      screen.queryByText(t.form.deletedElsewhereTitle),
+    ).not.toBeInTheDocument();
+  });
+
+  it('drops the deleted row from the cache before the list refetches', async () => {
+    del.mockResolvedValue({ response: { status: 204 } });
+    const queryClient = createTestQueryClient();
+    const { router } = renderEdit(locale, flooring, queryClient);
+    await screen.findByLabelText(new RegExp(t.form.waste));
+    get.mockImplementation((path: string) =>
+      path === listUrl
+        ? new Promise(() => {})
+        : Promise.resolve(ok(makeAdminMe())),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: form.delete }));
+    const confirm = await screen.findByRole('dialog');
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: t.delete.confirm }),
+    );
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalled());
+    const cached = queryClient.getQueryData<AdminCategory[]>([
+      'admin',
+      'catalog',
+      'categories',
+    ]);
+    expect(cached?.some((item) => item.id === flooring.id)).toBe(false);
+    expect(
+      screen.queryByText(t.form.deletedElsewhereTitle),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps the leave guard on while a delete is pending', async () => {
+    let finish: (value: unknown) => void = () => {};
+    del.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    const { router } = renderEdit(locale);
+    const waste = await screen.findByLabelText(new RegExp(t.form.waste));
+    fireEvent.change(waste, { target: { value: '15' } });
+
+    fireEvent.click(screen.getByRole('button', { name: form.delete }));
+    const confirm = await screen.findByRole('dialog');
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: t.delete.confirm }),
+    );
+    await waitFor(() => expect(del).toHaveBeenCalled());
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    expect(
+      await screen.findByRole('dialog', {
+        name: catalogs[locale as 'en' | 'uk'].Admin.form.leave.title,
+      }),
+    ).toBeInTheDocument();
+    expect(router.replace).not.toHaveBeenCalled();
+    finish({ response: { status: 204 } });
   });
 
   it('shows the conflict banner on a stale revision', async () => {
@@ -508,6 +596,28 @@ describe.each(forEachLocale)('CategoryForm (%s)', (locale) => {
     ).toBeInTheDocument();
     expect(screen.getByLabelText(new RegExp(t.form.waste))).toHaveValue(33);
     expect(screen.queryByText(t.form.notFoundText)).not.toBeInTheDocument();
+  });
+
+  it('does not reuse the previous category when the id changes to an unknown one', async () => {
+    mockList();
+    const view = renderWithProviders(
+      <AdminSessionProvider>
+        <CategoryForm categoryId={flooring.id} />
+      </AdminSessionProvider>,
+      { locale, url: `/admin/catalog/categories/${flooring.id}` },
+    );
+    await screen.findByLabelText(new RegExp(t.form.waste));
+
+    view.rerender(
+      <AdminSessionProvider>
+        <CategoryForm categoryId={adminUuid(999)} />
+      </AdminSessionProvider>,
+    );
+
+    expect(await screen.findByText(t.form.notFoundText)).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(new RegExp(t.form.waste)),
+    ).not.toBeInTheDocument();
   });
 
   it('shows a not-found state for an unknown category', async () => {

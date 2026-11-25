@@ -236,5 +236,68 @@ describe.each(forEachLocale)('AdminMaterialTypes (%s)', (locale) => {
     const message =
       catalogs[locale as 'en' | 'uk'].AdminErrors.field.TRANSLATION_MISSING;
     expect(await within(dialog).findByText(message)).toBeInTheDocument();
+    expect(
+      within(dialog).queryByText(
+        catalogs[locale as 'en' | 'uk'].AdminErrors.validation,
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows no banner when every validation field is rendered inline', async () => {
+    patch.mockResolvedValue(
+      failure(
+        makeAdminFailure(400, 'VALIDATION_FAILED', {
+          fields: [{ path: 'name.uk', code: 'TOO_SHORT', params: { min: 1 } }],
+        }),
+      ),
+    );
+    const { t, labels } = await setup(locale);
+    fireEvent.click(
+      screen.getByRole('button', { name: editLabel(t, laminate.code) }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText(t.status), {
+      target: { value: 'DRAFT' },
+    });
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: labels.form.save }),
+    );
+
+    const inline = catalogs[locale as 'en' | 'uk'].AdminErrors.field.TOO_SHORT;
+    expect(
+      await within(dialog).findByText(inline.replace('{min}', '1')),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).queryByText(
+        catalogs[locale as 'en' | 'uk'].AdminErrors.validation,
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows a banner for a validation error on a field the form does not render', async () => {
+    patch.mockResolvedValue(
+      failure(
+        makeAdminFailure(400, 'VALIDATION_FAILED', {
+          fields: [{ path: 'unknown', code: 'REQUIRED' }],
+        }),
+      ),
+    );
+    const { t, labels } = await setup(locale);
+    fireEvent.click(
+      screen.getByRole('button', { name: editLabel(t, laminate.code) }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText(t.status), {
+      target: { value: 'DRAFT' },
+    });
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: labels.form.save }),
+    );
+
+    expect(
+      await within(dialog).findByText(
+        catalogs[locale as 'en' | 'uk'].AdminErrors.validation,
+      ),
+    ).toBeInTheDocument();
   });
 });

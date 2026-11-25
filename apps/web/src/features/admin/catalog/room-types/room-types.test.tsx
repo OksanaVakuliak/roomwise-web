@@ -323,6 +323,25 @@ describe.each(forEachLocale)('RoomTypeForm (%s)', (locale) => {
     expect(await screen.findByText(errors.validation)).toBeInTheDocument();
   });
 
+  it('shows no banner when every validation field is rendered inline', async () => {
+    put.mockResolvedValue(
+      failure(
+        makeAdminFailure(400, 'VALIDATION_FAILED', {
+          fields: [{ path: 'name.uk', code: 'TOO_SHORT', params: { min: 1 } }],
+        }),
+      ),
+    );
+    renderEdit();
+    await addLighting();
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+
+    const inline = catalogs[lang(locale)].AdminErrors.field.TOO_SHORT;
+    expect(
+      await screen.findByText(inline.replace('{min}', '1')),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(errors.validation)).not.toBeInTheDocument();
+  });
+
   it('shows a not-found state for an unknown code', async () => {
     renderEdit('GARAGE');
     expect(await screen.findByText(t.form.notFoundText)).toBeInTheDocument();

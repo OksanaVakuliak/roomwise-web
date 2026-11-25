@@ -45,6 +45,7 @@ import styles from './RoomTypeForm.module.css';
 
 const LIST_HREF = '/admin/catalog/room-types';
 const SECTION_ID = 'room-type-categories';
+const RENDERED_FIELDS = ['name.en', 'name.uk', 'categoryIds'];
 
 type Values = { name: LocalizedValue; categoryIds: string[] };
 
@@ -308,7 +309,10 @@ function RoomTypeEditor({ item }: RoomTypeEditorProps) {
 
   const failure = form.error;
   const message =
-    failure !== null && failure.kind !== 'stale'
+    failure !== null &&
+    failure.kind !== 'stale' &&
+    (failure.kind !== 'validation' ||
+      failure.fields.some((field) => !RENDERED_FIELDS.includes(field.path)))
       ? adminErrorMessage(failure)
       : null;
 

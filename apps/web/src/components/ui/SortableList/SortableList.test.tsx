@@ -93,6 +93,13 @@ describe('SortableList', () => {
     expect(onReorder).toHaveBeenCalledWith([rows[1], rows[0], rows[2]]);
   });
 
+  it('gives a disabled row no move targets', () => {
+    const { onReorder } = setup({ isDisabled: isBeta });
+    fireEvent.click(screen.getByRole('button', { name: 'Down Beta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Up Beta' }));
+    expect(onReorder).not.toHaveBeenCalled();
+  });
+
   it('skips disabled rows when moving across them', () => {
     const { onReorder } = setup({ isDisabled: isBeta });
     fireEvent.click(screen.getByRole('button', { name: 'Down Alpha' }));

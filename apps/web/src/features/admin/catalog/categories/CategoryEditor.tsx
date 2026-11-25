@@ -83,9 +83,12 @@ function readInUse(error: AdminError, locale: 'en' | 'uk'): InUse {
   };
 }
 
-export type CategoryEditorProps = { category?: AdminCategory };
+export type CategoryEditorProps = {
+  category?: AdminCategory;
+  onDeleting?: (deleting: boolean) => void;
+};
 
-export function CategoryEditor({ category }: CategoryEditorProps) {
+export function CategoryEditor({ category, onDeleting }: CategoryEditorProps) {
   const t = useTranslations('AdminCatalog.categories');
   const tFields = useTranslations('Admin.fields');
   const tStatus = useTranslations('Admin.status');
@@ -223,19 +226,29 @@ export function CategoryEditor({ category }: CategoryEditorProps) {
     if (!id) return;
     setConfirmingDelete(false);
     setDeleteError(null);
-    const stay = allowLeave();
+    onDeleting?.(true);
     try {
       await withReauth(() => removeAsync(id));
     } catch (failure) {
-      stay();
+      onDeleting?.(false);
       const error = toAdminError(failure);
       if (error.kind === 'inUse') setInUse(readInUse(error, locale));
       else setDeleteError(error);
       return;
     }
     notify();
-    router.push(LIST_HREF);
-  }, [id, withReauth, removeAsync, locale, notify, router, allowLeave]);
+    allowLeave();
+    router.replace(LIST_HREF);
+  }, [
+    id,
+    withReauth,
+    removeAsync,
+    locale,
+    notify,
+    router,
+    allowLeave,
+    onDeleting,
+  ]);
 
   const closeInUse = useCallback(() => setInUse(null), []);
   const archiveInstead = useCallback(async () => {

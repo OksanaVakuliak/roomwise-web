@@ -22,7 +22,7 @@ export function updateImage(
         body,
       }),
     crypto.randomUUID(),
-    { retry: false },
+    { retry: 'unreached' },
   );
 }
 

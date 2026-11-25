@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Banner,
   Button,
@@ -23,8 +23,11 @@ export function CategoryForm({ categoryId }: CategoryFormProps) {
   const query = useCategory(categoryId);
   const { refetch } = query;
   const retry = useCallback(() => void refetch(), [refetch]);
-  const lastSeen = useRef<AdminCategory | null>(null);
-  if (query.data) lastSeen.current = query.data;
+  const lastSeen = useRef<{ id: string; data: AdminCategory } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  if (query.data && categoryId !== undefined) {
+    lastSeen.current = { id: categoryId, data: query.data };
+  }
 
   if (categoryId === undefined) return <CategoryEditor />;
 
@@ -56,7 +59,9 @@ export function CategoryForm({ categoryId }: CategoryFormProps) {
     );
   }
 
-  const category = query.data ?? lastSeen.current;
+  const category =
+    query.data ??
+    (lastSeen.current?.id === categoryId ? lastSeen.current.data : null);
   if (!category) {
     return (
       <div className={styles.root}>
@@ -76,12 +81,12 @@ export function CategoryForm({ categoryId }: CategoryFormProps) {
 
   return (
     <div className={styles.root}>
-      {query.data === null ? (
+      {query.data === null && !deleting ? (
         <Banner variant="warning" title={t('form.deletedElsewhereTitle')}>
           {t('form.deletedElsewhereText')}
         </Banner>
       ) : null}
-      <CategoryEditor category={category} />
+      <CategoryEditor category={category} onDeleting={setDeleting} />
     </div>
   );
 }

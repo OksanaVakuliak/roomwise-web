@@ -175,21 +175,24 @@ export function SortableList<T>({
     >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <ol className={cx(styles.root, className)} aria-label={label}>
-          {items.map((item, index) => (
-            <SortableRow
-              key={ids[index]}
-              id={ids[index]}
-              index={index}
-              upTo={enabled[enabled.indexOf(index) - 1] ?? null}
-              downTo={enabled[enabled.indexOf(index) + 1] ?? null}
-              disabled={blocked[index]}
-              content={renderItem(item, { index })}
-              dragLabel={dragLabel(item)}
-              moveUpLabel={moveUpLabel(item)}
-              moveDownLabel={moveDownLabel(item)}
-              onMove={move}
-            />
-          ))}
+          {items.map((item, index) => {
+            const position = enabled.indexOf(index);
+            return (
+              <SortableRow
+                key={ids[index]}
+                id={ids[index]}
+                index={index}
+                upTo={position < 0 ? null : (enabled[position - 1] ?? null)}
+                downTo={position < 0 ? null : (enabled[position + 1] ?? null)}
+                disabled={blocked[index]}
+                content={renderItem(item, { index })}
+                dragLabel={dragLabel(item)}
+                moveUpLabel={moveUpLabel(item)}
+                moveDownLabel={moveDownLabel(item)}
+                onMove={move}
+              />
+            );
+          })}
         </ol>
       </SortableContext>
     </DndContext>
