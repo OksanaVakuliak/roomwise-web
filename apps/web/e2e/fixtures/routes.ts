@@ -1,10 +1,13 @@
 import {
+  adminIds,
+  categoryIds,
   makeCategoryProducts,
   makeDefaultMaterials,
   makeEngineering,
   makeLeadCreated,
   makeLeadFormSettings,
   makePricingData,
+  makeProductCard,
   makeProductDetails,
   makeRoomTypes,
   makeSaveCalculationResponse,
@@ -73,6 +76,36 @@ const withSurface = (productId: string) =>
     (product) => product.id === productId,
   ) ?? makeProductDetails(productId);
 
+const publicCategoryOf: Record<string, string> = {
+  [adminIds.categories.flooring]: categoryIds.floor,
+  [adminIds.categories.wallFinish]: categoryIds.walls,
+  [adminIds.categories.ceilingFinish]: categoryIds.ceiling,
+};
+
+const seededProductIds: string[] = Object.values(adminIds.products);
+
+const publishedCards = (store: MockStore, categoryId: string) =>
+  store.admin.products
+    .filter(
+      (product) =>
+        product.status === 'PUBLISHED' &&
+        !seededProductIds.includes(product.id) &&
+        publicCategoryOf[product.categoryId] === categoryId,
+    )
+    .map((product) =>
+      makeProductCard(undefined, {
+        id: product.id,
+        name: product.name.en,
+        brand: product.brand,
+        manufacturer: product.manufacturer,
+        size: product.size.en,
+        color: product.color.en,
+        priceCents: product.priceCents,
+        unit: product.unit,
+        heatedFloorCompatible: product.heatedFloorCompatible,
+      }),
+    );
+
 const lookup = (store: MockStore, publicId: string) =>
   store.calculations.get(publicId);
 
@@ -112,7 +145,13 @@ export const routes: Route[] = [
   {
     method: 'GET',
     pattern: /^\/public\/categories\/([^/]+)\/products$/,
-    reply: ([, categoryId]) => ok(makeCategoryProducts(categoryId)),
+    reply: ([, categoryId], { store }) =>
+      ok({
+        items: [
+          ...makeCategoryProducts(categoryId).items,
+          ...publishedCards(store, categoryId),
+        ],
+      }),
   },
   {
     method: 'GET',
