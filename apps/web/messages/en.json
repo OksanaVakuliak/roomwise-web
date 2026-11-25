@@ -1599,6 +1599,31 @@
         "close": "Close"
       }
     },
-    "products": {}
+    "products": {
+      "list": {
+        "title": "Products",
+        "caption": "Products",
+        "new": "New product",
+        "search": "Search products",
+        "columns": {
+          "image": "Image",
+          "name": "Name",
+          "category": "Category",
+          "price": "Price",
+          "status": "Status",
+          "updated": "Updated"
+        },
+        "filters": {
+          "category": "Category",
+          "allCategories": "All categories",
+          "status": "Status",
+          "allStatuses": "All statuses"
+        },
+        "empty": {
+          "title": "No products yet",
+          "text": "Add the first product to the catalog."
+        }
+      }
+    }
   }
 }

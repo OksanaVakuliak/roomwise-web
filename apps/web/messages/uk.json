@@ -1599,6 +1599,31 @@
         "close": "Закрити"
       }
     },
-    "products": {}
+    "products": {
+      "list": {
+        "title": "Товари",
+        "caption": "Товари",
+        "new": "Новий товар",
+        "search": "Пошук товарів",
+        "columns": {
+          "image": "Фото",
+          "name": "Назва",
+          "category": "Категорія",
+          "price": "Ціна",
+          "status": "Статус",
+          "updated": "Оновлено"
+        },
+        "filters": {
+          "category": "Категорія",
+          "allCategories": "Усі категорії",
+          "status": "Статус",
+          "allStatuses": "Усі статуси"
+        },
+        "empty": {
+          "title": "Товарів ще немає",
+          "text": "Додайте перший товар до каталогу."
+        }
+      }
+    }
   }
 }
