@@ -36,14 +36,14 @@ export class RateLimitedError extends ApiRequestError {
 const networkFailure = () =>
   new ApiRequestError(0, { error: { code: 'network' } });
 
-const UNREACHED_STATUSES: ReadonlySet<number> = new Set([502, 503]);
+const UNREACHED_STATUS = 503;
 
 class ServerUnavailableError extends ApiRequestError {
   readonly reached: boolean;
 
-  constructor(status: number) {
+  constructor(reached: boolean) {
     super(0, { error: { code: 'network' } });
-    this.reached = !UNREACHED_STATUSES.has(status);
+    this.reached = reached;
   }
 }
 
@@ -77,7 +77,11 @@ async function attempt<T>(
   send: WriteSender<T>,
   idempotencyKey: string,
 ): Promise<T> {
-  await waitUntilReady();
+  try {
+    await waitUntilReady();
+  } catch {
+    throw new ServerUnavailableError(false);
+  }
   let result: WriteResult<T>;
   try {
     result = await send(idempotencyKey);
@@ -90,7 +94,7 @@ async function attempt<T>(
   const failure = new ApiRequestError(result.response.status, result.error);
   if (isServerUnavailable(failure.status, failure.apiError)) {
     await rewarm();
-    throw new ServerUnavailableError(failure.status);
+    throw new ServerUnavailableError(failure.status !== UNREACHED_STATUS);
   }
   throw failure;
 }

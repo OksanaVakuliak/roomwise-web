@@ -255,15 +255,39 @@ export function ProductEditor({ product }: ProductEditorProps) {
       revision: string | null,
       confirmedZero: boolean,
     ) => {
-      if (applied.current && isEqual(applied.current.source, current)) {
-        return applied.current;
+      let result =
+        applied.current && isEqual(applied.current.source, current)
+          ? applied.current
+          : null;
+      if (!result) {
+        assertValid(current, {
+          hasSurface,
+          publish: false,
+          priceValid,
+          colorValid,
+        });
+        const saved = id
+          ? await withReauth(() =>
+              updateAsync({
+                id,
+                body: toPatchBody(
+                  current,
+                  bodySurface,
+                  confirmedZero,
+                  applied.current?.revision ?? revision ?? '',
+                ),
+              }),
+            )
+          : await withReauth(() =>
+              createAsync(toBody(current, bodySurface, confirmedZero)),
+            );
+        result = {
+          source: current,
+          revision: saved.revision,
+          values: toValues(saved),
+        };
+        applied.current = result;
       }
-      assertValid(current, {
-        hasSurface,
-        publish: false,
-        priceValid,
-        colorValid,
-      });
       const imageId = current.textureImageId;
       const width = wholeMm(current.tileWidthMm);
       if (hasSurface && imageId && width !== undefined) {
@@ -279,27 +303,6 @@ export function ProductEditor({ product }: ProductEditorProps) {
           textureSizes.current.set(imageId, width);
         }
       }
-      const saved = id
-        ? await withReauth(() =>
-            updateAsync({
-              id,
-              body: toPatchBody(
-                current,
-                bodySurface,
-                confirmedZero,
-                applied.current?.revision ?? revision ?? '',
-              ),
-            }),
-          )
-        : await withReauth(() =>
-            createAsync(toBody(current, bodySurface, confirmedZero)),
-          );
-      const result = {
-        source: current,
-        revision: saved.revision,
-        values: toValues(saved),
-      };
-      applied.current = result;
       return result;
     },
     [

@@ -130,8 +130,13 @@ export async function uploadImage(
     request.onload = () => {
       finish();
       if (request.status >= 200 && request.status < 300) {
+        const image = parseBody(request.responseText);
+        if (image === undefined || image === null) {
+          reject(failure(0, 'network'));
+          return;
+        }
         onProgress?.(100);
-        resolve(parseBody(request.responseText) as UploadedImage);
+        resolve(image as UploadedImage);
         return;
       }
       reject(toFailure(request.status, request.responseText));

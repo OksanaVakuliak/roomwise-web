@@ -118,7 +118,7 @@ export function AdminMaterialTypes() {
   );
 
   let body;
-  if (query.error) {
+  if (query.error && !query.data) {
     const message = adminErrorMessage(toAdminError(query.error));
     body = (
       <Banner

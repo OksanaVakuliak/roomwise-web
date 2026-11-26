@@ -101,6 +101,12 @@ describe('createWriteGate', () => {
     ).rejects.toMatchObject({ status: 0, apiError: { code: 'network' } });
     expect(timedOut).toHaveBeenCalledTimes(1);
 
+    const badGateway = vi.fn().mockResolvedValue(failure(502, undefined));
+    await expect(
+      createWriteGate().write(badGateway, 'key-3', { retry: 'unreached' }),
+    ).rejects.toMatchObject({ status: 0, apiError: { code: 'network' } });
+    expect(badGateway).toHaveBeenCalledTimes(1);
+
     const dropped = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
     await expect(
       createWriteGate().write(dropped, 'key-2', { retry: 'unreached' }),

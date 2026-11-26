@@ -186,7 +186,7 @@ export function ImageUploader({
       />
       {problems.length > 0 ? (
         <ul className={styles.problems} role="alert">
-          {problems.map((message) => (
+          {Array.from(new Set(problems)).map((message) => (
             <li key={message}>{message}</li>
           ))}
         </ul>
