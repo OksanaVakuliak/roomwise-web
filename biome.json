@@ -104,6 +104,7 @@
     },
     {
       "includes": [
+        "apps/web/src/components/ui/ImageUploader/ImageUploader.tsx",
         "apps/web/src/components/ui/ImageWithFallback/ImageWithFallback.tsx"
       ],
       "linter": {

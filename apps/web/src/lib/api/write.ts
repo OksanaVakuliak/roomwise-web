@@ -36,7 +36,18 @@ export class RateLimitedError extends ApiRequestError {
 const networkFailure = () =>
   new ApiRequestError(0, { error: { code: 'network' } });
 
-function waitUntilReady(): Promise<void> {
+const UNREACHED_STATUS = 503;
+
+class ServerUnavailableError extends ApiRequestError {
+  readonly reached: boolean;
+
+  constructor(reached: boolean) {
+    super(0, { error: { code: 'network' } });
+    this.reached = reached;
+  }
+}
+
+export function waitUntilReady(): Promise<void> {
   const settle = (resolve: () => void, reject: (reason: Error) => void) => {
     const status = selectWarmupStatus(useWarmup.getState());
     if (status === 'ready') {
@@ -79,7 +90,7 @@ async function attempt<T>(
   const failure = new ApiRequestError(result.response.status, result.error);
   if (isServerUnavailable(failure.status, failure.apiError)) {
     await rewarm();
-    throw networkFailure();
+    throw new ServerUnavailableError(failure.status !== UNREACHED_STATUS);
   }
   throw failure;
 }
@@ -87,18 +98,22 @@ async function attempt<T>(
 async function sendWithRetry<T>(
   send: WriteSender<T>,
   idempotencyKey: string,
+  unreachedOnly: boolean,
 ): Promise<T> {
   try {
     return await attempt(send, idempotencyKey);
   } catch (error) {
-    if (error instanceof ApiRequestError && error.status === 0) {
+    const retryable = unreachedOnly
+      ? error instanceof ServerUnavailableError && !error.reached
+      : error instanceof ApiRequestError && error.status === 0;
+    if (retryable) {
       return attempt(send, idempotencyKey);
     }
     throw error;
   }
 }
 
-export type WriteOptions = { retry?: boolean };
+export type WriteOptions = { retry?: boolean | 'unreached' };
 
 export type WriteGate = {
   blockedForSeconds: () => number;
@@ -130,7 +145,11 @@ export function createWriteGate(now: () => number = Date.now): WriteGate {
       try {
         return options?.retry === false
           ? await attempt(send, idempotencyKey)
-          : await sendWithRetry(send, idempotencyKey);
+          : await sendWithRetry(
+              send,
+              idempotencyKey,
+              options?.retry === 'unreached',
+            );
       } catch (failure) {
         if (
           failure instanceof ApiRequestError &&

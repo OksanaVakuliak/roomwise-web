@@ -1,0 +1,78 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.problems {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--heat);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.thumb {
+  flex-shrink: 0;
+  width: var(--size-target);
+  height: var(--size-target);
+  border: var(--stroke-1-5) solid var(--line);
+  object-fit: cover;
+  background: var(--fallback);
+}
+
+.status {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.error {
+  color: var(--heat);
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--size-target);
+  padding: 0 var(--space-12);
+  border: var(--stroke-1-5) solid var(--line);
+  background: var(--paper);
+  color: var(--line);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--fill-a);
+}
+
+.primary:disabled {
+  cursor: default;
+  opacity: var(--opacity-disabled);
+}
+
+.primary:focus-visible {
+  outline: var(--focus-ring-width) solid var(--line);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.primary[aria-pressed="true"] {
+  background: var(--line);
+  color: var(--paper);
+}

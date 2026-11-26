@@ -1510,5 +1510,275 @@
     "caption": "admin panel",
     "brandLink": "Roomwise admin panel, home",
     "logoutFailed": "Could not sign out. Try again."
+  },
+  "AdminCatalog": {
+    "materialTypes": {
+      "title": "Material types",
+      "caption": "Material types",
+      "search": "Search by code or name",
+      "add": "Add material type",
+      "createTitle": "New material type",
+      "editTitle": "Edit material type",
+      "close": "Close",
+      "columnCode": "Code",
+      "columnName": "Name",
+      "columnStatus": "Status",
+      "columnUpdated": "Changed",
+      "columnActions": "Actions",
+      "edit": "Edit {code}",
+      "emptyTitle": "No material types yet",
+      "emptyText": "Add the first material type to use it in products.",
+      "noMatchesTitle": "Nothing found",
+      "noMatchesText": "Try changing the search.",
+      "loading": "Loading material types",
+      "loadFailed": "Could not load material types",
+      "retry": "Retry",
+      "code": "Code",
+      "codeHint": "Latin letters, digits and underscores. Cannot be changed later.",
+      "name": "Name",
+      "status": "Status"
+    },
+    "categories": {
+      "title": "Categories",
+      "caption": "Categories",
+      "search": "Search by name",
+      "add": "New category",
+      "newTitle": "New category",
+      "editTitle": "Category: {name}",
+      "statusFilter": "Status",
+      "allStatuses": "All statuses",
+      "columns": {
+        "name": "Name",
+        "surface": "Surface",
+        "waste": "Waste, %",
+        "status": "Status",
+        "products": "Products",
+        "updated": "Updated"
+      },
+      "empty": {
+        "title": "No categories yet",
+        "text": "Create the first category to group products."
+      },
+      "surfaces": {
+        "NONE": "None",
+        "FLOOR": "Floor",
+        "WALLS": "Walls",
+        "CEILING": "Ceiling"
+      },
+      "form": {
+        "name": "Name",
+        "waste": "Waste",
+        "wasteUnit": "%",
+        "wasteHint": "From 0 to 100. Applies to new calculations; saved ones do not change.",
+        "surface": "3D surface",
+        "requiresPutty": "Requires putty",
+        "lastChanged": "Last changed {time} by {user}",
+        "lastChangedAnon": "Last changed {time}",
+        "loading": "Loading the category",
+        "loadFailed": "Could not load the category",
+        "retry": "Retry",
+        "notFoundTitle": "Category not found",
+        "notFoundText": "It may have been deleted. Go back to the list.",
+        "back": "Back to categories",
+        "deletedElsewhereTitle": "This category was deleted",
+        "deletedElsewhereText": "It was deleted in another session. You can keep your edits, but saving will fail."
+      },
+      "delete": {
+        "title": "Delete this category?",
+        "description": "The category will be deleted permanently. This cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel",
+        "close": "Close"
+      },
+      "inUse": {
+        "title": "The category is in use",
+        "intro": "It cannot be deleted while other items depend on it. Archive it instead to hide it from new calculations.",
+        "products": "Products: {count}",
+        "roomTypes": "Room types: {list}",
+        "styles": "Styles: {list}",
+        "archive": "Archive instead",
+        "cancel": "Cancel",
+        "close": "Close"
+      }
+    },
+    "products": {
+      "list": {
+        "title": "Products",
+        "caption": "Products",
+        "new": "New product",
+        "search": "Search products",
+        "columns": {
+          "image": "Image",
+          "name": "Name",
+          "category": "Category",
+          "price": "Price",
+          "status": "Status",
+          "updated": "Updated"
+        },
+        "filters": {
+          "category": "Category",
+          "allCategories": "All categories",
+          "status": "Status",
+          "allStatuses": "All statuses"
+        },
+        "empty": {
+          "title": "No products yet",
+          "text": "Add the first product to the catalog."
+        }
+      },
+      "form": {
+        "title": "Product",
+        "newTitle": "New product",
+        "editTitle": "Product: {name}",
+        "lastChanged": "Last changed {time} by {user}",
+        "lastChangedAnon": "Last changed {time}",
+        "loading": "Loading the product",
+        "loadFailed": "Could not load the product",
+        "retry": "Retry",
+        "notFoundTitle": "Product not found",
+        "notFoundText": "It may have been deleted. Go back to the list.",
+        "back": "Back to products",
+        "deletedElsewhereTitle": "This product was deleted",
+        "deletedElsewhereText": "It was deleted in another session. You can keep your edits, but saving will fail.",
+        "loadingOptions": "Loading options",
+        "sections": {
+          "details": "Details",
+          "pricing": "Price and cost",
+          "images": "Images"
+        },
+        "name": "Name",
+        "description": "Description",
+        "brand": "Brand",
+        "manufacturer": "Manufacturer",
+        "category": "Category",
+        "categoryPlaceholder": "Choose a category",
+        "materialType": "Material type",
+        "materialTypePlaceholder": "Choose a material type",
+        "color": "Color",
+        "size": "Size",
+        "price": "Price",
+        "unit": "Unit",
+        "units": {
+          "SQM": "Square metre",
+          "LINEAR_M": "Linear metre",
+          "PIECE": "Piece"
+        },
+        "waste": "Own waste",
+        "wasteUnit": "%",
+        "wasteHint": "Optional, from 0 to 100. Replaces the category waste for this product.",
+        "heatedFloor": "Compatible with heated floor",
+        "images": {
+          "label": "Images",
+          "add": "Add images",
+          "empty": "No images yet",
+          "list": "Product images",
+          "primary": "Primary",
+          "progress": "Uploading",
+          "previewAlt": "Image {n}",
+          "remove": "Remove image {n}",
+          "drag": "Drag image {n}",
+          "moveUp": "Move image {n} up",
+          "moveDown": "Move image {n} down",
+          "wrongType": "{name}: use a JPEG, PNG or WebP image",
+          "tooLarge": "{name}: the file is larger than {max} MB",
+          "instructions": "Press space to pick up an image, use the arrow keys to move it, press space again to drop it.",
+          "announce": {
+            "start": "Picked up image {n}",
+            "over": "Over position {n}",
+            "end": "Dropped at position {n}",
+            "cancel": "Move of image {n} cancelled"
+          },
+          "unfinished": "Some images are still uploading or failed. Wait for them or remove them before saving."
+        },
+        "attributes": {
+          "title": "Attributes",
+          "name": "Attribute {n} name",
+          "value": "Attribute {n} value",
+          "add": "Add attribute",
+          "remove": "Remove attribute {n}",
+          "limit": "No more than {max} attributes."
+        },
+        "texture": {
+          "dismissError": "Dismiss the upload error",
+          "title": "3D texture",
+          "hint": "Required to publish products of categories that show on a 3D surface.",
+          "image": "Texture image",
+          "choose": "Choose image",
+          "empty": "No texture yet",
+          "uploaded": "Texture uploaded",
+          "required": "Upload a texture before publishing",
+          "progress": "Uploading the texture",
+          "tileWidth": "Tile width",
+          "tileLength": "Tile length",
+          "mm": "mm",
+          "fallback": "Fallback color",
+          "preview": "Texture repeated on a 2 by 2 metre square"
+        },
+        "zeroPrice": {
+          "title": "Save with a zero price?",
+          "description": "The price is 0. The product will be counted as free in new calculations.",
+          "confirm": "Yes, zero price",
+          "cancel": "Cancel",
+          "close": "Close"
+        },
+        "delete": {
+          "title": "Delete this product?",
+          "description": "The product will be deleted permanently. This cannot be undone.",
+          "confirm": "Delete",
+          "cancel": "Cancel",
+          "close": "Close"
+        },
+        "inUse": {
+          "title": "The product is in use",
+          "intro": "It cannot be deleted while styles use it. Archive it instead to hide it from new calculations.",
+          "styles": "Styles: {list}",
+          "archive": "Archive instead",
+          "cancel": "Cancel",
+          "close": "Close"
+        },
+        "warnings": {
+          "USED_AS_DEFAULT_MATERIAL": "This product is still the default material in styles: {list}.",
+          "dismiss": "Dismiss"
+        }
+      }
+    },
+    "roomTypes": {
+      "title": "Room types",
+      "caption": "Room types",
+      "columns": {
+        "name": "Name",
+        "categories": "Categories",
+        "updated": "Updated"
+      },
+      "form": {
+        "editTitle": "Room type: {name}",
+        "name": "Name",
+        "lastChanged": "Last changed {time} by {user}",
+        "lastChangedAnon": "Last changed {time}",
+        "categoriesTitle": "Categories of the room",
+        "categoriesNote": "The order here is the order in the configurator. Changes apply to new calculations; saved ones do not change.",
+        "categoriesEmpty": "No categories yet. Add the first one below.",
+        "addLabel": "Add a category",
+        "addPlaceholder": "Choose a category",
+        "addNone": "All categories are already in the set",
+        "add": "Add",
+        "draftMark": "{name} (draft)",
+        "remove": "Remove {name}",
+        "drag": "Drag {name}",
+        "moveUp": "Move {name} up",
+        "moveDown": "Move {name} down",
+        "pickedUp": "Picked up {name}, position {position} of {total}.",
+        "movedOver": "{name} moved to position {position} of {total}.",
+        "dropped": "{name} dropped at position {position} of {total}.",
+        "cancelled": "Move of {name} cancelled.",
+        "instructions": "Press space to pick up a category, arrow keys to move it, space to drop, escape to cancel.",
+        "loading": "Loading the room type",
+        "loadFailed": "Could not load the room type",
+        "retry": "Retry",
+        "notFoundTitle": "Room type not found",
+        "notFoundText": "Check the address or go back to the list.",
+        "back": "Back to room types"
+      }
+    }
   }
 }
