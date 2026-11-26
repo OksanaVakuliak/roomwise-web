@@ -660,6 +660,35 @@ describe.each(forEachLocale)('ProductForm (%s)', (locale) => {
     );
   });
 
+  it('saves the product before the texture size and retries only the texture', async () => {
+    const product = makeTexturedProduct();
+    let imageCalls = 0;
+    patch.mockImplementation((path: string) => {
+      if (path !== imageUrl) return Promise.resolve(ok(product));
+      imageCalls += 1;
+      return Promise.resolve(
+        imageCalls === 1
+          ? failure(makeAdminFailure(422, 'VALIDATION_FAILED'))
+          : ok(uploadedImage(adminIds.images.texture)),
+      );
+    });
+    renderEdit(product);
+    fireEvent.change(await screen.findByLabelText(label(t.texture.tileWidth)), {
+      target: { value: '800' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+    await waitFor(() => expect(imageCalls).toBe(1));
+    expect(patch.mock.calls.map(([path]) => path)).toEqual([itemUrl, imageUrl]);
+
+    fireEvent.click(screen.getByRole('button', { name: saveName }));
+    await waitFor(() => expect(imageCalls).toBe(2));
+    expect(patch.mock.calls.map(([path]) => path)).toEqual([
+      itemUrl,
+      imageUrl,
+      imageUrl,
+    ]);
+  });
+
   it('sets the real size of a texture uploaded before the tile width', async () => {
     const textureId = adminUuid(3001);
     upload.mockResolvedValue(uploadedImage(textureId));

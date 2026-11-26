@@ -77,11 +77,7 @@ async function attempt<T>(
   send: WriteSender<T>,
   idempotencyKey: string,
 ): Promise<T> {
-  try {
-    await waitUntilReady();
-  } catch {
-    throw new ServerUnavailableError(false);
-  }
+  await waitUntilReady();
   let result: WriteResult<T>;
   try {
     result = await send(idempotencyKey);

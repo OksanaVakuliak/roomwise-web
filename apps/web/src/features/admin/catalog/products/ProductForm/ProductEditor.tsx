@@ -255,42 +255,16 @@ export function ProductEditor({ product }: ProductEditorProps) {
       revision: string | null,
       confirmedZero: boolean,
     ) => {
-      let result =
-        applied.current && isEqual(applied.current.source, current)
-          ? applied.current
-          : null;
-      if (!result) {
-        assertValid(current, {
-          hasSurface,
-          publish: false,
-          priceValid,
-          colorValid,
-        });
-        const saved = id
-          ? await withReauth(() =>
-              updateAsync({
-                id,
-                body: toPatchBody(
-                  current,
-                  bodySurface,
-                  confirmedZero,
-                  applied.current?.revision ?? revision ?? '',
-                ),
-              }),
-            )
-          : await withReauth(() =>
-              createAsync(toBody(current, bodySurface, confirmedZero)),
-            );
-        result = {
-          source: current,
-          revision: saved.revision,
-          values: toValues(saved),
-        };
-        applied.current = result;
-      }
-      const imageId = current.textureImageId;
-      const width = wholeMm(current.tileWidthMm);
-      if (hasSurface && imageId && width !== undefined) {
+      assertValid(current, {
+        hasSurface,
+        publish: false,
+        priceValid,
+        colorValid,
+      });
+      const syncTexture = async () => {
+        const imageId = current.textureImageId;
+        const width = wholeMm(current.tileWidthMm);
+        if (!hasSurface || !imageId || width === undefined) return;
         const known = textureSizes.current.has(imageId)
           ? textureSizes.current.get(imageId)
           : product?.texture?.id === imageId
@@ -302,7 +276,34 @@ export function ProductEditor({ product }: ProductEditorProps) {
           );
           textureSizes.current.set(imageId, width);
         }
+      };
+      if (applied.current && isEqual(applied.current.source, current)) {
+        await syncTexture();
+        return applied.current;
       }
+      if (!id) await syncTexture();
+      const saved = id
+        ? await withReauth(() =>
+            updateAsync({
+              id,
+              body: toPatchBody(
+                current,
+                bodySurface,
+                confirmedZero,
+                applied.current?.revision ?? revision ?? '',
+              ),
+            }),
+          )
+        : await withReauth(() =>
+            createAsync(toBody(current, bodySurface, confirmedZero)),
+          );
+      const result = {
+        source: current,
+        revision: saved.revision,
+        values: toValues(saved),
+      };
+      applied.current = result;
+      if (id) await syncTexture();
       return result;
     },
     [

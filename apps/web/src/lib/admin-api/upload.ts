@@ -131,7 +131,11 @@ export async function uploadImage(
       finish();
       if (request.status >= 200 && request.status < 300) {
         const image = parseBody(request.responseText);
-        if (image === undefined || image === null) {
+        if (
+          typeof image !== 'object' ||
+          image === null ||
+          typeof (image as { id?: unknown }).id !== 'string'
+        ) {
           reject(failure(0, 'network'));
           return;
         }
